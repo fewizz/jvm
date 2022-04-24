@@ -21,7 +21,7 @@ exit 0
 
 #endif
 
-#include "class.hpp"
+#include "class/file/reader.hpp"
 #include "alloc.hpp"
 
 #include <stdio.h>
@@ -39,7 +39,9 @@ int main() {
 
 	fread(data, 1, size, f);
 
-	class_reader magic_reader{ data };
+	using namespace class_file;
+
+	reader magic_reader{ data };
 	auto [version_reader, is_here_any_magic] = magic_reader();
 
 	if(!is_here_any_magic) {
@@ -59,54 +61,84 @@ int main() {
 		[&]<typename Type>(Type x) {
 			printf("\t[%d] ", constant_pool_entry_index++);
 
-			if constexpr (same_as<Type, utf8_info>) {
+			if constexpr (same_as<Type, constant::utf8>) {
 				printf("utf8: ");
 				fwrite(x.begin(), 1, x.size(), stdout);
 				printf("\n");
 			}
-			else if constexpr (same_as<Type, integer_info>) {
+			else if constexpr (same_as<Type, constant::integer>) {
 				printf("integer: value: %d\n", x.value);
 			}
-			else if constexpr (same_as<Type, class_info>) {
+			else if constexpr (same_as<Type, constant::floating>) {
+				printf("float: value: %d\n", x.value);
+			}
+			else if constexpr (same_as<Type, constant::long_integer>) {
+				printf("long: value: %d\n", x.value);
+			}
+			else if constexpr (same_as<Type, constant::double_floating>) {
+				printf("double: value: %d\n", x.value);
+			}
+			else if constexpr (same_as<Type, constant::clazz>) {
 				printf("class: name index: %d\n", x.name_index);
 			}
-			else if constexpr (same_as<Type, string_info>) {
+			else if constexpr (same_as<Type, constant::string>) {
 				printf("string: index: %d\n", x.string_index);
 			}
-			else if constexpr (same_as<Type, fieldref_info>) {
+			else if constexpr (same_as<Type, constant::fieldref>) {
 				printf(
 					"fieldref: class index: %d, name and type index: %d\n",
 					x.class_index,
 					x.name_and_type_index
 				);
 			}
-			else if constexpr (same_as<Type, methodref_info>) {
+			else if constexpr (same_as<Type, constant::methodref>) {
 				printf(
 					"methodref: class index: %d, name and type index: %d\n",
 					x.class_index,
 					x.name_and_type_index
 				);
 			}
-			else if constexpr (same_as<Type, name_and_type_info>) {
+			else if constexpr (same_as<Type, constant::interface_methodref>) {
+				printf(
+					"interface methodred: class index: %d",
+					x.class_index
+				);
+				printf(
+					", name and type index: %d\n",
+					x.name_and_type_index
+				);
+			}
+			else if constexpr (same_as<Type, constant::name_and_type>) {
 				printf(
 					"name and type: name index: %d, descriptor index: %d\n",
 					x.name_index,
 					x.descriptor_index
 				);
 			}
-			else if constexpr (same_as<Type, method_handle_info>) {
+			else if constexpr (same_as<Type, constant::method_handle>) {
 				printf(
 					"method handle: reference kind: %d, reference index: %d\n",
 					x.reference_kind, x.reference_index
 				);
 			}
-			else if constexpr (same_as<Type, method_type_info>) {
+			else if constexpr (same_as<Type, constant::method_type>) {
 				printf(
 					"method type: descriptor_index: %d\n",
 					x.descriptor_index
 				);
 			}
-			else if constexpr (same_as<Type, invoke_dynamic_info>) {
+			else if constexpr (same_as<Type, constant::dynamic>) {
+				printf(
+					"dynamic: bootstrap method attr index: %d",
+					x.bootstrap_method_attr_index
+				);
+
+				printf(
+					", name_and_type_index: %d\n",
+					x.name_and_type_index
+				);
+			}
+			else if constexpr (same_as<Type, constant::invoke_dynamic>) {
 				printf(
 					"invoke dynamic: bootstrap method attr index: %d",
 					x.bootstrap_method_attr_index
@@ -116,6 +148,12 @@ int main() {
 					", name_and_type_index: %d\n",
 					x.name_and_type_index
 				);
+			}
+			else if constexpr (same_as<Type, constant::module>) {
+				printf("module: name_index: %d\n", x.name_index);
+			}
+			else if constexpr (same_as<Type, constant::package>) {
+				printf("package: name_index: %d\n", x.name_index);
 			}
 			else if constexpr (same_as<Type, uint8>) {
 				printf("unknown tag: %d", x);
@@ -127,17 +165,17 @@ int main() {
 		}
 	);
 
-	utf8_info utf8_strings[constant_pool_entry_index];
-	class_info classes[constant_pool_entry_index];
+	constant::utf8 utf8_strings[constant_pool_entry_index];
+	constant::clazz classes[constant_pool_entry_index];
 
 	constant_pool_entry_index = 1;
 
 	constant_pool_reader(
 		[&]<typename Type>(Type x) {
-			if constexpr (same_as<Type, utf8_info>) {
+			if constexpr (same_as<Type, constant::utf8>) {
 				utf8_strings[constant_pool_entry_index] = x;
 			}
-			if constexpr (same_as<Type, class_info>) {
+			if constexpr (same_as<Type, constant::clazz>) {
 				classes[constant_pool_entry_index] = x;
 			}
 			++constant_pool_entry_index;
@@ -173,82 +211,81 @@ int main() {
 
 	printf("fields:\n");
 	auto methods_reader = fields_reader(
-		[&](field_info fi, auto attributes_reader) {
-			printf("\taccess flags: 0x%.4x, name: ", fi.access_flags);
+		[&](auto field_reader) {
+			auto [name_index_reader, access_flags] = field_reader();
+			printf("\taccess flags: 0x%.4x, name: ", access_flags);
+
+			auto [descriptor_index_reader, name_index] = name_index_reader();
+
 			fwrite(
-				utf8_strings[fi.name_index].begin(),
+				utf8_strings[name_index].begin(),
 				1,
-				utf8_strings[fi.name_index].size(),
+				utf8_strings[name_index].size(),
 				stdout
 			);
+
+			auto [attributes_reader, descriptor_index] {
+				descriptor_index_reader()
+			};
 
 			printf(", descriptor: ");
 			fwrite(
-				utf8_strings[fi.descriptor_index].begin(),
+				utf8_strings[descriptor_index].begin(),
 				1,
-				utf8_strings[fi.descriptor_index].size(),
+				utf8_strings[descriptor_index].size(),
 				stdout
 			);
-
 			printf("\n");
 
-			attributes_reader.read_attributes(
-				[&](attribute_info attribute_info) {
-					printf("\t\tname: ");
-					fwrite(
-						utf8_strings[attribute_info.name_index].begin(),
-						1,
-						utf8_strings[attribute_info.name_index].size(),
-						stdout
+			return attributes_reader(
+				[&](auto attribute_reader) {
+					return attribute_reader(
+						[&](auto index){ return utf8_strings[index]; },
+						[&](auto ) {
+							
+						}
 					);
-					printf("\n");
 				}
 			);
 		}
 	);
 
 	printf("methods:\n");
-	auto attributes_reader = methods_reader(
-		[&](method_info mi, auto attributes_reader) {
-			printf("\taccess flags: 0x%.4x, name: ", mi.access_flags);
+	auto _ = methods_reader(
+		[&](auto method_reader) {
+			auto [name_index_reader, access_flags] = method_reader();
+			printf("\taccess flags: 0x%.4x, name: ", access_flags);
+
+			auto [descriptor_index_reader, name_index] = name_index_reader();
+
 			fwrite(
-				utf8_strings[mi.name_index].begin(),
+				utf8_strings[name_index].begin(),
 				1,
-				utf8_strings[mi.name_index].size(),
+				utf8_strings[name_index].size(),
 				stdout
 			);
+
+			auto [attributes_reader, descriptor_index] {
+				descriptor_index_reader()
+			};
 
 			printf(", descriptor: ");
 			fwrite(
-				utf8_strings[mi.descriptor_index].begin(),
+				utf8_strings[descriptor_index].begin(),
 				1,
-				utf8_strings[mi.descriptor_index].size(),
+				utf8_strings[descriptor_index].size(),
 				stdout
 			);
+			printf("\n");
 
-			printf(", attributes:\n");
-
-			attributes_reader.read_attributes(
-				[&](attribute_info attribute_info) {
-					auto name = utf8_strings[attribute_info.name_index];
-					printf("\t\tname: ");
-					fwrite(name.begin(), 1, name.size(), stdout);
-					printf("\n");
-
-					if(range::equals(name, array{'C', 'o', 'd', 'e'})) {
-						code_attribute_reader max_locals_reader {
-							attribute_info.data.begin(),
-							attribute_info.data.end()
-						};
-
-						auto[max_stack_reader, max_locals] = max_locals_reader();
-
-						printf("max locals: %d\n", max_locals);
-
-						auto[code_reader, max_stack] = max_stack_reader();
-
-						printf("max stack: %d\n", max_locals);
-					}
+			return attributes_reader(
+				[&](auto attribute_reader) {
+					return attribute_reader(
+						[&](auto index){ return utf8_strings[index]; },
+						[&](auto ) {
+							
+						}
+					);
 				}
 			);
 		}
