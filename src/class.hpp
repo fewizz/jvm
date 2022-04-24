@@ -1,7 +1,8 @@
 #pragma once
 
 #include <core/range/of_value_type_same_as.hpp>
-#include <core/range/equal.hpp>
+#include <core/range/equals.hpp>
+#include <core/read.hpp>
 #include <core/expected.hpp>
 #include <core/array.hpp>
 #include <core/meta/elements/one_of.hpp>
@@ -89,19 +90,11 @@ struct attributes_reader {
 
 	template<typename Handler>
 	void read_attributes(Handler&& handler) {
-		array x{ *src++, *src++ };
-		uint16 count = (x[0] << 8) | x[1];
+		uint16 count = read<uint16>(src);
 
 		for(uint16 i = 0; i < count; ++i) {
-			array x0{ *src++, *src++ };
-			uint16 name_index  = (x0[0] << 8) | x0[1];
-
-			array x1{ *src++, *src++, *src++, *src++ };
-			uint32 length = 
-				(x1[0] << 24) |
-				(x1[1] << 16) |
-				(x1[2] <<  8) |
-				 x1[3];
+			uint16 name_index  = read<uint16>(src);
+			uint32 length = read<uint32>(src);
 
 			handler(attribute_info{ name_index, span{ src, length }});
 			src += length;
@@ -143,142 +136,104 @@ struct class_reader {
 
 	Iterator src;
 
-	expected<
-		class_reader<Iterator, class_reader_stage::version>,
-		bool
-	>
-	read_and_check_magic() const
+	elements::of<class_reader<Iterator, class_reader_stage::version>, bool>
+	operator () () const
 	requires (Stage == class_reader_stage::magic) {
 		auto cpy = src;
 
 		array cafebabe{ 0xCA, 0xFE, 0xBA, 0xBE };
 		array x{ *cpy++, *cpy++, *cpy++, *cpy++ };
 
-		if(!range::equal(x, cafebabe)) {
-			return false;
-		}
+		bool result = range::equals(x, cafebabe);
 
-		return class_reader<
-			Iterator,
-			class_reader_stage::version
-		>{ cpy };
+		return {
+			{ cpy },
+			result
+		};
 	}
 
 	elements::of<
 		class_reader<Iterator, class_reader_stage::constant_pool>,
 		class_file_version
 	>
-	read_version() const
+	operator() () const
 	requires (Stage == class_reader_stage::version) {
 		auto cpy = src;
 
-		array x{ *cpy++, *cpy++, *cpy++, *cpy++ };
-
-		class_file_version version {
-			.minor = uint16((x[0] << 8) | x[1]),
-			.major = uint16((x[2] << 8) | x[3]),
-		};
+		auto min = read<uint16>(cpy);
+		auto maj = read<uint16>(cpy);
 
 		return {
 			{ cpy },
-			version
+			class_file_version{ min, maj }
 		};
 	}
 
 	template<typename Handler>
 	class_reader<Iterator, class_reader_stage::access_flags>
-	read_constant_pool(Handler&& handler) const
+	operator() (Handler&& handler) const
 	requires (Stage == class_reader_stage::constant_pool) {
 		auto cpy = src;
-		array size0{ *cpy++, *cpy++ };
-		uint16 size = (size0[0] << 8) | size0[1];
+
+		uint16 size = read<uint16>(cpy);
 
 		for(uint16 i = 1; i < size; ++i) {
 			uint8 tag = *cpy++;
 
 			switch (tag) {
 				case 1: {
-					array x{ *cpy++, *cpy++ };
-					uint16 len = (x[0] << 8) | x[1];
+					uint16 len = read<uint16>(cpy);
 					handler(utf8_info{ cpy, len });
 					cpy += len;
 					break;
 				}
 				case 3: {
-					array x{ *cpy++, *cpy++, *cpy++, *cpy++ };
-					int32 value =
-						(x[0] << 24) |
-						(x[1] << 16) |
-						(x[2] <<  8) |
-						 x[3];
+					int32 value = read<int32>(cpy);
 					handler(integer_info{ value });
 					break;
 				}
 				case 7: {
-					array x{ *cpy++, *cpy++ };
-					uint16 name_index = (x[0] << 8) | x[1];
+					uint16 name_index = read<uint16>(cpy);
 					handler(class_info{ name_index });
 					break;
 				}
 				case 8: {
-					array x{ *cpy++, *cpy++ };
-					uint16 index = (x[0] << 8) | x[1];
+					uint16 index = read<uint16>(cpy);
 					handler(string_info{ index });
 					break;
 				}
 				case 9: {
-					array x0{ *cpy++, *cpy++ };
-					uint16 class_index = (x0[0] << 8) | x0[1];
-
-					array x1{ *cpy++, *cpy++ };
-					uint16 nat_index = (x1[0] << 8) | x1[1];
-
+					uint16 class_index = read<uint16>(cpy);
+					uint16 nat_index = read<uint16>(cpy);
 					handler(fieldref_info{ class_index, nat_index });
 					break;
 				}
 				case 10: {
-					array x0{ *cpy++, *cpy++ };
-					uint16 class_index = (x0[0] << 8) | x0[1];
-
-					array x1{ *cpy++, *cpy++ };
-					uint16 nat_index = (x1[0] << 8) | x1[1];
-
+					uint16 class_index = read<uint16>(cpy);
+					uint16 nat_index = read<uint16>(cpy);
 					handler(methodref_info{ class_index, nat_index });
 					break;
 				}
 				case 12: {
-					array x0{ *cpy++, *cpy++ };
-					uint16 name_index = (x0[0] << 8) | x0[1];
-
-					array x1{ *cpy++, *cpy++ };
-					uint16 desc_index = (x1[0] << 8) | x1[1];
-
+					uint16 name_index = read<uint16>(cpy);
+					uint16 desc_index = read<uint16>(cpy);
 					handler(name_and_type_info{ name_index, desc_index });
 					break;
 				}
 				case 15: {
 					uint8 kind = *cpy++;
-
-					array x{ *cpy++, *cpy++ };
-					uint16 index = (x[0] << 8) | x[1];
-
+					uint16 index = read<uint16>(cpy);
 					handler(method_handle_info{ kind, index });
 					break;
 				}
 				case 16: {
-					array x{ *cpy++, *cpy++ };
-					uint16 desc_index = (x[0] << 8) | x[1];
-
+					uint16 desc_index = read<uint16>(cpy);
 					handler(method_type_info{ desc_index });
 					break;
 				}
 				case 18: {
-					array x0{ *cpy++, *cpy++ };
-					uint16 method_attr_index = (x0[0] << 8) | x0[1];
-
-					array x1{ *cpy++, *cpy++ };
-					uint16 name_and_type_index = (x1[0] << 8) | x1[1];
-					
+					uint16 method_attr_index = read<uint16>(cpy);
+					uint16 name_and_type_index = read<uint16>(cpy);
 					handler(invoke_dynamic_info {
 						method_attr_index,
 						name_and_type_index
@@ -297,47 +252,46 @@ struct class_reader {
 		class_reader<Iterator, class_reader_stage::this_class>,
 		access_flags
 	>
-	read_access_flags() const
+	operator () () const
 	requires (Stage == class_reader_stage::access_flags) {
 		auto cpy = src;
+		auto flags = (access_flag) read<uint16>(cpy);
 
-		array x{ *cpy++, *cpy++ };
-		return { { cpy }, { (access_flag) ((x[0] << 8) | x[1]) } };
+		return { { cpy }, { flags } };
 	}
 
 	elements::of<
 		class_reader<Iterator, class_reader_stage::super_class>,
 		uint16
 	>
-	read_this_class() const
+	operator () () const
 	requires (Stage == class_reader_stage::this_class) {
 		auto cpy = src;
-		array x{ *cpy++, *cpy++ };
-		return { { cpy }, uint16((x[0] << 8) | x[1]) };
+		auto ind = read<uint16>(cpy);
+		return { { cpy }, ind };
 	}
 
 	elements::of<
 		class_reader<Iterator, class_reader_stage::interfaces>,
 		uint16
 	>
-	read_super_class() const
+	operator () () const
 	requires (Stage == class_reader_stage::super_class) {
 		auto cpy = src;
-		array x{ *cpy++, *cpy++ };
-		return { { cpy }, uint16((x[0] << 8) | x[1]) };
+		auto ind = read<uint16>(cpy);
+		return { { cpy }, ind };
 	}
 
 	template<typename Handler>
 	class_reader<Iterator, class_reader_stage::fields>
-	read_interfaces(Handler&& handler) const
+	operator () (Handler&& handler) const
 	requires (Stage == class_reader_stage::interfaces) {
 		auto cpy = src;
-		array x{ *cpy++, *cpy++ };
-		uint16 count = (x[0] << 8) | x[1];
+
+		uint16 count = read<uint16>(cpy);
 
 		for(uint16 i = 0; i < count; ++i) {
-			array x0{ *cpy++, *cpy++ };
-			uint16 index = (x0[0] << 8) | x0[1];
+			uint16 index = read<uint16>(cpy);
 			handler(index);
 		}
 
@@ -346,21 +300,16 @@ struct class_reader {
 
 	template<typename Handler>
 	class_reader<Iterator, class_reader_stage::methods>
-	read_fields(Handler&& handler) const
+	operator () (Handler&& handler) const
 	requires (Stage == class_reader_stage::fields) {
 		auto cpy = src;
-		array x{ *cpy++, *cpy++ };
-		uint16 count = (x[0] << 8) | x[1];
+		uint16 count = read<uint16>(cpy);
 
 		for(uint16 i = 0; i < count; ++i) {
-			array x0{ *cpy++, *cpy++ };
-			access_flags access_flags = (access_flag) ((x0[0] << 8) | x0[1]);
+			access_flags access_flags = (access_flag) read<uint16>(cpy);
 
-			array x1{ *cpy++, *cpy++ };
-			uint16 name_index = (x1[0] << 8) | x1[1];
-
-			array x2{ *cpy++, *cpy++ };
-			uint16 descriptor_index = (x2[0] << 8) | x2[1];
+			uint16 name_index = read<uint16>(cpy);
+			uint16 descriptor_index = read<uint16>(cpy);;
 
 			handler(
 				field_info{ access_flags, name_index, descriptor_index },
@@ -373,21 +322,16 @@ struct class_reader {
 
 	template<typename Handler>
 	class_reader<Iterator, class_reader_stage::attributes>
-	read_methods(Handler&& handler) const
+	operator () (Handler&& handler) const
 	requires (Stage == class_reader_stage::methods) {
 		auto cpy = src;
-		array x{ *cpy++, *cpy++ };
-		uint16 count = (x[0] << 8) | x[1];
+		uint16 count = read<uint16>(cpy);
 
 		for(uint16 i = 0; i < count; ++i) {
-			array x0{ *cpy++, *cpy++ };
-			access_flags access_flags = (access_flag) ((x0[0] << 8) | x0[1]);
+			access_flags access_flags = (access_flag) read<uint16>(cpy);
 
-			array x1{ *cpy++, *cpy++ };
-			uint16 name_index = (x1[0] << 8) | x1[1];
-
-			array x2{ *cpy++, *cpy++ };
-			uint16 descriptor_index = (x2[0] << 8) | x2[1];
+			uint16 name_index = read<uint16>(cpy);
+			uint16 descriptor_index = read<uint16>(cpy);
 
 			handler(
 				method_info{ access_flags, name_index, descriptor_index },
@@ -405,3 +349,67 @@ template<
 	class_reader_stage Stage = class_reader_stage::magic
 >
 class_reader(Iterator) -> class_reader<Iterator, Stage>;
+
+enum class code_attribute_reader_stage {
+	max_locals,
+	max_stack,
+	code,
+	exception_table,
+	attributes
+};
+
+template<
+	typename Iterator,
+	code_attribute_reader_stage Stage = code_attribute_reader_stage::max_locals
+>
+struct code_attribute_reader {
+	Iterator iterator;
+	Iterator end;
+
+	elements::of<
+		code_attribute_reader<Iterator, code_attribute_reader_stage::max_stack>,
+		uint16
+	>
+	operator () () const
+	requires (Stage == code_attribute_reader_stage::max_locals) {
+		auto cpy = iterator;
+		uint16 max_locals = read<uint16>(cpy);
+		return { { cpy, end }, max_locals };
+	}
+
+	elements::of<
+		code_attribute_reader<Iterator, code_attribute_reader_stage::code>,
+		uint16
+	>
+	operator () () const
+	requires (Stage == code_attribute_reader_stage::max_stack) {
+		auto cpy = iterator;
+		uint16 max_stack = read<uint16>(cpy);
+		return { { cpy, end }, max_stack };
+	}
+
+	template<typename Handler>
+	code_attribute_reader<
+		Iterator,
+		code_attribute_reader_stage::exception_table
+	>
+	operator () (Handler&& handler) const
+	requires (Stage == code_attribute_reader_stage::code) {
+		auto cpy = iterator;
+		
+		uint32 code_length = read<uint32>(cpy);
+
+		while(code_length > 0) {
+			--code_length;
+
+			uint8 first_byte = read<uint8>(cpy);
+
+			switch (first_byte) {
+			}
+		}
+	}
+
+};
+
+template<typename Iterator>
+code_attribute_reader(Iterator, Iterator) -> code_attribute_reader<Iterator>;

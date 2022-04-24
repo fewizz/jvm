@@ -22,11 +22,11 @@ exit 0
 #endif
 
 #include "class.hpp"
+#include "alloc.hpp"
 
 #include <stdio.h>
 
 extern "C" void abort();
-extern "C" void *__cdecl malloc(size_t _Size);
 
 int main() {
 	FILE* f = fopen("Crawl.class", "rb");
@@ -40,14 +40,14 @@ int main() {
 	fread(data, 1, size, f);
 
 	class_reader magic_reader{ data };
-	auto result = magic_reader.read_and_check_magic();
+	auto [version_reader, is_here_any_magic] = magic_reader();
 
-	if(result.is_unexpected()) {
+	if(!is_here_any_magic) {
 		printf("no magic here...");
 		abort();
 	}
 
-	auto [constant_pool_reader, version] = result.get_expected().read_version();
+	auto [constant_pool_reader, version] = version_reader();
 
 	printf("version: %d.%d\n", version.major, version.minor);
 
@@ -55,7 +55,7 @@ int main() {
 
 	nuint constant_pool_entry_index = 1;
 
-	auto access_flags_read = constant_pool_reader.read_constant_pool(
+	auto access_flags_reader = constant_pool_reader(
 		[&]<typename Type>(Type x) {
 			printf("\t[%d] ", constant_pool_entry_index++);
 
@@ -132,7 +132,7 @@ int main() {
 
 	constant_pool_entry_index = 1;
 
-	constant_pool_reader.read_constant_pool(
+	constant_pool_reader(
 		[&]<typename Type>(Type x) {
 			if constexpr (same_as<Type, utf8_info>) {
 				utf8_strings[constant_pool_entry_index] = x;
@@ -144,16 +144,16 @@ int main() {
 		}
 	);
 
-	auto [this_reader, access_flags] = access_flags_read.read_access_flags();
+	auto [this_reader, access_flags] = access_flags_reader();
 	printf("access flags: 0x%.4x\n", access_flags);
 
-	auto [super_reader, this_class] = this_reader.read_this_class();
+	auto [super_reader, this_class] = this_reader();
 	printf("this class: index: %d, name: ", this_class);
 	auto this_name = utf8_strings[classes[this_class].name_index];
 	fwrite(this_name.begin(), 1, this_name.size(), stdout);
 	printf("\n");
 
-	auto [interfaces_reader, super_class] = super_reader.read_super_class();
+	auto [interfaces_reader, super_class] = super_reader();
 	printf("super class: ");
 	fwrite(
 		utf8_strings[classes[super_class].name_index].begin(),
@@ -164,7 +164,7 @@ int main() {
 	printf("\n");
 
 	printf("interfaces:\n");
-	auto fields_reader = interfaces_reader.read_interfaces([&](auto index) {
+	auto fields_reader = interfaces_reader([&](auto index) {
 		printf("\t");
 		auto name = utf8_strings[classes[index].name_index];
 		fwrite(name.begin(), 1, name.size(), stdout);
@@ -172,7 +172,7 @@ int main() {
 	});
 
 	printf("fields:\n");
-	auto methods_reader = fields_reader.read_fields(
+	auto methods_reader = fields_reader(
 		[&](field_info fi, auto attributes_reader) {
 			printf("\taccess flags: 0x%.4x, name: ", fi.access_flags);
 			fwrite(
@@ -208,7 +208,7 @@ int main() {
 	);
 
 	printf("methods:\n");
-	auto attributes_reader = methods_reader.read_methods(
+	auto attributes_reader = methods_reader(
 		[&](method_info mi, auto attributes_reader) {
 			printf("\taccess flags: 0x%.4x, name: ", mi.access_flags);
 			fwrite(
@@ -230,14 +230,25 @@ int main() {
 
 			attributes_reader.read_attributes(
 				[&](attribute_info attribute_info) {
+					auto name = utf8_strings[attribute_info.name_index];
 					printf("\t\tname: ");
-					fwrite(
-						utf8_strings[attribute_info.name_index].begin(),
-						1,
-						utf8_strings[attribute_info.name_index].size(),
-						stdout
-					);
+					fwrite(name.begin(), 1, name.size(), stdout);
 					printf("\n");
+
+					if(range::equals(name, array{'C', 'o', 'd', 'e'})) {
+						code_attribute_reader max_locals_reader {
+							attribute_info.data.begin(),
+							attribute_info.data.end()
+						};
+
+						auto[max_stack_reader, max_locals] = max_locals_reader();
+
+						printf("max locals: %d\n", max_locals);
+
+						auto[code_reader, max_stack] = max_stack_reader();
+
+						printf("max stack: %d\n", max_locals);
+					}
 				}
 			);
 		}
