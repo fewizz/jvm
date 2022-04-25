@@ -3,7 +3,6 @@
 #include "version.hpp"
 #include "constant.hpp"
 #include "access_flag.hpp"
-#include "method.hpp"
 
 #include "field/reader.hpp"
 #include "method/reader.hpp"

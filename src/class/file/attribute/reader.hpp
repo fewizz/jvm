@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../constant.hpp"
+#include "code/reader.hpp"
 
 #include <core/read.hpp>
 #include <core/meta/elements/one_of.hpp>
@@ -30,9 +31,9 @@ namespace class_file::attribute {
 			uint32 length = read<uint32>(cpy);
 			constant::utf8 name = mapper(name_index);
 
-			//if(range::equals(name, array{ 'C', 'o', 'd', 'e' }) {
-			//	handler();
-			//}
+			if(range::equals(name, array{ 'C', 'o', 'd', 'e' })) {
+				handler(code::reader{ cpy });
+			}
 
 			cpy += length;
 
