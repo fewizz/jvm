@@ -25,7 +25,7 @@ namespace class_file::method {
 		operator () () const
 		requires (Stage == reader_stage::access_flags) {
 			auto cpy = src;
-			uint16 flags = read<uint16>(cpy);
+			uint16 flags = read<uint16, endianness::big>(cpy);
 			return { { cpy }, { (access_flag) flags } };
 		}
 
@@ -33,7 +33,7 @@ namespace class_file::method {
 		operator () () const
 		requires (Stage == reader_stage::name_index) {
 			auto cpy = src;
-			uint16 name_index = read<uint16>(cpy);
+			uint16 name_index = read<uint16, endianness::big>(cpy);
 			return { { cpy }, { name_index } };
 		}
 
@@ -41,7 +41,7 @@ namespace class_file::method {
 		operator () () const
 		requires (Stage == reader_stage::descriptor_index) {
 			auto cpy = src;
-			uint16 desc_index = read<uint16>(cpy);
+			uint16 desc_index = read<uint16, endianness::big>(cpy);
 			return { { cpy }, { desc_index } };
 		}
 
@@ -50,7 +50,7 @@ namespace class_file::method {
 		operator () (Handler&& handler) const
 		requires (Stage == reader_stage::attributes) {
 			auto cpy = src;
-			auto count = read<uint16>(cpy);
+			auto count = read<uint16, endianness::big>(cpy);
 
 			while(count > 0) {
 				--count;

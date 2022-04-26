@@ -36,10 +36,9 @@ namespace class_file {
 		requires (Stage == reader_stage::magic) {
 			auto cpy = src;
 
-			array cafebabe{ 0xCA, 0xFE, 0xBA, 0xBE };
-			array x{ *cpy++, *cpy++, *cpy++, *cpy++ };
+			uint32 val = read<uint32, endianness::big>(cpy);
 
-			bool result = range::equals(x, cafebabe);
+			bool result = val == 0xCAFEBABE;
 
 			return {
 				{ cpy },
@@ -55,8 +54,8 @@ namespace class_file {
 		requires (Stage == reader_stage::version) {
 			auto cpy = src;
 
-			auto min = read<uint16>(cpy);
-			auto maj = read<uint16>(cpy);
+			auto min = read<uint16, endianness::big>(cpy);
+			auto maj = read<uint16, endianness::big>(cpy);
 
 			return {
 				{ cpy },
@@ -70,63 +69,67 @@ namespace class_file {
 		requires (Stage == reader_stage::constant_pool) {
 			auto cpy = src;
 
-			uint16 size = read<uint16>(cpy);
+			uint16 size = read<uint16, endianness::big>(cpy);
 
 			for(uint16 i = 1; i < size; ++i) {
 				uint8 tag = *cpy++;
 
 				switch (tag) {
 					case constant::utf8::tag : {
-						uint16 len = read<uint16>(cpy);
+						uint16 len = read<uint16, endianness::big>(cpy);
 						handler(constant::utf8{ cpy, len });
 						cpy += len;
 						break;
 					}
 					case constant::integer::tag : {
-						int32 value = read<int32>(cpy);
+						int32 value = read<int32, endianness::big>(cpy);
 						handler(constant::integer{ value });
 						break;
 					}
-					case constant::floating::tag : {
-						float value = read<float>(cpy);
-						handler(constant::floating{ value });
+					case constant::_float::tag : {
+						float value = read<float, endianness::big>(cpy);
+						handler(constant::_float{ value });
 						break;
 					}
-					case constant::long_integer::tag : {
-						int64 value = read<int64>(cpy);
-						handler(constant::long_integer{ value });
+					case constant::_long::tag : {
+						int64 val = read<uint64, endianness::big>(cpy);
+						handler(constant::_long{ val });
+						++i;
+						handler(constant::skip{});
 						break;
 					}
-					case constant::double_floating::tag : {
-						double value = read<double>(cpy);
-						handler(constant::double_floating{ value });
+					case constant::_double::tag : {
+						double value = read<double, endianness::big>(cpy);
+						handler(constant::_double{ value });
+						++i;
+						handler(constant::skip{});
 						break;
 					}
-					case constant::clazz::tag : {
-						uint16 name_index = read<uint16>(cpy);
-						handler(constant::clazz{ name_index });
+					case constant::_class::tag : {
+						uint16 name_index = read<uint16, endianness::big>(cpy);
+						handler(constant::_class{ name_index });
 						break;
 					}
 					case constant::string::tag : {
-						uint16 index = read<uint16>(cpy);
+						uint16 index = read<uint16, endianness::big>(cpy);
 						handler(constant::string{ index });
 						break;
 					}
 					case constant::fieldref::tag : {
-						uint16 class_index = read<uint16>(cpy);
-						uint16 nat_index = read<uint16>(cpy);
+						uint16 class_index = read<uint16, endianness::big>(cpy);
+						uint16 nat_index = read<uint16, endianness::big>(cpy);
 						handler(constant::fieldref{ class_index, nat_index });
 						break;
 					}
 					case constant::methodref::tag : {
-						uint16 class_index = read<uint16>(cpy);
-						uint16 nat_index = read<uint16>(cpy);
+						uint16 class_index = read<uint16, endianness::big>(cpy);
+						uint16 nat_index = read<uint16, endianness::big>(cpy);
 						handler(constant::methodref{ class_index, nat_index });
 						break;
 					}
 					case constant::interface_methodref::tag : {
-						uint16 class_index = read<uint16>(cpy);
-						uint16 nat_index = read<uint16>(cpy);
+						uint16 class_index = read<uint16, endianness::big>(cpy);
+						uint16 nat_index = read<uint16, endianness::big>(cpy);
 						handler(constant::interface_methodref {
 							class_index,
 							nat_index
@@ -134,8 +137,8 @@ namespace class_file {
 						break;
 					}
 					case constant::name_and_type::tag : {
-						uint16 name_index = read<uint16>(cpy);
-						uint16 desc_index = read<uint16>(cpy);
+						uint16 name_index = read<uint16, endianness::big>(cpy);
+						uint16 desc_index = read<uint16, endianness::big>(cpy);
 						handler(constant::name_and_type {
 							name_index,
 							desc_index
@@ -144,26 +147,34 @@ namespace class_file {
 					}
 					case constant::method_handle::tag : {
 						uint8 kind = *cpy++;
-						uint16 index = read<uint16>(cpy);
+						uint16 index = read<uint16, endianness::big>(cpy);
 						handler(constant::method_handle{ kind, index });
 						break;
 					}
 					case constant::method_type::tag : {
-						uint16 desc_index = read<uint16>(cpy);
+						uint16 desc_index = read<uint16, endianness::big>(cpy);
 						handler(constant::method_type{ desc_index });
 						break;
 					}
 					case constant::dynamic::tag : {
-						uint16 method_attr_index = read<uint16>(cpy);
-						uint16 name_and_type_index = read<uint16>(cpy);
+						uint16 method_attr_index {
+							read<uint16, endianness::big>(cpy)
+						};
+						uint16 name_and_type_index {
+							read<uint16, endianness::big>(cpy)
+						};
 						handler(constant::dynamic {
 							method_attr_index, name_and_type_index
 						});
 						break;
 					}
 					case constant::invoke_dynamic::tag : {
-						uint16 method_attr_index = read<uint16>(cpy);
-						uint16 name_and_type_index = read<uint16>(cpy);
+						uint16 method_attr_index {
+							read<uint16, endianness::big>(cpy)
+						};
+						uint16 name_and_type_index {
+							read<uint16, endianness::big>(cpy)
+						};
 						handler(constant::invoke_dynamic {
 							method_attr_index,
 							name_and_type_index
@@ -171,12 +182,12 @@ namespace class_file {
 						break;
 					}
 					case constant::module::tag : {
-						uint16 name_index = read<uint16>(cpy);
+						uint16 name_index = read<uint16, endianness::big>(cpy);
 						handler(constant::module{name_index});
 						break;
 					}
 					case constant::package::tag : {
-						uint16 name_index = read<uint16>(cpy);
+						uint16 name_index = read<uint16, endianness::big>(cpy);
 						handler(constant::package{name_index});
 						break;
 					}
@@ -195,7 +206,7 @@ namespace class_file {
 		operator () () const
 		requires (Stage == reader_stage::access_flags) {
 			auto cpy = src;
-			auto flags = (access_flag) read<uint16>(cpy);
+			auto flags = (access_flag) read<uint16, endianness::big>(cpy);
 
 			return { { cpy }, { flags } };
 		}
@@ -207,7 +218,7 @@ namespace class_file {
 		operator () () const
 		requires (Stage == reader_stage::this_class) {
 			auto cpy = src;
-			auto ind = read<uint16>(cpy);
+			auto ind = read<uint16, endianness::big>(cpy);
 			return { { cpy }, ind };
 		}
 
@@ -218,7 +229,7 @@ namespace class_file {
 		operator () () const
 		requires (Stage == reader_stage::super_class) {
 			auto cpy = src;
-			auto ind = read<uint16>(cpy);
+			auto ind = read<uint16, endianness::big>(cpy);
 			return { { cpy }, ind };
 		}
 
@@ -228,10 +239,10 @@ namespace class_file {
 		requires (Stage == reader_stage::interfaces) {
 			auto cpy = src;
 
-			uint16 count = read<uint16>(cpy);
+			uint16 count = read<uint16, endianness::big>(cpy);
 
 			for(uint16 i = 0; i < count; ++i) {
-				uint16 index = read<uint16>(cpy);
+				uint16 index = read<uint16, endianness::big>(cpy);
 				handler(index);
 			}
 
@@ -243,7 +254,7 @@ namespace class_file {
 		operator () (Handler&& handler) const
 		requires (Stage == reader_stage::fields) {
 			auto cpy = src;
-			uint16 count = read<uint16>(cpy);
+			uint16 count = read<uint16, endianness::big>(cpy);
 
 			for(uint16 i = 0; i < count; ++i) {
 				field::reader<Iterator, field::reader_stage::end> result {
@@ -260,7 +271,7 @@ namespace class_file {
 		operator () (Handler&& handler) const
 		requires (Stage == reader_stage::methods) {
 			auto cpy = src;
-			uint16 count = read<uint16>(cpy);
+			uint16 count = read<uint16, endianness::big>(cpy);
 
 			for(uint16 i = 0; i < count; ++i) {
 				method::reader<Iterator, method::reader_stage::end> result {

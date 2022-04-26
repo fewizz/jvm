@@ -5,6 +5,8 @@
 
 namespace class_file::constant {
 
+	struct skip {};
+
 	// kind = Utf8
 	struct utf8 : span<uint8, uint16> {
 		static constexpr uint8 tag = 1;
@@ -19,25 +21,25 @@ namespace class_file::constant {
 	};
 
 	// kind = Float
-	struct floating {
+	struct _float {
 		static constexpr uint8 tag = 4;
 		float value;
 	};
 
 	// kind = Long
-	struct long_integer {
+	struct _long {
 		static constexpr uint8 tag = 5;
 		int64 value;
 	};
 
 	// kind = Double
-	struct double_floating {
+	struct _double {
 		static constexpr uint8 tag = 6;
 		double value;
 	};
 
 	// kind = Class
-	struct clazz {
+	struct _class {
 		static constexpr uint8 tag = 7;
 		uint16 name_index;
 	};

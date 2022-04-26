@@ -27,8 +27,8 @@ namespace class_file::attribute {
 		operator () (IndexToUtf8Mapper&& mapper, Handler&& handler) const
 		requires (Stage == reader_stage::info) {
 			auto cpy = src;
-			uint16 name_index = read<uint16>(cpy);
-			uint32 length = read<uint32>(cpy);
+			uint16 name_index = read<uint16, endianness::big>(cpy);
+			uint32 length = read<uint32, endianness::big>(cpy);
 			constant::utf8 name = mapper(name_index);
 
 			if(range::equals(name, array{ 'C', 'o', 'd', 'e' })) {
