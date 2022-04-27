@@ -15,7 +15,7 @@ clang++ \
 	-o ${d}/class_info \
 	${d}/class_info.cpp
 
-${d}/class_info
+${d}/class_info $@
 
 exit 0
 
@@ -165,6 +165,13 @@ void read_code_attribute(
 			printf("ifacmpne %d\n", x.branch);
 		}
 		if constexpr (same_as<Type, go_to>) printf("goto %d\n", x.branch);
+		if constexpr (same_as<Type, table_switch>) {
+			printf("tableswitch %d", x._default);
+			for(auto p : x.offsets) {
+				printf(" %d", p);
+			}
+			printf("\n");
+		}
 		if constexpr (same_as<Type, lookup_switch>) {
 			printf("lookupswitch %d", x._default);
 			for(auto p : x.pairs) {
@@ -233,9 +240,13 @@ void read_code_attribute(
 	});
 }
 
-int main() {
-	FILE* f = fopen("java.base/java/lang/String.class", "rb");
+int main(int argc, const char** argv) {
+	if(argc != 2) {
+		printf("usage: class_info.cpp <path to class file>");
+		return 1;
+	}
 
+	FILE* f = fopen(argv[1], "rb");
 	fseek(f, 0, SEEK_END);
 	nuint size = ftell(f);
 	rewind(f);

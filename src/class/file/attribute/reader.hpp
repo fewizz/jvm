@@ -6,7 +6,7 @@
 #include <core/read.hpp>
 #include <core/meta/elements/one_of.hpp>
 #include <core/array.hpp>
-#include <core/range/equals.hpp>
+#include <core/equals.hpp>
 
 namespace class_file::attribute {
 
@@ -31,12 +31,20 @@ namespace class_file::attribute {
 			uint32 length = read<uint32, endianness::big>(cpy);
 			constant::utf8 name = mapper(name_index);
 
-			if(range::equals(name, array{ 'C', 'o', 'd', 'e' })) {
+			if(equals(name, array{ 'C', 'o', 'd', 'e' })) {
 				handler(code::reader{ cpy });
 			}
 
 			cpy += length;
 
+			return { cpy };
+		}
+
+		reader<Iterator, reader_stage::end> skip() const {
+			auto cpy = src;
+			read<uint16, endianness::big>(cpy);
+			uint32 length = read<uint32, endianness::big>(cpy);
+			cpy += length;
 			return { cpy };
 		}
 	};

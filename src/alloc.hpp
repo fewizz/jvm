@@ -1,8 +1,20 @@
 #pragma once
 
-#include <inttypes.h>
+#include <core/integer.hpp>
 
-extern "C" void* __cdecl malloc(size_t size);
-extern "C" void* __cdecl calloc(size_t size);
-extern "C" void* __cdecl realloc(void *ptr, size_t new_size);
+extern "C" void* __cdecl malloc(nuint size);
+extern "C" void* __cdecl calloc(nuint size);
+extern "C" void* __cdecl realloc(void *ptr, nuint new_size);
 extern "C" void  __cdecl free(void* ptr);
+
+struct default_allocator {
+
+	uint8* allocate(auto size) {
+		return (uint8*) malloc(size);
+	}
+
+	void deallocate(uint8* ptr, auto) {
+		free(ptr);
+	}
+
+};

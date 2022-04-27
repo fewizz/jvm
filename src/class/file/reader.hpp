@@ -9,7 +9,7 @@
 
 #include <core/meta/elements/of.hpp>
 #include <core/array.hpp>
-#include <core/range/equals.hpp>
+#include <core/equals.hpp>
 
 namespace class_file {
 
@@ -37,7 +37,6 @@ namespace class_file {
 			auto cpy = src;
 
 			uint32 val = read<uint32, endianness::big>(cpy);
-
 			bool result = val == 0xCAFEBABE;
 
 			return {
@@ -249,6 +248,13 @@ namespace class_file {
 			return { cpy };
 		}
 
+		uint16 count () const
+		requires (Stage == reader_stage::fields) {
+			auto cpy = src;
+			uint16 count = read<uint16, endianness::big>(cpy);
+			return count;
+		}
+
 		template<typename Handler>
 		reader<Iterator, reader_stage::methods>
 		operator () (Handler&& handler) const
@@ -264,6 +270,13 @@ namespace class_file {
 			}
 
 			return { cpy };
+		}
+
+		uint16 count () const
+		requires (Stage == reader_stage::methods) {
+			auto cpy = src;
+			uint16 count = read<uint16, endianness::big>(cpy);
+			return count;
 		}
 
 		template<typename Handler>

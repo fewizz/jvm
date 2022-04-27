@@ -111,8 +111,17 @@ namespace class_file::code::instruction {
 	struct if_a_cmp_ne { uint16 branch; };
 	struct go_to { uint16 branch; };
 
+	struct table_switch {
+		int32 _default;
+		int32 low;
+		int32 hight;
+		span<int32, uint32> offsets;
+	};
 	struct match_offset{ int32 match; int32 offset; };
-	struct lookup_switch { int32 _default; span<match_offset, uint32> pairs; };
+	struct lookup_switch {
+		int32 _default;
+		span<match_offset, uint32> pairs;
+	};
 
 	struct i_return {};
 	struct a_return {};

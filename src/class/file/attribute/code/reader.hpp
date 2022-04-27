@@ -233,6 +233,23 @@ namespace class_file::attribute::code {
 						uint16 branch = read<uint16, endianness::big>(cpy);
 						handler(go_to{ branch }); break;
 					}
+					case 170: {
+						while((cpy - src0) % 4 != 0) {
+							++cpy;
+						}
+						int32 _default = read<int32, endianness::big>(cpy);
+						int32 low = read<int32, endianness::big>(cpy);
+						int32 high = read<int32, endianness::big>(cpy);
+						auto n = high - low + 1;
+						int32 storage[n];
+						for(int32 z = 0; z < n; ++z) {
+							int32 offset = read<int32, endianness::big>(cpy);
+							storage[z] = offset;
+						}
+						span<int32, uint32> offsets{ storage, (uint32) n };
+						handler(table_switch{ _default, low, high, offsets });
+						break;
+					}
 					case 171: {
 						while((cpy - src0) % 4 != 0) {
 							++cpy;
