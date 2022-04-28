@@ -40,7 +40,8 @@ namespace class_file::attribute {
 			return { cpy };
 		}
 
-		reader<Iterator, reader_stage::end> skip() const {
+		reader<Iterator, reader_stage::end> skip() const
+		requires (Stage == reader_stage::info){
 			auto cpy = src;
 			read<uint16, endianness::big>(cpy);
 			uint32 length = read<uint32, endianness::big>(cpy);

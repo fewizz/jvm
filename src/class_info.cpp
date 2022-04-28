@@ -40,7 +40,7 @@ void read_code_attribute(
 
 	using namespace class_file::code::instruction;
 
-	code_reader([&]<typename Type>(Type x) {
+	code_reader([&]<typename Type>(Type x, auto) {
 		if constexpr (same_as<Type, nop>) printf("nop\n");
 
 		if constexpr (same_as<Type, a_const_null>) printf("aconst_null\n");

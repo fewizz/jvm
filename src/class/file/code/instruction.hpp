@@ -17,8 +17,8 @@ namespace class_file::code::instruction {
 	struct l_const_0 {};
 	struct l_const_1 {};
 
-	struct bi_push { uint8 value; };
-	struct si_push { uint16 value; };
+	struct bi_push { int8 value; };
+	struct si_push { int16 value; };
 
 	struct ldc { uint8 index; };
 	struct ldc_w { uint16 index; };
@@ -95,21 +95,21 @@ namespace class_file::code::instruction {
 
 	struct l_cmp {};
 
-	struct if_eq { uint16 branch; };
-	struct if_ne { uint16 branch; };
-	struct if_lt { uint16 branch; };
-	struct if_ge { uint16 branch; };
-	struct if_gt { uint16 branch; };
-	struct if_le { uint16 branch; };
-	struct if_i_cmp_eq { uint16 branch; };
-	struct if_i_cmp_ne { uint16 branch; };
-	struct if_i_cmp_lt { uint16 branch; };
-	struct if_i_cmp_ge { uint16 branch; };
-	struct if_i_cmp_gt { uint16 branch; };
-	struct if_i_cmp_le { uint16 branch; };
-	struct if_a_cmp_eq { uint16 branch; };
-	struct if_a_cmp_ne { uint16 branch; };
-	struct go_to { uint16 branch; };
+	struct if_eq { int16 branch; };
+	struct if_ne { int16 branch; };
+	struct if_lt { int16 branch; };
+	struct if_ge { int16 branch; };
+	struct if_gt { int16 branch; };
+	struct if_le { int16 branch; };
+	struct if_i_cmp_eq { int16 branch; };
+	struct if_i_cmp_ne { int16 branch; };
+	struct if_i_cmp_lt { int16 branch; };
+	struct if_i_cmp_ge { int16 branch; };
+	struct if_i_cmp_gt { int16 branch; };
+	struct if_i_cmp_le { int16 branch; };
+	struct if_a_cmp_eq { int16 branch; };
+	struct if_a_cmp_ne { int16 branch; };
+	struct go_to { int16 branch; };
 
 	struct table_switch {
 		int32 _default;

@@ -27,8 +27,10 @@ exit 0
 
 #include <stdio.h>
 #include <core/meta/type/is_same_as.hpp>
+#include <core/bit_cast.hpp>
+#include <core/c_string.hpp>
 
-extern "C" void abort();
+extern "C" [[noreturn]] void abort();
 
 fixed_vector<class_file::constant::utf8, nuint, default_allocator>
 	utf8_constants_storage { 65536 };
@@ -87,15 +89,15 @@ elements::of<
 					>
 				) {
 					auto [max_locals_reader, max_stack] = x();
-					auto [code_reader, max_locals] = x();
+					auto [code_reader, max_locals] = max_locals_reader();
 
 					auto src0 = code_reader.src;
 					uint32 length = read<uint32, endianness::big>(src0);
 
-					code = {
+					code = ::code {
 						max_stack,
 						max_locals,
-						{ src0, length }
+						{ code_reader.src, length }
 					};
 				}
 			}
@@ -206,11 +208,149 @@ _class load_class(const char* path) {
 	};
 }
 
-void execute(method& m) {
+method find_method(auto name, _class& c) {
+	for(auto m : c.methods) {
+		using namespace class_file::constant;
+		auto possible = c.const_pool[m.name_index - 1].get<utf8>();
+		if(equals(possible, name)) {
+			return m;
+		}
+	}
+	printf("couldn't find method %s", name);
+	abort();
+}
 
+auto execute(_class& c, method m, span<uint32, uint16> args = {}) {
+	class_file::attribute::code::reader<
+		uint8*,
+		class_file::attribute::code::reader_stage::code
+	> reader{ m.code.code.data() };
+
+	uint32 stack[m.code.max_stack];
+	nuint stack_size = 0;
+
+	uint32 local[m.code.max_locals];
+	for(int i = 0; i < m.code.max_locals; ++i) local[0] = 0;
+	for(int i = 0; i < args.size(); ++i) local[i] = args[i];
+
+	using namespace class_file::code::instruction;
+
+	uint32 result = 0;
+
+	reader([&]<typename Type>(Type x, uint8*& pc) {
+		if constexpr (same_as<Type, nop>) {}
+		else if constexpr (same_as<Type, i_const_0>) {
+			stack[stack_size++] = 0;
+		}
+		else if constexpr (same_as<Type, i_const_1>) {
+			stack[stack_size++] = 1;
+		}
+		else if constexpr (same_as<Type, i_const_2>) {
+			stack[stack_size++] = 2;
+		}
+		else if constexpr (same_as<Type, i_const_3>) {
+			stack[stack_size++] = 3;
+		}
+		else if constexpr (same_as<Type, i_const_4>) {
+			stack[stack_size++] = 4;
+		}
+		else if constexpr (same_as<Type, i_const_5>) {
+			stack[stack_size++] = 5;
+		}
+
+		else if constexpr (same_as<Type, bi_push>) {
+			stack[stack_size++] = int32(x.value);
+		}
+		else if constexpr (same_as<Type, ldc>) {
+			auto& e = c.const_pool[x.index - 1];
+			auto v = e.template get<class_file::constant::integer>();
+			stack[stack_size++] = v.value; // even if it is float
+		}
+
+		else if constexpr (same_as<Type, i_load_0>) {
+			stack[stack_size++] = local[0];
+		}
+		else if constexpr (same_as<Type, i_load_1>) {
+			stack[stack_size++] = local[1];
+		}
+
+		else if constexpr (same_as<Type, i_store_0>) {
+			local[0] = stack[--stack_size];
+		}
+		else if constexpr (same_as<Type, i_store_1>) {
+			local[1] = stack[--stack_size];
+		}
+
+		else if constexpr (same_as<Type, i_return>) {
+			result = stack[--stack_size];
+			return true;
+		}
+
+		else if constexpr (same_as<Type, i_add>) {
+			int32 value2 = stack[--stack_size];
+			int32 value1 = stack[--stack_size];
+			stack[stack_size++] = value1 + value2;
+		}
+		else if constexpr (same_as<Type, i_sub>) {
+			int32 value2 = stack[--stack_size];
+			int32 value1 = stack[--stack_size];
+			stack[stack_size++] = value1 - value2;
+		}
+		else if constexpr (same_as<Type, i_mul>) {
+			int32 value2 = stack[--stack_size];
+			int32 value1 = stack[--stack_size];
+			stack[stack_size++] = value1 * value2;
+		}
+		else if constexpr (same_as<Type, i_inc>) {
+			local[x.index] += int32(x.value);
+		}
+
+		else if constexpr (same_as<Type, if_i_cmp_ge>) {
+			int32 value2 = int32(stack[--stack_size]);
+			int32 value1 = int32(stack[--stack_size]);
+			if(value1 >= value2) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, if_i_cmp_gt>) {
+			int32 value2 = int32(stack[--stack_size]);
+			int32 value1 = int32(stack[--stack_size]);
+			if(value1 > value2) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, go_to>) {
+			pc += x.branch - sizeof(int16) - sizeof(uint8);
+		}
+
+		else if constexpr (same_as<Type, invoke_static>) {
+			auto e = c.const_pool[x.index - 1];
+			auto r = e.template get<class_file::constant::methodref>();
+			auto nat_e = c.const_pool[r.name_and_type_index - 1];
+			auto nt = nat_e.template get<class_file::constant::name_and_type>();
+			auto n_e = c.const_pool[nt.name_index - 1];
+			auto n = n_e.template get<class_file::constant::utf8>();
+			auto m = find_method(n, c);
+
+			uint16 args = 1;
+			stack_size -= args;
+			stack[stack_size] = execute(
+				c, m, span<uint32, uint16>{ stack + stack_size, args }
+			);
+			++stack_size;
+		}
+
+		else {
+			printf("unimplemented");
+			abort();
+		}
+
+	}, m.code.code.size());
+
+	return result;
 }
 
 int main () {
-	_class cls = load_class("java/lang/System.class");
-	int i = 0;
+	_class cls = load_class("recursive.class");
+	printf("%d", execute(cls, find_method(c_string{ "_recursive" }, cls)));
 }
