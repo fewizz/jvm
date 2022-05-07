@@ -123,9 +123,9 @@ namespace class_file::code::instruction {
 		span<match_offset, uint32> pairs;
 	};
 
-	struct i_return {};
-	struct a_return {};
-	struct _return {};
+	struct i_ret {};
+	struct a_ret {};
+	struct ret {};
 
 	struct get_static { uint16 index; };
 	struct put_static { uint16 index; };

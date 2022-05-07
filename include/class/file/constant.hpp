@@ -5,6 +5,10 @@
 
 namespace class_file::constant {
 
+	struct unknown {
+		uint8 tag;
+	};
+
 	struct skip {};
 
 	// kind = Utf8
@@ -15,25 +19,25 @@ namespace class_file::constant {
 	};
 
 	// kind = Integer
-	struct integer {
+	struct int32 {
 		static constexpr uint8 tag = 3;
-		int32 value;
+		::int32 value;
 	};
 
 	// kind = Float
-	struct _float {
+	struct float32 {
 		static constexpr uint8 tag = 4;
 		float value;
 	};
 
 	// kind = Long
-	struct _long {
+	struct int64 {
 		static constexpr uint8 tag = 5;
-		int64 value;
+		::int64 value;
 	};
 
 	// kind = Double
-	struct _double {
+	struct float64 {
 		static constexpr uint8 tag = 6;
 		double value;
 	};
@@ -51,21 +55,21 @@ namespace class_file::constant {
 	};
 
 	// kind = Fieldref
-	struct fieldref {
+	struct field_ref {
 		static constexpr uint8 tag = 9;
 		uint16 class_index;
 		uint16 name_and_type_index;
 	};
 
 	// kind = Methodref
-	struct methodref {
+	struct method_ref {
 		static constexpr uint8 tag = 10;
 		uint16 class_index;
 		uint16 name_and_type_index;
 	};
 
 	// kind = InterfaceMethodref
-	struct interface_methodref {
+	struct interface_method_ref {
 		static constexpr uint8 tag = 11;
 		uint16 class_index;
 		uint16 name_and_type_index;

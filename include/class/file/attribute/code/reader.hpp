@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../type.hpp"
 #include "../../code/instruction.hpp"
 
 #include <core/meta/elements/of.hpp>
@@ -17,20 +18,22 @@ namespace class_file::attribute::code {
 
 	template<typename Iterator, reader_stage Stage = reader_stage::max_stack>
 	struct reader {
-		Iterator src;
+		static constexpr attribute::type type = type::code;
+
+		Iterator iterator_;
 
 		elements::of<reader<Iterator, reader_stage::max_locals>, uint16>
 		operator () () const
 		requires (Stage == reader_stage::max_stack) {
-			Iterator cpy = src;
-			uint16 max_stack = read<uint16, endianness::big>(cpy);
-			return { { cpy }, { max_stack } };
+			Iterator i = iterator_;
+			uint16 max_stack = read<uint16, endianness::big>(i);
+			return { { i }, { max_stack } };
 		}
 
 		elements::of<reader<Iterator, reader_stage::code>, uint16>
 		operator () () const
 		requires (Stage == reader_stage::max_locals) {
-			Iterator cpy = src;
+			Iterator cpy = iterator_;
 			uint16 max_locals = read<uint16, endianness::big>(cpy);
 			return { { cpy }, { max_locals } };
 		}
@@ -39,7 +42,7 @@ namespace class_file::attribute::code {
 		reader<Iterator, reader_stage::exception_table>
 		operator () (Handler&& handler) const
 		requires (Stage == reader_stage::code) {
-			Iterator cpy = src;
+			Iterator cpy = iterator_;
 			uint32 length = read<uint32, endianness::big>(cpy);
 			return (*this)(forward<Handler>(handler), length);
 		}
@@ -53,7 +56,7 @@ namespace class_file::attribute::code {
 		requires (Stage == reader_stage::code) {
 			using namespace class_file::code::instruction;
 
-			auto cpy = src;
+			auto cpy = iterator_;
 			read<uint32, endianness::big>(cpy);
 			auto src0 = cpy;
 
@@ -283,13 +286,13 @@ namespace class_file::attribute::code {
 						handler(lookup_switch{ _default, pairs }, cpy); break;
 					}
 					case 172: {
-						if(handler(i_return{}, cpy)) {
+						if(handler(i_ret{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;
 					}
-					case 176: handler(a_return{}, cpy); break;
-					case 177: handler(_return{}, cpy); break;
+					case 176: handler(a_ret{}, cpy); break;
+					case 177: handler(ret{}, cpy); break;
 
 					case 178: {
 						uint16 index = read<uint16, endianness::big>(cpy);

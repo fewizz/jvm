@@ -9,7 +9,6 @@
 -Iplatform
 -I./
 -I../core/include
--Isrc
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build

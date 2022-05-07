@@ -19,50 +19,49 @@ namespace class_file::method {
 
 	template<typename Iterator, reader_stage Stage = reader_stage::access_flags>
 	struct reader {
-		Iterator src;
+		Iterator iterator_;
 
 		elements::of<reader<Iterator, reader_stage::name_index>, access_flags>
 		operator () () const
 		requires (Stage == reader_stage::access_flags) {
-			auto cpy = src;
-			uint16 flags = read<uint16, endianness::big>(cpy);
-			return { { cpy }, { (access_flag) flags } };
+			auto i = iterator_;
+			uint16 flags = read<uint16, endianness::big>(i);
+			return { { i }, { (access_flag) flags } };
 		}
 
 		elements::of<reader<Iterator, reader_stage::descriptor_index>, uint16>
 		operator () () const
 		requires (Stage == reader_stage::name_index) {
-			auto cpy = src;
-			uint16 name_index = read<uint16, endianness::big>(cpy);
-			return { { cpy }, { name_index } };
+			auto i = iterator_;
+			uint16 name_index = read<uint16, endianness::big>(i);
+			return { { i }, { name_index } };
 		}
 
 		elements::of<reader<Iterator, reader_stage::attributes>, uint16>
 		operator () () const
 		requires (Stage == reader_stage::descriptor_index) {
-			auto cpy = src;
-			uint16 desc_index = read<uint16, endianness::big>(cpy);
-			return { { cpy }, { desc_index } };
+			auto i = iterator_;
+			uint16 desc_index = read<uint16, endianness::big>(i);
+			return { { i }, { desc_index } };
 		}
 
-		template<typename Handler>
+		template<typename Mapper, typename Handler>
 		reader<Iterator, reader_stage::end>
-		operator () (Handler&& handler) const
+		operator () (Mapper&& mapper, Handler&& handler) const
 		requires (Stage == reader_stage::attributes) {
-			auto cpy = src;
-			auto count = read<uint16, endianness::big>(cpy);
-
+			auto i = iterator_;
+			auto count = read<uint16, endianness::big>(i);
 			while(count > 0) {
 				--count;
-
-				attribute::reader<Iterator, attribute::reader_stage::end> end {
-					handler(attribute::reader{ cpy })
-				};
-
-				cpy = end.src;
+				auto end = attribute::reader{i}(
+					mapper,
+					[&](auto attribute){
+						handler(attribute);
+					}
+				);
+				i = end.iterator_;
 			}
-
-			return { { cpy } };
+			return { i };
 		}
 
 	};
