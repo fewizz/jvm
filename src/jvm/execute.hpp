@@ -52,7 +52,7 @@ uint32 execute(const method& m, span<uint32, uint16> args) {
 			stack[stack_size++] = int32(x.value);
 		}
 		else if constexpr (same_as<Type, ldc>) {
-			auto v = m._class().int32_entry(x.index);
+			auto v = m._class().int32_constant(x.index);
 			stack[stack_size++] = v.value; // even if it is float
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
@@ -71,17 +71,43 @@ uint32 execute(const method& m, span<uint32, uint16> args) {
 			result = stack[--stack_size];
 			return true;
 		}
+		else if constexpr (same_as<Type, ret>) {
+			return true;
+		}
+		else if constexpr (same_as<Type, get_static>) {
+			//auto field_ref = m._class().field_ref_constant(x.index);
+			//auto class_info = m._class().class_constant(field_ref.class_index);
+			//auto class_name = m._class().utf8_constant(class_info.name_index);
+			//auto nat = m._class().name_and_type_constant(
+			//	field_ref.name_and_type_index
+			//);
+			::field& f = m._class().get_field(x.index);
+			auto& val = ((static_field*)&f)->value();
+			if(val.is<int32>()) {
+				stack[stack_size++] = val.get<int32>();
+			}
+			else {
+				fputs("unknown static", stderr);
+				abort();
+			}
+		}
 		else if constexpr (same_as<Type, put_static>) {
-			constant::field_ref field_ref = m._class().field_ref_entry(x.index);
-
-			constant::_class class_info =
-				m._class().class_entry(field_ref.class_index);
-			auto class_name = m._class().utf8_entry(class_info.name_index);
-			//_class& c = find_or_load(class_name);
-
-			constant::name_and_type nat =
-				m._class().name_and_type_entry(field_ref.name_and_type_index);
+			//auto field_ref = m._class().field_ref_constant(x.index);
+			//auto class_info = m._class().class_constant(field_ref.class_index);
+			//auto class_name = m._class().utf8_constant(class_info.name_index);
+			//auto nat = m._class().name_and_type_constant(
+			//	field_ref.name_and_type_index
+			//);
 			
+			::field& f = m._class().get_field(x.index);
+			auto& val = ((static_field*)&f)->value();
+			if(val.is<int32>()) {
+				val.get<int32>() = stack[--stack_size];
+			}
+			else {
+				fputs("unknown static", stderr);
+				abort();
+			}
 		}
 		else if constexpr (same_as<Type, i_add>) {
 			int32 value2 = stack[--stack_size];
@@ -97,6 +123,11 @@ uint32 execute(const method& m, span<uint32, uint16> args) {
 			int32 value2 = stack[--stack_size];
 			int32 value1 = stack[--stack_size];
 			stack[stack_size++] = value1 * value2;
+		}
+		else if constexpr (same_as<Type, i_div>) {
+			int32 value2 = stack[--stack_size];
+			int32 value1 = stack[--stack_size];
+			stack[stack_size++] = value1 / value2;
 		}
 		else if constexpr (same_as<Type, i_inc>) {
 			local[x.index] += int32(x.value);
@@ -118,18 +149,11 @@ uint32 execute(const method& m, span<uint32, uint16> args) {
 		else if constexpr (same_as<Type, go_to>) {
 			pc += x.branch - sizeof(int16) - sizeof(uint8);
 		}
-		else if constexpr (same_as<Type, get_static>) {
-
-		}
 		else if constexpr (same_as<Type, invoke_static>) {
-			const ::method& next_method {
-				m._class().get_or_load_method_by_ref_index(x.index)
-			};
-
+			::method& next_method = m._class().get_method(x.index);
 			auto desc = next_method.descriptor();
 
 			using namespace descriptor;
-
 			method_reader params_reader{ desc.begin() };
 			uint16 args_count = 0;
 			params_reader([&](auto){ ++args_count; return true; });
@@ -141,7 +165,7 @@ uint32 execute(const method& m, span<uint32, uint16> args) {
 			++stack_size;
 		}
 		else {
-			fprintf(stderr, "unimplemented");
+			fprintf(stderr, "unimplemented instruction");
 			abort();
 		}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "classes.hpp"
 #include "class.hpp"
 #include "field.hpp"
 #include "method.hpp"
@@ -13,18 +14,59 @@
 template<typename Iterator>
 elements::of<
 	class_file::field::reader<Iterator, class_file::field::reader_stage::end>,
-	field
+	elements::one_of<field, static_field>
 >
 read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
 	auto [name_index_reader, access_flags] = access_reader();
 	auto [descriptor_reader, name_index] = name_index_reader();
 	auto [attributes_reader, descriptor_index] = descriptor_reader();
 	auto end = attributes_reader(
-		[&](auto name_index){ return c.utf8_entry(name_index); },
+		[&](auto name_index){ return c.utf8_constant(name_index); },
 		[&]<typename Type>(Type) {
 		}
 	);
-	return { end, { c, access_flags, name_index, descriptor_index } };
+	field f{ c, access_flags, name_index, descriptor_index };
+	if(!access_flags.get(class_file::access_flag::_static))
+		return { end, f };
+
+	field_value fv{ int64{ 0 } };
+
+	auto descriptor = c.utf8_constant(descriptor_index);
+	using namespace class_file;
+	bool result = descriptor::read_field(
+		descriptor.begin(),
+		[&]<typename Type0>(Type0) {
+			if constexpr(same_as<descriptor::B, Type0>) {
+				fv = int8(0);
+			} else
+			if constexpr(same_as<descriptor::C, Type0>) {
+				fv = uint16(0);
+			} else
+			if constexpr(same_as<descriptor::D, Type0>) {
+				fv = double(0.0);
+			} else
+			if constexpr(same_as<descriptor::F, Type0>) {
+				fv = float(0.0);
+			} else
+			if constexpr(same_as<descriptor::I, Type0>) {
+				fv = int32(0);
+			} else
+			if constexpr(same_as<descriptor::J, Type0>) {
+				fv = int64(0);
+			} else
+			if constexpr(same_as<descriptor::Z, Type0>) {
+				fv = bool(0);
+			} else {
+				return false;
+			}
+				return true;
+		}
+	);
+	if(!result) {
+		fputs("couldn't read field descriptor", stderr);
+		abort();
+	}
+	return { end, { f, fv } };
 }
 
 template<typename Iterator>
@@ -40,7 +82,7 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 	code code;
 
 	auto end = read_attributes(
-		[&](auto name_index){ return c.utf8_entry(name_index); },
+		[&](auto name_index){ return c.utf8_constant(name_index); },
 		[&]<typename Type>(Type x) {
 			if constexpr (Type::type == class_file::attribute::type::code) {
 				auto [read_max_locals, max_stack] = x();
@@ -72,7 +114,7 @@ inline _class& define_class(span<uint8> bytes) {
 	classes.emplace_back(const_pool{ read_constant_pool.entries_count() 	});
 
 	_class& c = classes.back();
-	c.data_ = bytes.data();
+	c.data_ = { bytes };
 
 	auto read_access_flags = read_constant_pool(
 		[&]<typename Type>(Type x, uint16) {
@@ -81,8 +123,8 @@ inline _class& define_class(span<uint8> bytes) {
 				abort();
 			}
 			else {
-				c.emplace_back(x);
-				c.trampolines_.emplace_back(nullptr);
+				c.const_pool::emplace_back(x);
+				c.trampoline_pool::emplace_back(nullptr);
 			}
 		}
 	);
@@ -94,56 +136,6 @@ inline _class& define_class(span<uint8> bytes) {
 	c.this_class_index_ = this_class;
 	c.super_class_index_ = super_class;
 
-	read_constant_pool([&]<typename Type>(Type x, uint16 entry) {
-		if constexpr(same_as<constant::unknown, Type>) {
-			fprintf(stderr, "unknown constant with tag %hhu", x.tag);
-			abort();
-		}
-		else {
-			c.emplace_back(x);
-			c.trampolines_.emplace_back(nullptr);
-		}
-
-		if constexpr(same_as<constant::field_ref, Type>) {
-			if(x.class_index == c.this_class_index_) {
-				constant::field_ref ref = c.field_ref_entry(entry);
-				constant::name_and_type nat =
-					c.name_and_type_entry(ref.name_and_type_index);
-				auto descriptor = c.utf8_entry(nat.descriptor_index);
-
-				descriptor::read_field(
-					descriptor.begin(),
-					[&]<typename Type0>(Type0) {
-						if constexpr(same_as<descriptor::B, Type0>) {
-							c.static_values_[entry - 1] = int8(0);
-						} else
-						if constexpr(same_as<descriptor::C, Type0>) {
-							c.static_values_[entry - 1] = uint16(0);
-						} else
-						if constexpr(same_as<descriptor::D, Type0>) {
-							c.static_values_[entry - 1] = double(0.0);
-						} else
-						if constexpr(same_as<descriptor::F, Type0>) {
-							c.static_values_[entry - 1] = float(0.0);
-						} else
-						if constexpr(same_as<descriptor::I, Type0>) {
-							c.static_values_[entry - 1] = int32(0);
-						} else
-						if constexpr(same_as<descriptor::J, Type0>) {
-							c.static_values_[entry - 1] = int64(0);
-						} else
-						if constexpr(same_as<descriptor::Z, Type0>) {
-							c.static_values_[entry - 1] = bool(0);
-						} else {
-							c.static_values_[entry - 1] = unknown{};
-						}
-							return true;
-					}
-				);
-			}
-		}
-	});
-
 	c.interfaces_ = { read_interfaces.count()};
 
 	auto read_fields = read_interfaces([&](uint16 interface_index) {
@@ -154,10 +146,10 @@ inline _class& define_class(span<uint8> bytes) {
 	//uint16 static_fields_count = 0;
 	auto methods_reader = read_fields([&](auto field_reader) {
 		auto [reader, f] = read_field(c, field_reader);
-		class_file::access_flags acc = f.access_flags();
-		if(acc.get(class_file::access_flag::_static)) {
+		//class_file::access_flags acc = f.access_flags();
+		//if(acc.get(class_file::access_flag::_static)) {
 			//++static_fields_count;
-		}
+		//}
 		c.fields_.emplace_back(move(f));
 		return reader;
 	});

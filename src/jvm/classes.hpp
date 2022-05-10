@@ -5,7 +5,7 @@
 #include <core/range.hpp>
 #include <core/fixed_vector.hpp>
 
-inline fixed_vector<_class, nuint, default_allocator> classes{ 65536 };
+inline fixed_vector<_class, uint32, default_allocator> classes{ 65536 };
 
 #include <core/equals.hpp>
 

@@ -2,6 +2,7 @@
 
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
+#include <core/meta/elements/one_of.hpp>
 
 struct _class;
 
@@ -31,10 +32,26 @@ public:
 	inline class_file::constant::utf8 descriptor() const;
 };
 
+using field_value = elements::one_of<
+	bool, int8, uint16, int16, int32, int64,
+	float, double
+>;
+
+struct static_field : field {
+private:
+	field_value value_;
+public:
+	static_field(field f, field_value val):
+		field{ f }, value_{ val }
+	{};
+
+	auto& value() { return value_; }
+};
+
 #include "class.hpp"
 
 class_file::constant::utf8
-field::name() const { return class_.utf8_entry(name_index_); }
+field::name() const { return class_.utf8_constant(name_index_); }
 
 class_file::constant::utf8
-field::descriptor() const { return class_.utf8_entry(desc_index_); }
+field::descriptor() const { return class_.utf8_constant(desc_index_); }

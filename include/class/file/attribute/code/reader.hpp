@@ -292,7 +292,12 @@ namespace class_file::attribute::code {
 						break;
 					}
 					case 176: handler(a_ret{}, cpy); break;
-					case 177: handler(ret{}, cpy); break;
+					case 177: {
+						if(handler(ret{}, cpy)) {
+							return{ src0 + length };
+						}
+						break;
+					};
 
 					case 178: {
 						uint16 index = read<uint16, endianness::big>(cpy);
