@@ -2,7 +2,6 @@
 
 #include "class.hpp"
 
-#include <core/range.hpp>
 #include <core/fixed_vector.hpp>
 
 inline fixed_vector<_class, uint32, default_allocator> classes{ 65536 };

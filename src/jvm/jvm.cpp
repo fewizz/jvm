@@ -20,6 +20,8 @@ fi
 exit 0
 #endif
 
+#include "field_value.hpp"
+#include "field.hpp"
 #include "class.hpp"
 #include "load.hpp"
 #include "execute.hpp"
@@ -33,5 +35,8 @@ int main (int argc, const char** argv) {
 	}
 
 	_class& cls = load_class(c_string{ argv[1] });
-	printf("%d", execute(cls.find_method(c_string{ argv[2] })));
+	field_value fv = execute(cls.find_method(c_string{ argv[2] }));
+	if(fv.is<jint>()) {
+		printf("%d", fv.get<jint>().value);
+	}
 }

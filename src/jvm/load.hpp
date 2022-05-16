@@ -50,6 +50,7 @@ inline _class& load_class(Name name) {
 	});
 
 	auto& c = define_class(span{ data, size});
+
 	if(
 		auto clinit = c.try_find_method(c_string{ "<clinit>" });
 		clinit != nullptr

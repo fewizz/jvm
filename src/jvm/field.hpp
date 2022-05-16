@@ -26,26 +26,15 @@ public:
 		desc_index_{ descriptor_index }
 	{}
 
+	_class& _class() const { return class_; }
 	class_file::access_flags access_flags() const { return access_flags_; }
 
 	inline class_file::constant::utf8 name() const;
 	inline class_file::constant::utf8 descriptor() const;
-};
 
-using field_value = elements::one_of<
-	bool, int8, uint16, int16, int32, int64,
-	float, double
->;
-
-struct static_field : field {
-private:
-	field_value value_;
-public:
-	static_field(field f, field_value val):
-		field{ f }, value_{ val }
-	{};
-
-	auto& value() { return value_; }
+	inline bool is_static() const {
+		return access_flags_.get(class_file::access_flag::_static);
+	}
 };
 
 #include "class.hpp"

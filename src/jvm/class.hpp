@@ -2,7 +2,8 @@
 
 #include "const_pool.hpp"
 #include "trampoline_pool.hpp"
-#include "object.hpp"
+#include "field.hpp"
+#include "static_field.hpp"
 #include "../abort.hpp"
 #include "class/file/access_flag.hpp"
 
@@ -17,7 +18,12 @@ private:
 	uint16 this_class_index_;
 	uint16 super_class_index_;
 	::fixed_vector<uint16, uint16, default_allocator> interfaces_;
-	::fixed_vector<elements::one_of<field, static_field>, uint16, default_allocator> fields_;
+	::fixed_vector<
+		elements::one_of<field, static_field
+	>, uint16, default_allocator> fields_;
+	::fixed_vector<
+		field*, uint16, default_allocator
+	> instance_fields_;
 	::fixed_vector<method, uint16, default_allocator> methods_;
 
 	friend inline _class& define_class(span<uint8> bytes);
@@ -34,11 +40,23 @@ public:
 		return utf8_constant(class_constant(this_class_index_).name_index);
 	}
 
+	uint16 super_class_index() {
+		return super_class_index_;
+	}
+
+	auto& instance_fields() const { return instance_fields_; }
+
 	template<range Name>
 	inline method* try_find_method(Name name);
 
+	template<range Name, range Descriptor>
+	inline method* try_find_method(Name name, Descriptor descriptor);
+
 	template<range Name>
 	inline field* try_find_field(Name name);
+
+	template<range Name, range Descriptor>
+	inline field* try_find_field(Name name, Descriptor descriptor);
 
 	template<range Name>
 	method& find_method(Name&& name) {
@@ -59,7 +77,10 @@ public:
 	}
 
 	inline method& get_method(uint16 ref_index);
-	inline field& get_field(uint16 ref_index);
+	inline method& get_resolved_method(uint16 ref_index);
+	inline field& get_static_field(uint16 ref_index);
+	inline instance_field_index get_resolved_instance_field_index(uint16);
+	inline _class& get_class(uint16 class_index);
 
 };
 
@@ -73,10 +94,33 @@ _class::_class(const_pool&& const_pool) :
 
 _class::~_class() { free(data_.data()); }
 
+template<range Name, range Descriptor>
+field* _class::try_find_field(Name name, Descriptor descriptor) {
+	for(auto& f0 : fields_) {
+		auto& f = f0.get<field>();
+		if(
+			equals(f.name(), name) &&
+			equals(f.descriptor(), descriptor)
+		) return &f;
+	}
+	return nullptr;
+}
+
 template<range Name>
 field* _class::try_find_field(Name name) {
 	for(auto& f : fields_) if(equals(f.get<field>().name(), name))
 		return &f.get<field>();
+	return nullptr;
+}
+
+template<range Name, range Descriptor>
+method* _class::try_find_method(Name name, Descriptor descriptor) {
+	for(auto& m : methods_) {
+		if(
+			equals(m.name(), name) &&
+			equals(m.descriptor(), descriptor)
+		) return &m;
+	}
 	return nullptr;
 }
 
@@ -88,3 +132,6 @@ method* _class::try_find_method(Name name) {
 
 #include "class/get_field.hpp"
 #include "class/get_method.hpp"
+#include "class/get_resolved_method.hpp"
+#include "class/get_class.hpp"
+#include "class/get_resolved_field.hpp"

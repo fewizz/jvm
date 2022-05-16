@@ -4,9 +4,10 @@
 #include "../classes.hpp"
 #include "class/file/descriptor/reader.hpp"
 
-field& _class::get_static_field(uint16 ref_index) {
+instance_field_index
+_class::get_resolved_instance_field_index(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
-		return t.get<static_field&>();
+		return t.get<instance_field_index>();
 	}
 
 	using namespace class_file;
@@ -32,10 +33,30 @@ field& _class::get_static_field(uint16 ref_index) {
 		abort();
 	}
 
-	auto clss = utf8_constant(class_info.name_index);
-	_class& c = find_or_load(clss);
+	auto class_name = utf8_constant(class_info.name_index);
+	_class* other_c = &find_or_load(class_name);;
+	::field* f = nullptr;
 
-	static_field& f = (static_field&)c.find_field(name);
-	trampoline(ref_index) = f;
-	return f;
+	while(true) {
+		if(f = other_c->try_find_field(name, descriptor); f != nullptr) {
+			break;
+		}
+		if(other_c->super_class_index_ == 0) {
+			fprintf(stderr, "couldn't resolve field");
+			abort();
+		}
+		other_c = &other_c->get_class(other_c->super_class_index_);
+	}
+
+	uint16 index = 0;
+	for(::field* f_ptr : f->_class().instance_fields()) {
+		if(f_ptr == f) {
+			trampoline(ref_index) = instance_field_index{ index };
+			return { index };
+		}
+		++index;
+	}
+
+	fputs("couldn't create trampoline for instance field", stderr);
+	abort();
 }

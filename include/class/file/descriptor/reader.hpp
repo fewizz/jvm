@@ -11,6 +11,7 @@ namespace class_file::descriptor {
 	bool read_field(auto&& iterator, Handler&& handler) {
 		uint8 c = *iterator++;
 		switch (c) {
+			case 'V': return handler(descriptor::V{});
 			case 'B': return handler(descriptor::B{});
 			case 'C': return handler(descriptor::C{});
 			case 'D': return handler(descriptor::D{});

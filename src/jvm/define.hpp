@@ -1,7 +1,6 @@
 #pragma once
 
 #include "classes.hpp"
-#include "class.hpp"
 #include "field.hpp"
 #include "method.hpp"
 #include "class/file/reader.hpp"
@@ -29,7 +28,7 @@ read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
 	if(!access_flags.get(class_file::access_flag::_static))
 		return { end, f };
 
-	field_value fv{ int64{ 0 } };
+	field_value fv;
 
 	auto descriptor = c.utf8_constant(descriptor_index);
 	using namespace class_file;
@@ -37,25 +36,25 @@ read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
 		descriptor.begin(),
 		[&]<typename Type0>(Type0) {
 			if constexpr(same_as<descriptor::B, Type0>) {
-				fv = int8(0);
+				fv = jbyte{ 0 };
 			} else
 			if constexpr(same_as<descriptor::C, Type0>) {
-				fv = uint16(0);
+				fv = jbyte{ 0 };
 			} else
 			if constexpr(same_as<descriptor::D, Type0>) {
-				fv = double(0.0);
+				fv = jdouble{ 0.0 };
 			} else
 			if constexpr(same_as<descriptor::F, Type0>) {
-				fv = float(0.0);
+				fv = jfloat{ 0.0 };
 			} else
 			if constexpr(same_as<descriptor::I, Type0>) {
-				fv = int32(0);
+				fv = jint{ 0 };
 			} else
 			if constexpr(same_as<descriptor::J, Type0>) {
-				fv = int64(0);
+				fv = jlong{ 0 };
 			} else
 			if constexpr(same_as<descriptor::Z, Type0>) {
-				fv = bool(0);
+				fv = jbool{ 0 };
 			} else {
 				return false;
 			}
@@ -143,13 +142,8 @@ inline _class& define_class(span<uint8> bytes) {
 	});
 
 	c.fields_ = { read_fields.count() };
-	//uint16 static_fields_count = 0;
 	auto methods_reader = read_fields([&](auto field_reader) {
 		auto [reader, f] = read_field(c, field_reader);
-		//class_file::access_flags acc = f.access_flags();
-		//if(acc.get(class_file::access_flag::_static)) {
-			//++static_fields_count;
-		//}
 		c.fields_.emplace_back(move(f));
 		return reader;
 	});
@@ -161,6 +155,29 @@ inline _class& define_class(span<uint8> bytes) {
 		c.methods_.emplace_back(move(m));
 		return reader;
 	});
+
+	if(c.super_class_index() != 0) {
+		_class& s = load_class(
+			c.utf8_constant(
+				c.class_constant(c.super_class_index()).name_index)
+			);
+		uint16 instance_fields = s.instance_fields_.size();
+		for(auto& f : c.fields_) {
+			if(!f.get<::field>().is_static()) ++instance_fields;
+		}
+
+		c.instance_fields_ = { instance_fields };
+
+		for(auto& f : s.fields_) {
+			c.instance_fields_.emplace_back(&f.get<::field>());
+		}
+
+		for(auto& f : c.fields_) {
+			if(!f.get<::field>().is_static()) {
+				c.instance_fields_.emplace_back(&f.get<::field>());
+			}
+		}
+	}
 
 	return c;
 }

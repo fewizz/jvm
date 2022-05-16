@@ -2,7 +2,7 @@
 
 #include "../method.hpp"
 
-method& _class::get_method(uint16 ref_index) {
+method& _class::get_resolved_method(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
 		return t.get<method&>();
 	}
@@ -21,7 +21,7 @@ method& _class::get_method(uint16 ref_index) {
 		return true;
 	});
 	if(!result0) {
-		fprintf(stderr, "couldn't read method's descriptor parameters");
+		fprintf(stderr, "couldn't read method descriptor parameters");
 		abort();
 	}
 
@@ -33,16 +33,26 @@ method& _class::get_method(uint16 ref_index) {
 	});
 
 	if(!result1) {
-		fprintf(stderr, "couldn't read method's descriptor return type: ");
-		fwrite(name.data(), 1, descriptor.size(), stderr);
-		fwrite(descriptor.data(), 1, descriptor.size(), stderr);
+		fprintf(stderr, "couldn't read method descriptor return type");
 		abort();
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	_class& other_c = find_or_load(class_name);
+	_class* other_c = &find_or_load(class_name);;
+	method* m = nullptr;
 
-	method& m = other_c.find_method(name);
-	trampoline(ref_index) = m;
-	return m;
+	while(true) {
+		if(m = other_c->try_find_method(name, descriptor); m != nullptr) {
+			break;
+		}
+		if(other_c->super_class_index_ == 0) {
+			fprintf(stderr, "couldn't resolve method");
+			abort();
+		}
+		other_c = &other_c->get_class(other_c->super_class_index_);
+	}
+
+	method& r = *m;
+	trampoline(ref_index) = r;
+	return r;
 }

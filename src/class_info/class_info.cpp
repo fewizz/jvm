@@ -229,7 +229,10 @@ void read_code_attribute(
 			return false;
 		}
 		if constexpr (same_as<Type, a_ret>) fputs("areturn", stdout);
-		if constexpr (same_as<Type, ret>) fputs("return", stdout);
+		if constexpr (same_as<Type, ret>) {
+			fputs("return", stdout);
+			return false;
+		}
 
 		if constexpr (same_as<Type, get_static>) {
 			printf("getstatic %d", x.index);

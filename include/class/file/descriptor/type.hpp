@@ -4,6 +4,8 @@
 
 namespace class_file::descriptor {
 
+	struct V{};
+
 	struct B{}; struct C{}; struct D{}; struct F{};
 	struct I{}; struct J{}; struct S{}; struct Z{};
 

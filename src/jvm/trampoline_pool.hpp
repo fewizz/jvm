@@ -1,15 +1,17 @@
 #pragma once
 
 #include "../alloc.hpp"
+#include "instance_field_index.hpp"
 #include <core/meta/elements/one_of.hpp>
 #include <core/fixed_vector.hpp>
 
+struct _class;
 struct method;
 struct field;
 struct static_field;
 
 using trampoline_entry = elements::one_of<
-	decltype(nullptr), method&, field&, static_field&
+	decltype(nullptr), _class&, method&, instance_field_index, static_field&
 >;
 
 struct trampoline_pool :
