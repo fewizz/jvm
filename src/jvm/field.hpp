@@ -2,6 +2,7 @@
 
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
+
 #include <core/meta/elements/one_of.hpp>
 
 struct _class;

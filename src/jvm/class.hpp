@@ -9,6 +9,7 @@
 
 #include <core/range.hpp>
 #include <core/fixed_vector.hpp>
+#include <core/transform.hpp>
 #include <stdio.h>
 
 struct _class : const_pool, trampoline_pool {
@@ -40,8 +41,33 @@ public:
 		return utf8_constant(class_constant(this_class_index_).name_index);
 	}
 
-	uint16 super_class_index() {
-		return super_class_index_;
+	uint16 super_class_index() const { return super_class_index_; }
+
+	auto& interfaces_indices() const { return interfaces_; }
+
+	auto interfaces() const {
+		return transform_view {
+			interfaces_indices(),
+			[&](auto interface_index) -> decltype(auto) {
+				return this->get_class(interface_index);
+			}
+		};
+	}
+
+	auto interfaces() {
+		return transform_view {
+			interfaces_indices(),
+			[&](auto interface_index) -> decltype(auto) {
+				return this->get_class(interface_index);
+			}
+		};
+	}
+
+	auto& methods() const { return methods_; }
+	auto& methods() { return methods_; }
+
+	class_file::access_flags access_flags() const {
+		return access_flags_;
 	}
 
 	auto& instance_fields() const { return instance_fields_; }
@@ -50,7 +76,12 @@ public:
 	inline method* try_find_method(Name name);
 
 	template<range Name, range Descriptor>
-	inline method* try_find_method(Name name, Descriptor descriptor);
+	inline const method*
+	try_find_method(Name name, Descriptor descriptor) const;
+
+	template<range Name, range Descriptor>
+	inline method*
+	try_find_method(Name name, Descriptor descriptor);
 
 	template<range Name>
 	inline field* try_find_field(Name name);
@@ -81,10 +112,17 @@ public:
 	inline field& get_static_field(uint16 ref_index);
 	inline instance_field_index get_resolved_instance_field_index(uint16);
 	inline _class& get_class(uint16 class_index);
+	const _class& get_class(uint16 class_index) const {
+		return ((_class*) this)->get_class(class_index);
+	}
+
+	template<typename Name, typename Descriptor, typename Handler>
+	inline void for_each_maximally_specific_superinterface_method(
+		Name&& name, Descriptor&& descriptor, Handler&& handler
+	);
 
 };
 
-#include "field.hpp"
 #include "method.hpp"
 
 _class::_class(const_pool&& const_pool) :
@@ -124,6 +162,13 @@ method* _class::try_find_method(Name name, Descriptor descriptor) {
 	return nullptr;
 }
 
+template<range Name, range Descriptor>
+const method* _class::try_find_method(Name name, Descriptor descriptor) const {
+	return ((_class*)this)->try_find_method(
+		forward<Name>(name), forward<Descriptor>(descriptor)
+	);
+}
+
 template<range Name>
 method* _class::try_find_method(Name name) {
 	for(auto& m : methods_) if(equals(m.name(), name)) return &m;
@@ -135,3 +180,4 @@ method* _class::try_find_method(Name name) {
 #include "class/get_resolved_method.hpp"
 #include "class/get_class.hpp"
 #include "class/get_resolved_field.hpp"
+#include "class/for_each_maximally_specific_superinterface_method.hpp"

@@ -26,10 +26,10 @@ inline _class& load_class(Name name) {
 		return (const char) ch;
 	}};
 
-	auto null_terminated = concat_view{
+	auto null_terminated = concat_view {
 		name0,
 		c_string{ ".class" },
-		single_view{ '\0' }
+		array{ '\0' }
 	};
 
 	uint8* data; nuint size;

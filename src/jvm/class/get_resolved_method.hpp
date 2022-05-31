@@ -38,7 +38,7 @@ method& _class::get_resolved_method(uint16 ref_index) {
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	_class* other_c = &find_or_load(class_name);;
+	_class* other_c = &find_or_load(class_name);
 	method* m = nullptr;
 
 	while(true) {
@@ -52,7 +52,6 @@ method& _class::get_resolved_method(uint16 ref_index) {
 		other_c = &other_c->get_class(other_c->super_class_index_);
 	}
 
-	method& r = *m;
-	trampoline(ref_index) = r;
-	return r;
+	trampoline(ref_index) = *m;
+	return *m;
 }

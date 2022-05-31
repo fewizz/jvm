@@ -63,7 +63,10 @@ reference objects_t::find_free(_class& c) {
 						return true;
 				});
 				if(!result) {
-					fputs("couldn't read field descriptor while creating object", stderr);
+					fputs(
+						"couldn't read field descriptor while creating object",
+						stderr
+					);
 					abort();
 				}
 				p.object_ptr->values().emplace_back(fv);

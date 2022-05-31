@@ -110,7 +110,7 @@ inline _class& define_class(span<uint8> bytes) {
 
 	auto [read_constant_pool, version] = version_reader();
 
-	classes.emplace_back(const_pool{ read_constant_pool.entries_count() 	});
+	classes.emplace_back(const_pool{ read_constant_pool.entries_count() });
 
 	_class& c = classes.back();
 	c.data_ = { bytes };
@@ -138,7 +138,7 @@ inline _class& define_class(span<uint8> bytes) {
 	c.interfaces_ = { read_interfaces.count()};
 
 	auto read_fields = read_interfaces([&](uint16 interface_index) {
-		c.interfaces_.emplace_back(move(interface_index));
+		c.interfaces_.emplace_back(interface_index);
 	});
 
 	c.fields_ = { read_fields.count() };
@@ -177,6 +177,10 @@ inline _class& define_class(span<uint8> bytes) {
 				c.instance_fields_.emplace_back(&f.get<::field>());
 			}
 		}
+	}
+
+	for(auto interface_index : c.interfaces_indices()) {
+		c.get_class(interface_index);
 	}
 
 	return c;

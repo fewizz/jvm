@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include "../field.hpp"
 #include "../classes.hpp"
 #include "class/file/descriptor/reader.hpp"
