@@ -507,7 +507,7 @@ field_value execute(method& m, span<field_value, uint16> args) {
 			stack[stack_size++] = objects.find_free(c0);
 		}
 		else if constexpr (same_as<Type, new_array>) {
-			const char* name = nullptr;
+			c_string<c_string_type::known_size> name;
 			nuint size = 0;
 
 			switch (x.type) {
@@ -526,13 +526,13 @@ field_value execute(method& m, span<field_value, uint16> args) {
 
 			if(info) {
 				tabs(); fputs("new_array ", stderr);
-				fputs(name, stderr);
+				fputs(name.data(), stderr);
 				fputc('\n', stderr);
 			}
 
 			jint count = stack[--stack_size].get<jint>();
 			_class& c0 = find_or_load(
-				concat_view{ c_string{ name }, c_string{"[]"} }
+				concat_view{ name, array{'[', ']'} }
 			);
 
 			auto ref = objects.find_free(c0);

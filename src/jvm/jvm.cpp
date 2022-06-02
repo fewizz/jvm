@@ -34,7 +34,7 @@ int main (int argc, const char** argv) {
 		return 1;
 	}
 
-	_class& cls = load_class(c_string{ argv[1] });
+	_class& cls = load_class(c_string{ argv[1] }.sized());
 	field_value fv = execute(cls.find_method(c_string{ argv[2] }));
 	if(fv.is<jint>()) {
 		printf("%d", fv.get<jint>().value);

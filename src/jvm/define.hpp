@@ -200,6 +200,7 @@ inline _class& define_array_class(_class& element_class) {
 	c_string ptr_desc { "J" };
 	c_string len_name { "len_" };
 	c_string len_desc { "I" };
+	static_assert(is_array<remove_reference<decltype("dsf")>>);
 	auto concated = concat_view(name, ptr_name, ptr_desc, len_name, len_desc);
 	auto concated_size = concated.size();
 
