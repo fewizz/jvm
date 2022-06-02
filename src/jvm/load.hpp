@@ -9,6 +9,7 @@ inline _class& load_class(Name name);
 
 #include "define.hpp"
 #include "execute.hpp"
+#include "classes.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>
@@ -17,11 +18,24 @@ inline _class& load_class(Name name);
 #include <core/concat.hpp>
 #include <core/c_string.hpp>
 #include <core/on_scope_exit.hpp>
+#include <core/ends_with.hpp>
 
 #include <stdio.h>
 
 template<range Name>
 inline _class& load_class(Name name) {
+	if(equals(name, c_string{"int"})) {
+		return define_primitive_class(forward<Name>(name));
+	}
+
+	if(ends{ name }.with(array{ '[', ']' })) {
+		auto element_name {
+			 to_range(name.begin(), name.begin() + (name.size() - 2))
+		};
+		_class& c = find_or_load(element_name);
+		return define_array_class(c);
+	}
+
 	auto name0 = transform_view{ name, [&](auto ch) {
 		return (const char) ch;
 	}};

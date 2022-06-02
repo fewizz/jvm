@@ -24,7 +24,9 @@ namespace class_file::descriptor {
 				auto e = iterator;
 				while(*e++ != ';') ++e;
 				bool result = handler(
-					descriptor::object_type{ iterator, uint16(e - iterator) }
+					descriptor::object_type{
+						(uint8*)iterator, uint16(e - iterator)
+					}
 				);
 				iterator = e;
 				return result;

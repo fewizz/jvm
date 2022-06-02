@@ -34,7 +34,7 @@ struct jfloat {
 };
 
 struct jdouble {
-	float value;
+	double value;
 };
 
 struct field_value : elements::one_of<

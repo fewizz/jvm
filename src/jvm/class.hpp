@@ -28,6 +28,9 @@ private:
 	::fixed_vector<method, uint16, default_allocator> methods_;
 
 	friend inline _class& define_class(span<uint8> bytes);
+	friend inline _class& define_array_class(_class& element_class);
+	template<range Name>
+	friend inline _class& define_primitive_class(Name&& name);
 
 public:
 

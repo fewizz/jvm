@@ -57,7 +57,7 @@ namespace class_file {
 				switch (tag) {
 					case constant::utf8::tag : {
 						uint16 len = read<uint16, endianness::big>(i);
-						handler(constant::utf8{ i, len }, x);
+						handler(constant::utf8{ (char*) i, len }, x);
 						i += len;
 						break;
 					}

@@ -13,6 +13,10 @@ struct default_allocator {
 		return (uint8*) malloc(size);
 	}
 
+	uint8* allocate_zeroed(auto size) {
+		return (uint8*) calloc(size);
+	}
+
 	void deallocate(uint8* ptr, auto) {
 		free(ptr);
 	}

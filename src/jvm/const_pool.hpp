@@ -35,6 +35,10 @@ struct const_pool :
 	using base_type = fixed_vector<const_pool_entry, uint16, default_allocator>;
 	using base_type::base_type;
 
+protected:
+	using base_type::emplace_back;
+public:
+
 	uint16 constants_count() const { return capacity(); }
 
 	const auto& constant(uint16 index) const { return (*this)[index - 1]; }

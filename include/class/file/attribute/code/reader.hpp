@@ -126,6 +126,7 @@ namespace class_file::attribute::code {
 					case 43: handler(a_load_1{}, cpy); break;
 					case 44: handler(a_load_2{}, cpy); break;
 					case 45: handler(a_load_3{}, cpy); break;
+					case 46: handler(i_a_load{}, cpy); break;
 
 					case 50: handler(aa_load{}, cpy); break;
 					case 51: handler(ba_load{}, cpy); break;
@@ -150,6 +151,7 @@ namespace class_file::attribute::code {
 					case 76: handler(a_store_1{}, cpy); break;
 					case 77: handler(a_store_2{}, cpy); break;
 					case 78: handler(a_store_3{}, cpy); break;
+					case 79: handler(i_a_store{}, cpy); break;
 					case 83: handler(aa_store{}, cpy); break;
 					case 84: handler(ba_store{}, cpy); break;
 					case 85: handler(ca_store{}, cpy); break;
