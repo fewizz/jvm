@@ -10,7 +10,8 @@ private:
 	counted_object_ptr* ptr_;
 	inline void decrement_refernce();
 public:
-	inline reference(counted_object_ptr*);
+	inline reference() = default;
+	inline reference(counted_object_ptr&);
 
 	inline reference(const reference&);
 	inline reference(reference&&);
@@ -40,8 +41,8 @@ inline void reference::decrement_refernce() {
 	}
 }
 
-reference::reference(counted_object_ptr* ptr) :
-	ptr_{ ptr }
+reference::reference(counted_object_ptr& ptr) :
+	ptr_{ &ptr }
 {
 	++(ptr_->count);
 }
@@ -49,7 +50,9 @@ reference::reference(counted_object_ptr* ptr) :
 reference::reference(const reference& other) :
 	ptr_{ other.ptr_ }
 {
-	++(ptr_->count);
+	if(ptr_ != nullptr) {
+		++(ptr_->count);
+	}
 }
 
 reference::reference(reference&& other) :
@@ -59,7 +62,9 @@ reference::reference(reference&& other) :
 reference& reference::operator = (const reference& other) {
 	decrement_refernce();
 	ptr_ = other.ptr_;
-	++(ptr_->count);
+	if(ptr_ != nullptr) {
+		++(ptr_->count);
+	}
 	return *this;
 }
 

@@ -2,6 +2,7 @@
 
 #include "../alloc.hpp"
 #include "instance_field_index.hpp"
+#include "reference.hpp"
 #include <core/meta/elements/one_of.hpp>
 #include <core/fixed_vector.hpp>
 
@@ -11,7 +12,9 @@ struct field;
 struct static_field;
 
 using trampoline_entry = elements::one_of<
-	decltype(nullptr), _class&, method&, instance_field_index, static_field&
+	decltype(nullptr), _class&, method&,
+	instance_field_index, static_field&,
+	reference
 >;
 
 struct trampoline_pool :

@@ -10,6 +10,7 @@
 #include <core/range.hpp>
 #include <core/fixed_vector.hpp>
 #include <core/transform.hpp>
+#include <core/expected.hpp>
 #include <stdio.h>
 
 struct _class : const_pool, trampoline_pool {
@@ -92,6 +93,10 @@ public:
 	template<range Name, range Descriptor>
 	inline field* try_find_field(Name name, Descriptor descriptor);
 
+	template<range Name, range Descriptor>
+	inline expected<instance_field_index, decltype(nullptr)>
+	try_find_instance_field_index(Name name, Descriptor descriptor);
+
 	template<range Name>
 	method& find_method(Name&& name) {
 		if(auto m = try_find_method(name); m != nullptr) {
@@ -119,6 +124,8 @@ public:
 		return ((_class*) this)->get_class(class_index);
 	}
 
+	inline reference get_string(uint16 string_index);
+
 	template<typename Name, typename Descriptor, typename Handler>
 	inline void for_each_maximally_specific_superinterface_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
@@ -143,6 +150,20 @@ field* _class::try_find_field(Name name, Descriptor descriptor) {
 			equals(f.name(), name) &&
 			equals(f.descriptor(), descriptor)
 		) return &f;
+	}
+	return nullptr;
+}
+
+template<range Name, range Descriptor>
+expected<instance_field_index, decltype(nullptr)>
+_class::try_find_instance_field_index(Name name, Descriptor descriptor) {
+	uint16 index = 0;
+	for(auto& f : instance_fields_) {
+		if(
+			equals(f->name(), name) &&
+			equals(f->descriptor(), descriptor)
+		) return instance_field_index{ index };
+		++index;
 	}
 	return nullptr;
 }
@@ -184,3 +205,4 @@ method* _class::try_find_method(Name name) {
 #include "class/get_class.hpp"
 #include "class/get_resolved_field.hpp"
 #include "class/for_each_maximally_specific_superinterface_method.hpp"
+#include "class/get_string.hpp"

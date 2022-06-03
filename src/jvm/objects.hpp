@@ -55,9 +55,15 @@ reference objects_t::find_free(_class& c) {
 					} else
 					if constexpr(same_as<descriptor::Z, Type0>) {
 						fv = jbool{ 0 };
+					} else
+					if constexpr(same_as<descriptor::object_type, Type0>) {
+						fv = reference{};
+					} else
+					if constexpr(descriptor::is_array_type<Type0>) {
+						if constexpr(descriptor::array_type_rank<Type0> < 4) {
+							fv = reference{};
+						}
 					} else {
-					//if constexpr(same_as<descriptor::object_type, Type0>) {
-//					} else {
 						return false;
 					}
 						return true;
@@ -72,7 +78,7 @@ reference objects_t::find_free(_class& c) {
 				p.object_ptr->values().emplace_back(fv);
 			}
 
-			return reference{ &p };
+			return reference{ p };
 		}
 	}
 	fputs("no free place for object", stderr);

@@ -26,6 +26,17 @@ field_value execute(method& m, span<field_value, uint16> args) {
 
 	if(info) {
 		++tab;
+		tabs();
+		fwrite(c.name().data(), 1, c.name().size(), stderr);
+		fputc('.', stderr);
+		fwrite(m.name().data(), 1, m.name().size(), stderr);
+		fputc('(', stderr);
+		fputc(')', stderr);
+		fputc('\n', stderr);
+	}
+
+	if(m.code().data() == nullptr) {
+		fputs("no code", stderr); abort();
 	}
 
 	class_file::attribute::code::reader<
@@ -46,6 +57,10 @@ field_value execute(method& m, span<field_value, uint16> args) {
 
 	reader([&]<typename Type>(Type x, uint8*& pc) {
 		if constexpr (same_as<Type, nop>) {}
+		else if constexpr (same_as<Type, a_const_null>) {
+			if(info) { tabs(); fputs("a_const_null\n", stderr); }
+			stack[stack_size++] = reference{};
+		}
 		else if constexpr (same_as<Type, i_const_0>) {
 			if(info) { tabs(); fputs("i_const_0\n", stderr); }
 			stack[stack_size++] = jint{ 0 };
@@ -73,17 +88,37 @@ field_value execute(method& m, span<field_value, uint16> args) {
 		else if constexpr (same_as<Type, bi_push>) {
 			if(info) {
 				tabs(); fputs("bi_push ", stderr);
-				fprintf(stderr, "%dhh\n", x.value);
+				fprintf(stderr, "%hhd\n", x.value);
 			}
 			stack[stack_size++] = jint{ x.value };
 		}
-		else if constexpr (same_as<Type, ldc>) {
+		else if constexpr (same_as<Type, ldc> || same_as<Type, ldc_w>) {
 			if(info) {
-				tabs(); fputs("ldc ", stderr);
-				fprintf(stderr, "%dhh", x.index);
+				if constexpr(same_as<Type, ldc>) {
+					tabs(); fputs("ldc ", stderr);
+					fprintf(stderr, "%hhd\n", x.index);
+				} else {
+					tabs(); fputs("ldc_w ", stderr);
+					fprintf(stderr, "%hd\n", x.index);
+				}
 			}
-			auto v = m._class().int32_constant(x.index); // TODO
-			stack[stack_size++] = jint{ v.value }; // even if it is float
+			const_pool_entry constatnt = m._class().constant(x.index);
+			if(constatnt.is<class_file::constant::int32>()) {
+				stack[stack_size++] = jint {
+					constatnt.get<class_file::constant::int32>().value
+				};
+			} else
+			if(constatnt.is<class_file::constant::float32>()) {
+				stack[stack_size++] = jfloat {
+					constatnt.get<class_file::constant::float32>().value
+				};
+			} else
+			if(constatnt.is<class_file::constant::string>()) {
+				stack[stack_size++] = c.get_string(x.index);
+			}
+			else {
+				fputs("unknown constant", stderr); abort();
+			}
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
 			if(info) { tabs(); fputs("i_load_0\n", stderr); }
@@ -189,10 +224,30 @@ field_value execute(method& m, span<field_value, uint16> args) {
 			if(info) { tabs(); fputs("i_inc\n", stderr); }
 			local[x.index].template get<jint>().value += x.value;
 		}
+		else if constexpr (same_as<Type, if_eq>) {
+			if(info) {
+				tabs(); fputs("if_eq ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			jint value = stack[--stack_size].get<jint>();
+			if(value.value == 0) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, if_ne>) {
+			if(info) {
+				tabs(); fputs("if_ne ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			jint value = stack[--stack_size].get<jint>();
+			if(value.value != 0) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
 		else if constexpr (same_as<Type, if_i_cmp_ge>) {
 			if(info) {
 				tabs(); fputs("if_i_cmp_ge ", stderr);
-				fprintf(stderr, "%dh\n", x.branch);
+				fprintf(stderr, "%hd\n", x.branch);
 			}
 			jint value2 = stack[--stack_size].get<jint>();
 			jint value1 = stack[--stack_size].get<jint>();
@@ -203,7 +258,7 @@ field_value execute(method& m, span<field_value, uint16> args) {
 		else if constexpr (same_as<Type, if_i_cmp_gt>) {
 			if(info) {
 				tabs(); fputs("if_i_cmp_gt ", stderr);
-				fprintf(stderr, "%dh\n", x.branch);
+				fprintf(stderr, "%hd\n", x.branch);
 			}
 			jint value2 = stack[--stack_size].get<jint>();
 			jint value1 = stack[--stack_size].get<jint>();
@@ -214,13 +269,18 @@ field_value execute(method& m, span<field_value, uint16> args) {
 		else if constexpr (same_as<Type, go_to>) {
 			if(info) {
 				tabs(); fputs("go_to ", stderr);
-				fprintf(stderr, "%dh\n", x.branch);
+				fprintf(stderr, "%hd\n", x.branch);
 			}
 			pc += x.branch - sizeof(int16) - sizeof(uint8);
 		}
 		else if constexpr (same_as<Type, i_ret>) {
 			if(info) { tabs(); fputs("i_ret\n", stderr); }
 			result = stack[--stack_size].get<jint>();
+			return true;
+		}
+		else if constexpr (same_as<Type, a_ret>) {
+			if(info) { tabs(); fputs("a_ret\n", stderr); }
+			result = stack[--stack_size].get<reference>();
 			return true;
 		}
 		else if constexpr (same_as<Type, ret>) {
@@ -230,31 +290,49 @@ field_value execute(method& m, span<field_value, uint16> args) {
 		else if constexpr (same_as<Type, get_static>) {
 			if(info) {
 				tabs(); fputs("get_static ", stderr);
-				fprintf(stderr, "%dh\n", x.index);
+				fprintf(stderr, "%hd\n", x.index);
 			}
 			field& f = c.get_static_field(x.index);
 			auto& val = ((static_field*)&f)->value();
 			if(val.is<jint>()) {
 				stack[stack_size++].get<jint>() = val.get<jint>();
 			}
+			if(val.is<reference>()) {
+				stack[stack_size++].get<reference>() = val.get<reference>();
+			}
 			else {
-				fputs("unknown static", stderr);
-				abort();
+				fputs("unknown static", stderr); abort();
 			}
 		}
 		else if constexpr (same_as<Type, put_static>) {
 			if(info) {
 				tabs(); fputs("put_static ", stderr);
-				fprintf(stderr, "%dh\n", x.index);
+				fprintf(stderr, "%hd\n", x.index);
 			}
 			field& f = c.get_static_field(x.index);
 			auto& val = ((static_field*)&f)->value();
-			if(val.is<jint>()) {
+			val.view([&](auto& fv) {
+				stack[stack_size++].view([&](auto& stack_fv) {
+					if constexpr(
+						type::is_assignable<
+							decltype(fv)
+						>::template for_type<decltype(stack_fv)>
+					) {
+						stack_fv = fv;
+					} else {
+						fputs("unknown static", stderr); abort();
+					}
+				});
+			});
+			/*if(val.is<jint>()) {
 				val.get<jint>() = stack[--stack_size].get<jint>();
+			}
+			if(val.is<reference>()) {
+				stack[stack_size++].get<reference>() = val.get<reference>();
 			}
 			else {
 				fputs("unknown static", stderr); abort();
-			}
+			}*/
 		}
 		else if constexpr (same_as<Type, get_field>) {
 			if(info) {
@@ -526,7 +604,7 @@ field_value execute(method& m, span<field_value, uint16> args) {
 
 			if(info) {
 				tabs(); fputs("new_array ", stderr);
-				fputs(name.data(), stderr);
+				fwrite(name.data(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
@@ -545,6 +623,37 @@ field_value execute(method& m, span<field_value, uint16> args) {
 			};
 			ref.object().values()[1] = field_value { count };
 			stack[stack_size++] = move(ref);
+		}
+		else if constexpr (same_as<Type, a_new_array>) {
+			_class& element_class = c.get_class(x.index);
+			auto name = element_class.name();
+
+			if(info) {
+				tabs(); fputs("a_new_array ", stderr);
+				fwrite(name.data(), 1, name.size(), stderr);
+				fputc('\n', stderr);
+			}
+
+			jint count = stack[--stack_size].get<jint>();
+			_class& c0 = find_or_load(
+				concat_view{ name, array{'[', ']'} }
+			);
+
+			auto ref = objects.find_free(c0);
+			ref.object().values()[0] = field_value {
+				jlong {
+					(int64) default_allocator{}.allocate_zeroed(
+						count.value * sizeof(reference)
+					)
+				}
+			};
+			ref.object().values()[1] = field_value { count };
+			stack[stack_size++] = move(ref);
+		}
+		else if constexpr (same_as<Type, array_length>) {
+			if(info) { tabs(); fputs("array_length\n", stderr); }
+			auto ref = stack[--stack_size].get<reference>();
+			stack[stack_size++] = ref.object().values()[0].get<jint>();
 		}
 		else if constexpr (same_as<Type, uint8>) {
 			fprintf(stderr, "unknown instruction ");

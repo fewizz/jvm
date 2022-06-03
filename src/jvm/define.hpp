@@ -10,6 +10,9 @@
 #include <core/span.hpp>
 #include <stdio.h>
 
+template<range Name>
+_class& find_or_load(Name name);
+
 template<typename Iterator>
 elements::of<
 	class_file::field::reader<Iterator, class_file::field::reader_stage::end>,
@@ -55,7 +58,16 @@ read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
 			} else
 			if constexpr(same_as<descriptor::Z, Type0>) {
 				fv = jbool{ 0 };
-			} else {
+			} else
+			if constexpr(same_as<descriptor::object_type, Type0>) {
+				fv = reference{};
+			} else
+			if constexpr(descriptor::is_array_type<Type0>) {
+				if constexpr(descriptor::array_type_rank<Type0> < 4) {
+					fv = reference{};
+				}
+			}
+			else {
 				return false;
 			}
 				return true;
@@ -157,10 +169,9 @@ inline _class& define_class(span<uint8> bytes) {
 	});
 
 	if(c.super_class_index() != 0) {
-		_class& s = load_class(
-			c.utf8_constant(
-				c.class_constant(c.super_class_index()).name_index)
-			);
+		_class& s = find_or_load(
+			c.utf8_constant(c.class_constant(c.super_class_index()).name_index)
+		);
 		uint16 instance_fields = s.instance_fields_.size();
 		for(auto& f : c.fields_) {
 			if(!f.get<::field>().is_static()) ++instance_fields;
@@ -211,7 +222,7 @@ inline _class& define_array_class(_class& element_class) {
 	c.const_pool::emplace_back(
 		class_file::constant::utf8 { ptr, (uint16) name.size() }
 	);
-	c.const_pool::emplace_back(class_file::constant::_class { 0 });
+	c.const_pool::emplace_back(class_file::constant::_class { 1 });
 	ptr += name.size();
 
 	c.const_pool::emplace_back(
@@ -280,3 +291,5 @@ inline _class& define_primitive_class(Name&& name) {
 
 	return c;
 }
+
+#include "classes.hpp"

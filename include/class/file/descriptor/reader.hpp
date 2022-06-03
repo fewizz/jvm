@@ -22,13 +22,13 @@ namespace class_file::descriptor {
 			case 'Z': return handler(descriptor::Z{});
 			case 'L': {
 				auto e = iterator;
-				while(*e++ != ';') ++e;
+				while(*e != ';') ++e;
 				bool result = handler(
 					descriptor::object_type{
 						(uint8*)iterator, uint16(e - iterator)
 					}
 				);
-				iterator = e;
+				iterator = ++e;
 				return result;
 			}
 			case '[': {

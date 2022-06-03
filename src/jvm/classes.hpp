@@ -10,7 +10,9 @@ inline fixed_vector<_class, uint32, default_allocator> classes{ 65536 };
 
 template<range Name>
 _class* try_find_class(Name name) {
-	for(auto& c : classes) if(equals(c.name(), name)) return &c;
+	for(auto& c : classes) {
+		if(equals(c.name(), name)) return &c;
+	}
 	return nullptr;
 }
 

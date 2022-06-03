@@ -24,7 +24,24 @@ inline _class& load_class(Name name);
 
 template<range Name>
 inline _class& load_class(Name name) {
-	if(equals(name, c_string{"int"})) {
+	fputs("loading class ", stderr);
+
+	view_copy_on_stack{ name }([&](auto on_stack) {
+		fwrite(on_stack.data(), 1, on_stack.size(), stderr);
+		fputc('\n', stderr);
+	});
+
+	if(
+		equals(name, c_string{ "void"    }) ||
+		equals(name, c_string{ "boolean" }) ||
+		equals(name, c_string{ "byte"    }) ||
+		equals(name, c_string{ "short"   }) ||
+		equals(name, c_string{ "char"    }) ||
+		equals(name, c_string{ "int"     }) ||
+		equals(name, c_string{ "long"    }) ||
+		equals(name, c_string{ "float"   }) ||
+		equals(name, c_string{ "double"  })
+	) {
 		return define_primitive_class(forward<Name>(name));
 	}
 

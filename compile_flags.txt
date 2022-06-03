@@ -6,9 +6,9 @@
 -Iinclude
 -ftemplate-backtrace-limit=0
 -fuse-ld=lld
--Iplatform
 -I./
 -I../core/include
+-I../encoding/include
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build
