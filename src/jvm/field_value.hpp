@@ -10,7 +10,7 @@ struct jbool {
 };
 
 struct jbyte {
-	bool value;
+	uint8 value;
 };
 
 struct jshort {

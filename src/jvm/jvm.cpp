@@ -37,9 +37,9 @@ int main (int argc, const char** argv) {
 	}
 
 	_class& cls = load_class(c_string{ argv[1] }.sized());
-	field_value fv = execute(cls.find_method(c_string{ argv[2] }));
-	if(fv.is<jint>()) {
-		printf("%d", fv.get<jint>().value);
+	stack_entry fv = execute(cls.find_method(c_string{ argv[2] }));
+	if(fv.is<int32>()) {
+		printf("%d", fv.get<int32>());
 	}
 	if(
 		fv.is<reference>() &&
