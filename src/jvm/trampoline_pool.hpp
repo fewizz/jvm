@@ -4,7 +4,7 @@
 #include "instance_field_index.hpp"
 #include "reference.hpp"
 #include <core/meta/elements/one_of.hpp>
-#include <core/fixed_vector.hpp>
+#include <core/limited_list.hpp>
 
 struct _class;
 struct method;
@@ -18,9 +18,9 @@ using trampoline_entry = elements::one_of<
 >;
 
 struct trampoline_pool :
-	protected fixed_vector<trampoline_entry, uint16, default_allocator>
+	protected limited_list<trampoline_entry, uint16, default_allocator>
 {
-	using base_type = fixed_vector<trampoline_entry, uint16, default_allocator>;
+	using base_type = limited_list<trampoline_entry, uint16, default_allocator>;
 	using base_type::base_type;
 
 	uint16 trampolines_count() const {

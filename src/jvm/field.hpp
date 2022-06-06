@@ -1,5 +1,7 @@
 #pragma once
 
+#include "name_index.hpp"
+#include "descriptor_index.hpp"
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
 
@@ -9,17 +11,17 @@ struct _class;
 
 struct field {
 private:
-	_class& class_;
+	_class&                  class_;
 	class_file::access_flags access_flags_;
-	uint16 name_index_;
-	uint16 desc_index_;
+	name_index               name_index_;
+	descriptor_index         desc_index_;
 
 public:
 	field(
-		_class& c,
+		_class&                  c,
 		class_file::access_flags access_flags,
-		uint16 name_index,
-		uint16 descriptor_index
+		name_index               name_index,
+		descriptor_index         descriptor_index
 	) :
 		class_{ c },
 		access_flags_{ access_flags },

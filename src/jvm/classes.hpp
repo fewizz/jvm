@@ -2,9 +2,9 @@
 
 #include "class.hpp"
 
-#include <core/fixed_vector.hpp>
+#include <core/limited_list.hpp>
 
-inline fixed_vector<_class, uint32, default_allocator> classes{ 65536 };
+inline limited_list<_class, uint32, default_allocator> classes{ 65536 };
 
 #include <core/equals.hpp>
 

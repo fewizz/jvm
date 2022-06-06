@@ -28,46 +28,18 @@ reference objects_t::find_free(_class& c) {
 				new(malloc(sizeof(object)))
 				object(c, c.instance_fields().size());
 
-			field_value fv;
-
 			for(field* f : c.instance_fields()) {
 				using namespace class_file;
+
+				field_value fv;
+
 				bool result = descriptor::read_field(
-				f->descriptor().begin(),
-				[&]<typename Type0>(Type0) {
-					if constexpr(same_as<descriptor::B, Type0>) {
-						fv = jbyte{ 0 };
-					} else
-					if constexpr(same_as<descriptor::C, Type0>) {
-						fv = jchar{ 0 };
-					} else
-					if constexpr(same_as<descriptor::D, Type0>) {
-						fv = jdouble{ 0.0 };
-					} else
-					if constexpr(same_as<descriptor::F, Type0>) {
-						fv = jfloat{ 0.0 };
-					} else
-					if constexpr(same_as<descriptor::I, Type0>) {
-						fv = jint{ 0 };
-					} else
-					if constexpr(same_as<descriptor::J, Type0>) {
-						fv = jlong{ 0 };
-					} else
-					if constexpr(same_as<descriptor::Z, Type0>) {
-						fv = jbool{ 0 };
-					} else
-					if constexpr(same_as<descriptor::object_type, Type0>) {
-						fv = reference{};
-					} else
-					if constexpr(descriptor::is_array_type<Type0>) {
-						if constexpr(descriptor::array_type_rank<Type0> < 4) {
-							fv = reference{};
-						}
-					} else {
-						return false;
+					f->descriptor().begin(),
+					[&]<typename DescriptorType>(DescriptorType) {
+						return fv.set_default_value<DescriptorType>();
 					}
-						return true;
-				});
+				);
+
 				if(!result) {
 					fputs(
 						"couldn't read field descriptor while creating object",
@@ -75,7 +47,8 @@ reference objects_t::find_free(_class& c) {
 					);
 					abort();
 				}
-				p.object_ptr->values().emplace_back(fv);
+
+				p.object_ptr->values().emplace_back(move(fv));
 			}
 
 			return reference{ p };

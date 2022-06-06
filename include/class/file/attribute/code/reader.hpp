@@ -128,9 +128,9 @@ namespace class_file::attribute::code {
 					case 45: handler(a_load_3{}, cpy); break;
 					case 46: handler(i_a_load{}, cpy); break;
 
-					case 50: handler(aa_load{}, cpy); break;
-					case 51: handler(ba_load{}, cpy); break;
-					case 52: handler(ca_load{}, cpy); break;
+					case 50: handler(a_a_load{}, cpy); break;
+					case 51: handler(b_a_load{}, cpy); break;
+					case 52: handler(c_a_load{}, cpy); break;
 					case 54: {
 						uint8 index = read<uint8>(cpy);
 						handler(i_store{ index }, cpy); break;
@@ -152,9 +152,9 @@ namespace class_file::attribute::code {
 					case 77: handler(a_store_2{}, cpy); break;
 					case 78: handler(a_store_3{}, cpy); break;
 					case 79: handler(i_a_store{}, cpy); break;
-					case 83: handler(aa_store{}, cpy); break;
-					case 84: handler(ba_store{}, cpy); break;
-					case 85: handler(ca_store{}, cpy); break;
+					case 83: handler(a_a_store{}, cpy); break;
+					case 84: handler(b_a_store{}, cpy); break;
+					case 85: handler(c_a_store{}, cpy); break;
 					case 87: handler(pop{}, cpy); break;
 					case 89: handler(dup{}, cpy); break;
 					case 92: handler(dup2{}, cpy); break;

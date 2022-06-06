@@ -21,6 +21,7 @@ fi
 exit 0
 #endif
 
+#include "define/instance_fields_to_add.hpp"
 #include "field_value.hpp"
 #include "field.hpp"
 #include "class.hpp"
@@ -35,6 +36,34 @@ int main (int argc, const char** argv) {
 		fputs("usage: 'class name' 'method name'", stderr);
 		return 1;
 	}
+
+	view_class_file(c_string{ "java/lang/Class" }, [&](FILE* file) {
+		fseek(file, 0, SEEK_END);
+		nuint size = ftell(file);
+		rewind(file);
+		uint8* data = (uint8*) malloc(size);
+		fread(data, 1, size, file);
+		define_class(
+			span{ data, size },
+			instance_fields_to_add { array {
+				field_constructor_args{
+					class_file::access_flags{},
+					name_index{ 0 },
+					descriptor_index{ 0 }
+				}
+			} }
+		);
+	});
+
+	define_primitive_class(c_string{ "void" });
+	define_primitive_class(c_string{ "boolean" });
+	define_primitive_class(c_string{ "byte" });
+	define_primitive_class(c_string{ "short" });
+	define_primitive_class(c_string{ "char" });
+	define_primitive_class(c_string{ "int" });
+	define_primitive_class(c_string{ "long" });
+	define_primitive_class(c_string{ "float" });
+	define_primitive_class(c_string{ "double" });
 
 	_class& cls = load_class(c_string{ argv[1] }.sized());
 	stack_entry fv = execute(cls.find_method(c_string{ argv[2] }));
@@ -66,7 +95,7 @@ int main (int argc, const char** argv) {
 			values.get<reference>().object().values()[1].get<jint>().value
 		};
 		
-		auto it = (uint8*)data;
+		auto it = (uint8*) data;
 		auto end = it + data_len;
 		while(it != end) {
 			auto cp = utf_16::decoder<endianness::big>{}((uint8*)data);

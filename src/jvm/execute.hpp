@@ -17,6 +17,8 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args = {});
 
 #include <stdio.h>
 #include <core/number.hpp>
+#include <core/c_string.hpp>
+#include <core/concat.hpp>
 
 template<range Name>
 _class& find_or_load(Name name);
@@ -160,17 +162,17 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 				}
 			}
 			const_pool_entry constatnt = m._class().constant(x.index);
-			if(constatnt.is<class_file::constant::int32>()) {
+			if(constatnt.is<cc::int32>()) {
 				stack[stack_size++] = {
-					constatnt.get<class_file::constant::int32>().value
+					constatnt.get<cc::int32>().value
 				};
 			} else
-			if(constatnt.is<class_file::constant::float32>()) {
+			if(constatnt.is<cc::float32>()) {
 				stack[stack_size++] = {
-					constatnt.get<class_file::constant::float32>().value
+					constatnt.get<cc::float32>().value
 				};
 			} else
-			if(constatnt.is<class_file::constant::string>()) {
+			if(constatnt.is<cc::string>()) {
 				stack[stack_size++] = c.get_string(x.index);
 			}
 			else {
@@ -201,11 +203,26 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			if(info) { tabs(); fputs("a_load_1\n", stderr); }
 			stack[stack_size++] = local[1].get<reference>();
 		}
+		else if constexpr (same_as<Type, a_load_2>) {
+			if(info) { tabs(); fputs("a_load_2\n", stderr); }
+			stack[stack_size++] = local[2].get<reference>();
+		}
+		else if constexpr (same_as<Type, a_load_3>) {
+			if(info) { tabs(); fputs("a_load_3\n", stderr); }
+			stack[stack_size++] = local[3].get<reference>();
+		}
 		else if constexpr (same_as<Type, i_a_load>) {
 			if(info) { tabs(); fputs("i_a_load\n", stderr); }
 			auto index = stack[--stack_size].get<int32>();
 			auto ref = move(stack[--stack_size].get<reference>());
 			int32* ptr = (int32*) ref.object().values()[0].get<jlong>().value;
+			stack[stack_size++] = ptr[index];
+		}
+		else if constexpr (same_as<Type, b_a_load>) {
+			if(info) { tabs(); fputs("b_a_load\n", stderr); }
+			auto index = stack[--stack_size].get<int32>();
+			auto ref = move(stack[--stack_size].get<reference>());
+			int8* ptr = (int8*) ref.object().values()[0].get<jlong>().value;
 			stack[stack_size++] = ptr[index];
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
@@ -232,12 +249,28 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			if(info) { tabs(); fputs("a_store_1\n", stderr); }
 			local[1] = move(stack[--stack_size].get<reference>());
 		}
+		else if constexpr (same_as<Type, a_store_2>) {
+			if(info) { tabs(); fputs("a_store_2\n", stderr); }
+			local[2] = move(stack[--stack_size].get<reference>());
+		}
+		else if constexpr (same_as<Type, a_store_3>) {
+			if(info) { tabs(); fputs("a_store_3\n", stderr); }
+			local[3] = move(stack[--stack_size].get<reference>());
+		}
 		else if constexpr (same_as<Type, i_a_store>) {
 			if(info) { tabs(); fputs("i_a_store\n", stderr); }
 			int32 value = stack[--stack_size].get<int32>();
 			int32 index = stack[--stack_size].get<int32>();
 			auto ref = move(stack[--stack_size].get<reference>());
 			auto ptr = (int32*) ref.object().values()[0].get<jlong>().value;
+			ptr[index] = value;
+		}
+		else if constexpr (same_as<Type, b_a_store>) {
+			if(info) { tabs(); fputs("b_a_store\n", stderr); }
+			int32 value = stack[--stack_size].get<int32>();
+			int32 index = stack[--stack_size].get<int32>();
+			auto ref = move(stack[--stack_size].get<reference>());
+			auto ptr = (int8*) ref.object().values()[0].get<jlong>().value;
 			ptr[index] = value;
 		}
 
@@ -274,6 +307,10 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 		else if constexpr (same_as<Type, i_inc>) {
 			if(info) { tabs(); fputs("i_inc\n", stderr); }
 			local[x.index].template get<int32>() += x.value;
+		}
+		else if constexpr (same_as<Type, i_to_b>) {
+			if(info) { tabs(); fputs("i_to_b\n", stderr); }
+			stack[stack_size - 1] = (int8) stack[stack_size - 1].get<int32>();
 		}
 		else if constexpr (same_as<Type, if_eq>) {
 			if(info) {

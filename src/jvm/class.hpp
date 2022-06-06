@@ -4,11 +4,12 @@
 #include "trampoline_pool.hpp"
 #include "field.hpp"
 #include "static_field.hpp"
+#include "name_index.hpp"
 #include "../abort.hpp"
 #include "class/file/access_flag.hpp"
 
 #include <core/range.hpp>
-#include <core/fixed_vector.hpp>
+#include <core/limited_list.hpp>
 #include <core/transform.hpp>
 #include <core/expected.hpp>
 #include <stdio.h>
@@ -17,19 +18,22 @@ struct _class : const_pool, trampoline_pool {
 private:
 	span<uint8> data_;
 	class_file::access_flags access_flags_;
-	uint16 this_class_index_;
-	uint16 super_class_index_;
-	::fixed_vector<uint16, uint16, default_allocator> interfaces_;
-	::fixed_vector<
+	name_index this_class_index_;
+	name_index super_class_index_;
+	::limited_list<uint16, uint16, default_allocator> interfaces_;
+	::limited_list<
 		elements::one_of<field, static_field
 	>, uint16, default_allocator> fields_;
-	::fixed_vector<
+	::limited_list<
 		field*, uint16, default_allocator
 	> instance_fields_;
-	::fixed_vector<method, uint16, default_allocator> methods_;
+	::limited_list<method, uint16, default_allocator> methods_;
 
-	friend inline _class& define_class(span<uint8> bytes);
+	template<typename... Args>
+	friend inline _class& define_class0(Args&&... args);
+
 	friend inline _class& define_array_class(_class& element_class);
+
 	template<range Name>
 	friend inline _class& define_primitive_class(Name&& name);
 

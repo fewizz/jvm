@@ -27,12 +27,12 @@ using const_pool_entry = elements::one_of<
 
 #include "../alloc.hpp"
 
-#include <core/fixed_vector.hpp>
+#include <core/limited_list.hpp>
 
 struct const_pool :
-	private fixed_vector<const_pool_entry, uint16, default_allocator>
+	private limited_list<const_pool_entry, uint16, default_allocator>
 {
-	using base_type = fixed_vector<const_pool_entry, uint16, default_allocator>;
+	using base_type = limited_list<const_pool_entry, uint16, default_allocator>;
 	using base_type::base_type;
 
 protected:

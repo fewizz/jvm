@@ -3,7 +3,7 @@
 #include "../alloc.hpp"
 #include "field_value.hpp"
 #include "instance_field_index.hpp"
-#include <core/fixed_vector.hpp>
+#include <core/limited_list.hpp>
 #include <core/integer.hpp>
 
 struct _class;
@@ -11,7 +11,7 @@ struct _class;
 struct object {
 private:
 	_class& class_;
-	fixed_vector<field_value, uint16, default_allocator> values_;
+	limited_list<field_value, uint16, default_allocator> values_;
 public:
 	inline object(_class& c, uint16 values_count);
 	inline field_value& operator [] (instance_field_index index);
