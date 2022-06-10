@@ -35,9 +35,10 @@ struct const_pool :
 	using base_type = limited_list<const_pool_entry, uint16, default_allocator>;
 	using base_type::base_type;
 
-protected:
-	using base_type::emplace_back;
 public:
+
+	using base_type::emplace_back;
+	using base_type::size;
 
 	uint16 constants_count() const { return capacity(); }
 

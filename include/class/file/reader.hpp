@@ -57,60 +57,54 @@ namespace class_file {
 				switch (tag) {
 					case constant::utf8::tag : {
 						uint16 len = read<uint16, endianness::big>(i);
-						handler(constant::utf8{ (char*) i, len }, x);
+						handler(constant::utf8{ (char*) i, len });
 						i += len;
 						break;
 					}
 					case constant::int32::tag : {
 						int32 value = read<int32, endianness::big>(i);
-						handler(constant::int32{ value }, x);
+						handler(constant::int32{ value });
 						break;
 					}
 					case constant::float32::tag : {
 						float value = read<float, endianness::big>(i);
-						handler(constant::float32{ value }, x);
+						handler(constant::float32{ value });
 						break;
 					}
 					case constant::int64::tag : {
 						int64 val = read<uint64, endianness::big>(i);
-						handler(constant::int64{ val }, x);
+						handler(constant::int64{ val });
 						++x;
-						handler(constant::skip{}, x);
+						handler(constant::skip{});
 						break;
 					}
 					case constant::float64::tag : {
 						double value = read<double, endianness::big>(i);
-						handler(constant::float64{ value }, x);
+						handler(constant::float64{ value });
 						++x;
-						handler(constant::skip{}, x);
+						handler(constant::skip{});
 						break;
 					}
 					case constant::_class::tag : {
 						uint16 name_index = read<uint16, endianness::big>(i);
-						handler(constant::_class{ name_index }, x);
+						handler(constant::_class{ name_index });
 						break;
 					}
 					case constant::string::tag : {
 						uint16 index = read<uint16, endianness::big>(i);
-						handler(constant::string{ index }, x);
+						handler(constant::string{ index });
 						break;
 					}
 					case constant::field_ref::tag : {
 						uint16 class_index = read<uint16, endianness::big>(i);
 						uint16 nat_index = read<uint16, endianness::big>(i);
-						handler(
-							constant::field_ref{ class_index, nat_index },
-							x
-						);
+						handler(constant::field_ref{ class_index, nat_index });
 						break;
 					}
 					case constant::method_ref::tag : {
 						uint16 class_index = read<uint16, endianness::big>(i);
 						uint16 nat_index = read<uint16, endianness::big>(i);
-						handler(
-							constant::method_ref{ class_index, nat_index },
-							x
-						);
+						handler(constant::method_ref{ class_index, nat_index });
 						break;
 					}
 					case constant::interface_method_ref::tag : {
@@ -120,8 +114,7 @@ namespace class_file {
 							constant::interface_method_ref {
 								class_index,
 								nat_index
-							},
-							x
+							}
 						);
 						break;
 					}
@@ -132,19 +125,18 @@ namespace class_file {
 							constant::name_and_type {
 								name_index,
 								desc_index
-							},
-							x);
+							});
 						break;
 					}
 					case constant::method_handle::tag : {
 						uint8 kind = *i++;
 						uint16 index = read<uint16, endianness::big>(i);
-						handler(constant::method_handle{ kind, index }, x);
+						handler(constant::method_handle{ kind, index });
 						break;
 					}
 					case constant::method_type::tag : {
 						uint16 desc_index = read<uint16, endianness::big>(i);
-						handler(constant::method_type{ desc_index }, x);
+						handler(constant::method_type{ desc_index });
 						break;
 					}
 					case constant::dynamic::tag : {
@@ -157,8 +149,7 @@ namespace class_file {
 						handler(
 							constant::dynamic {
 								method_attr_index, name_and_type_index
-							},
-							x
+							}
 						);
 						break;
 					}
@@ -173,21 +164,20 @@ namespace class_file {
 							constant::invoke_dynamic {
 								method_attr_index,
 								name_and_type_index
-							},
-							x);
+							});
 						break;
 					}
 					case constant::module::tag : {
 						uint16 name_index = read<uint16, endianness::big>(i);
-						handler(constant::module{ name_index }, x);
+						handler(constant::module{ name_index });
 						break;
 					}
 					case constant::package::tag : {
 						uint16 name_index = read<uint16, endianness::big>(i);
-						handler(constant::package{ name_index }, x);
+						handler(constant::package{ name_index });
 						break;
 					}
-					default: handler(constant::unknown{ tag }, x);
+					default: handler(constant::unknown{ tag });
 				}
 
 			}
@@ -199,7 +189,7 @@ namespace class_file {
 		uint16 entries_count() const
 		requires (Stage == reader_stage::constant_pool) {
 			uint16 constant_pool_size = 0;
-			(*this)([&](auto, uint16) { ++constant_pool_size; });
+			(*this)([&](auto) { ++constant_pool_size; });
 			return constant_pool_size;
 		}
 

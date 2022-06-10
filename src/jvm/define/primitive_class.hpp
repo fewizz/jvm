@@ -6,7 +6,7 @@
 #include <core/copy.hpp>
 
 template<range Name>
-inline _class& define_primitive_class(Name&& name) {
+static inline _class& define_primitive_class(Name&& name) {
 	classes.emplace_back(const_pool{ 2 });
 	_class& c = classes.back();
 

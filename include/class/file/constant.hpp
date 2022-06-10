@@ -12,9 +12,9 @@ namespace class_file::constant {
 	struct skip {};
 
 	// kind = Utf8
-	struct utf8 : span<char, uint16> {
+	struct utf8 : span<const char, uint16> {
 		static constexpr uint8 tag = 1;
-		using base_type = span<char, uint16>;
+		using base_type = span<const char, uint16>;
 		using base_type::base_type;
 	};
 

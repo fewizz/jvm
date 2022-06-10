@@ -12,7 +12,14 @@
 #include <core/limited_list.hpp>
 #include <core/transform.hpp>
 #include <core/expected.hpp>
+#include <core/c_string.hpp>
 #include <stdio.h>
+
+template<typename... Args>
+static inline _class& define_class0(Args&&... args);
+
+template<range Name>
+static inline _class& define_primitive_class(Name&& name);
 
 struct _class : const_pool, trampoline_pool {
 private:
@@ -25,9 +32,10 @@ private:
 		elements::one_of<field, static_field
 	>, uint16, default_allocator> fields_;
 	::limited_list<
-		field*, uint16, default_allocator
+		field&, uint16, default_allocator
 	> instance_fields_;
 	::limited_list<method, uint16, default_allocator> methods_;
+	reference class_class_;
 
 	template<typename... Args>
 	friend inline _class& define_class0(Args&&... args);
@@ -48,6 +56,8 @@ public:
 	auto name() const {
 		return utf8_constant(class_constant(this_class_index_).name_index);
 	}
+
+	inline object& class_class();
 
 	uint16 super_class_index() const { return super_class_index_; }
 
@@ -71,6 +81,9 @@ public:
 		};
 	}
 
+	auto& fields() const { return fields_; }
+	auto& fields() { return fields_; }
+
 	auto& methods() const { return methods_; }
 	auto& methods() { return methods_; }
 
@@ -79,6 +92,7 @@ public:
 	}
 
 	auto& instance_fields() const { return instance_fields_; }
+	auto& instance_fields() { return instance_fields_; }
 
 	template<range Name>
 	inline method* try_find_method(Name name);
@@ -137,6 +151,18 @@ public:
 
 };
 
+#include "classes.hpp"
+
+object& _class::class_class() {
+	if(class_class_.is_null()) {
+		_class& class_class = find_or_load(c_string{ "java/lang/Class" });
+		class_class_ = objects.find_free(class_class);
+		auto& values = class_class_.object().values();
+		values.back() = jlong{ (int64) this };
+	}
+	return class_class_.object();
+}
+
 #include "method.hpp"
 
 _class::_class(const_pool&& const_pool) :
@@ -164,8 +190,8 @@ _class::try_find_instance_field_index(Name name, Descriptor descriptor) {
 	uint16 index = 0;
 	for(auto& f : instance_fields_) {
 		if(
-			equals(f->name(), name) &&
-			equals(f->descriptor(), descriptor)
+			equals(f.name(), name) &&
+			equals(f.descriptor(), descriptor)
 		) return instance_field_index{ index };
 		++index;
 	}

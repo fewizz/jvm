@@ -1,6 +1,7 @@
 #pragma once
 
-#include "instance_fields_to_add.hpp"
+#include "fields_to_add.hpp"
+#include "constants_to_add.hpp"
 #include "read_field.hpp"
 #include "read_method.hpp"
 
@@ -21,10 +22,10 @@
 #include <stdio.h>
 
 template<range Name>
-_class& find_or_load(Name name);
+static inline _class& find_or_load(Name name);
 
 template<typename... Args>
-inline _class& define_class0(Args&&... args) {
+static inline _class& define_class0(Args&&... args) {
 	using namespace class_file;
 
 	auto& bytes = elements::range_of<uint8>(args...);
@@ -38,23 +39,43 @@ inline _class& define_class0(Args&&... args) {
 
 	auto [read_constant_pool, version] = version_reader();
 
-	classes.emplace_back(const_pool{ read_constant_pool.entries_count() });
+	uint16 constants_count = read_constant_pool.entries_count();
+
+	if constexpr(
+		types::are_contain_decayed_satisfying_predicate<
+			is_constants_to_add
+		>::for_types<Args...>
+	) {
+		constants_count += elements::decayed_satisfying_predicate<
+			is_constants_to_add
+		>(args...).count();
+	}
+
+	classes.emplace_back(const_pool{ constants_count });
 
 	_class& c = classes.back();
 	c.data_ = { bytes };
 
-	auto read_access_flags = read_constant_pool(
-		[&]<typename Type>(Type x, uint16) {
-			if constexpr(same_as<constant::unknown, Type>) {
-				fprintf(stderr, "unknown constant with tag %hhu", x.tag);
-				abort();
-			}
-			else {
-				c.const_pool::emplace_back(x);
-				c.trampoline_pool::emplace_back(nullptr);
-			}
+	auto read_access_flags = read_constant_pool([&]<typename Type>(Type x) {
+		if constexpr(same_as<constant::unknown, Type>) {
+			fprintf(stderr, "unknown constant with tag %hhu", x.tag);
+			abort();
 		}
-	);
+		else {
+			c.const_pool::emplace_back(x);
+			c.trampoline_pool::emplace_back(nullptr);
+		}
+	});
+
+	if constexpr(
+		types::are_contain_decayed_satisfying_predicate<
+			is_constants_to_add
+		>::for_types<Args...>
+	) {
+		elements::decayed_satisfying_predicate<
+			is_constants_to_add
+		>(args...).handler()(c);
+	}
 
 	auto [read_this_class, access_flags] = read_access_flags();
 	auto [read_super_class, this_class] = read_this_class();
@@ -73,16 +94,16 @@ inline _class& define_class0(Args&&... args) {
 
 	if constexpr(
 		types::are_contain_decayed_satisfying_predicate<
-			is_instance_fields_to_add
+			is_fields_to_add
 		>::for_types<Args...>
 	) {
-		auto& to_add = elements::decayed_satisfying_predicate<
-			is_instance_fields_to_add
-		>(args...);
-		fields_count += to_add.fields().size();
+		fields_count += elements::decayed_satisfying_predicate<
+			is_fields_to_add
+		>(args...).count();
 	}
 
 	c.fields_ = { fields_count };
+
 	auto methods_reader = read_fields([&](auto field_reader) {
 		auto [reader, f] = read_field(c, field_reader);
 		c.fields_.emplace_back(move(f));
@@ -91,17 +112,12 @@ inline _class& define_class0(Args&&... args) {
 
 	if constexpr(
 		types::are_contain_decayed_satisfying_predicate<
-			is_instance_fields_to_add
+			is_fields_to_add
 		>::for_types<Args...>
 	) {
-		auto& to_add = elements::decayed_satisfying_predicate<
-			is_instance_fields_to_add
-		>(args...);
-		for(field_constructor_args& f : to_add.fields()) {
-			f.pass([&](auto... args) {
-				c.fields_.emplace_back(::field { c, args... });
-			});
-		}
+		elements::decayed_satisfying_predicate<
+			is_fields_to_add
+		>(args...).handler()(c);
 	}
 
 	c.methods_ = { methods_reader.count() };
@@ -112,25 +128,38 @@ inline _class& define_class0(Args&&... args) {
 		return reader;
 	});
 
+	uint16 instance_fields = 0;
+
+	for(auto& f : c.fields_) {
+		if(!f.get<::field>().is_static()) {
+			++instance_fields;
+		}
+	}
+
 	if(c.super_class_index() != 0) {
-		_class& s = find_or_load(
+		_class& super = find_or_load(
 			c.utf8_constant(c.class_constant(c.super_class_index()).name_index)
 		);
-		uint16 instance_fields = s.instance_fields_.size();
-		for(auto& f : c.fields_) {
-			if(!f.get<::field>().is_static()) ++instance_fields;
+
+		for(auto& f : super.fields_) {
+			if(!f.get<::field>().is_static()) {
+				++instance_fields;
+			}
 		}
 
 		c.instance_fields_ = { instance_fields };
 
-		for(auto& f : s.fields_) {
-			c.instance_fields_.emplace_back(&f.get<::field>());
+		for(auto& f : super.fields_) {
+			c.instance_fields_.emplace_back(f.get<::field>());
 		}
+	}
+	else {
+		c.instance_fields_ = { instance_fields };
 	}
 
 	for(auto& f : c.fields_) {
 		if(!f.get<::field>().is_static()) {
-			c.instance_fields_.emplace_back(&f.get<::field>());
+			c.instance_fields_.emplace_back(f.get<::field>());
 		}
 	}
 
@@ -151,7 +180,8 @@ inline _class& define_class0(Args&&... args) {
 template<typename... Args>
 requires types::are_exclusively_satisfying_predicates<
 	types::are_contain_range_of<uint8>,
-	types::are_may_contain_one_satisfying_predicate<is_instance_fields_to_add>
+	types::are_may_contain_one_satisfying_predicate<is_fields_to_add>,
+	types::are_may_contain_one_satisfying_predicate<is_constants_to_add>
 >::for_types<Args...>
 inline _class& define_class(Args&&... args) {
 	return define_class0(forward<Args>(args)...);

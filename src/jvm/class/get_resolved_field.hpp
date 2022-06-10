@@ -49,8 +49,8 @@ _class::get_resolved_instance_field_index(uint16 ref_index) {
 	}
 
 	uint16 index = 0;
-	for(::field* f_ptr : f->_class().instance_fields()) {
-		if(f_ptr == f) {
+	for(::field& f0 : f->_class().instance_fields()) {
+		if(&f0 == f) {
 			trampoline(ref_index) = instance_field_index{ index };
 			return { index };
 		}

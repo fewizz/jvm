@@ -28,13 +28,13 @@ reference objects_t::find_free(_class& c) {
 				new(malloc(sizeof(object)))
 				object(c, c.instance_fields().size());
 
-			for(field* f : c.instance_fields()) {
+			for(field& f : c.instance_fields()) {
 				using namespace class_file;
 
 				field_value fv;
 
 				bool result = descriptor::read_field(
-					f->descriptor().begin(),
+					f.descriptor().begin(),
 					[&]<typename DescriptorType>(DescriptorType) {
 						return fv.set_default_value<DescriptorType>();
 					}

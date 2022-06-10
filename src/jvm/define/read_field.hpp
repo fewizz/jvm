@@ -8,7 +8,7 @@
 #include <core/meta/elements/one_of.hpp>
 
 template<typename Iterator>
-elements::of<
+static inline elements::of<
 	class_file::field::reader<Iterator, class_file::field::reader_stage::end>,
 	elements::one_of<field, static_field>
 >

@@ -15,39 +15,30 @@ inline _class& define_array_class(_class& element_class) {
 	c_string ptr_desc { "J" };
 	c_string len_name { "len_" };
 	c_string len_desc { "I" };
-	static_assert(is_array<remove_reference<decltype("dsf")>>);
-	auto concated = concat_view(name, ptr_name, ptr_desc, len_name, len_desc);
-	auto concated_size = concated.size();
 
-	c.data_ = { default_allocator{}.allocate(concated_size), concated_size };
-	copy{ concated }.to(c.data_);
+	c.data_ = { default_allocator{}.allocate(name.size()), name.size() };
 
-	auto ptr = (char*) c.data_.data();
-	c.const_pool::emplace_back(
-		class_file::constant::utf8 { ptr, (uint16) name.size() }
-	);
+	c.const_pool::emplace_back(class_file::constant::utf8 {
+		(char*) c.data_.data(), (uint16) name.size()
+	});
+
 	c.const_pool::emplace_back(class_file::constant::_class { 1 });
-	ptr += name.size();
 
-	c.const_pool::emplace_back(
-		class_file::constant::utf8 { ptr, (uint16) ptr_name.size() }
+	c.const_pool::emplace_back(class_file::constant::utf8 {
+		ptr_name.data(), (uint16) ptr_name.size() }
 	);
-	ptr += ptr_name.size();
 
-	c.const_pool::emplace_back(
-		class_file::constant::utf8 { ptr, (uint16) ptr_desc.size() }
-	);
-	ptr += ptr_desc.size();
+	c.const_pool::emplace_back(class_file::constant::utf8 {
+		ptr_desc.data(), (uint16) ptr_desc.size()
+	});
 
-	c.const_pool::emplace_back(
-		class_file::constant::utf8 { ptr, (uint16) len_name.size() }
-	);
-	ptr += len_name.size();
+	c.const_pool::emplace_back(class_file::constant::utf8 {
+		len_name.data(), (uint16) len_name.size()
+	});
 
-	c.const_pool::emplace_back(
-		class_file::constant::utf8 { ptr, (uint16) len_desc.size() }
-	);
-	//ptr += len_desc.size();
+	c.const_pool::emplace_back(class_file::constant::utf8 {
+		len_desc.data(), (uint16) len_desc.size()
+	});
 
 	c.fields_ = { 2 };
 	c.fields_.emplace_back(
@@ -66,8 +57,8 @@ inline _class& define_array_class(_class& element_class) {
 	);
 
 	c.instance_fields_ = { 2 };
-	c.instance_fields_.emplace_back(&c.fields_[0].get<field>());
-	c.instance_fields_.emplace_back(&c.fields_[1].get<field>());
+	c.instance_fields_.emplace_back(c.fields_[0].get<field>());
+	c.instance_fields_.emplace_back(c.fields_[1].get<field>());
 
 	c.this_class_index_ = name_index{ 2 };
 

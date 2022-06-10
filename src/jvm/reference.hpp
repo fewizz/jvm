@@ -21,6 +21,8 @@ public:
 
 	inline object& object();
 	inline ~reference();
+
+	inline bool is_null() const;
 };
 
 #include "counted_object_ptr.hpp"
@@ -88,4 +90,8 @@ object& reference::object() {
 
 reference::~reference() {
 	decrement_refernce();
+}
+
+inline bool reference::is_null() const {
+	return ptr_ == nullptr || ptr_->object_ptr == nullptr;
 }

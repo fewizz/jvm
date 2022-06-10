@@ -4,6 +4,7 @@
 #include "class/file/constant.hpp"
 
 #include <core/span.hpp>
+#include <core/meta/elements/one_of.hpp>
 
 struct _class;
 
@@ -29,7 +30,7 @@ private:
 	class_file::access_flags access_flags_;
 	uint16 name_index_;
 	uint16 desc_index_;
-	code code_;
+	elements::one_of<code, void*> code_;
 public:
 
 	method(
@@ -37,13 +38,13 @@ public:
 		class_file::access_flags access_flags,
 		uint16 name_index,
 		uint16 descriptor_index,
-		code code
+		elements::one_of<code, void*> code
 	) :
-		class_{ c },
+		class_       { c },
 		access_flags_{ access_flags },
-		name_index_{ name_index },
-		desc_index_{ descriptor_index },
-		code_{ code }
+		name_index_  { name_index },
+		desc_index_  { descriptor_index },
+		code_        { code }
 	{}
 
 	_class& _class() const { return class_; }
@@ -51,7 +52,13 @@ public:
 	inline class_file::constant::utf8 name() const;
 	inline class_file::constant::utf8 descriptor() const;
 
-	code code() const { return code_; }
+	bool is_native() const {
+		return access_flags_.get(class_file::access_flag::native);
+	}
+
+	code code() const { return code_.get<::code>(); }
+
+	void*& function_ptr() { return code_.get<void*>(); }
 };
 
 #include "class.hpp"

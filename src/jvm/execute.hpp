@@ -1,36 +1,34 @@
 #pragma once
 
+#include "execute/definition.hpp"
+#include "execute/info.hpp"
+#include "execute/get_field_value.hpp"
+#include "execute/put_field_value.hpp"
+#include "execute/ldc.hpp"
+#include "execute/invoke_virtual.hpp"
+#include "execute/invoke_special.hpp"
+#include "execute/invoke_static.hpp"
+#include "execute/invoke_interface.hpp"
+#include "execute/new_array.hpp"
 #include "objects.hpp"
-
-struct stack_entry : elements::one_of<jvoid, int32, float, reference> {
-	using base_type = elements::one_of<jvoid, int32, float, reference>;
-	using base_type::base_type;
-
-	stack_entry() : base_type{ jvoid{} } {}
-};
-
-inline stack_entry execute(method& m, span<stack_entry, uint16> args = {});
-
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
+#include "native.hpp"
 #include "../abort.hpp"
 
 #include <stdio.h>
 #include <core/number.hpp>
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
+#include <core/single.hpp>
 
 template<range Name>
-_class& find_or_load(Name name);
+static inline _class& find_or_load(Name name);
 
-inline static constexpr bool info = true;
-inline static nuint tab = 0;
+inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
+	namespace cf = class_file;
+	namespace instr = cf::code::instruction;
 
-inline void tabs() {
-	for(nuint i = 1; i < tab; ++i) fputc('\t', stderr);
-}
-
-stack_entry execute(method& m, span<stack_entry, uint16> args) {
 	_class& c = m._class();
 
 	if(info) {
@@ -39,18 +37,33 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 		fwrite(c.name().data(), 1, c.name().size(), stderr);
 		fputc('.', stderr);
 		fwrite(m.name().data(), 1, m.name().size(), stderr);
-		fputc('(', stderr);
-		fputc(')', stderr);
-		fputc('\n', stderr);
+		fputs("()\n", stderr);
+	}
+
+	if(m.is_native()) {
+		if(m.function_ptr() == nullptr) {
+			concat_view full_name {
+				m._class().name(),
+				single_view{ '/' },
+				m.name()
+			};
+			m.function_ptr() = try_find_native_method(full_name);
+		}
+
+		//auto ptr = m.function_ptr();
+
+		// TODO
+		//if(args.size() == 0) {
+		//}
 	}
 
 	if(m.code().data() == nullptr) {
 		fputs("no code", stderr); abort();
 	}
 
-	class_file::attribute::code::reader<
+	cf::attribute::code::reader<
 		uint8*,
-		class_file::attribute::code::reader_stage::code
+		cf::attribute::code::reader_stage::code
 	> reader{ m.code().data() };
 
 	stack_entry stack[m.code().max_stack];
@@ -59,58 +72,8 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 	stack_entry local[m.code().max_locals];
 	for(int i = 0; i < args.size(); ++i) local[i] = move(args[i]);
 
-	using namespace class_file::code::instruction;
-	namespace cc = class_file::constant;
-
-	auto get = [&](field_value& value) {
-		value.view([&]<typename ValueType>(ValueType& value) {
-			if constexpr(same_as<reference, ValueType>) {
-				stack[stack_size++] = value;
-			} else
-			if constexpr(
-				same_as<jint,   ValueType> ||
-				same_as<jshort, ValueType> ||
-				same_as<jchar,  ValueType> ||
-				same_as<jbyte,  ValueType>
-			) {
-				stack[stack_size++] = int32{ value.value };
-			} else
-			if constexpr(same_as<jfloat, ValueType>) {
-				stack[stack_size++] = float{ value.value };
-			}
-			else {
-				fputs("couldn't get", stderr); abort();
-			}
-		});
-	};
-
-	auto put = [&](field_value& value) {
-		stack_entry stack_value = move(stack[--stack_size]);
-		value.view([&]<typename ValueType>(ValueType& value) {
-			if constexpr(same_as<reference, ValueType>) {
-				value = move(stack_value.get<reference>());
-			} else
-			if constexpr(
-				same_as<jint,   ValueType> ||
-				same_as<jshort, ValueType> ||
-				same_as<jchar,  ValueType> ||
-				same_as<jbyte,  ValueType>
-			) {
-				value = ValueType {
-					(decltype(value.value)) stack_value.get<int32>()
-				};
-			} else
-			if constexpr(same_as<jbool, ValueType>) {
-				value = jbool{ stack_value.get<int32>() == 1 };
-			} else
-			if constexpr(same_as<jfloat, ValueType>) {
-				value = jfloat{ stack_value.get<float>() };
-			}
-			else {
-				fputs("couldn't put", stderr); abort();
-			}
-		});
-	};
+	using namespace cf::code::instruction;
+	namespace cc = cf::constant;
 
 	stack_entry result;
 
@@ -151,33 +114,11 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			}
 			stack[stack_size++] = x.value;
 		}
-		else if constexpr (same_as<Type, ldc> || same_as<Type, ldc_w>) {
-			if(info) {
-				if constexpr(same_as<Type, ldc>) {
-					tabs(); fputs("ldc ", stderr);
-					fprintf(stderr, "%hhd\n", x.index);
-				} else {
-					tabs(); fputs("ldc_w ", stderr);
-					fprintf(stderr, "%hd\n", x.index);
-				}
-			}
-			const_pool_entry constatnt = m._class().constant(x.index);
-			if(constatnt.is<cc::int32>()) {
-				stack[stack_size++] = {
-					constatnt.get<cc::int32>().value
-				};
-			} else
-			if(constatnt.is<cc::float32>()) {
-				stack[stack_size++] = {
-					constatnt.get<cc::float32>().value
-				};
-			} else
-			if(constatnt.is<cc::string>()) {
-				stack[stack_size++] = c.get_string(x.index);
-			}
-			else {
-				fputs("unknown constant", stderr); abort();
-			}
+		else if constexpr (same_as<Type, instr::ldc>) {
+			::ldc(c, x, stack, stack_size);
+		}
+		else if constexpr (same_as<Type, instr::ldc_w>) {
+			::ldc_w(c, x, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
 			if(info) { tabs(); fputs("i_load_0\n", stderr); }
@@ -382,7 +323,7 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			}
 			field& f = c.get_static_field(x.index);
 			auto& value = ((static_field*)&f)->value();
-			get(value);
+			get_field_value(value, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, put_static>) {
 			if(info) {
@@ -391,7 +332,7 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			}
 			field& field = c.get_static_field(x.index);
 			field_value& static_field_value = ((static_field*)&field)->value();
-			put(static_field_value);
+			put_field_value(static_field_value, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, get_field>) {
 			if(info) {
@@ -415,7 +356,7 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 
 			reference ref = move(stack[--stack_size].get<reference>());
 			field_value& value = ref.object()[instance_field_index];
-			get(value);
+			get_field_value(value, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, put_field>) {
 			if(info) {
@@ -440,195 +381,19 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			stack_entry stack_value = move(stack[--stack_size]);
 			reference ref = move(stack[--stack_size].get<reference>());
 			field_value& field_value = ref.object()[instance_field_index];
-			put(field_value);
+			put_field_value(field_value, stack, stack_size);
 		}
-		else if constexpr (same_as<Type, invoke_virtual>) {
-			cc::method_ref method_ref_info {
-				c.method_ref_constant(x.index)
-			};
-			cc::name_and_type name_and_type_info {
-				c.name_and_type_constant(method_ref_info.name_and_type_index)
-			};
-
-			auto name = c.utf8_constant(name_and_type_info.name_index);
-			auto desc = c.utf8_constant(name_and_type_info.descriptor_index);
-
-			if(info) {
-				cc::_class class_info {
-					c.class_constant(method_ref_info.class_index)
-				};
-				auto class_name = c.utf8_constant(class_info.name_index);
-				tabs(); fputs("invoke_virtual ", stderr);
-				fwrite(class_name.data(), 1, class_name.size(), stderr);
-				fputc('.', stderr);
-				fwrite(name.data(), 1, name.size(), stderr);
-				fwrite(desc.data(), 1, desc.size(), stderr);
-				fputc('\n', stderr);
-			}
-
-			class_file::descriptor::method_reader params_reader{ desc.begin() };
-			uint16 args_count = 0;
-			params_reader([&](auto){ ++args_count; return true; });
-
-			method* m0 = nullptr;
-			_class* c0 = &stack[stack_size - args_count - 1]
-				.get<reference>()
-				.object()
-				._class();
-
-			while(true) {
-				if(m0 = c0->try_find_method(name, desc); m0 != nullptr) {
-					break;
-				}
-				if(c0->super_class_index() == 0) {
-					break;
-				}
-				c0 = &c0->get_class(c0->super_class_index());
-			}
-
-			if(m0 == nullptr) {
-				nuint index = 0;
-				c.for_each_maximally_specific_superinterface_method(
-					name, desc,
-					[&](method& m) {
-						if(index++ == 0) {
-							m0 = &m;
-							return;
-						}
-						fputs(
-							"more than one maximally-specific interface method",
-							stderr
-						);
-						abort();
-					}
-				);
-			}
-
-			if(m0 == nullptr) {
-				fputs("couldn't find method", stderr); abort();
-			}
-
-			++args_count; // this
-			stack_size -= args_count;
-			stack_entry result = execute(
-				*m0, span{ stack + stack_size, args_count }
-			);
-			if(!result.is<jvoid>()) {
-				stack[stack_size++] = result;
-			}
+		else if constexpr (same_as<Type, instr::invoke_virtual>) {
+			::invoke_virtual(c, x, stack, stack_size);
 		}
-		else if constexpr (same_as<Type, invoke_special>) {
-			method& m0 = c.get_resolved_method(x.index);
-			auto desc = m0.descriptor();
-
-			if(info) {
-				tabs(); fputs("invoke_special ", stderr);
-				auto name = m0._class().name();
-				fwrite(name.data(), 1, name.size(), stderr);
-				fputc('.', stderr);
-				fwrite(m0.name().data(), 1, m0.name().size(), stderr);
-				fputc('\n', stderr);
-			}
-
-			class_file::descriptor::method_reader params_reader{ desc.begin() };
-			uint16 args_count = 0;
-			params_reader([&](auto){ ++args_count; return true; });
-			++args_count; // this
-			stack_size -= args_count;
-			stack_entry result = execute(
-				m0, span{ stack + stack_size, args_count }
-			);
-			if(!result.is<jvoid>()) {
-				stack[stack_size++] = result;
-			}
+		else if constexpr (same_as<Type, instr::invoke_special>) {
+			::invoke_special(c, x, stack, stack_size);
 		}
-		else if constexpr (same_as<Type, invoke_static>) {
-			method& next_method = c.get_method(x.index);
-			auto desc = next_method.descriptor();
-
-			class_file::descriptor::method_reader params_reader{ desc.begin() };
-			uint16 args_count = 0;
-			params_reader([&](auto){ ++args_count; return true; });
-			stack_size -= args_count;
-			stack_entry result = execute(
-				next_method,
-				span{ stack + stack_size, args_count }
-			);
-			if(!result.is<jvoid>()) {
-				stack[stack_size++] = result;
-			}
+		else if constexpr (same_as<Type, instr::invoke_static>) {
+			::invoke_static(c, x, stack, stack_size);
 		}
-		else if constexpr (same_as<Type, invoke_interface>) {
-			cc::method_ref method_ref_info {
-				c.method_ref_constant(x.index)
-			};
-			cc::name_and_type name_and_type_info {
-				c.name_and_type_constant(method_ref_info.name_and_type_index)
-			};
-
-			auto name = c.utf8_constant(name_and_type_info.name_index);
-			auto desc = c.utf8_constant(name_and_type_info.descriptor_index);
-
-			if(info) {
-				cc::_class class_info {
-					c.class_constant(method_ref_info.class_index)
-				};
-				auto class_name = c.utf8_constant(class_info.name_index);
-				tabs(); fputs("invoke_interface ", stderr);
-				fwrite(class_name.data(), 1, class_name.size(), stderr);
-				fputc('.', stderr);
-				fwrite(name.data(), 1, name.size(), stderr);
-				fwrite(desc.data(), 1, desc.size(), stderr);
-				fputc('\n', stderr);
-			}
-
-			uint16 args_count = x.count;
-
-			method* m0 = nullptr;
-			_class* c0 = &stack[stack_size - args_count]
-				.get<reference>()
-				.object()
-				._class();
-
-			while(true) {
-				if(m0 = c0->try_find_method(name, desc); m0 != nullptr) {
-					break;
-				}
-				if(c0->super_class_index() == 0) {
-					break;
-				}
-				c0 = &c0->get_class(c0->super_class_index());
-			}
-
-			if(m0 == nullptr) {
-				nuint index = 0;
-				c.for_each_maximally_specific_superinterface_method(
-					name, desc,
-					[&](method& m) {
-						if(index++ == 0) {
-							m0 = &m;
-							return;
-						}
-						fputs(
-							"more than one maximally-specific interface method",
-							stderr
-						);
-						abort();
-					}
-				);
-			}
-
-			if(m0 == nullptr) {
-				fputs("couldn't find method", stderr); abort();
-			}
-
-			stack_size -= args_count;
-			stack_entry result = execute(
-				*m0, span{ stack + stack_size, args_count }
-			);
-			if(!result.is<jvoid>()) {
-				stack[stack_size++] = result;
-			}
+		else if constexpr (same_as<Type, instr::invoke_interface>) {
+			::invoke_interface(c, x, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {
@@ -642,45 +407,8 @@ stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			_class& c0 = c.get_class(x.index);
 			stack[stack_size++] = objects.find_free(c0);
 		}
-		else if constexpr (same_as<Type, new_array>) {
-			c_string<c_string_type::known_size> name;
-			nuint size = 0;
-
-			switch (x.type) {
-				case 4:  name = "boolean"; size = sizeof(jbool);   break;
-				case 5:  name = "char";    size = sizeof(jchar);   break;
-				case 6:  name = "float";   size = sizeof(jfloat);  break;
-				case 7:  name = "double";  size = sizeof(jdouble); break;
-				case 8:  name = "byte";    size = sizeof(jbyte);   break;
-				case 9:  name = "short";   size = sizeof(jshort);  break;
-				case 10: name = "int";     size = sizeof(jint);    break;
-				case 11: name = "long";    size = sizeof(jlong);   break;
-				default:
-					fputs("unknown type of array", stderr);
-					abort();
-			}
-
-			if(info) {
-				tabs(); fputs("new_array ", stderr);
-				fwrite(name.data(), 1, name.size(), stderr);
-				fputc('\n', stderr);
-			}
-
-			int32 count = stack[--stack_size].get<int32>();
-			_class& c0 = find_or_load(
-				concat_view{ name, array{'[', ']'} }
-			);
-
-			auto ref = objects.find_free(c0);
-			ref.object().values()[0] = field_value {
-				jlong {
-					(int64) default_allocator{}.allocate_zeroed(
-						count * size
-					)
-				}
-			};
-			ref.object().values()[1] = jint{ count };
-			stack[stack_size++] = move(ref);
+		else if constexpr (same_as<Type, instr::new_array>) {
+			::new_array(/* c, */ x, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, a_new_array>) {
 			_class& element_class = c.get_class(x.index);

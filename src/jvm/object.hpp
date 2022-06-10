@@ -15,7 +15,7 @@ private:
 public:
 	inline object(_class& c, uint16 values_count);
 	inline field_value& operator [] (instance_field_index index);
-	inline auto& _class();
+	inline _class& _class();
 	inline auto& values() { return values_; }
 };
 
@@ -33,4 +33,4 @@ field_value& object::operator [] (instance_field_index index) {
 	return values_[(uint16) index];
 }
 
-auto& object::_class() { return class_; }
+_class& object::_class() { return class_; }
