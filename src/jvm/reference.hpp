@@ -1,13 +1,14 @@
 #pragma once
 
 #include <core/integer.hpp>
+#include <core/meta/elements/optional.hpp>
 
 struct counted_object_ptr;
 struct object;
 
 struct reference {
 private:
-	counted_object_ptr* ptr_;
+	optional<counted_object_ptr&> ptr_;
 	inline void decrement_refernce();
 public:
 	inline reference() = default;
@@ -32,19 +33,19 @@ public:
 #include <stdio.h>
 
 inline void reference::decrement_refernce() {
-	if(ptr_ != nullptr && ptr_->count >= 1) {
+	if(ptr_.has_value() && ptr_->count >= 1) {
 		--(ptr_->count);
 		if(ptr_->count == 0) {
-			free(ptr_->object_ptr);
+			free(&(ptr_->object.value()));
 			ptr_->count = 0;
-			ptr_->object_ptr = nullptr;
-			ptr_ = nullptr;
+			ptr_->object = elements::none{};
+			ptr_ = elements::none{};
 		}
 	}
 }
 
 reference::reference(counted_object_ptr& ptr) :
-	ptr_{ &ptr }
+	ptr_{ ptr }
 {
 	++(ptr_->count);
 }
@@ -52,19 +53,19 @@ reference::reference(counted_object_ptr& ptr) :
 reference::reference(const reference& other) :
 	ptr_{ other.ptr_ }
 {
-	if(ptr_ != nullptr) {
+	if(ptr_.has_value()) {
 		++(ptr_->count);
 	}
 }
 
 reference::reference(reference&& other) :
-	ptr_{ exchange(other.ptr_, nullptr) }
+	ptr_{ exchange(other.ptr_, elements::none{}) }
 {}
 
 reference& reference::operator = (const reference& other) {
 	decrement_refernce();
 	ptr_ = other.ptr_;
-	if(ptr_ != nullptr) {
+	if(ptr_.has_value()) {
 		++(ptr_->count);
 	}
 	return *this;
@@ -72,20 +73,20 @@ reference& reference::operator = (const reference& other) {
 
 reference& reference::operator = (reference&& other) {
 	decrement_refernce();
-	ptr_ = { exchange(other.ptr_, nullptr) };
+	ptr_ = { exchange(other.ptr_, elements::none{}) };
 	return *this;
 }
 
 object& reference::object() {
-	if(ptr_ == nullptr) {
+	if(!ptr_.has_value()) {
 		fprintf(stderr, "ptr_ is nullptr");
 		abort();
 	}
-	if(ptr_->object_ptr == nullptr) {
+	if(!ptr_->object.has_value()) {
 		fprintf(stderr, "ptr_->object_ptr is nullptr");
 		abort();
 	}
-	return *(ptr_->object_ptr);
+	return ptr_->object.value();
 }
 
 reference::~reference() {
@@ -93,5 +94,5 @@ reference::~reference() {
 }
 
 inline bool reference::is_null() const {
-	return ptr_ == nullptr || ptr_->object_ptr == nullptr;
+	return !ptr_.has_value() || !ptr_->object.has_value();
 }

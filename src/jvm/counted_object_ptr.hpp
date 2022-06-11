@@ -1,10 +1,10 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include <core/meta/elements/optional.hpp>
 
 struct object;
 
 struct counted_object_ptr {
 	nuint count;
-	object* object_ptr;
+	optional<object&> object;
 };

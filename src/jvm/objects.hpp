@@ -23,8 +23,8 @@ static inline struct objects_t :
 reference objects_t::find_free(_class& c) {
 	for(uint32 i = 1; i < 65536; ++i) {
 		auto& p = base_type::operator [] (i);
-		if(p.object_ptr == nullptr) {
-			p.object_ptr =
+		if(!p.object.has_value()) {
+			p.object = *
 				new(malloc(sizeof(object)))
 				object(c, c.instance_fields().size());
 
@@ -48,7 +48,7 @@ reference objects_t::find_free(_class& c) {
 					abort();
 				}
 
-				p.object_ptr->values().emplace_back(move(fv));
+				p.object->values().emplace_back(move(fv));
 			}
 
 			return reference{ p };
