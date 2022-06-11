@@ -6,7 +6,7 @@
 
 instance_field_index
 _class::get_resolved_instance_field_index(uint16 ref_index) {
-	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		return t.get<instance_field_index>();
 	}
 
@@ -34,23 +34,23 @@ _class::get_resolved_instance_field_index(uint16 ref_index) {
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	_class* other_c = &find_or_load(class_name);;
-	::field* f = nullptr;
+	optional<_class&> other_c{ find_or_load(class_name) };
+	optional<::field&> f{};
 
 	while(true) {
-		if(f = other_c->try_find_field(name, descriptor); f != nullptr) {
+		if(f = other_c->try_find_field(name, descriptor); f.has_value()) {
 			break;
 		}
 		if(other_c->super_class_index_ == 0) {
 			fprintf(stderr, "couldn't resolve field");
 			abort();
 		}
-		other_c = &other_c->get_class(other_c->super_class_index_);
+		other_c = other_c->get_class(other_c->super_class_index_);
 	}
 
 	uint16 index = 0;
 	for(::field& f0 : f->_class().instance_fields()) {
-		if(&f0 == f) {
+		if(&f0 == &f.value()) {
 			trampoline(ref_index) = instance_field_index{ index };
 			return { index };
 		}

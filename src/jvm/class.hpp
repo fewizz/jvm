@@ -13,6 +13,7 @@
 #include <core/transform.hpp>
 #include <core/expected.hpp>
 #include <core/c_string.hpp>
+#include <core/meta/elements/optional.hpp>
 #include <stdio.h>
 
 template<typename... Args>
@@ -95,30 +96,30 @@ public:
 	auto& instance_fields() { return instance_fields_; }
 
 	template<range Name>
-	inline method* try_find_method(Name name);
+	inline optional<method&> try_find_method(Name name);
 
 	template<range Name, range Descriptor>
-	inline const method*
+	inline const optional<method&>
 	try_find_method(Name name, Descriptor descriptor) const;
 
 	template<range Name, range Descriptor>
-	inline method*
+	inline optional<method&>
 	try_find_method(Name name, Descriptor descriptor);
 
 	template<range Name>
-	inline field* try_find_field(Name name);
+	inline optional<field&> try_find_field(Name name);
 
 	template<range Name, range Descriptor>
-	inline field* try_find_field(Name name, Descriptor descriptor);
+	inline optional<field&> try_find_field(Name name, Descriptor descriptor);
 
 	template<range Name, range Descriptor>
-	inline expected<instance_field_index, decltype(nullptr)>
+	inline optional<instance_field_index>
 	try_find_instance_field_index(Name name, Descriptor descriptor);
 
 	template<range Name>
 	method& find_method(Name&& name) {
-		if(auto m = try_find_method(name); m != nullptr) {
-			return *m;
+		if(auto m = try_find_method(name); m.has_value()) {
+			return m.value();
 		}
 		fprintf(stderr, "couldn't find method %s", name.data());
 		abort();
@@ -126,8 +127,8 @@ public:
 
 	template<range Name>
 	field& find_field(Name&& name) {
-		if(auto f = try_find_field(name); f != nullptr) {
-			return *f;
+		if(auto f = try_find_field(name); f.has_value()) {
+			return f.value();
 		}
 		fprintf(stderr, "couldn't find field %s", name.data());
 		abort();
@@ -173,19 +174,19 @@ _class::_class(const_pool&& const_pool) :
 _class::~_class() { free(data_.data()); }
 
 template<range Name, range Descriptor>
-field* _class::try_find_field(Name name, Descriptor descriptor) {
+optional<field&> _class::try_find_field(Name name, Descriptor descriptor) {
 	for(auto& f0 : fields_) {
 		auto& f = f0.get<field>();
 		if(
 			equals(f.name(), name) &&
 			equals(f.descriptor(), descriptor)
-		) return &f;
+		) return { f };
 	}
-	return nullptr;
+	return elements::none{};
 }
 
 template<range Name, range Descriptor>
-expected<instance_field_index, decltype(nullptr)>
+optional<instance_field_index>
 _class::try_find_instance_field_index(Name name, Descriptor descriptor) {
 	uint16 index = 0;
 	for(auto& f : instance_fields_) {
@@ -195,38 +196,49 @@ _class::try_find_instance_field_index(Name name, Descriptor descriptor) {
 		) return instance_field_index{ index };
 		++index;
 	}
-	return nullptr;
+	return elements::none{};
 }
 
 template<range Name>
-field* _class::try_find_field(Name name) {
-	for(auto& f : fields_) if(equals(f.get<field>().name(), name))
-		return &f.get<field>();
-	return nullptr;
+optional<field&> _class::try_find_field(Name name) {
+	for(auto& f : fields_) {
+		if(equals(f.get<field>().name(), name)) {
+			return { f.get<field>() };
+		}
+	}
+	return elements::none{};
 }
 
 template<range Name, range Descriptor>
-method* _class::try_find_method(Name name, Descriptor descriptor) {
+optional<method&> _class::try_find_method(
+	Name name, Descriptor descriptor
+) {
 	for(auto& m : methods_) {
 		if(
 			equals(m.name(), name) &&
 			equals(m.descriptor(), descriptor)
-		) return &m;
+		) return { m };
 	}
-	return nullptr;
+	return elements::none{};
 }
 
 template<range Name, range Descriptor>
-const method* _class::try_find_method(Name name, Descriptor descriptor) const {
+const optional<method&> _class::try_find_method(
+	Name name, Descriptor descriptor
+) const {
 	return ((_class*)this)->try_find_method(
 		forward<Name>(name), forward<Descriptor>(descriptor)
 	);
 }
 
 template<range Name>
-method* _class::try_find_method(Name name) {
-	for(auto& m : methods_) if(equals(m.name(), name)) return &m;
-	return nullptr;
+optional<method&> _class::try_find_method(Name name) {
+	for(auto& m : methods_) {
+		if(equals(m.name(), name)) {
+			return { m };
+		}
+	}
+	return elements::none{};
 }
 
 #include "class/get_field.hpp"

@@ -5,7 +5,7 @@
 #include "class/file/descriptor/reader.hpp"
 
 field& _class::get_static_field(uint16 ref_index) {
-	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		return t.get<static_field&>();
 	}
 

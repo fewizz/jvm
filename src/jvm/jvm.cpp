@@ -21,7 +21,7 @@ fi
 exit 0
 #endif
 
-#include "native.hpp"
+//#include "native.hpp"
 #include "field_value.hpp"
 #include "field.hpp"
 #include "class.hpp"
@@ -95,10 +95,10 @@ int main (int argc, const char** argv) {
 		auto value_index0 = string_class.try_find_instance_field_index(
 			c_string{ "value" }, c_string{ "[B" }
 		);
-		if(value_index0.is_unexpected()) {
+		if(!value_index0.has_value()) {
 			fputs("couldn't find 'value' field in 'String'", stderr); abort();
 		}
-		auto value_index = value_index0.get_expected();
+		auto value_index = value_index0.value();
 
 		auto& values = fv.get<reference>().object().values()[value_index];
 

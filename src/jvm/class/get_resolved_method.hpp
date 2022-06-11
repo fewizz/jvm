@@ -3,7 +3,7 @@
 #include "../method.hpp"
 
 method& _class::get_resolved_method(uint16 ref_index) {
-	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		return t.get<method&>();
 	}
 
@@ -38,20 +38,23 @@ method& _class::get_resolved_method(uint16 ref_index) {
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	_class* other_c = &find_or_load(class_name);
-	method* m = nullptr;
+	optional<_class&> other_c { find_or_load(class_name) };
+	optional<method&> m{};
 
 	while(true) {
-		if(m = other_c->try_find_method(name, descriptor); m != nullptr) {
+		if(
+			m = other_c->try_find_method(name, descriptor);
+			m.has_value()
+		) {
 			break;
 		}
-		if(other_c->super_class_index_ == 0) {
+		if(other_c->super_class_index() == 0) {
 			fprintf(stderr, "couldn't resolve method");
 			abort();
 		}
-		other_c = &other_c->get_class(other_c->super_class_index_);
+		other_c = other_c->get_class(other_c->super_class_index());
 	}
 
-	trampoline(ref_index) = *m;
-	return *m;
+	trampoline(ref_index) = m.value();
+	return m.value();
 }

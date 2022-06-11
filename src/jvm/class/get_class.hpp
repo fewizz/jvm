@@ -5,7 +5,7 @@
 #include "class/file/descriptor/reader.hpp"
 
 _class& _class::get_class(uint16 class_index) {
-	if(auto& t = trampoline(class_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(class_index); !t.is<elements::none>()) {
 		return t.get<_class&>();
 	}
 

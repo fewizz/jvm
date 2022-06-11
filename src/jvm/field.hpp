@@ -23,10 +23,10 @@ public:
 		name_index               name_index,
 		descriptor_index         descriptor_index
 	) :
-		class_{ c },
-		access_flags_{ access_flags },
-		name_index_{ name_index },
-		desc_index_{ descriptor_index }
+		class_       { c                },
+		access_flags_{ access_flags     },
+		name_index_  { name_index       },
+		desc_index_  { descriptor_index }
 	{}
 
 	_class& _class() const { return class_; }

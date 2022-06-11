@@ -63,7 +63,7 @@ static inline _class& define_class0(Args&&... args) {
 		}
 		else {
 			c.const_pool::emplace_back(x);
-			c.trampoline_pool::emplace_back(nullptr);
+			c.trampoline_pool::emplace_back(elements::none{});
 		}
 	});
 
@@ -169,9 +169,9 @@ static inline _class& define_class0(Args&&... args) {
 
 	if(
 		auto clinit = c.try_find_method(c_string{ "<clinit>" });
-		clinit != nullptr
+		clinit.has_value()
 	) {
-		execute(*clinit);
+		execute(clinit.value());
 	}
 
 	return c;

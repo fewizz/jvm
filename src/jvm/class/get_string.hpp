@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 reference _class::get_string(uint16 string_index) {
-	if(auto& t = trampoline(string_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(string_index); !t.is<elements::none>()) {
 		return t.get<reference>();
 	}
 
@@ -60,16 +60,16 @@ reference _class::get_string(uint16 string_index) {
 		c_string{ "value" },
 		c_string{ "[B" }
 	);
-	if(value_index0.is_unexpected()) {
+	if(!value_index0.has_value()) {
 		fputs("couldn't find 'value' field in 'String'", stderr); abort();
 	}
-	auto value_index = value_index0.get_expected();
+	auto value_index = value_index0.value();
 
 	auto coder_index0 = string_class.try_find_instance_field_index(
 		c_string{ "coder" },
 		c_string{ "B" }
 	);
-	auto coder_index = coder_index0.get_expected();
+	auto coder_index = coder_index0.value();
 
 	string_ref.object().values()[value_index] = data_ref;
 	string_ref.object().values()[coder_index] = field_value {

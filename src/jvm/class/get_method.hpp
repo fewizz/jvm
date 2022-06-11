@@ -3,7 +3,7 @@
 #include "../method.hpp"
 
 method& _class::get_method(uint16 ref_index) {
-	if(auto& t = trampoline(ref_index); !t.is<decltype(nullptr)>()) {
+	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		return t.get<method&>();
 	}
 

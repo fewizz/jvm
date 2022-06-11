@@ -12,7 +12,7 @@ struct field;
 struct static_field;
 
 using trampoline_entry = elements::one_of<
-	decltype(nullptr), _class&, method&,
+	elements::none, _class&, method&,
 	instance_field_index, static_field&,
 	reference
 >;
