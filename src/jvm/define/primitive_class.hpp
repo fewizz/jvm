@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../class.hpp"
+#include "../class/declaration.hpp"
+#include "../classes/container.hpp"
 
 #include <core/range.hpp>
 #include <core/copy.hpp>

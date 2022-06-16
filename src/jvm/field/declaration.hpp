@@ -1,7 +1,7 @@
 #pragma once
 
-#include "name_index.hpp"
-#include "descriptor_index.hpp"
+#include "../name_index.hpp"
+#include "../descriptor_index.hpp"
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
 
@@ -39,11 +39,3 @@ public:
 		return access_flags_.get(class_file::access_flag::_static);
 	}
 };
-
-#include "class.hpp"
-
-class_file::constant::utf8
-field::name() const { return class_.utf8_constant(name_index_); }
-
-class_file::constant::utf8
-field::descriptor() const { return class_.utf8_constant(desc_index_); }

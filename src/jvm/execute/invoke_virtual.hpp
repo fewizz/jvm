@@ -1,11 +1,13 @@
 #pragma once
 
+#include "definition.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
-#include "../class.hpp"
-#include "../object.hpp"
+#include "../class/declaration.hpp"
+#include "../object/declaration.hpp"
 #include "class/file/constant.hpp"
 #include "class/file/code/instruction.hpp"
+#include "class/file/descriptor/reader.hpp"
 
 inline void invoke_virtual(
 	_class& c, class_file::code::instruction::invoke_virtual x,

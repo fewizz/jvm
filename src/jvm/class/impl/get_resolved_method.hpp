@@ -1,6 +1,9 @@
 #pragma once
 
-#include "../method.hpp"
+#include "../declaration.hpp"
+#include "../../method/declaration.hpp"
+#include "../../classes/find_or_load.hpp"
+#include "class/file/descriptor/reader.hpp"
 
 method& _class::get_resolved_method(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
@@ -16,7 +19,7 @@ method& _class::get_resolved_method(uint16 ref_index) {
 	class_file::descriptor::method_reader params{ descriptor.begin() };
 	auto [ret_reader, result0] = params([&]<typename Type>(Type x) {
 		if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-			find_or_load(x);
+			find_or_load_class(x);
 		}
 		return true;
 	});
@@ -27,7 +30,7 @@ method& _class::get_resolved_method(uint16 ref_index) {
 
 	auto [end, result1] = ret_reader([&]<typename Type>(Type x) {
 		if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-			find_or_load(x);
+			find_or_load_class(x);
 		}
 		return true;
 	});
@@ -38,7 +41,7 @@ method& _class::get_resolved_method(uint16 ref_index) {
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	optional<_class&> other_c { find_or_load(class_name) };
+	optional<_class&> other_c { find_or_load_class(class_name) };
 	optional<method&> m{};
 
 	while(true) {

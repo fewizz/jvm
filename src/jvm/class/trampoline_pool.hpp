@@ -1,19 +1,19 @@
 #pragma once
 
-#include "../alloc.hpp"
-#include "instance_field_index.hpp"
-#include "reference.hpp"
+#include "../field/index.hpp"
+#include "../method/declaration.hpp"
+#include "../object/reference.hpp"
+#include "../../alloc.hpp"
 #include <core/meta/elements/one_of.hpp>
 #include <core/limited_list.hpp>
 
 struct _class;
-struct method;
 struct field;
 struct static_field;
 
 using trampoline_entry = elements::one_of<
 	elements::none, _class&, method&,
-	instance_field_index, static_field&,
+	field_index, static_field&,
 	reference
 >;
 

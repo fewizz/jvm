@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../field.hpp"
-#include "../classes.hpp"
+#include "../../field/declaration.hpp"
+#include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
 _class& _class::get_class(uint16 class_index) {
@@ -11,7 +11,7 @@ _class& _class::get_class(uint16 class_index) {
 
 	using namespace class_file;
 	auto name = utf8_constant(class_constant(class_index).name_index);
-	_class& c = find_or_load(name);
+	_class& c = find_or_load_class(name);
 	trampoline(class_index) = c;
 	return c;
 }

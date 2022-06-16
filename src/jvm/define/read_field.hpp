@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../field.hpp"
+#include "../class/declaration.hpp"
 #include "class/file/descriptor/reader.hpp"
 #include "class/file/field/reader.hpp"
 

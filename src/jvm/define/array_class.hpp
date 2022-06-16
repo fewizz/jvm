@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../class.hpp"
+#include "../class/declaration.hpp"
+#include "../classes/container.hpp"
 
+#include <core/array.hpp>
 #include <core/copy.hpp>
 #include <core/concat.hpp>
 #include <core/c_string.hpp>

@@ -10,9 +10,9 @@
 #include "execute/invoke_static.hpp"
 #include "execute/invoke_interface.hpp"
 #include "execute/new_array.hpp"
-#include "objects.hpp"
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
+#include "object/create.hpp"
 #include "native.hpp"
 #include "../abort.hpp"
 
@@ -21,9 +21,6 @@
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/single.hpp>
-
-template<range Name>
-static inline _class& find_or_load(Name name);
 
 inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
@@ -405,7 +402,7 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 				fputc('\n', stderr);
 			}
 			_class& c0 = c.get_class(x.index);
-			stack[stack_size++] = objects.find_free(c0);
+			stack[stack_size++] = create_object(c0);
 		}
 		else if constexpr (same_as<Type, instr::new_array>) {
 			::new_array(/* c, */ x, stack, stack_size);
@@ -421,11 +418,11 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			}
 
 			int32 count = stack[--stack_size].get<int32>();
-			_class& c0 = find_or_load(
+			_class& c0 = find_or_load_class(
 				concat_view{ name, array{'[', ']'} }
 			);
 
-			auto ref = objects.find_free(c0);
+			auto ref = create_object(c0);
 			ref.object().values()[0] = field_value {
 				jlong {
 					(int64) default_allocator{}.allocate_zeroed(

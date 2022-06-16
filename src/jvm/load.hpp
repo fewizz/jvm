@@ -1,6 +1,6 @@
 #pragma once
 
-#include "class.hpp"
+#include "class/declaration.hpp"
 
 #include <core/range.hpp>
 
@@ -11,7 +11,6 @@ inline _class& load_class(Name name);
 #include "define/primitive_class.hpp"
 #include "define/array_class.hpp"
 #include "execute.hpp"
-#include "classes.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>
@@ -63,7 +62,7 @@ inline _class& load_class(Name name) {
 		auto element_name {
 			 to_range(name.begin(), name.begin() + (name.size() - 2))
 		};
-		_class& c = find_or_load(element_name);
+		_class& c = find_or_load_class(element_name);
 		return define_array_class(c);
 	}
 

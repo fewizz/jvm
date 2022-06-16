@@ -1,14 +1,17 @@
 #pragma once
 
-#include "../class.hpp"
-#include "../field_value.hpp"
-#include "../objects.hpp"
+#include "info.hpp"
+#include "stack_entry.hpp"
+#include "../class/declaration.hpp"
+#include "../field/value.hpp"
+#include "../object/create.hpp"
+#include "../classes/find_or_load.hpp"
 #include "class/file/code/instruction.hpp"
+
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
+#include <core/array.hpp>
 
-template<range Name>
-static inline _class& find_or_load(Name name);
 
 inline void new_array(
 	//_class& c, TODO use trampoline
@@ -36,10 +39,10 @@ inline void new_array(
 		fputc('\n', stderr);
 	}
 	int32 count = stack[--stack_size].get<int32>();
-	_class& c0 = find_or_load(
+	_class& c0 = find_or_load_class(
 		concat_view{ name, array{'[', ']'} }
 	);
-	auto ref = objects.find_free(c0);
+	auto ref = create_object(c0);
 	ref.object().values()[0] = field_value {
 		jlong {
 			(int64) default_allocator{}.allocate_zeroed(

@@ -2,7 +2,7 @@
 
 #include "info.hpp"
 #include "stack_entry.hpp"
-#include "../class.hpp"
+#include "../class/declaration.hpp"
 #include "class/file/code/instruction.hpp"
 
 inline void ldc(

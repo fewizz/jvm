@@ -2,10 +2,10 @@
 
 #include "const_pool.hpp"
 #include "trampoline_pool.hpp"
-#include "field.hpp"
-#include "static_field.hpp"
-#include "name_index.hpp"
-#include "../abort.hpp"
+#include "../field/declaration.hpp"
+#include "../field/static.hpp"
+#include "../name_index.hpp"
+#include "../../abort.hpp"
 #include "class/file/access_flag.hpp"
 
 #include <core/range.hpp>
@@ -113,7 +113,7 @@ public:
 	inline optional<field&> try_find_field(Name name, Descriptor descriptor);
 
 	template<range Name, range Descriptor>
-	inline optional<instance_field_index>
+	inline optional<field_index>
 	try_find_instance_field_index(Name name, Descriptor descriptor);
 
 	template<range Name>
@@ -137,7 +137,7 @@ public:
 	inline method& get_method(uint16 ref_index);
 	inline method& get_resolved_method(uint16 ref_index);
 	inline field& get_static_field(uint16 ref_index);
-	inline instance_field_index get_resolved_instance_field_index(uint16);
+	inline field_index get_resolved_instance_field_index(uint16);
 	inline _class& get_class(uint16 class_index);
 	const _class& get_class(uint16 class_index) const {
 		return ((_class*) this)->get_class(class_index);
@@ -151,100 +151,3 @@ public:
 	);
 
 };
-
-#include "classes.hpp"
-
-object& _class::class_class() {
-	if(class_class_.is_null()) {
-		_class& class_class = find_or_load(c_string{ "java/lang/Class" });
-		class_class_ = objects.find_free(class_class);
-		auto& values = class_class_.object().values();
-		values.back() = jlong{ (int64) this };
-	}
-	return class_class_.object();
-}
-
-#include "method.hpp"
-
-_class::_class(const_pool&& const_pool) :
-	::const_pool{ move(const_pool) },
-	::trampoline_pool{ constants_count() }
-{}
-
-_class::~_class() { free(data_.data()); }
-
-template<range Name, range Descriptor>
-optional<field&> _class::try_find_field(Name name, Descriptor descriptor) {
-	for(auto& f0 : fields_) {
-		auto& f = f0.get<field>();
-		if(
-			equals(f.name(), name) &&
-			equals(f.descriptor(), descriptor)
-		) return { f };
-	}
-	return elements::none{};
-}
-
-template<range Name, range Descriptor>
-optional<instance_field_index>
-_class::try_find_instance_field_index(Name name, Descriptor descriptor) {
-	uint16 index = 0;
-	for(auto& f : instance_fields_) {
-		if(
-			equals(f.name(), name) &&
-			equals(f.descriptor(), descriptor)
-		) return instance_field_index{ index };
-		++index;
-	}
-	return elements::none{};
-}
-
-template<range Name>
-optional<field&> _class::try_find_field(Name name) {
-	for(auto& f : fields_) {
-		if(equals(f.get<field>().name(), name)) {
-			return { f.get<field>() };
-		}
-	}
-	return elements::none{};
-}
-
-template<range Name, range Descriptor>
-optional<method&> _class::try_find_method(
-	Name name, Descriptor descriptor
-) {
-	for(auto& m : methods_) {
-		if(
-			equals(m.name(), name) &&
-			equals(m.descriptor(), descriptor)
-		) return { m };
-	}
-	return elements::none{};
-}
-
-template<range Name, range Descriptor>
-const optional<method&> _class::try_find_method(
-	Name name, Descriptor descriptor
-) const {
-	return ((_class*)this)->try_find_method(
-		forward<Name>(name), forward<Descriptor>(descriptor)
-	);
-}
-
-template<range Name>
-optional<method&> _class::try_find_method(Name name) {
-	for(auto& m : methods_) {
-		if(equals(m.name(), name)) {
-			return { m };
-		}
-	}
-	return elements::none{};
-}
-
-#include "class/get_field.hpp"
-#include "class/get_method.hpp"
-#include "class/get_resolved_method.hpp"
-#include "class/get_class.hpp"
-#include "class/get_resolved_field.hpp"
-#include "class/for_each_maximally_specific_superinterface_method.hpp"
-#include "class/get_string.hpp"

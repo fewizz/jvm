@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../field.hpp"
-#include "../classes.hpp"
+#include "../declaration.hpp"
+#include "../../field/declaration.hpp"
+#include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
 field& _class::get_static_field(uint16 ref_index) {
@@ -21,7 +22,7 @@ field& _class::get_static_field(uint16 ref_index) {
 		descriptor.begin(),
 		[&]<typename Type>(Type x) {
 			if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-				find_or_load(x);
+				find_or_load_class(x);
 			}
 			return true;
 		}
@@ -33,7 +34,7 @@ field& _class::get_static_field(uint16 ref_index) {
 	}
 
 	auto clss = utf8_constant(class_info.name_index);
-	_class& c = find_or_load(clss);
+	_class& c = find_or_load_class(clss);
 
 	static_field& f = (static_field&)c.find_field(name);
 	trampoline(ref_index) = f;

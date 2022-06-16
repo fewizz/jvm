@@ -1,9 +1,11 @@
 #pragma once
 
 #include "jni_call.hpp"
-#include "../../field_value.hpp"
+#include "../../primitives.hpp"
+#include "../../object/object.hpp"
 
-struct jni_env;
+struct jni_environment;
+struct jmethod_id;
 
 struct jni_native_interface {
 	void* reserved_0{ nullptr };
@@ -11,12 +13,13 @@ struct jni_native_interface {
 	void* reserved_2{ nullptr };
 	void* reserved_3{ nullptr };
 
-	jint (JNI_CALL* GetVersion)(jni_env* env);
-	object* (JNI_CALL* DefineClass)(
-		jni_env* env, const char *name, object* loader,
+	jint (JNI_CALL* get_version)(jni_environment* env);
+	object* (JNI_CALL* define_class)(
+		jni_environment* env, const char *name, object* loader,
 		const jbyte *buf, jint len
 	);
-	object* (JNI_CALL* FindClass)(jni_env* env, const char *name);
+	object* (JNI_CALL* find_class)(jni_environment* env, const char *name);
 
-	
+	jmethod_id* (JNI_CALL* from_reflected_method)(jni_environment* env, object* method);
+	jmethod_id* (JNI_CALL* from_reflected_field)(jni_environment* env, object* field);
 };

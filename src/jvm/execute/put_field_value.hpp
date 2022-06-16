@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stack_entry.hpp"
-#include "../field_value.hpp"
+#include "../field/value.hpp"
 
 inline void put_field_value(
 	field_value& value, stack_entry* stack, nuint& stack_size

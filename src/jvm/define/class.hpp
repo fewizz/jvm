@@ -5,9 +5,9 @@
 #include "read_field.hpp"
 #include "read_method.hpp"
 
-#include "../classes.hpp"
-#include "../field.hpp"
-#include "../method.hpp"
+#include "../classes/find_or_load.hpp"
+#include "../field/declaration.hpp"
+#include "../method/declaration.hpp"
 #include "../execute.hpp"
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
@@ -20,9 +20,6 @@
 #include <core/range_of_value_type_same_as.hpp>
 #include <core/meta/decayed_satisfying_predicate.hpp>
 #include <stdio.h>
-
-template<range Name>
-static inline _class& find_or_load(Name name);
 
 template<typename... Args>
 static inline _class& define_class0(Args&&... args) {
@@ -137,7 +134,7 @@ static inline _class& define_class0(Args&&... args) {
 	}
 
 	if(c.super_class_index() != 0) {
-		_class& super = find_or_load(
+		_class& super = find_or_load_class(
 			c.utf8_constant(c.class_constant(c.super_class_index()).name_index)
 		);
 

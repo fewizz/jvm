@@ -1,42 +1,9 @@
 #pragma once
 
-#include "reference.hpp"
+#include "../primitives.hpp"
+#include "../object/reference.hpp"
 #include "class/file/descriptor/type.hpp"
 #include <core/meta/elements/one_of.hpp>
-
-struct jvoid{};
-
-struct jbool {
-	bool value;
-};
-
-struct jbyte {
-	uint8 value;
-};
-
-struct jshort {
-	int16 value;
-};
-
-struct jchar {
-	int16 value;
-};
-
-struct jint {
-	int32 value;
-};
-
-struct jlong {
-	int64 value;
-};
-
-struct jfloat {
-	float value;
-};
-
-struct jdouble {
-	double value;
-};
 
 struct field_value : elements::one_of<
 	jvoid, jbool, jbyte, jchar, jshort, jint,

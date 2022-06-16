@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../field.hpp"
-#include "../classes.hpp"
+#include "../declaration.hpp"
+#include "../../field/declaration.hpp"
+#include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
-instance_field_index
+field_index
 _class::get_resolved_instance_field_index(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
-		return t.get<instance_field_index>();
+		return t.get<field_index>();
 	}
 
 	using namespace class_file;
@@ -22,7 +23,7 @@ _class::get_resolved_instance_field_index(uint16 ref_index) {
 		descriptor.begin(),
 		[&]<typename Type>(Type x) {
 			if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-				find_or_load(x);
+				find_or_load_class(x);
 			}
 			return true;
 		}
@@ -34,7 +35,7 @@ _class::get_resolved_instance_field_index(uint16 ref_index) {
 	}
 
 	auto class_name = utf8_constant(class_info.name_index);
-	optional<_class&> other_c{ find_or_load(class_name) };
+	optional<_class&> other_c{ find_or_load_class(class_name) };
 	optional<::field&> f{};
 
 	while(true) {
@@ -51,7 +52,7 @@ _class::get_resolved_instance_field_index(uint16 ref_index) {
 	uint16 index = 0;
 	for(::field& f0 : f->_class().instance_fields()) {
 		if(&f0 == &f.value()) {
-			trampoline(ref_index) = instance_field_index{ index };
+			trampoline(ref_index) = field_index{ index };
 			return { index };
 		}
 		++index;

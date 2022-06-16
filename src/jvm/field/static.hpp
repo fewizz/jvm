@@ -1,7 +1,7 @@
 #pragma once
 
-#include "field.hpp"
-#include "field_value.hpp"
+#include "declaration.hpp"
+#include "value.hpp"
 
 struct static_field : field {
 private:

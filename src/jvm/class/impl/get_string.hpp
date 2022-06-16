@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../class.hpp"
-#include "../../abort.hpp"
+#include "../../classes/find_or_load.hpp"
+#include "../../class/declaration.hpp"
+#include "../../object/create.hpp"
+#include "../../../abort.hpp"
 
 #include <core/transform.hpp>
 #include <unicode/utf_8.hpp>
@@ -44,8 +46,8 @@ reference _class::get_string(uint16 string_index) {
 		}
 	}
 
-	_class& array_class = find_or_load(c_string{ "byte[]" });
-	auto data_ref = objects.find_free(array_class);
+	_class& array_class = find_or_load_class(c_string{ "byte[]" });
+	auto data_ref = create_object(array_class);
 	data_ref.object().values()[0] = field_value {
 		jlong { (int64) data }
 	};
@@ -53,8 +55,8 @@ reference _class::get_string(uint16 string_index) {
 		jint{ (int32) (utf16_units * sizeof(jchar)) }
 	};
 
-	_class& string_class = find_or_load(c_string{"java/lang/String"});
-	auto string_ref = objects.find_free(string_class);
+	_class& string_class = find_or_load_class(c_string{"java/lang/String"});
+	auto string_ref = create_object(string_class);
 
 	auto value_index0 = string_class.try_find_instance_field_index(
 		c_string{ "value" },

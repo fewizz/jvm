@@ -1,10 +1,12 @@
 #pragma once
 
+#include "definition.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
-#include "../class.hpp"
-#include "../method.hpp"
+#include "../class/declaration.hpp"
+#include "../method/declaration.hpp"
 #include "class/file/code/instruction.hpp"
+#include "class/file/descriptor/reader.hpp"
 
 inline void invoke_static(
 	_class& c, class_file::code::instruction::invoke_static x,

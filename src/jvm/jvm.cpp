@@ -22,11 +22,17 @@ exit 0
 #endif
 
 //#include "native.hpp"
-#include "field_value.hpp"
-#include "field.hpp"
-#include "class.hpp"
+
+#include "classes/impl.hpp"
+#include "class/impl.hpp"
+#include "field/impl.hpp"
+#include "method/impl.hpp"
+#include "object/impl.hpp"
+
 #include "load.hpp"
 #include "execute.hpp"
+
+#include <unicode/utf_16.hpp>
 
 #include <core/c_string.hpp>
 #include <core/equals.hpp>

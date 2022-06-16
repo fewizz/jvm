@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../method.hpp"
+#include "../class/declaration.hpp"
+#include "../method/declaration.hpp"
 #include "class/file/method/reader.hpp"
 
 #include <core/meta/elements/of.hpp>
