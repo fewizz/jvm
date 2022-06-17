@@ -102,9 +102,9 @@ void read_code_attribute(
 		if constexpr (same_as<Type, a_load_1>) fputs("aload_1", stdout);
 		if constexpr (same_as<Type, a_load_2>) fputs("aload_2", stdout);
 		if constexpr (same_as<Type, a_load_3>) fputs("aload_3", stdout);
-		if constexpr (same_as<Type, aa_load>) fputs("aaload", stdout);
-		if constexpr (same_as<Type, ba_load>) fputs("baload", stdout);
-		if constexpr (same_as<Type, ca_load>) fputs("caload", stdout);
+		if constexpr (same_as<Type, a_a_load>) fputs("aaload", stdout);
+		if constexpr (same_as<Type, b_a_load>) fputs("baload", stdout);
+		if constexpr (same_as<Type, c_a_load>) fputs("caload", stdout);
 
 		if constexpr (same_as<Type, i_store>) {
 			fputs("istore ", stdout);
@@ -126,9 +126,9 @@ void read_code_attribute(
 		if constexpr (same_as<Type, a_store_1>) fputs("astore_1", stdout);
 		if constexpr (same_as<Type, a_store_2>) fputs("astore_2", stdout);
 		if constexpr (same_as<Type, a_store_3>) fputs("astore_3", stdout);
-		if constexpr (same_as<Type, aa_store>) fputs("aastore", stdout);
-		if constexpr (same_as<Type, ba_store>) fputs("bastore", stdout);
-		if constexpr (same_as<Type, ca_store>) fputs("castore", stdout);
+		if constexpr (same_as<Type, a_a_store>) fputs("aastore", stdout);
+		if constexpr (same_as<Type, b_a_store>) fputs("bastore", stdout);
+		if constexpr (same_as<Type, c_a_store>) fputs("castore", stdout);
 
 		if constexpr (same_as<Type, pop>) fputs("pop", stdout);
 		if constexpr (same_as<Type, dup>) fputs("dup", stdout);
@@ -323,8 +323,10 @@ int main(int argc, const char** argv) {
 
 	fputs("constant pool:\n", stdout);
 
+	nuint entry = 0;
 	auto access_flags_reader = read_constant_pool(
-		[&]<typename Type>(Type x, uint16 entry) {
+		[&]<typename Type>(Type x) {
+			++entry;
 			if constexpr (!same_as<Type, constant::skip>) {
 				printf("\t[%d] ", entry);
 			}
@@ -438,19 +440,21 @@ int main(int argc, const char** argv) {
 	constant::utf8 utf8_strings[constant_pool_size];
 	constant::_class classes[constant_pool_size];
 
+	entry = 0;
 	read_constant_pool(
-		[&]<typename Type>(Type x, uint16 entry) {
+		[&]<typename Type>(Type x) {
 			if constexpr (same_as<Type, constant::utf8>) {
 				utf8_strings[entry] = x;
 			}
 			if constexpr (same_as<Type, constant::_class>) {
 				classes[entry] = x;
 			}
+			++entry;
 		}
 	);
 
-	auto _class = [&](uint16 index) { return classes[index]; };
-	auto utf8 = [&](uint16 index) { return utf8_strings[index]; };
+	auto _class = [&](uint16 index) { return classes[index - 1]; };
+	auto utf8 = [&](uint16 index) { return utf8_strings[index - 1]; };
 
 	auto [read_this, access_flags] = access_flags_reader();
 	printf("access flags: 0x%.4x\n", access_flags);

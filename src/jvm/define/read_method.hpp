@@ -17,7 +17,7 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 	auto [descriptor_reader, name_index] = read_name_index();
 	auto [read_attributes, descriptor_index] = descriptor_reader();
 
-	elements::one_of<::code, void*> code_or_function_ptr{ nullptr };
+	code_or_native_function code_or_native_function{ elements::none{} };
 
 	auto end = read_attributes(
 		[&](auto name_index){ return c.utf8_constant(name_index); },
@@ -27,7 +27,7 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 				auto [read_code, max_locals] = read_max_locals();
 				auto src0 = read_code.iterator_;
 				uint32 length = read<uint32, endianness::big>(src0);
-				code_or_function_ptr = ::code {
+				code_or_native_function = ::code {
 					span<uint8, uint32> { read_code.iterator_, length },
 					max_stack, max_locals
 				};
@@ -37,7 +37,8 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 
 	return {
 		end, {
-			c, access_flags, name_index, descriptor_index, code_or_function_ptr
+			c, access_flags, name_index,
+			descriptor_index, code_or_native_function
 		}
 	};
 }

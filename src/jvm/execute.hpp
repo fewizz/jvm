@@ -13,7 +13,7 @@
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
 #include "object/create.hpp"
-#include "native.hpp"
+#include "native/functions/find.hpp"
 #include "../abort.hpp"
 
 #include <stdio.h>
@@ -21,6 +21,7 @@
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/single.hpp>
+#include <core/on_scope_exit.hpp>
 
 inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
@@ -36,22 +37,18 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 		fwrite(m.name().data(), 1, m.name().size(), stderr);
 		fputs("()\n", stderr);
 	}
+	on_scope_exit _ { [] {
+		if(info) {
+			--tab;
+		}
+	}};
 
 	if(m.is_native()) {
-		if(m.function_ptr() == nullptr) {
-			concat_view full_name {
-				m._class().name(),
-				single_view{ '/' },
-				m.name()
-			};
-			m.function_ptr() = try_find_native_method(full_name);
+		if(!m.has_native_function()) {
+			m.native_function(find_native_function(m));
 		}
-
-		//auto ptr = m.function_ptr();
-
-		// TODO
-		//if(args.size() == 0) {
-		//}
+		auto& native_function = m.native_function();
+		return native_function.call(args);
 	}
 
 	if(m.code().data() == nullptr) {
@@ -456,10 +453,6 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 		}
 
 	}, m.code().size());
-
-	if(info) {
-		--tab;
-	}
 
 	return result;
 }

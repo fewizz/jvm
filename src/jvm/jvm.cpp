@@ -28,8 +28,9 @@ exit 0
 #include "field/impl.hpp"
 #include "method/impl.hpp"
 #include "object/impl.hpp"
+#include "native/jni/environment.hpp"
 
-#include "load.hpp"
+#include "classes/load.hpp"
 #include "execute.hpp"
 
 #include <unicode/utf_16.hpp>
@@ -43,37 +44,12 @@ int main (int argc, const char** argv) {
 		return 1;
 	}
 
-	/*view_class_file(c_string{ "java/lang/Class" }, [&](FILE* file) {
-		fseek(file, 0, SEEK_END);
-		nuint size = ftell(file);
-		rewind(file);
-		uint8* data = (uint8*) malloc(size);
-		fread(data, 1, size, file);
-
-		descriptor_index desc_index{};
-
-		define_class(
-			span{ data, size },
-			constants_to_add {
-				1, [&](_class& c) {
-					c.const_pool::emplace_back(const_pool_entry {
-						class_file::constant::utf8 {
-							(const char*)"J", 1
-						}
-					});
-					desc_index = { c.const_pool::size() };
-				}
-			},
-			fields_to_add {
-				1, [&](_class& c) {
-					c.fields().emplace_back(field {
-						c, class_file::access_flags{},
-						name_index{ 0 }, desc_index
-					});
-				}
-			}
-		);
-	});*/
+	native_functions.emplace_back(
+		(void*) (void(*)(jni_environment*)) [](jni_environment*) {
+			fputs("Hello from Class.registerNatives!\n", stderr);
+		},
+		c_string{ "Java_java_lang_Class_registerNatives" }
+	);
 
 	define_primitive_class(c_string{ "void" });
 	define_primitive_class(c_string{ "boolean" });

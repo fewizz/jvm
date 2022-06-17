@@ -2,6 +2,7 @@
 
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
+#include "../native/function/declaration.hpp"
 
 #include <core/span.hpp>
 #include <core/meta/elements/one_of.hpp>
@@ -24,21 +25,24 @@ struct code : span<uint8, uint32> {
 
 };
 
+using code_or_native_function =
+	elements::one_of<elements::none, code, native_function&>;
+
 struct method {
 private:
-	_class& class_;
+	_class&                  class_;
 	class_file::access_flags access_flags_;
-	uint16 name_index_;
-	uint16 desc_index_;
-	elements::one_of<code, void*> code_;
+	uint16                   name_index_;
+	uint16                   desc_index_;
+	code_or_native_function  code_;
 public:
 
 	method(
-		_class& c,
+		_class&                  c,
 		class_file::access_flags access_flags,
-		uint16 name_index,
-		uint16 descriptor_index,
-		elements::one_of<code, void*> code
+		uint16                   name_index,
+		uint16                   descriptor_index,
+		code_or_native_function  code
 	) :
 		class_       { c },
 		access_flags_{ access_flags },
@@ -58,5 +62,15 @@ public:
 
 	code code() const { return code_.get<::code>(); }
 
-	void*& function_ptr() { return code_.get<void*>(); }
+	bool has_native_function() const {
+		return code_.is<::native_function&>();
+	}
+
+	void native_function(::native_function& f) {
+		code_ = f;
+	}
+
+	::native_function& native_function() {
+		return code_.get<::native_function&>();
+	}
 };
