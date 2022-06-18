@@ -40,6 +40,7 @@ public:
 
 	operator void* () { return ptr_; }
 
+	template<typename ReturnType>
 	inline stack_entry call(span<stack_entry, uint16> args);
 
 	auto name() { return name_; }
@@ -51,14 +52,25 @@ public:
 
 #include "../jni/environment.hpp"
 
+template<typename ReturnType>
 inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	// TODO use asm instead
 	if(args.size() == 0) {
-		((void(*)(jni_environment* env)) ptr_ )(nullptr);
-		return jvoid{};
+		if constexpr(same_as<ReturnType, jvoid>) {
+			((void(*)(jni_environment* env)) ptr_ )(nullptr);
+			return jvoid{};
+		}
+	} else if (args.size() == 1) {
+		if(args[0].is<reference>()) {
+			if constexpr(same_as<ReturnType, reference>) {
+				auto obj_ptr =
+					((object* (*)(jni_environment* env, object*)) ptr_ )
+					(nullptr, &args[0].get<reference>().object());
+				return reference{ *obj_ptr };
+			}
+		}
 	}
-	else {
-		fputs("couldn't call native function", stderr);
-		abort();
-	}
+
+	fputs("couldn't call native function", stderr);
+	abort();
 }

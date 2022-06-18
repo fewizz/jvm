@@ -9,8 +9,7 @@
 #include <core/c_string.hpp>
 
 inline _class& define_array_class(_class& element_class) {
-	classes.emplace_back(const_pool{ 6 });
-	_class& c = classes.back();
+	_class c{ const_pool{ 6 } };
 
 	auto name = concat_view{ element_class.name(), array{ '[', ']' } };
 	c_string ptr_name { "ptr_" };
@@ -64,5 +63,7 @@ inline _class& define_array_class(_class& element_class) {
 
 	c.this_class_index_ = name_index{ 2 };
 
-	return c;
+	classes.emplace_back(move(c));
+
+	return classes.back();
 }

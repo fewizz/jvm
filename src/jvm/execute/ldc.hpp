@@ -16,12 +16,12 @@ inline void ldc(
 	}
 	const_pool_entry constatnt = c.constant(x.index);
 	if(constatnt.is<cc::int32>()) {
-		stack[stack_size++] = {
+		stack[stack_size++] = jint {
 			constatnt.get<cc::int32>().value
 		};
 	} else
 	if(constatnt.is<cc::float32>()) {
-		stack[stack_size++] = {
+		stack[stack_size++] = jfloat {
 			constatnt.get<cc::float32>().value
 		};
 	} else
@@ -44,12 +44,12 @@ inline void ldc_w(
 	}
 	const_pool_entry constatnt = c.constant(x.index);
 	if(constatnt.is<cc::int32>()) {
-		stack[stack_size++] = {
+		stack[stack_size++] = jint {
 			constatnt.get<cc::int32>().value
 		};
 	} else
 	if(constatnt.is<cc::float32>()) {
-		stack[stack_size++] = {
+		stack[stack_size++] = jfloat {
 			constatnt.get<cc::float32>().value
 		};
 	} else

@@ -4,22 +4,31 @@
 #include "../object/create.hpp"
 #include "../classes/find_or_load.hpp"
 
-object& _class::class_class() {
-	if(class_class_.is_null()) {
-		_class& class_class = find_or_load_class(c_string{ "java/lang/Class" });
-		class_class_ = create_object(class_class);
-		auto& values = class_class_.object().values();
-		values.back() = jlong{ (int64) this };
-	}
-	return class_class_.object();
-}
-
 _class::_class(const_pool&& const_pool) :
 	::const_pool{ move(const_pool) },
 	::trampoline_pool{ constants_count() }
 {}
 
-_class::~_class() { free(data_.data()); }
+object& _class::object() {
+	if(reference_.is_null()) {
+		_class& class_class = find_or_load_class(c_string{ "java/lang/Class" });
+		reference_ = create_object(class_class);
+		auto& values = reference_.object().values();
+		auto class_data_location0 = class_class.try_find_instance_field_index(
+			c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
+		);
+		if(!class_data_location0.has_value()) {
+			fputs("couldn't find classData field in Class class", stderr);
+			abort();
+		}
+		reference long_ref {
+			create_object(find_or_load_class(c_string{ "java/lang/Long" }))
+		};
+		auto class_data_location = class_data_location0.value();
+		values[class_data_location].get<reference>() = long_ref;
+	}
+	return reference_.object();
+}
 
 template<range Name, range Descriptor>
 optional<field&> _class::try_find_field(Name name, Descriptor descriptor) {

@@ -18,14 +18,14 @@ inline void put_field_value(
 			same_as<jbyte,  ValueType>
 		) {
 			value = ValueType {
-				(decltype(value.value)) stack_value.get<int32>()
+				(decltype(value.value)) stack_value.get<jint>().value
 			};
 		} else
 		if constexpr(same_as<jbool, ValueType>) {
-			value = jbool{ stack_value.get<int32>() == 1 };
+			value = jbool{ stack_value.get<jint>().value == 1 };
 		} else
 		if constexpr(same_as<jfloat, ValueType>) {
-			value = jfloat{ stack_value.get<float>() };
+			value = jfloat{ stack_value.get<jfloat>() };
 		}
 		else {
 			fputs("couldn't put field value", stderr); abort();

@@ -8,8 +8,7 @@
 
 template<range Name>
 static inline _class& define_primitive_class(Name&& name) {
-	classes.emplace_back(const_pool{ 2 });
-	_class& c = classes.back();
+	_class c{ const_pool{ 2 } };
 
 	c.data_ = {
 		default_allocator{}.allocate(name.size()), (uint16) name.size()
@@ -25,5 +24,7 @@ static inline _class& define_primitive_class(Name&& name) {
 
 	c.this_class_index_ = name_index{ 2 };
 
-	return c;
+	classes.emplace_back(move(c));
+
+	return classes.back();
 }

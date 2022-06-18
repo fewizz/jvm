@@ -15,7 +15,7 @@ inline void invoke_static(
 	if(info) {
 		namespace cc = class_file::constant;
 
-		fputs("invoke_static ", stderr);
+		tabs(); fputs("invoke_static ", stderr);
 
 		cc::method_ref ref = c.method_ref_constant(x.index);
 		auto class_name {

@@ -11,13 +11,13 @@ struct reference {
 private:
 	optional<object&> obj_;
 
-	reference(object& obj) :
-		obj_{ obj }
-	{}
-
 	friend reference create_object(_class& c);
 
 public:
+
+	reference(object& obj) :
+		obj_{ obj }
+	{}
 
 	reference() {};
 

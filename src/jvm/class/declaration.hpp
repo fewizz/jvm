@@ -22,21 +22,47 @@ static inline _class& define_class0(Args&&... args);
 template<range Name>
 static inline _class& define_primitive_class(Name&& name);
 
+struct class_data : span<uint8> {
+	using base_type = span<uint8>;
+	using base_type::base_type;
+
+	class_data(class_data&& other) :
+		base_type{ exchange((base_type&) other, span<uint8>{}) }
+	{}
+
+	class_data(class_data& other) = delete;
+
+	class_data& operator = (class_data&& other) {
+		free(data());
+		base_type::operator = (other);
+		other.base_type::operator = (span<uint8>{});
+		return *this;
+	}
+
+	~class_data() {
+		free(data());
+	}
+};
+
 struct _class : const_pool, trampoline_pool {
 private:
-	span<uint8> data_;
-	class_file::access_flags access_flags_;
-	name_index this_class_index_;
-	name_index super_class_index_;
-	::limited_list<uint16, uint16, default_allocator> interfaces_;
+	class_data               data_{};
+	class_file::access_flags access_flags_{};
+	name_index               this_class_index_{};
+	name_index               super_class_index_{};
 	::limited_list<
-		elements::one_of<field, static_field
-	>, uint16, default_allocator> fields_;
+		uint16, uint16, default_allocator
+	>                        interfaces_{};
+	::limited_list<
+		elements::one_of<field, static_field>, uint16, default_allocator
+	>                        fields_{};
 	::limited_list<
 		field&, uint16, default_allocator
-	> instance_fields_;
-	::limited_list<method, uint16, default_allocator> methods_;
-	reference class_class_;
+	>                        instance_fields_{};
+	::limited_list<
+		method, uint16, default_allocator
+	>                        methods_{};
+	reference                reference_{};
 
 	template<typename... Args>
 	friend inline _class& define_class0(Args&&... args);
@@ -46,19 +72,21 @@ private:
 	template<range Name>
 	friend inline _class& define_primitive_class(Name&& name);
 
+	friend struct classes_container;
+
+	_class(_class&&) = default;
+
 public:
 
 	_class(const _class&) = delete;
-	_class(_class&&) = default;
 
 	inline _class(const_pool&& const_pool);
-	inline ~_class();
 
 	auto name() const {
 		return utf8_constant(class_constant(this_class_index_).name_index);
 	}
 
-	inline object& class_class();
+	inline object& object();
 
 	uint16 super_class_index() const { return super_class_index_; }
 

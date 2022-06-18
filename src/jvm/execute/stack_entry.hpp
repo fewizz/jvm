@@ -4,9 +4,10 @@
 
 #include <core/meta/elements/one_of.hpp>
 
-struct stack_entry : elements::one_of<jvoid, int32, float, reference> {
-	using base_type = elements::one_of<jvoid, int32, float, reference>;
+struct stack_entry : elements::one_of<jvoid, jint, jfloat, jlong, reference> {
+	using base_type = elements::one_of<jvoid, jint, jfloat, jlong, reference>;
 	using base_type::base_type;
+	using base_type::operator = ;
 
 	stack_entry() : base_type{ jvoid{} } {}
 };

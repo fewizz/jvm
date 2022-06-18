@@ -42,11 +42,19 @@ public:
 
 	uint16 constants_count() const { return capacity(); }
 
-	const auto& constant(uint16 index) const { return (*this)[index - 1]; }
-	auto& constant(uint16 index) { return (*this)[index - 1]; }
+	const auto& constant(uint16 index) const {
+		return (*this)[index - 1];
+	}
+
+	auto& constant(uint16 index) {
+		return (*this)[index - 1];
+	}
 
 	template<typename Type>
-	Type constant(uint16 index) const { return constant(index).get<Type>(); }
+	Type constant(uint16 index) const {
+		const const_pool_entry& entry = constant(index);
+		return entry.get<Type>();
+	}
 
 	auto utf8_constant(uint16 index) const {
 		return constant<class_file::constant::utf8>(index);

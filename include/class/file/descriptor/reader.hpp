@@ -76,6 +76,12 @@ namespace class_file::descriptor {
 			return { { cpy }, true };
 		}
 
+		elements::of<method_reader<Iterator, method_reader_stage::ret>, bool>
+		skip_parameters() const
+		requires(Stage == method_reader_stage::parameters) {
+			return operator()([](auto){ return true; });
+		}
+
 		template<typename Handler>
 		elements::of<method_reader<Iterator, method_reader_stage::end>, bool>
 		operator () (Handler&& handler) const

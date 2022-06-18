@@ -16,10 +16,10 @@ inline void get_field_value(
 			same_as<jchar,  ValueType> ||
 			same_as<jbyte,  ValueType>
 		) {
-			stack[stack_size++] = int32{ value.value };
+			stack[stack_size++] = jint{ value.value };
 		} else
 		if constexpr(same_as<jfloat, ValueType>) {
-			stack[stack_size++] = float{ value.value };
+			stack[stack_size++] = value;
 		}
 		else {
 			fputs("couldn't get field value", stderr); abort();

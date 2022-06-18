@@ -48,10 +48,8 @@ static inline _class& define_class0(Args&&... args) {
 		>(args...).count();
 	}
 
-	classes.emplace_back(const_pool{ constants_count });
-
-	_class& c = classes.back();
-	c.data_ = { bytes };
+	_class c{ const_pool{ constants_count } };
+	c.data_ = class_data{ bytes.data(), bytes.size() };
 
 	auto read_access_flags = read_constant_pool([&]<typename Type>(Type x) {
 		if constexpr(same_as<constant::unknown, Type>) {
@@ -171,7 +169,9 @@ static inline _class& define_class0(Args&&... args) {
 		execute(clinit.value());
 	}
 
-	return c;
+	classes.emplace_back(move(c));
+
+	return classes.back();
 }
 
 template<typename... Args>

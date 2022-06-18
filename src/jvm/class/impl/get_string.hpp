@@ -51,9 +51,8 @@ reference _class::get_string(uint16 string_index) {
 	data_ref.object().values()[0] = field_value {
 		jlong { (int64) data }
 	};
-	data_ref.object().values()[1] = field_value {
-		jint{ (int32) (utf16_units * sizeof(jchar)) }
-	};
+	data_ref.object().values()[1] =
+		jint{ (int32) (utf16_units * sizeof(jchar)) };
 
 	_class& string_class = find_or_load_class(c_string{"java/lang/String"});
 	auto string_ref = create_object(string_class);

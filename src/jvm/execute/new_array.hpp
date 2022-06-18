@@ -38,7 +38,7 @@ inline void new_array(
 		fwrite(name.data(), 1, name.size(), stderr);
 		fputc('\n', stderr);
 	}
-	int32 count = stack[--stack_size].get<int32>();
+	int32 count = stack[--stack_size].get<jint>();
 	_class& c0 = find_or_load_class(
 		concat_view{ name, array{'[', ']'} }
 	);
