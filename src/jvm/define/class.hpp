@@ -8,10 +8,11 @@
 #include "../classes/find_or_load.hpp"
 #include "../field/declaration.hpp"
 #include "../method/declaration.hpp"
-#include "../execute.hpp"
+#include "../execute/declaration.hpp"
+#include "../../abort.hpp"
+
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
-#include "../../abort.hpp"
 
 #include <core/span.hpp>
 #include <core/c_string.hpp>
@@ -37,19 +38,7 @@ static inline _class& define_class0(Args&&... args) {
 	auto [read_constant_pool, version] = version_reader();
 
 	uint16 constants_count = read_constant_pool.entries_count();
-
-	if constexpr(
-		types::are_contain_decayed_satisfying_predicate<
-			is_constants_to_add
-		>::for_types<Args...>
-	) {
-		constants_count += elements::decayed_satisfying_predicate<
-			is_constants_to_add
-		>(args...).count();
-	}
-
-	_class c{ const_pool{ constants_count } };
-	c.data_ = class_data{ bytes.data(), bytes.size() };
+	const_pool const_pool{ constants_count };
 
 	auto read_access_flags = read_constant_pool([&]<typename Type>(Type x) {
 		if constexpr(same_as<constant::unknown, Type>) {
@@ -57,119 +46,52 @@ static inline _class& define_class0(Args&&... args) {
 			abort();
 		}
 		else {
-			c.const_pool::emplace_back(x);
-			c.trampoline_pool::emplace_back(elements::none{});
+			const_pool.emplace_back(x);
 		}
 	});
-
-	if constexpr(
-		types::are_contain_decayed_satisfying_predicate<
-			is_constants_to_add
-		>::for_types<Args...>
-	) {
-		elements::decayed_satisfying_predicate<
-			is_constants_to_add
-		>(args...).handler()(c);
-	}
 
 	auto [read_this_class, access_flags] = read_access_flags();
 	auto [read_super_class, this_class] = read_this_class();
 	auto [read_interfaces, super_class] = read_super_class();
-	c.access_flags_ = access_flags;
-	c.this_class_index_ = name_index{ this_class };
-	c.super_class_index_ = name_index{ super_class };
 
-	c.interfaces_ = { read_interfaces.count()};
+	interfaces_indices_container interfaces{ read_interfaces.count() };
 
 	auto read_fields = read_interfaces([&](uint16 interface_index) {
-		c.interfaces_.emplace_back(interface_index);
+		interfaces.emplace_back(interface_index);
 	});
 
 	uint16 fields_count = read_fields.count();
 
-	if constexpr(
-		types::are_contain_decayed_satisfying_predicate<
-			is_fields_to_add
-		>::for_types<Args...>
-	) {
-		fields_count += elements::decayed_satisfying_predicate<
-			is_fields_to_add
-		>(args...).count();
-	}
-
-	c.fields_ = { fields_count };
+	fields_container fields{ fields_count };
 
 	auto methods_reader = read_fields([&](auto field_reader) {
-		auto [reader, f] = read_field(c, field_reader);
-		c.fields_.emplace_back(move(f));
+		auto [reader, f] = read_field(const_pool, field_reader);
+		fields.emplace_back(move(f));
 		return reader;
 	});
 
-	if constexpr(
-		types::are_contain_decayed_satisfying_predicate<
-			is_fields_to_add
-		>::for_types<Args...>
-	) {
-		elements::decayed_satisfying_predicate<
-			is_fields_to_add
-		>(args...).handler()(c);
-	}
-
-	c.methods_ = { methods_reader.count() };
+	methods_container methods{ methods_reader.count() };
 
 	methods_reader([&](auto method_reader) {
-		auto [reader, m] = read_method(c, method_reader);
-		c.methods_.emplace_back(move(m));
+		auto [reader, m] = read_method(const_pool, method_reader);
+		methods.emplace_back(move(m));
 		return reader;
 	});
 
-	uint16 instance_fields = 0;
-
-	for(auto& f : c.fields_) {
-		if(!f.get<::field>().is_static()) {
-			++instance_fields;
-		}
-	}
-
-	if(c.super_class_index() != 0) {
-		_class& super = find_or_load_class(
-			c.utf8_constant(c.class_constant(c.super_class_index()).name_index)
-		);
-
-		for(auto& f : super.fields_) {
-			if(!f.get<::field>().is_static()) {
-				++instance_fields;
-			}
-		}
-
-		c.instance_fields_ = { instance_fields };
-
-		for(auto& f : super.fields_) {
-			c.instance_fields_.emplace_back(f.get<::field>());
-		}
-	}
-	else {
-		c.instance_fields_ = { instance_fields };
-	}
-
-	for(auto& f : c.fields_) {
-		if(!f.get<::field>().is_static()) {
-			c.instance_fields_.emplace_back(f.get<::field>());
-		}
-	}
-
-	for(auto interface_index : c.interfaces_indices()) {
-		c.get_class(interface_index);
-	}
-
-	if(
+	/*if(
 		auto clinit = c.try_find_method(c_string{ "<clinit>" });
 		clinit.has_value()
 	) {
-		execute(clinit.value());
-	}
+		execute(method_with_class{ clinit.value(), c });
+	}*/
 
-	classes.emplace_back(move(c));
+	classes.emplace_back(
+		move(const_pool),
+		span<uint8>{ bytes.data(), bytes.size() }, access_flags,
+		this_class_index{ this_class }, super_class_index{ super_class },
+		move(interfaces),
+		move(fields), move(methods)
+	);
 
 	return classes.back();
 }

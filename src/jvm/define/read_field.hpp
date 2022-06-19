@@ -12,17 +12,21 @@ static inline elements::of<
 	class_file::field::reader<Iterator, class_file::field::reader_stage::end>,
 	elements::one_of<field, static_field>
 >
-read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
+read_field(
+	const_pool& const_pool, class_file::field::reader<Iterator> access_reader
+) {
 	auto [name_index_reader, access_flags] = access_reader();
 	auto [descriptor_reader, name_index] = name_index_reader();
 	auto [attributes_reader, descriptor_index] = descriptor_reader();
 	auto end = attributes_reader(
-		[&](auto name_index){ return c.utf8_constant(name_index); },
+		[&](auto name_index) {
+			return const_pool.utf8_constant(name_index);
+		},
 		[&]<typename Type>(Type) {}
 	);
 
 	field f {
-		c, access_flags,
+		access_flags,
 		::name_index{ name_index }, ::descriptor_index{ descriptor_index }
 	};
 
@@ -31,7 +35,7 @@ read_field(_class& c, class_file::field::reader<Iterator> access_reader) {
 
 	field_value fv;
 
-	auto descriptor = c.utf8_constant(descriptor_index);
+	auto descriptor = const_pool.utf8_constant(descriptor_index);
 
 	using namespace class_file;
 

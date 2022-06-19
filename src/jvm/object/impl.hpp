@@ -7,15 +7,15 @@
 
 object::object(::_class& c) :
 	class_{ c },
-	values_{ c.instance_fields().size() }
+	values_{ c.instance_fields_count() }
 {
-	for(field& f : c.instance_fields()) {
+	c.for_each_instance_field([&](field_with_class fwc) {
 		using namespace class_file;
 
 		field_value fv;
 
 		bool result = descriptor::read_field(
-			f.descriptor().begin(),
+			fwc.descriptor().begin(),
 			[&]<typename DescriptorType>(DescriptorType) {
 				return fv.set_default_value<DescriptorType>();
 			}
@@ -30,7 +30,7 @@ object::object(::_class& c) :
 		}
 
 		values_.emplace_back(move(fv));
-	}
+	});
 }
 
 inline void object::on_reference_removed() {

@@ -1,20 +1,21 @@
 #pragma once
 
-#include "execute/definition.hpp"
-#include "execute/info.hpp"
-#include "execute/get_field_value.hpp"
-#include "execute/put_field_value.hpp"
-#include "execute/ldc.hpp"
-#include "execute/invoke_virtual.hpp"
-#include "execute/invoke_special.hpp"
-#include "execute/invoke_static.hpp"
-#include "execute/invoke_interface.hpp"
-#include "execute/new_array.hpp"
+#include "declaration.hpp"
+#include "info.hpp"
+#include "get_field_value.hpp"
+#include "put_field_value.hpp"
+#include "ldc.hpp"
+#include "invoke_virtual.hpp"
+#include "invoke_special.hpp"
+#include "invoke_static.hpp"
+#include "invoke_interface.hpp"
+#include "new_array.hpp"
+#include "../object/create.hpp"
+#include "../native/functions/find.hpp"
+#include "../../abort.hpp"
+
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
-#include "object/create.hpp"
-#include "native/functions/find.hpp"
-#include "../abort.hpp"
 
 #include <stdio.h>
 #include <core/number.hpp>
@@ -23,19 +24,21 @@
 #include <core/single.hpp>
 #include <core/on_scope_exit.hpp>
 
-inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
+inline stack_entry
+execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
 	namespace instr = cf::code::instruction;
 
-	_class& c = m._class();
+	_class& c = mwc._class;
+	method& m = mwc.method;
 
 	if(info) {
 		tabs();
 		fputs("executing: ", stderr);
 		fwrite(c.name().data(), 1, c.name().size(), stderr);
 		fputc('.', stderr);
-		fwrite(m.name().data(), 1, m.name().size(), stderr);
-		fwrite(m.descriptor().data(), 1, m.descriptor().size(), stderr);
+		fwrite(c.name(m).data(), 1, c.name(m).size(), stderr);
+		fwrite(c.descriptor(m).data(), 1, c.descriptor(m).size(), stderr);
 		fputc('\n', stderr);
 		++tab;
 	}
@@ -49,10 +52,10 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 
 	if(m.is_native()) {
 		if(!m.has_native_function()) {
-			m.native_function(find_native_function(m));
+			m.native_function(find_native_function(mwc));
 		}
 		auto& native_function = m.native_function();
-		cf::descriptor::method_reader desc_reader{ m.descriptor().begin() };
+		cf::descriptor::method_reader desc_reader{ c.descriptor(m).begin() };
 		auto [ret_type_reader, success0] = desc_reader.skip_parameters();
 		auto [end, success] = ret_type_reader([&]<typename Type>(Type) {
 			if constexpr(same_as<Type, cf::descriptor::V>) {
@@ -146,6 +149,13 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 			if(info) {
 				tabs(); fputs("bi_push ", stderr);
 				fprintf(stderr, "%hhd\n", x.value);
+			}
+			stack[stack_size++] = jint{ x.value };
+		}
+		else if constexpr (same_as<Type, si_push>) {
+			if(info) {
+				tabs(); fputs("si_push ", stderr);
+				fprintf(stderr, "%hd\n", x.value);
 			}
 			stack[stack_size++] = jint{ x.value };
 		}
@@ -368,8 +378,10 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 				tabs(); fputs("get_static ", stderr);
 				fprintf(stderr, "%hd\n", x.index);
 			}
-			field& f = c.get_static_field(x.index);
-			auto& value = ((static_field*)&f)->value();
+			static_field_with_class sfwc = c.get_static_field(x.index);
+			sfwc._class.initialise_if_need();
+			auto& value = ((static_field*)&sfwc)->value();
+
 			get_field_value(value, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, put_static>) {
@@ -377,8 +389,10 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 				tabs(); fputs("put_static ", stderr);
 				fprintf(stderr, "%hd\n", x.index);
 			}
-			field& field = c.get_static_field(x.index);
-			field_value& static_field_value = ((static_field*)&field)->value();
+			c.initialise_if_need();
+			static_field_with_class sfwc = c.get_static_field(x.index);
+			sfwc._class.initialise_if_need();
+			field_value& static_field_value = sfwc.static_field.value();
 			put_field_value(static_field_value, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, get_field>) {
@@ -452,6 +466,7 @@ inline stack_entry execute(method& m, span<stack_entry, uint16> args) {
 				fputc('\n', stderr);
 			}
 			_class& c0 = c.get_class(x.index);
+			c0.initialise_if_need();
 			stack[stack_size++] = create_object(c0);
 		}
 		else if constexpr (same_as<Type, instr::new_array>) {

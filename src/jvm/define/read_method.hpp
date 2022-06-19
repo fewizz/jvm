@@ -12,7 +12,9 @@ static inline elements::of<
 	class_file::method::reader<Iterator, class_file::method::reader_stage::end>,
 	method
 >
-read_method(_class& c, class_file::method::reader<Iterator> read_access) {
+read_method(
+	const_pool& const_pool, class_file::method::reader<Iterator> read_access
+) {
 	auto [read_name_index, access_flags] = read_access();
 	auto [descriptor_reader, name_index] = read_name_index();
 	auto [read_attributes, descriptor_index] = descriptor_reader();
@@ -20,7 +22,9 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 	code_or_native_function code_or_native_function{ elements::none{} };
 
 	auto end = read_attributes(
-		[&](auto name_index){ return c.utf8_constant(name_index); },
+		[&](auto name_index) {
+			return const_pool.utf8_constant(name_index);
+		},
 		[&]<typename Type>(Type x) {
 			if constexpr (Type::type == class_file::attribute::type::code) {
 				auto [read_max_locals, max_stack] = x();
@@ -36,9 +40,11 @@ read_method(_class& c, class_file::method::reader<Iterator> read_access) {
 	);
 
 	return {
-		end, {
-			c, access_flags, name_index,
-			descriptor_index, code_or_native_function
+		end, method {
+			access_flags,
+			::name_index{ name_index },
+			::descriptor_index{ descriptor_index },
+			code_or_native_function
 		}
 	};
 }

@@ -21,20 +21,17 @@ fi
 exit 0
 #endif
 
-//#include "native.hpp"
-
-#include "classes/impl.hpp"
 #include "class/impl.hpp"
+#include "classes/impl.hpp"
+#include "execute/impl.hpp"
 #include "field/impl.hpp"
 #include "method/impl.hpp"
 #include "object/impl.hpp"
 #include "native/jni/environment.hpp"
 
 #include "classes/load.hpp"
-#include "execute.hpp"
 
 #include <unicode/utf_16.hpp>
-
 #include <core/c_string.hpp>
 #include <core/equals.hpp>
 
@@ -104,8 +101,9 @@ int main (int argc, const char** argv) {
 	define_primitive_class(c_string{ "float" });
 	define_primitive_class(c_string{ "double" });
 
-	_class& cls = load_class(c_string{ argv[1] }.sized());
-	stack_entry fv = execute(cls.find_method(c_string{ argv[2] }));
+	_class& c = load_class(c_string{ argv[1] }.sized());
+	method& m = c.find_method(c_string{ argv[2] });
+	stack_entry fv = execute(method_with_class{ m, c });
 	if(fv.is<jint>()) {
 		printf("%d", fv.get<jint>().value);
 	}

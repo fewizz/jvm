@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../native/function/declaration.hpp"
+#include "../descriptor_index.hpp"
+#include "../name_index.hpp"
 #include "class/file/access_flag.hpp"
 #include "class/file/constant.hpp"
-#include "../native/function/declaration.hpp"
 
 #include <core/span.hpp>
 #include <core/meta/elements/one_of.hpp>
@@ -30,34 +32,34 @@ using code_or_native_function =
 
 struct method {
 private:
-	_class&                  class_;
 	class_file::access_flags access_flags_;
-	uint16                   name_index_;
-	uint16                   desc_index_;
+	name_index               name_index_;
+	descriptor_index         desc_index_;
 	code_or_native_function  code_;
 public:
 
 	method(
-		_class&                  c,
 		class_file::access_flags access_flags,
-		uint16                   name_index,
-		uint16                   descriptor_index,
+		name_index               name_index,
+		descriptor_index         descriptor_index,
 		code_or_native_function  code
 	) :
-		class_       { c },
 		access_flags_{ access_flags },
 		name_index_  { name_index },
 		desc_index_  { descriptor_index },
 		code_        { code }
 	{}
 
-	_class& _class() const { return class_; }
-
-	inline class_file::constant::utf8 name() const;
-	inline class_file::constant::utf8 descriptor() const;
-
 	bool is_native() const {
 		return access_flags_.get(class_file::access_flag::native);
+	}
+
+	name_index name_index() const {
+		return name_index_;
+	}
+
+	descriptor_index descriptor_index() const {
+		return desc_index_;
 	}
 
 	code code() const { return code_.get<::code>(); }

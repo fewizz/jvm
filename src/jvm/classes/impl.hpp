@@ -11,15 +11,19 @@ static inline _class& find_or_load_class(Name name) {
 	return load_class(name);
 }
 
+#include "../execute/info.hpp"
 #include "../define/class.hpp"
 #include "../define/primitive_class.hpp"
 #include "../define/array_class.hpp"
-#include "../execute.hpp"
+#include "../execute/declaration.hpp"
 
 #include <core/ends_with.hpp>
 
 template<range Name>
 inline _class& load_class(Name name) {
+	if(info) {
+		tabs();
+	}
 	fputs("loading class ", stderr);
 
 	view_copy_on_stack{ name }([&](auto on_stack) {

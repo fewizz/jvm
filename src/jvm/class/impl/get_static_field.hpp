@@ -5,25 +5,25 @@
 #include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
-field_index _class::get_resolved_instance_field_index(uint16 ref_index) {
+static_field_with_class _class::get_static_field(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
-		if(!t.is<field_index>()) {
+		if(!t.is<static_field_with_class>()) {
 			fputs("invalid const pool entry", stderr);
 			abort();
 		}
-		return t.get<field_index>();
+		return t.get<static_field_with_class>();
 	}
 
 	namespace cc = class_file::constant;
 
 	cc::field_ref field_ref = field_ref_constant(ref_index);
-	cc::_class _c = class_constant(field_ref.class_index);
+	//auto class_info = class_constant(ref.class_index);
 	cc::name_and_type nat = name_and_type_constant(field_ref.name_and_type_index);
-	cc::utf8 field_name = utf8_constant(nat.name_index);
-	cc::utf8 field_descriptor = utf8_constant(nat.descriptor_index);
+	cc::utf8 name = utf8_constant(nat.name_index);
+	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
 	bool result = class_file::descriptor::read_field(
-		field_descriptor.begin(),
+		descriptor.begin(),
 		[&]<typename Type>(Type x) {
 			if constexpr(same_as<Type, class_file::descriptor::object_type>) {
 				find_or_load_class(x);
@@ -37,17 +37,9 @@ field_index _class::get_resolved_instance_field_index(uint16 ref_index) {
 		abort();
 	}
 
-	cc::utf8 class_name = utf8_constant(_c.name_index);
-	_class& c0 = find_or_load_class(class_name);
-
-	auto index0 {
-		c0.try_find_instance_field_index(field_name, field_descriptor)
-	};
-	if(!index0.has_value()) {
-		fprintf(stderr, "couldn't resolve field");
-		abort();
-	}
-	field_index index = index0.value();
-	trampoline(ref_index) = index;
-	return index;
+	_class& c0 = get_class(field_ref.class_index);
+	static_field& f = (static_field&) c0.find_field(name);
+	static_field_with_class sfwc{ f, c0 };
+	trampoline(ref_index) = sfwc;
+	return sfwc;
 }

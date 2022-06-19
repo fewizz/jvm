@@ -8,23 +8,29 @@
 
 template<range Name>
 static inline _class& define_primitive_class(Name&& name) {
-	_class c{ const_pool{ 2 } };
+	const_pool const_pool{ 2 };
 
-	c.data_ = {
+	span<uint8> data {
 		default_allocator{}.allocate(name.size()), (uint16) name.size()
 	};
-	copy{ name }.to(c.data_);
+	copy{ name }.to(data);
 
-	c.const_pool::emplace_back(
+	const_pool.emplace_back(
 		class_file::constant::utf8 {
-			(char*) c.data_.data(), (uint16) name.size()
+			(char*) data.data(), (uint16) name.size()
 		}
 	);
-	c.const_pool::emplace_back(class_file::constant::_class{ 1 });
+	const_pool.emplace_back(class_file::constant::_class{ 1 });
 
-	c.this_class_index_ = name_index{ 2 };
+	this_class_index this_index{ 2 };
 
-	classes.emplace_back(move(c));
+	classes.emplace_back(
+		move(const_pool), data,
+		class_file::access_flags{ class_file::access_flag::_public },
+		this_index, super_class_index{ 0 }, // TODO extend from Object?
+		interfaces_indices_container{},
+		fields_container{}, methods_container{}
+	);
 
 	return classes.back();
 }

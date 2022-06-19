@@ -1,6 +1,6 @@
 #pragma once
 
-#include "definition.hpp"
+#include "declaration.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
 #include "../class/declaration.hpp"
@@ -44,19 +44,20 @@ inline void invoke_interface(
 		if(m0 = c0->try_find_method(name, desc); m0.has_value()) {
 			break;
 		}
-		if(c0->super_class_index() == 0) {
+		if(!c0->has_super_class()) {
 			break;
 		}
-		c0 = c0->get_class(c0->super_class_index());
+		c0 = c0->super_class();
 	}
 
 	if(!m0.has_value()) {
 		nuint index = 0;
 		c.for_each_maximally_specific_superinterface_method(
 			name, desc,
-			[&](method& m) {
+			[&](method_with_class m) {
 				if(index++ == 0) {
-					m0 = m;
+					m0 = m.method;
+					c0 = m._class;
 					return;
 				}
 				fputs(
@@ -73,7 +74,8 @@ inline void invoke_interface(
 
 	stack_size -= args_count;
 	stack_entry result = execute(
-		m0.value(), span{ stack + stack_size, args_count }
+		method_with_class{ m0.value(), c0.value() },
+		span{ stack + stack_size, args_count }
 	);
 	if(!result.is<jvoid>()) {
 		stack[stack_size++] = result;

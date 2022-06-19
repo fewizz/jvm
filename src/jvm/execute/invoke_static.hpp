@@ -1,6 +1,6 @@
 #pragma once
 
-#include "definition.hpp"
+#include "declaration.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
 #include "../class/declaration.hpp"
@@ -12,42 +12,36 @@ inline void invoke_static(
 	_class& c, class_file::code::instruction::invoke_static x,
 	stack_entry* stack, nuint& stack_size
 ) {
+	namespace cc = class_file::constant;
+
+	cc::method_ref method_ref = c.method_ref_constant(x.index);
+	cc::name_and_type nat {
+		c.name_and_type_constant(method_ref.name_and_type_index)
+	};
+	cc::utf8 method_desc = c.utf8_constant(nat.descriptor_index);
+
 	if(info) {
-		namespace cc = class_file::constant;
-
 		tabs(); fputs("invoke_static ", stderr);
-
-		cc::method_ref ref = c.method_ref_constant(x.index);
-		auto class_name {
-			c.utf8_constant(c.class_constant(ref.class_index).name_index)
-		};
+		cc::_class _c = c.class_constant(method_ref.class_index);
+		cc::utf8 class_name = c.utf8_constant(_c.name_index);
 		fwrite(class_name.data(), 1, class_name.size(), stderr);
-
 		fputc('.', stderr);
-
-		cc::name_and_type nat {
-			c.name_and_type_constant(ref.name_and_type_index)
-		};
-
-		auto name = c.utf8_constant(nat.name_index);
-		fwrite(name.data(), 1, name.size(), stderr);
-
-		auto desc = c.utf8_constant(nat.descriptor_index);
-		fwrite(desc.data(), 1, desc.size(), stderr);
-
+		auto method_name = c.utf8_constant(nat.name_index);
+		fwrite(method_name.data(), 1, method_name.size(), stderr);
+		fwrite(method_desc.data(), 1, method_desc.size(), stderr);
 		fputc('\n', stderr);
 	}
 
-	method& next_method = c.get_method(x.index);
-	auto desc = next_method.descriptor();
-
-	class_file::descriptor::method_reader params_reader{ desc.begin() };
+	class_file::descriptor::method_reader params_reader{ method_desc.begin() };
 	uint16 args_count = 0;
 	params_reader([&](auto){ ++args_count; return true; });
-
 	stack_size -= args_count;
+	method_with_class wic = c.get_static_method(x.index);
+
+	wic._class.initialise_if_need();
+
 	stack_entry result = execute(
-		next_method,
+		wic,
 		span{ stack + stack_size, args_count }
 	);
 	if(!result.is<jvoid>()) {
