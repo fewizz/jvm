@@ -50,7 +50,7 @@ int main (int argc, const char** argv) {
 
 	native_functions.emplace_back(
 		(void*) (object* (*)(jni_environment*, object*))
-		[](jni_environment*, object* name) {
+		[](jni_environment*, ::object* name) {
 			auto value_location0 = name->_class().try_find_instance_field_index(
 				c_string{ "value" }, c_string{ "[B" }
 			);
@@ -86,9 +86,35 @@ int main (int argc, const char** argv) {
 			_class& primitive_class {
 				find_or_load_class(span{ chars, characters_count })
 			};
-			return &primitive_class.object();
+			return &primitive_class.reference().object();
 		},
 		c_string{ "Java_java_lang_Class_getPrimitiveClass" }
+	);
+
+	native_functions.emplace_back(
+		(void*) (jbool(*)(jni_environment*)) [](jni_environment*) {
+			return jbool{ false };
+		},
+		c_string{ "Java_jdk_internal_misc_CDS_isDumpingClassList0" }
+	);
+	native_functions.emplace_back(
+		(void*) (jbool(*)(jni_environment*)) [](jni_environment*) {
+			return jbool{ false };
+		},
+		c_string{ "Java_jdk_internal_misc_CDS_isDumpingArchive0" }
+	);
+	native_functions.emplace_back(
+		(void*) (jbool(*)(jni_environment*)) [](jni_environment*) {
+			return jbool{ false };
+		},
+		c_string{ "Java_jdk_internal_misc_CDS_isSharingEnabled0" }
+	);
+	native_functions.emplace_back(
+		(void*) (void(*)(jni_environment*, ::object*))
+		[](jni_environment*, ::object*) {
+
+		},
+		c_string{ "Java_jdk_internal_misc_CDS_initializeFromArchive" }
 	);
 
 	define_primitive_class(c_string{ "void" });
@@ -106,7 +132,10 @@ int main (int argc, const char** argv) {
 	stack_entry fv = execute(method_with_class{ m, c });
 	if(fv.is<jint>()) {
 		printf("%d", fv.get<jint>().value);
-	}
+	} else
+	if(fv.is<jlong>()) {
+		printf("%lld", fv.get<jlong>().value);
+	} else
 	if(
 		fv.is<reference>() &&
 		equals(

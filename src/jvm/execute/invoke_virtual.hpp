@@ -38,7 +38,7 @@ inline void invoke_virtual(
 	uint16 args_count = 0;
 	params_reader([&](auto){ ++args_count; return true; });
 
-	reference ref = move(stack[stack_size - args_count - 1].get<reference>());
+	reference& ref = stack[stack_size - args_count - 1].get<reference>();
 	optional<_class&> c0 = ref.object()._class();
 	optional<method&> m0{};
 

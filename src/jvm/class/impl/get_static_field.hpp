@@ -17,8 +17,9 @@ static_field_with_class _class::get_static_field(uint16 ref_index) {
 	namespace cc = class_file::constant;
 
 	cc::field_ref field_ref = field_ref_constant(ref_index);
-	//auto class_info = class_constant(ref.class_index);
-	cc::name_and_type nat = name_and_type_constant(field_ref.name_and_type_index);
+	cc::name_and_type nat {
+		name_and_type_constant(field_ref.name_and_type_index)
+	};
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
@@ -38,8 +39,16 @@ static_field_with_class _class::get_static_field(uint16 ref_index) {
 	}
 
 	_class& c0 = get_class(field_ref.class_index);
-	static_field& f = (static_field&) c0.find_field(name);
-	static_field_with_class sfwc{ f, c0 };
+	optional<field&> field = c0.try_find_field(name, descriptor);
+	if(!field.has_value()) {
+		fputs("couldn't find field", stderr);
+		abort();
+	}
+	if(!field.value().is_static()) {
+		fputs("field isn't static", stderr);
+		abort();
+	}
+	static_field_with_class sfwc{ (static_field&) field.value(), c0 };
 	trampoline(ref_index) = sfwc;
 	return sfwc;
 }

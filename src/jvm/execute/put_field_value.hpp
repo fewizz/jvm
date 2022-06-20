@@ -2,14 +2,15 @@
 
 #include "stack_entry.hpp"
 #include "../field/value.hpp"
+#include "../../abort.hpp"
+#include <stdio.h>
 
 inline void put_field_value(
-	field_value& value, stack_entry* stack, nuint& stack_size
+	field_value& to, stack_entry from
 ) {
-	stack_entry stack_value = move(stack[--stack_size]);
-	value.view([&]<typename ValueType>(ValueType& value) {
+	to.view([&]<typename ValueType>(ValueType& value) {
 		if constexpr(same_as<reference, ValueType>) {
-			value = move(stack_value.get<reference>());
+			value = move(from.get<reference>());
 		} else
 		if constexpr(
 			same_as<jint,   ValueType> ||
@@ -18,14 +19,20 @@ inline void put_field_value(
 			same_as<jbyte,  ValueType>
 		) {
 			value = ValueType {
-				(decltype(value.value)) stack_value.get<jint>().value
+				(decltype(value.value)) from.get<jint>().value
 			};
 		} else
 		if constexpr(same_as<jbool, ValueType>) {
-			value = jbool{ stack_value.get<jint>().value == 1 };
+			value = jbool{ from.get<jint>().value == 1 };
 		} else
 		if constexpr(same_as<jfloat, ValueType>) {
-			value = jfloat{ stack_value.get<jfloat>() };
+			value = from.get<jfloat>();
+		} else
+		if constexpr(same_as<jlong, ValueType>) {
+			value = from.get<jlong>();
+		} else
+		if constexpr(same_as<jdouble, ValueType>) {
+			value = from.get<jdouble>();
 		}
 		else {
 			fputs("couldn't put field value", stderr); abort();

@@ -4,7 +4,7 @@
 #include "../field/index.hpp"
 #include "../field/static/with_class.hpp"
 #include "../method/declaration.hpp"
-#include "../object/reference.hpp"
+#include "../object/reference/declaration.hpp"
 #include "../../alloc.hpp"
 #include <core/meta/elements/one_of.hpp>
 #include <core/limited_list.hpp>

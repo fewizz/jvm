@@ -109,7 +109,7 @@ public:
 		return utf8_constant(class_constant(this_class_index_).name_index);
 	}
 
-	inline object& object();
+	inline reference reference();
 
 	bool has_super_class() const {
 		return super_class_index_ != 0;
@@ -227,7 +227,7 @@ public:
 			super_class().for_each_instance_field(handler);
 		}
 		for(auto& f : fields_) {
-			if(f.is<field>()) {
+			if(!f.is<static_field>()) {
 				handler(field_with_class{ f.get<field>(), *this });
 			}
 		}
@@ -236,7 +236,7 @@ public:
 	template<range Name, range Descriptor>
 	optional<field_index>
 	try_find_instance_field_index(
-		Name name, Descriptor descriptor, uint16 index = 0
+		Name name, Descriptor descriptor
 	);
 
 	uint16 instance_fields_count() {
@@ -263,7 +263,7 @@ public:
 		return elements::none{};
 	}
 
-	inline reference get_string(uint16 string_index);
+	inline ::reference get_string(uint16 string_index);
 
 	template<typename Name, typename Descriptor, typename Handler>
 	inline void for_each_maximally_specific_superinterface_method(

@@ -17,7 +17,6 @@ method_with_class _class::get_resolved_method(uint16 ref_index) {
 	namespace cc = class_file::constant;
 
 	cc::method_ref method_ref = method_ref_constant(ref_index);
-	cc::_class _c = class_constant(method_ref.class_index);
 	cc::name_and_type nat {
 		name_and_type_constant(method_ref.name_and_type_index)
 	};
@@ -48,25 +47,24 @@ method_with_class _class::get_resolved_method(uint16 ref_index) {
 		abort();
 	}
 
-	auto class_name = utf8_constant(_c.name_index);
-	optional<_class&> other_c { find_or_load_class(class_name) };
-	optional<method&> m{};
+	optional<_class&> c0 = get_class(method_ref.class_index);
+	optional<method&> m0{};
 
 	while(true) {
 		if(
-			m = other_c->try_find_method(name, descriptor);
-			m.has_value()
+			m0 = c0->try_find_method(name, descriptor);
+			m0.has_value()
 		) {
 			break;
 		}
-		if(!other_c->has_super_class()) {
+		if(!c0->has_super_class()) {
 			fprintf(stderr, "couldn't resolve method");
 			abort();
 		}
-		other_c = other_c->super_class();
+		c0 = c0->super_class();
 	}
 
-	method_with_class mwc{ m.value(), other_c.value() };
+	method_with_class mwc{ m0.value(), c0.value() };
 	trampoline(ref_index) = mwc;
 	return mwc;
 }

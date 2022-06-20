@@ -94,6 +94,10 @@ namespace class_file::attribute::code {
 						uint16 index = read<uint16, endianness::big>(cpy);
 						handler(ldc_w{ index }, cpy); break;
 					}
+					case 20: {
+						uint16 index = read<uint16, endianness::big>(cpy);
+						handler(ldc_2_w{ index }, cpy); break;
+					}
 					case 21: {
 						uint8 index = read<uint8>(cpy);
 						handler(i_load{ index }, cpy); break;
@@ -147,6 +151,10 @@ namespace class_file::attribute::code {
 					case 60: handler(i_store_1{}, cpy); break;
 					case 61: handler(i_store_2{}, cpy); break;
 					case 62: handler(i_store_3{}, cpy); break;
+					case 63: handler(l_store_0{}, cpy); break;
+					case 64: handler(l_store_1{}, cpy); break;
+					case 65: handler(l_store_2{}, cpy); break;
+					case 66: handler(l_store_3{}, cpy); break;
 					case 75: handler(a_store_0{}, cpy); break;
 					case 76: handler(a_store_1{}, cpy); break;
 					case 77: handler(a_store_2{}, cpy); break;
@@ -157,7 +165,7 @@ namespace class_file::attribute::code {
 					case 85: handler(c_a_store{}, cpy); break;
 					case 87: handler(pop{}, cpy); break;
 					case 89: handler(dup{}, cpy); break;
-					case 92: handler(dup2{}, cpy); break;
+					case 92: handler(dup_2{}, cpy); break;
 
 					case 96: handler(i_add{}, cpy); break;
 					case 97: handler(l_add{}, cpy); break;
@@ -289,6 +297,12 @@ namespace class_file::attribute::code {
 					}
 					case 172: {
 						if(handler(i_ret{}, cpy)) {
+							return{ src0 + length };
+						}
+						break;
+					}
+					case 173: {
+						if(handler(l_ret{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;

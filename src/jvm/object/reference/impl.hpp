@@ -1,43 +1,15 @@
 #pragma once
 
-#include <core/integer.hpp>
-#include <core/meta/elements/optional.hpp>
-
-struct counted_object_ptr;
-struct object;
-struct _class;
-
-struct reference {
-private:
-	optional<object&> obj_;
-
-	friend reference create_object(_class& c);
-
-public:
-
-	reference(object& obj) :
-		obj_{ obj }
-	{}
-
-	reference() {};
-
-	inline reference(const reference&);
-	inline reference(reference&&);
-
-	inline reference& operator = (const reference&);
-	inline reference& operator = (reference&&);
-
-	inline object& object();
-	inline ~reference();
-
-	inline bool is_null() const;
-};
-
 #include "declaration.hpp"
-#include "../../alloc.hpp"
-#include "../../abort.hpp"
+#include "../declaration.hpp"
+#include "../../../alloc.hpp"
+#include "../../../abort.hpp"
 #include <core/exchange.hpp>
 #include <stdio.h>
+
+reference::reference(::object& obj) : obj_{ obj } {
+	obj.on_reference_added();
+}
 
 reference::reference(const reference& other) :
 	obj_{ other.obj_ }

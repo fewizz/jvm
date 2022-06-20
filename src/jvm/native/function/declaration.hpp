@@ -2,10 +2,13 @@
 
 #include "../../execute/stack_entry.hpp"
 #include "../../../alloc.hpp"
+#include "../../../abort.hpp"
 #include <core/c_string.hpp>
 #include <core/range.hpp>
 #include <core/copy.hpp>
 #include <core/span.hpp>
+#include <core/exchange.hpp>
+#include <stdio.h>
 
 struct native_function {
 private:
@@ -60,8 +63,17 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			((void(*)(jni_environment* env)) ptr_ )(nullptr);
 			return jvoid{};
 		}
+		if constexpr(same_as<ReturnType, jbool>) {
+			jbool res = ((jbool(*)(jni_environment* env)) ptr_ )(nullptr);
+			return jint{ int32(res.value) };
+		}
 	} else if (args.size() == 1) {
 		if(args[0].is<reference>()) {
+			if constexpr(same_as<ReturnType, jvoid>) {
+				((void* (*)(jni_environment* env, object*)) ptr_ )
+				(nullptr, &args[0].get<reference>().object());
+				return jvoid{};
+			}
 			if constexpr(same_as<ReturnType, reference>) {
 				auto obj_ptr =
 					((object* (*)(jni_environment* env, object*)) ptr_ )

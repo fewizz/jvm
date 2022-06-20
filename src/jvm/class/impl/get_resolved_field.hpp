@@ -17,8 +17,9 @@ field_index _class::get_resolved_instance_field_index(uint16 ref_index) {
 	namespace cc = class_file::constant;
 
 	cc::field_ref field_ref = field_ref_constant(ref_index);
-	cc::_class _c = class_constant(field_ref.class_index);
-	cc::name_and_type nat = name_and_type_constant(field_ref.name_and_type_index);
+	cc::name_and_type nat = name_and_type_constant(
+		field_ref.name_and_type_index
+	);
 	cc::utf8 field_name = utf8_constant(nat.name_index);
 	cc::utf8 field_descriptor = utf8_constant(nat.descriptor_index);
 
@@ -37,8 +38,7 @@ field_index _class::get_resolved_instance_field_index(uint16 ref_index) {
 		abort();
 	}
 
-	cc::utf8 class_name = utf8_constant(_c.name_index);
-	_class& c0 = find_or_load_class(class_name);
+	_class& c0 = get_class(field_ref.class_index);
 
 	auto index0 {
 		c0.try_find_instance_field_index(field_name, field_descriptor)

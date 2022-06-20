@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../primitives.hpp"
-#include "../object/reference.hpp"
+#include "../object/reference/declaration.hpp"
 #include "class/file/descriptor/type.hpp"
 #include <core/meta/elements/one_of.hpp>
 

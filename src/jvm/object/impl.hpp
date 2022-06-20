@@ -1,5 +1,7 @@
 #pragma once
 
+#include "reference/impl.hpp"
+
 #include "declaration.hpp"
 #include "../class/declaration.hpp"
 #include "../field/declaration.hpp"
@@ -20,7 +22,6 @@ object::object(::_class& c) :
 				return fv.set_default_value<DescriptorType>();
 			}
 		);
-
 		if(!result) {
 			fputs(
 				"couldn't read field descriptor while creating object",

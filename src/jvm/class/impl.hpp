@@ -22,11 +22,10 @@ _class::_class(
 	methods_{ move(methods) }
 {}
 
-object& _class::object() {
+reference _class::reference() {
 	if(reference_.is_null()) {
 		_class& class_class = find_or_load_class(c_string{ "java/lang/Class" });
 		reference_ = create_object(class_class);
-		auto& values = reference_.object().values();
 		auto class_data_location0 = class_class.try_find_instance_field_index(
 			c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
 		);
@@ -34,13 +33,14 @@ object& _class::object() {
 			fputs("couldn't find classData field in Class class", stderr);
 			abort();
 		}
-		reference long_ref {
-			create_object(find_or_load_class(c_string{ "java/lang/Long" }))
+		::reference long_ref {
+			create_object(find_or_load_class(c_string{ "long[]" }))
 		};
+		long_ref.object().values()[0] = jlong{ (int64) this };
 		auto class_data_location = class_data_location0.value();
-		values[class_data_location].get<reference>() = long_ref;
+		reference_.object().values()[class_data_location] = long_ref;
 	}
-	return reference_.object();
+	return reference_;
 }
 
 template<range Name, range Descriptor>
@@ -99,26 +99,47 @@ optional<method&> _class::try_find_method(Name name) {
 }
 
 template<range Name, range Descriptor>
-optional<field_index>
-_class::try_find_instance_field_index(
-	Name name, Descriptor descriptor, uint16 index
+bool try_find_instance_field_index0(
+	_class& c, Name name, Descriptor descriptor, uint16& index
 ) {
-	if(has_super_class()) {
-		super_class().try_find_instance_field_index(name, descriptor, index);
+	if(c.has_super_class()) {
+		_class& super = c.super_class();
+		bool found {
+			try_find_instance_field_index0(super, name, descriptor, index)
+		};
+		if(found) {
+			return true;
+		}
 	}
-	for(auto& f0 : fields_) {
+	for(auto& f0 : c.fields()) {
 		if(f0.is<field>()) {
 			field& f = f0.get<field>();
 			if(
-				equals(this->name(f), name) &&
-				equals(this->descriptor(f), descriptor)
+				equals(c.name(f), name) &&
+				equals(c.descriptor(f), descriptor)
 			) {
-				return { field_index{ index } };
+				return true;
 			}
 			++index;
 		}
 	}
-	return elements::none{};
+	return false;
+}
+
+template<range Name, range Descriptor>
+optional<field_index>
+_class::try_find_instance_field_index(
+	Name name, Descriptor descriptor
+) {
+	uint16 index = 0;
+	bool found {
+		try_find_instance_field_index0(*this, name, descriptor, index)
+	};
+	if(found) {
+		return field_index{ index };
+	} else {
+		return elements::none{};
+	}
 }
 
 void _class::initialise_if_need() {

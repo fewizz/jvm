@@ -34,6 +34,10 @@ namespace class_file::code::instruction {
 		static constexpr uint8 code = 19;
 		uint16 index;
 	};
+	struct ldc_2_w {
+		static constexpr uint8 code = 20;
+		uint16 index;
+	};
 
 	struct i_load {
 		static constexpr uint8 code = 21;
@@ -88,6 +92,10 @@ namespace class_file::code::instruction {
 	struct i_store_1 { static constexpr uint8 code = 60; };
 	struct i_store_2 { static constexpr uint8 code = 61; };
 	struct i_store_3 { static constexpr uint8 code = 62; };
+	struct l_store_0 { static constexpr uint8 code = 63; };
+	struct l_store_1 { static constexpr uint8 code = 64; };
+	struct l_store_2 { static constexpr uint8 code = 65; };
+	struct l_store_3 { static constexpr uint8 code = 66; };
 	struct a_store_0 { static constexpr uint8 code = 75; };
 	struct a_store_1 { static constexpr uint8 code = 76; };
 	struct a_store_2 { static constexpr uint8 code = 77; };
@@ -99,7 +107,7 @@ namespace class_file::code::instruction {
 
 	struct pop  {  static constexpr uint8 code = 87; };
 	struct dup  {  static constexpr uint8 code = 89; };
-	struct dup2 { static constexpr uint8 code = 92; };
+	struct dup_2 { static constexpr uint8 code = 92; };
 
 	struct i_add {  static constexpr uint8 code = 96; };
 	struct l_add {  static constexpr uint8 code = 97; };
@@ -207,6 +215,7 @@ namespace class_file::code::instruction {
 	};
 
 	struct i_ret { static constexpr uint8 code = 172; };
+	struct l_ret { static constexpr uint8 code = 173; };
 	struct a_ret { static constexpr uint8 code = 176; };
 	struct ret { static constexpr uint8 code = 177; };
 

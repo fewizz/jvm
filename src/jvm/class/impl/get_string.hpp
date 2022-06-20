@@ -12,11 +12,11 @@
 
 reference _class::get_string(uint16 string_index) {
 	if(auto& t = trampoline(string_index); !t.is<elements::none>()) {
-		if(!t.is<reference>()) {
+		if(!t.is<::reference>()) {
 			fputs("invalid const pool entry", stderr);
 			abort();
 		}
-		return t.get<reference>();
+		return t.get<::reference>();
 	}
 
 	namespace cc = class_file::constant;
@@ -54,7 +54,7 @@ reference _class::get_string(uint16 string_index) {
 	}
 
 	_class& array_class = find_or_load_class(c_string{ "byte[]" });
-	reference data_ref = create_object(array_class);
+	::reference data_ref = create_object(array_class);
 	data_ref.object().values()[0] = field_value {
 		jlong { (int64) data }
 	};
@@ -62,7 +62,7 @@ reference _class::get_string(uint16 string_index) {
 		jint{ (int32) (utf16_units * sizeof(jchar)) };
 
 	_class& string_class = find_or_load_class(c_string{"java/lang/String"});
-	reference string_ref = create_object(string_class);
+	::reference string_ref = create_object(string_class);
 
 	auto value_index0 = string_class.try_find_instance_field_index(
 		c_string{ "value" },
