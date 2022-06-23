@@ -82,15 +82,7 @@ private:
 		initialised
 	} initialisation_state_ = not_initialised;
 
-	template<typename... Args>
-	friend inline _class& define_class0(Args&&... args);
-
-	friend inline _class& define_array_class(_class& element_class);
-
-	template<range Name>
-	friend inline _class& define_primitive_class(Name&& name);
-
-	friend struct classes_container;
+public:
 
 	inline _class(
 		const_pool&& const_pool,
@@ -100,10 +92,10 @@ private:
 		fields_container&& fields, methods_container&& methods
 	);
 
-public:
-
 	_class(_class&&) = delete;
 	_class(const _class&) = delete;
+	_class& operator = (_class&&) = delete;
+	_class& operator = (const _class&) = delete;
 
 	auto name() const {
 		return utf8_constant(class_constant(this_class_index_).name_index);

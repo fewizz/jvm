@@ -669,7 +669,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 
 			int32 count = stack[--stack_size].get<jint>();
 			_class& c0 = find_or_load_class(
-				concat_view{ name, array{'[', ']'} }
+				concat_view{ array{ '[', 'L' }, name, array{ ';' } }
 			);
 
 			auto ref = create_object(c0);

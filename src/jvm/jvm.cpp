@@ -116,6 +116,13 @@ int main (int argc, const char** argv) {
 		},
 		c_string{ "Java_jdk_internal_misc_CDS_initializeFromArchive" }
 	);
+	native_functions.emplace_back(
+		(void*) (void(*)(jni_environment*))
+		[](jni_environment*) {
+
+		},
+		c_string{ "Java_jdk_internal_misc_Unsafe_registerNatives" }
+	);
 
 	define_primitive_class(c_string{ "void" });
 	define_primitive_class(c_string{ "boolean" });
@@ -126,6 +133,15 @@ int main (int argc, const char** argv) {
 	define_primitive_class(c_string{ "long" });
 	define_primitive_class(c_string{ "float" });
 	define_primitive_class(c_string{ "double" });
+
+	define_array_class(c_string{ "[Z" });
+	define_array_class(c_string{ "[B" });
+	define_array_class(c_string{ "[S" });
+	define_array_class(c_string{ "[C" });
+	define_array_class(c_string{ "[I" });
+	define_array_class(c_string{ "[J" });
+	define_array_class(c_string{ "[F" });
+	define_array_class(c_string{ "[D" });
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
 	method& m = c.find_method(c_string{ argv[2] });

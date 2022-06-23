@@ -7,7 +7,7 @@ root=`realpath ${d}/../../`
 if clang++ \
 	-std=c++20 \
 	-Wall -Wextra \
-	-O3 \
+	-g \
 	-nostdinc++ \
 	-I ${root}/include/ \
 	-I ${root}/../core/include \
@@ -132,7 +132,7 @@ void read_code_attribute(
 
 		if constexpr (same_as<Type, pop>) fputs("pop", stdout);
 		if constexpr (same_as<Type, dup>) fputs("dup", stdout);
-		if constexpr (same_as<Type, dup2>) fputs("dup2", stdout);
+		if constexpr (same_as<Type, dup_2>) fputs("dup2", stdout);
 
 		if constexpr (same_as<Type, i_add>) fputs("iadd", stdout);
 		if constexpr (same_as<Type, l_add>) fputs("ladd", stdout);
@@ -228,7 +228,14 @@ void read_code_attribute(
 			fputs("ireturn", stdout);
 			return false;
 		}
-		if constexpr (same_as<Type, a_ret>) fputs("areturn", stdout);
+		if constexpr (same_as<Type, l_ret>) {
+			fputs("lreturn", stdout);
+			return false;
+		}
+		if constexpr (same_as<Type, a_ret>) {
+			fputs("areturn", stdout);
+			return false;
+		}
 		if constexpr (same_as<Type, ret>) {
 			fputs("return", stdout);
 			return false;
@@ -298,11 +305,15 @@ void read_code_attribute(
 
 int main(int argc, const char** argv) {
 	if(argc != 2) {
-		printf("usage: class_info.cpp <path to class file>");
+		fputs("usage: class_info.cpp <path to class file>", stderr);
 		return 1;
 	}
 
 	FILE* f = fopen(argv[1], "rb");
+	if(f == nullptr) {
+		fputs("could't open file", stderr);
+		return 1;
+	}
 	fseek(f, 0, SEEK_END);
 	nuint size = ftell(f);
 	rewind(f);

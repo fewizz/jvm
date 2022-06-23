@@ -18,25 +18,43 @@ static inline _class& find_or_load_class(Name name) {
 #include "../execute/declaration.hpp"
 
 #include <core/ends_with.hpp>
+#include <core/starts_with.hpp>
 
 template<range Name>
 inline _class& load_class(Name name) {
 	if(info) {
 		tabs();
+		fputs("loading class ", stderr);
 	}
-	fputs("loading class ", stderr);
 
 	view_copy_on_stack{ name }([&](auto on_stack) {
 		fwrite(on_stack.data(), 1, on_stack.size(), stderr);
 		fputc('\n', stderr);
 	});
 
-	if(ends{ name }.with(array{ '[', ']' })) {
-		auto element_name {
-			 to_range(name.begin(), name.begin() + (name.size() - 2))
+	if(starts{ name }.with(c_string{ "[" })) {
+		if(name.size() == 2) { // primitive
+			return find_class(name);
+		}
+
+		if(
+			!starts{ name }.with(c_string{ "[L" }) ||
+			!ends  { name }.with(single_view{ ';' })
+		) {
+			fputs("reference array type name should end with ';'", stderr);
+			abort();
+		}
+
+		auto element_name = to_range(
+			name.begin() + 2,
+			name.begin() + (name.size() - 1)
+		);
+
+		find_or_load_class(element_name);
+		auto name = concat_view{
+			array{ '[', 'L' }, element_name, array{ ';' }
 		};
-		_class& c = find_or_load_class(element_name);
-		return define_array_class(c);
+		return define_array_class(name);
 	}
 
 	return view_class_file(name,

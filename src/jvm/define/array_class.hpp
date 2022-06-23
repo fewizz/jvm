@@ -8,16 +8,17 @@
 #include <core/concat.hpp>
 #include <core/c_string.hpp>
 
-inline _class& define_array_class(_class& element_class) {
+template<range Name>
+inline _class& define_array_class(Name&& name) {
 	const_pool const_pool{ 6 };
 
-	auto name = concat_view{ element_class.name(), array{ '[', ']' } };
 	c_string ptr_name { "ptr_" };
 	c_string ptr_desc { "J" };
 	c_string len_name { "len_" };
 	c_string len_desc { "I" };
 
 	span data{ default_allocator{}.allocate(name.size()), name.size() };
+	copy{ name }.to(data);
 
 	const_pool.emplace_back(class_file::constant::utf8 {
 		(char*) data.data(), (uint16) name.size()

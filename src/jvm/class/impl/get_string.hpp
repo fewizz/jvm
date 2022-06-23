@@ -53,7 +53,7 @@ reference _class::get_string(uint16 string_index) {
 		}
 	}
 
-	_class& array_class = find_or_load_class(c_string{ "byte[]" });
+	_class& array_class = find_or_load_class(c_string{ "[B" });
 	::reference data_ref = create_object(array_class);
 	data_ref.object().values()[0] = field_value {
 		jlong { (int64) data }

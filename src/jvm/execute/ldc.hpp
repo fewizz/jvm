@@ -58,6 +58,9 @@ inline void ldc_w(
 	} else
 	if(constatnt.is<cc::string>()) {
 		stack[stack_size++] = c.get_string(x.index);
+	} else
+	if(constatnt.is<cc::_class>()) {
+		stack[stack_size++] = c.get_class(x.index).reference();
 	}
 	else {
 		fputs("unknown constant", stderr); abort();

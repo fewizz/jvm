@@ -34,7 +34,7 @@ reference _class::reference() {
 			abort();
 		}
 		::reference long_ref {
-			create_object(find_or_load_class(c_string{ "long[]" }))
+			create_object(find_or_load_class(c_string{ "[J" }))
 		};
 		long_ref.object().values()[0] = jlong{ (int64) this };
 		auto class_data_location = class_data_location0.value();

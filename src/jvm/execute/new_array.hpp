@@ -18,29 +18,29 @@ inline void new_array(
 	class_file::code::instruction::new_array x,
 	stack_entry* stack, nuint& stack_size
 ) {
-	c_string<c_string_type::known_size> name;
+	char type;
 	nuint size = 0;
 	switch (x.type) {
-		case 4:  name = "boolean"; size = sizeof(jbool);   break;
-		case 5:  name = "char";    size = sizeof(jchar);   break;
-		case 6:  name = "float";   size = sizeof(jfloat);  break;
-		case 7:  name = "double";  size = sizeof(jdouble); break;
-		case 8:  name = "byte";    size = sizeof(jbyte);   break;
-		case 9:  name = "short";   size = sizeof(jshort);  break;
-		case 10: name = "int";     size = sizeof(jint);    break;
-		case 11: name = "long";    size = sizeof(jlong);   break;
+		case 4:  type = 'Z'; size = sizeof(jbool);   break;
+		case 5:  type = 'C'; size = sizeof(jchar);   break;
+		case 6:  type = 'F'; size = sizeof(jfloat);  break;
+		case 7:  type = 'D'; size = sizeof(jdouble); break;
+		case 8:  type = 'B'; size = sizeof(jbyte);   break;
+		case 9:  type = 'S'; size = sizeof(jshort);  break;
+		case 10: type = 'I'; size = sizeof(jint);    break;
+		case 11: type = 'J'; size = sizeof(jlong);   break;
 		default:
 			fputs("unknown type of array", stderr);
 			abort();
 	}
 	if(info) {
 		tabs(); fputs("new_array ", stderr);
-		fwrite(name.data(), 1, name.size(), stderr);
+		fputc(type, stderr);
 		fputc('\n', stderr);
 	}
 	int32 count = stack[--stack_size].get<jint>();
 	_class& c0 = find_or_load_class(
-		concat_view{ name, array{'[', ']'} }
+		concat_view{ array{'[' }, array{ type } }
 	);
 	auto ref = create_object(c0);
 	ref.object().values()[0] = field_value {
