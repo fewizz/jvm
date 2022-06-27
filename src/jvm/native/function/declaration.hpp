@@ -71,14 +71,63 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 		if(args[0].is<reference>()) {
 			if constexpr(same_as<ReturnType, jvoid>) {
 				((void* (*)(jni_environment* env, object*)) ptr_ )
-				(nullptr, &args[0].get<reference>().object());
+				(nullptr, args[0].get<reference>().object_ptr());
 				return jvoid{};
+			}
+			if constexpr(same_as<ReturnType, jbool>) {
+				jbool res =
+					((jbool (*)(jni_environment* env, object*)) ptr_ )
+					(nullptr, args[0].get<reference>().object_ptr());
+				return jint{ int32(res.value) };
+			}
+			if constexpr(same_as<ReturnType, jint>) {
+				return
+					((jint (*)(jni_environment* env, object*)) ptr_ )
+					(nullptr, args[0].get<reference>().object_ptr());
 			}
 			if constexpr(same_as<ReturnType, reference>) {
 				auto obj_ptr =
 					((object* (*)(jni_environment* env, object*)) ptr_ )
-					(nullptr, &args[0].get<reference>().object());
+					(nullptr, args[0].get<reference>().object_ptr());
 				return reference{ *obj_ptr };
+			}
+		}
+	} else if (args.size() == 2) {
+		if(args[0].is<reference>()) {
+			if(args[1].is<reference>()) {
+				if constexpr(same_as<ReturnType, jint>) {
+					return ((jint (*)(jni_environment*, object*, object*)) ptr_)
+					(
+						nullptr,
+						args[0].get<reference>().object_ptr(),
+						args[1].get<reference>().object_ptr()
+					);
+				}
+			}
+		}
+	} else if (args.size() == 5) {
+		if(args[0].is<reference>()) {
+			if(args[1].is<jint>()) {
+				if(args[2].is<reference>()) {
+					if(args[3].is<jint>()) {
+						if(args[4].is<jint>()) {
+							if constexpr(same_as<ReturnType, jvoid>) {
+								((void (*)(jni_environment*,
+									object*, jint, object*, jint, jint
+								)) ptr_)
+								(
+									nullptr,
+									args[0].get<reference>().object_ptr(),
+									args[1].get<jint>(),
+									args[2].get<reference>().object_ptr(),
+									args[3].get<jint>(),
+									args[4].get<jint>()
+								);
+								return jvoid{};
+							}
+						}
+					}
+				}
 			}
 		}
 	}

@@ -1,14 +1,13 @@
 #pragma once
 
 #include <core/integer.hpp>
-#include <core/meta/elements/optional.hpp>
 
 struct object;
 struct _class;
 
 struct reference {
 private:
-	optional<object&> obj_;
+	object* obj_{};
 
 	friend reference create_object(_class& c);
 
@@ -24,7 +23,8 @@ public:
 	inline reference& operator = (const reference&);
 	inline reference& operator = (reference&&);
 
-	inline object& object();
+	inline ::object& object();
+	inline ::object* object_ptr() { return obj_; }
 	inline ~reference();
 
 	inline bool is_null() const;

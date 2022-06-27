@@ -27,7 +27,7 @@ struct jint {
 
 	template<typename Type>
 	requires (integer<Type> && sizeof(Type) <= sizeof(int32))
-	explicit jint(Type value) : value { value } {}
+	jint(Type value) : value { value } {}
 
 	operator int32 () const { return value; }
 };
@@ -39,7 +39,7 @@ struct jlong {
 
 	template<typename Type>
 	requires (integer<Type> && sizeof(Type) <= sizeof(int64))
-	explicit jlong(Type value) : value { value } {}
+	jlong(Type value) : value { value } {}
 
 	operator int64 () const { return value; }
 };
@@ -57,3 +57,26 @@ struct jdouble {
 	explicit jdouble() = default;
 	explicit jdouble(double value) : value { value } {}
 };
+
+#include <core/meta/elements/optional.hpp>
+
+struct _class;
+
+inline optional<_class&> void_class{};
+inline optional<_class&> bool_class{};
+inline optional<_class&> byte_class{};
+inline optional<_class&> short_class{};
+inline optional<_class&> char_class{};
+inline optional<_class&> int_class{};
+inline optional<_class&> long_class{};
+inline optional<_class&> float_class{};
+inline optional<_class&> double_class{};
+
+inline optional<_class&> bool_array_class{};
+inline optional<_class&> byte_array_class{};
+inline optional<_class&> short_array_class{};
+inline optional<_class&> char_array_class{};
+inline optional<_class&> int_array_class{};
+inline optional<_class&> long_array_class{};
+inline optional<_class&> float_array_class{};
+inline optional<_class&> double_array_class{};

@@ -179,8 +179,10 @@ namespace class_file::attribute::code {
 					case 120: handler(i_sh_l{}, cpy); break;
 					case 121: handler(l_sh_l{}, cpy); break;
 					case 122: handler(i_sh_r{}, cpy); break;
+					case 123: handler(l_sh_r{}, cpy); break;
 					case 126: handler(i_and{}, cpy); break;
 					case 128: handler(i_or{}, cpy); break;
+					case 129: handler(l_or{}, cpy); break;
 					case 130: handler(i_xor{}, cpy); break;
 					case 132: {
 						uint8 index = read<uint8>(cpy);
@@ -307,7 +309,12 @@ namespace class_file::attribute::code {
 						}
 						break;
 					}
-					case 176: handler(a_ret{}, cpy); break;
+					case 176: {
+						if(handler(a_ret{}, cpy)) {
+							return{ src0 + length };
+						}
+						break;
+					}
 					case 177: {
 						if(handler(ret{}, cpy)) {
 							return{ src0 + length };

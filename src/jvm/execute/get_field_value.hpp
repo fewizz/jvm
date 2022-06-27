@@ -13,12 +13,17 @@ inline stack_entry get_field_value(
 			return value;
 		}
 		else if constexpr(
-			same_as<jint,   ValueType> ||
-			same_as<jshort, ValueType> ||
-			same_as<jchar,  ValueType> ||
-			same_as<jbyte,  ValueType>
+			same_as<ValueType, jint>   ||
+			same_as<ValueType, jshort> ||
+			same_as<ValueType, jchar>  ||
+			same_as<ValueType, jbyte>
 		) {
 			return jint{ value.value };
+		}
+		else if constexpr(
+			same_as<ValueType, jbool>
+		) {
+			return jint{ int32(value.value) };
 		}
 		else if constexpr(
 			same_as<jfloat, ValueType> ||

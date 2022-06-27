@@ -121,8 +121,10 @@ namespace class_file::code::instruction {
 	struct i_sh_l { static constexpr uint8 code = 120; };
 	struct l_sh_l { static constexpr uint8 code = 121; };
 	struct i_sh_r { static constexpr uint8 code = 122; };
+	struct l_sh_r { static constexpr uint8 code = 123; };
 	struct i_and { static constexpr uint8 code = 126; };
 	struct i_or {  static constexpr uint8 code = 128; };
+	struct l_or {  static constexpr uint8 code = 129; };
 	struct i_xor { static constexpr uint8 code = 130; };
 	struct i_inc {
 		static constexpr uint8 code = 132;

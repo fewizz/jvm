@@ -74,6 +74,10 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				result = native_function.call<jshort>(args);
 				return true;
 			}
+			else if constexpr(same_as<Type, cf::descriptor::I>) {
+				result = native_function.call<jint>(args);
+				return true;
+			}
 			else if constexpr(same_as<Type, cf::descriptor::object_type>) {
 				result = native_function.call<reference>(args);
 				return true;
@@ -193,9 +197,23 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		else if constexpr (same_as<Type, i_load>) {
 			if(info) {
 				tabs(); fputs("i_load ", stderr);
-				fprintf(stderr, "%hhd", x.index);
+				fprintf(stderr, "%hhu\n", x.index);
 			}
 			stack[stack_size++] = local[x.index].template get<jint>();
+		}
+		else if constexpr (same_as<Type, l_load>) {
+			if(info) {
+				tabs(); fputs("l_load ", stderr);
+				fprintf(stderr, "%hhu\n", x.index);
+			}
+			stack[stack_size++] = local[x.index].template get<jlong>();
+		}
+		else if constexpr (same_as<Type, a_load>) {
+			if(info) {
+				tabs(); fputs("a_load ", stderr);
+				fprintf(stderr, "%hhu\n", x.index);
+			}
+			stack[stack_size++] = local[x.index].template get<reference>();
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
 			if(info) { tabs(); fputs("i_load_0\n", stderr); }
@@ -274,9 +292,23 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		else if constexpr (same_as<Type, i_store>) {
 			if(info) {
 				tabs(); fputs("i_store ", stderr);
-				fprintf(stderr, "%hhd\n", x.index);
+				fprintf(stderr, "%hhu\n", x.index);
 			}
 			local[x.index] = stack[--stack_size].get<jint>();
+		}
+		else if constexpr (same_as<Type, l_store>) {
+			if(info) {
+				tabs(); fputs("l_store ", stderr);
+				fprintf(stderr, "%hhu\n", x.index);
+			}
+			local[x.index] = stack[--stack_size].get<jlong>();
+		}
+		else if constexpr (same_as<Type, a_store>) {
+			if(info) {
+				tabs(); fputs("a_store ", stderr);
+				fprintf(stderr, "%hhu\n", x.index);
+			}
+			local[x.index] = move(stack[--stack_size].get<reference>());
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
 			if(info) { tabs(); fputs("i_store_0\n", stderr); }
@@ -356,7 +388,19 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int8* ptr = (int8*) ref.object().values()[0].get<jlong>().value;
 			ptr[index] = value;
 		}
+		else if constexpr (same_as<Type, c_a_store>) {
+			if(info) { tabs(); fputs("c_a_store\n", stderr); }
+			int32 value = stack[--stack_size].get<jint>();
+			int32 index = stack[--stack_size].get<jint>();
+			auto ref = move(stack[--stack_size].get<reference>());
+			int16* ptr = (int16*) ref.object().values()[0].get<jlong>().value;
+			ptr[index] = value;
+		}
 
+		else if constexpr (same_as<Type, pop>) {
+			if(info) { tabs(); fputs("pop\n", stderr); }
+			--stack_size;
+		}
 		else if constexpr (same_as<Type, dup>) {
 			if(info) { tabs(); fputs("dup\n", stderr); }
 			auto& value = stack[stack_size - 1];
@@ -397,6 +441,12 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value1 = stack[--stack_size].get<jint>();
 			stack[stack_size++] = jint{ value1 - value2 };
 		}
+		else if constexpr (same_as<Type, l_sub>) {
+			if(info) { tabs(); fputs("l_sub\n", stderr); }
+			int64 value2 = stack[--stack_size].get<jlong>();
+			int64 value1 = stack[--stack_size].get<jlong>();
+			stack[stack_size++] = jlong{ value1 - value2 };
+		}
 		else if constexpr (same_as<Type, i_mul>) {
 			if(info) { tabs(); fputs("i_mul\n", stderr); }
 			int32 value2 = stack[--stack_size].get<jint>();
@@ -409,14 +459,43 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value1 = stack[--stack_size].get<jint>();
 			stack[stack_size++] = jint{ value1 / value2 };
 		}
+		else if constexpr (same_as<Type, i_sh_l>) {
+			if(info) { tabs(); fputs("i_sh_l\n", stderr); }
+			int32 value2 = stack[--stack_size].get<jint>();
+			int32 value1 = stack[--stack_size].get<jint>();
+			stack[stack_size++] = jint{ value1 << (value2 & 0x1F) };
+		}
+		else if constexpr (same_as<Type, i_sh_r>) {
+			if(info) { tabs(); fputs("i_sh_r\n", stderr); }
+			int32 value2 = stack[--stack_size].get<jint>();
+			int32 value1 = stack[--stack_size].get<jint>();
+			stack[stack_size++] = jint{ value1 >> (value2 & 0x1F) };
+		}
+		else if constexpr (same_as<Type, l_sh_r>) {
+			if(info) { tabs(); fputs("l_sh_r\n", stderr); }
+			int32 value2 = stack[--stack_size].get<jint>();
+			int64 value1 = stack[--stack_size].get<jlong>();
+			stack[stack_size++] = jlong{ value1 >> (value2 & 0x3F) };
+		}
+		else if constexpr (same_as<Type, l_or>) {
+			if(info) { tabs(); fputs("l_or\n", stderr); }
+			int64 value2 = stack[--stack_size].get<jlong>();
+			int64 value1 = stack[--stack_size].get<jlong>();
+			stack[stack_size++] = jlong{ value1 | value2 };
+		}
 		else if constexpr (same_as<Type, i_inc>) {
 			if(info) { tabs(); fputs("i_inc\n", stderr); }
 			local[x.index].template get<jint>().value += x.value;
 		}
+		else if constexpr (same_as<Type, i_to_l>) {
+			if(info) { tabs(); fputs("i_to_l\n", stderr); }
+			int32 i = stack[stack_size - 1].get<jint>();
+			stack[stack_size - 1] = jlong{ i };
+		}
 		else if constexpr (same_as<Type, l_to_i>) {
 			if(info) { tabs(); fputs("l_to_i\n", stderr); }
 			int64 i = stack[stack_size - 1].get<jlong>();
-			stack[stack_size - 1] = jint{ (int32) i };
+			stack[stack_size - 1] = jint{ (int32) (i & 0xFFFFFFFF) };
 		}
 		else if constexpr (same_as<Type, i_to_b>) {
 			if(info) { tabs(); fputs("i_to_b\n", stderr); }
@@ -499,6 +578,28 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				pc += x.branch - sizeof(int16) - sizeof(uint8);
 			}
 		}
+		else if constexpr (same_as<Type, if_i_cmp_eq>) {
+			if(info) {
+				tabs(); fputs("if_i_cmp_eq ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			int32 value2 = stack[--stack_size].get<jint>();
+			int32 value1 = stack[--stack_size].get<jint>();
+			if(value1 == value2) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, if_i_cmp_ne>) {
+			if(info) {
+				tabs(); fputs("if_i_cmp_ne ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			int32 value2 = stack[--stack_size].get<jint>();
+			int32 value1 = stack[--stack_size].get<jint>();
+			if(value1 != value2) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
 		else if constexpr (same_as<Type, if_i_cmp_ge>) {
 			if(info) {
 				tabs(); fputs("if_i_cmp_ge ", stderr);
@@ -529,6 +630,28 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 <= value2) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, if_a_cmp_eq>) {
+			if(info) {
+				tabs(); fputs("if_a_cmp_eq ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			reference& value2 = stack[--stack_size].get<reference>();
+			reference& value1 = stack[--stack_size].get<reference>();
+			if(&value1.object() == &value2.object()) {
+				pc += x.branch - sizeof(int16) - sizeof(uint8);
+			}
+		}
+		else if constexpr (same_as<Type, if_a_cmp_ne>) {
+			if(info) {
+				tabs(); fputs("if_a_cmp_ne ", stderr);
+				fprintf(stderr, "%hd\n", x.branch);
+			}
+			reference& value2 = stack[--stack_size].get<reference>();
+			reference& value1 = stack[--stack_size].get<reference>();
+			if(&value1.object() != &value2.object()) {
 				pc += x.branch - sizeof(int16) - sizeof(uint8);
 			}
 		}
@@ -685,8 +808,17 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		}
 		else if constexpr (same_as<Type, array_length>) {
 			if(info) { tabs(); fputs("array_length\n", stderr); }
-			auto ref = stack[--stack_size].get<reference>();
-			stack[stack_size++] = ref.object().values()[0].get<jint>();
+			reference ref = stack[--stack_size].get<reference>();
+			stack[stack_size++] = ref.object().values()[1].get<jint>();
+		}
+		else if constexpr (same_as<Type, check_cast>) {
+			if(info) {
+				tabs(); fputs("check_cast ", stderr);
+				fprintf(stderr, "%hu\n", x.index);
+			}
+			//_class& type = c.get_class(x.index);
+			//reference objectref = stack[stack_size - 1].get<reference>();
+			// TODO
 		}
 		else if constexpr (same_as<Type, if_null>) {
 			if(info) {

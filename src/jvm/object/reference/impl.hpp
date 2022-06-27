@@ -7,55 +7,55 @@
 #include <core/exchange.hpp>
 #include <stdio.h>
 
-reference::reference(::object& obj) : obj_{ obj } {
+reference::reference(::object& obj) : obj_{ &obj } {
 	obj.on_reference_added();
 }
 
 reference::reference(const reference& other) :
 	obj_{ other.obj_ }
 {
-	if(obj_.has_value()) {
-		obj_.value().on_reference_added();
+	if(obj_ != nullptr) {
+		obj_->on_reference_added();
 	}
 }
 
 reference::reference(reference&& other) :
-	obj_{ exchange(other.obj_, elements::none{}) }
+	obj_{ exchange(other.obj_, nullptr) }
 {}
 
 reference& reference::operator = (const reference& other) {
-	if(obj_.has_value()) {
-		obj_.value().on_reference_removed();
+	if(obj_ != nullptr) {
+		obj_->on_reference_removed();
 	}
 	obj_ = other.obj_;
-	if(obj_.has_value()) {
-		obj_.value().on_reference_added();
+	if(obj_ != nullptr) {
+		obj_->on_reference_added();
 	}
 	return *this;
 }
 
 reference& reference::operator = (reference&& other) {
-	if(obj_.has_value()) {
-		obj_.value().on_reference_removed();
+	if(obj_ != nullptr) {
+		obj_->on_reference_removed();
 	}
-	obj_ = { exchange(other.obj_, elements::none{}) };
+	obj_ = { exchange(other.obj_, nullptr) };
 	return *this;
 }
 
 object& reference::object() {
-	if(!obj_.has_value()) {
+	if(obj_ == nullptr) {
 		fprintf(stderr, "obj_ is nullptr");
 		abort();
 	}
-	return obj_.value();
+	return *obj_;
 }
 
 reference::~reference() {
-	if(obj_.has_value()) {
-		obj_.value().on_reference_removed();
+	if(obj_ != nullptr) {
+		obj_->on_reference_removed();
 	}
 }
 
 inline bool reference::is_null() const {
-	return !obj_.has_value();
+	return obj_ == nullptr;
 }

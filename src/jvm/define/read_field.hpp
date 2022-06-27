@@ -30,8 +30,9 @@ read_field(
 		::name_index{ name_index }, ::descriptor_index{ descriptor_index }
 	};
 
-	if(!access_flags.get(class_file::access_flag::_static))
+	if(!access_flags.get(class_file::access_flag::_static)) {
 		return { end, f };
+	}
 
 	field_value fv;
 

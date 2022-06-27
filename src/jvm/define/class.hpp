@@ -78,13 +78,6 @@ static inline _class& define_class0(Args&&... args) {
 		return reader;
 	});
 
-	/*if(
-		auto clinit = c.try_find_method(c_string{ "<clinit>" });
-		clinit.has_value()
-	) {
-		execute(method_with_class{ clinit.value(), c });
-	}*/
-
 	classes.emplace_back(
 		move(const_pool),
 		span<uint8>{ bytes.data(), bytes.size() }, access_flags,
