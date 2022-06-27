@@ -15,7 +15,7 @@ struct static_field;
 
 using trampoline_entry = elements::one_of<
 	elements::none, _class&, method_with_class,
-	field_index, static_field_with_class,
+	instance_field_index, static_field_with_class,
 	reference
 >;
 

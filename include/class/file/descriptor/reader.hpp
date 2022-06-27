@@ -6,12 +6,16 @@
 
 namespace class_file::descriptor {
 
-	template<typename Handler, nuint MaxDepth = 4>
+	template<bool ReadingArrayElement = false>
 	[[ nodiscard ]]
-	bool read_field(auto&& iterator, Handler&& handler) {
+	bool read_field(auto&& iterator, auto&& handler) {
 		uint8 c = *iterator++;
 		switch (c) {
-			case 'V': return handler(descriptor::V{});
+			case 'V': {
+				if constexpr(!ReadingArrayElement) {
+					return handler(descriptor::V{});
+				}
+			}
 			case 'B': return handler(descriptor::B{});
 			case 'C': return handler(descriptor::C{});
 			case 'D': return handler(descriptor::D{});
@@ -22,29 +26,40 @@ namespace class_file::descriptor {
 			case 'Z': return handler(descriptor::Z{});
 			case 'L': {
 				auto e = iterator;
-				while(*e != ';') ++e;
+				while(*e != ';') {
+					++e;
+				}
 				bool result = handler(
-					descriptor::object_type{
-						(uint8*)iterator, uint16(e - iterator)
+					descriptor::object_type {
+						(uint8*) iterator, uint16(e - iterator)
 					}
 				);
 				iterator = ++e;
 				return result;
 			}
 			case '[': {
-				if constexpr (MaxDepth > 0) {
-					auto h =
-						[&](auto component) {
-							return handler(
-								descriptor::array_type{ component }
-							);
-						};
-					return read_field<decltype((h)), MaxDepth - 1>(
-						iterator,
-						h
+				if constexpr(!ReadingArrayElement) {
+					nuint rank = 1;
+					while(*iterator == '[') {
+						++rank;
+						++iterator;
+					}
+					auto e = iterator;
+					auto iterator_advancer = [](auto){ return true; };
+					if(
+						!read_field<true>(e, iterator_advancer)
+					) {
+						return false;
+					}
+					bool result = handler(
+						descriptor::array_type {
+							rank,
+							(uint8*) iterator, uint16(e - iterator)
+						}
 					);
+					iterator = e;
+					return result;
 				}
-				else return false;
 			}
 			default:
 				return false;
@@ -67,7 +82,8 @@ namespace class_file::descriptor {
 		operator () (Handler&& handler) const
 		requires(Stage == method_reader_stage::parameters) {
 			Iterator cpy = iterator;
-			if(*cpy++ != '(') return { { iterator }, false };
+			if(*cpy != '(') return { { iterator }, false };
+			++cpy;
 			while(*cpy != ')') {
 				bool result = read_field(cpy, handler);
 				if(!result) return { { iterator }, false };

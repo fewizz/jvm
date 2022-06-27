@@ -207,7 +207,7 @@ public:
 	inline method_with_class get_static_method(uint16 ref_index);
 	inline method_with_class get_resolved_method(uint16 ref_index);
 	inline static_field_with_class get_static_field(uint16 ref_index);
-	inline field_index get_resolved_instance_field_index(uint16);
+	inline instance_field_index get_resolved_instance_field_index(uint16);
 	inline _class& get_class(uint16 class_index);
 	const _class& get_class(uint16 class_index) const {
 		return ((_class*) this)->get_class(class_index);
@@ -226,7 +226,7 @@ public:
 	}
 
 	template<range Name, range Descriptor>
-	optional<field_index>
+	optional<instance_field_index>
 	try_find_instance_field_index(
 		Name name, Descriptor descriptor
 	);
@@ -237,7 +237,7 @@ public:
 		return count;
 	}
 
-	optional<field_with_class> instance_field(field_index index) {
+	optional<field_with_class> instance_field(instance_field_index index) {
 		if(has_super_class()) {
 			auto result = instance_field(index);
 			if(result.has_value()) {

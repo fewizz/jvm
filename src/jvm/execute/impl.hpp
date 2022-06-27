@@ -10,6 +10,7 @@
 #include "invoke_static.hpp"
 #include "invoke_interface.hpp"
 #include "new_array.hpp"
+#include "../array.hpp"
 #include "../object/create.hpp"
 #include "../native/functions/find.hpp"
 #include "../../abort.hpp"
@@ -39,6 +40,8 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		fputc('.', stderr);
 		fwrite(c.name(m).data(), 1, c.name(m).size(), stderr);
 		fwrite(c.descriptor(m).data(), 1, c.descriptor(m).size(), stderr);
+		fputc(' ', stderr);
+		fprintf(stderr, "max_stack: %hu", m.code().max_stack);
 		fputc('\n', stderr);
 		++tab;
 	}
@@ -82,15 +85,9 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				result = native_function.call<reference>(args);
 				return true;
 			}
-			else if constexpr(
-				cf::descriptor::is_array_type<Type>
-			) {
-				if constexpr(
-					cf::descriptor::array_type_rank<Type> < 4
-				) {
-					result = native_function.call<reference>(args);
-					return false;
-				}
+			else if constexpr(same_as<Type, cf::descriptor::array_type>) {
+				result = native_function.call<reference>(args);
+				return true;
 			}
 			return false;
 		});
@@ -271,22 +268,21 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			if(info) { tabs(); fputs("i_a_load\n", stderr); }
 			int32 index = stack[--stack_size].get<jint>();
 			reference ref = move(stack[--stack_size].get<reference>());
-			int32* ptr = (int32*) ref.object().values()[0].get<jlong>().value;
+			int32* ptr = array_data<int32>(ref.object());
 			stack[stack_size++] = jint{ ptr[index] };
 		}
 		else if constexpr (same_as<Type, a_a_load>) {
 			if(info) { tabs(); fputs("a_a_load\n", stderr); }
 			int32 index = stack[--stack_size].get<jint>();
 			reference ref = move(stack[--stack_size].get<reference>());
-			reference* ptr =
-				(reference*) ref.object().values()[0].get<jlong>().value;
+			reference* ptr = array_data<reference>(ref.object());
 			stack[stack_size++] = ptr[index];
 		}
 		else if constexpr (same_as<Type, b_a_load>) {
 			if(info) { tabs(); fputs("b_a_load\n", stderr); }
 			int32 index = stack[--stack_size].get<jint>();
 			auto ref = move(stack[--stack_size].get<reference>());
-			int8* ptr = (int8*) ref.object().values()[0].get<jlong>().value;
+			int8* ptr = array_data<int8>(ref.object());
 			stack[stack_size++] = jint{ ptr[index] };
 		}
 		else if constexpr (same_as<Type, i_store>) {
@@ -367,7 +363,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value = stack[--stack_size].get<jint>();
 			int32 index = stack[--stack_size].get<jint>();
 			reference ref = move(stack[--stack_size].get<reference>());
-			int32* ptr = (int32*) ref.object().values()[0].get<jlong>().value;
+			int32* ptr = array_data<int32>(ref.object());
 			ptr[index] = value;
 		}
 		else if constexpr (same_as<Type, a_a_store>) {
@@ -375,9 +371,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			reference value = move(stack[--stack_size].get<reference>());
 			int32 index = stack[--stack_size].get<jint>();
 			reference ref = move(stack[--stack_size].get<reference>());
-			reference* ptr {
-				(reference*) ref.object().values()[0].get<jlong>().value
-			};
+			reference* ptr = array_data<reference>(ref.object());
 			ptr[index] = move(value);
 		}
 		else if constexpr (same_as<Type, b_a_store>) {
@@ -385,7 +379,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value = stack[--stack_size].get<jint>();
 			int32 index = stack[--stack_size].get<jint>();
 			auto ref = move(stack[--stack_size].get<reference>());
-			int8* ptr = (int8*) ref.object().values()[0].get<jlong>().value;
+			int8* ptr = array_data<int8>(ref.object());
 			ptr[index] = value;
 		}
 		else if constexpr (same_as<Type, c_a_store>) {
@@ -393,7 +387,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value = stack[--stack_size].get<jint>();
 			int32 index = stack[--stack_size].get<jint>();
 			auto ref = move(stack[--stack_size].get<reference>());
-			int16* ptr = (int16*) ref.object().values()[0].get<jlong>().value;
+			int16* ptr = array_data<int16>(ref.object());
 			ptr[index] = value;
 		}
 
@@ -719,7 +713,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				fputc('\n', stderr);
 			}
 
-			field_index instance_field_index {
+			instance_field_index instance_field_index {
 				c.get_resolved_instance_field_index(x.index)
 			};
 
@@ -796,20 +790,17 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			);
 
 			auto ref = create_object(c0);
-			ref.object().values()[0] = field_value {
-				jlong {
-					(int64) default_allocator{}.allocate_zeroed(
-						count * sizeof(reference)
-					)
-				}
-			};
-			ref.object().values()[1] = jint { count };
+			::array_data(
+				ref.object(),
+				default_allocator{}.allocate_zeroed(count * sizeof(reference))
+			);
+			::array_length(ref.object(), count);
 			stack[stack_size++] = move(ref);
 		}
-		else if constexpr (same_as<Type, array_length>) {
+		else if constexpr (same_as<Type, cf::code::instruction::array_length>) {
 			if(info) { tabs(); fputs("array_length\n", stderr); }
 			reference ref = stack[--stack_size].get<reference>();
-			stack[stack_size++] = ref.object().values()[1].get<jint>();
+			stack[stack_size++] = jint{ ::array_length(ref.object()) };
 		}
 		else if constexpr (same_as<Type, check_cast>) {
 			if(info) {

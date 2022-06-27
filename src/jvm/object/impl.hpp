@@ -42,6 +42,6 @@ inline void object::on_reference_removed() {
 	}
 }
 
-inline field_value& object::operator [] (field_index index) {
+inline field_value& object::operator [] (instance_field_index index) {
 	return values_[(uint16) index];
 }

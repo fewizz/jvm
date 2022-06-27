@@ -10,6 +10,9 @@ if clang++ \
 	-g3 \
 	-static \
 	-nostdinc++ \
+	-fno-exceptions \
+	-fno-rtti \
+	-fuse-ld=lld \
 	-I ${root}/../core/include \
 	-I ${root}/../encoding/include \
 	-I ${root}/include \
@@ -28,7 +31,7 @@ exit 0
 #include "method/impl.hpp"
 #include "object/impl.hpp"
 #include "native/jni/environment.hpp"
-
+#include "array.hpp"
 #include "classes/load.hpp"
 
 #include <unicode/utf_16.hpp>
@@ -66,19 +69,18 @@ int main (int argc, const char** argv) {
 				fputs("couldn't find classData field in Class class", stderr);
 				abort();
 			}
-			field_index data_location = data_location0.value();
+			instance_field_index data_location = data_location0.value();
 			reference long_ref = ths->values()[data_location].get<reference>();
-			int64 value = long_ref.object().values()[0].get<jlong>();
-			_class* c = (_class*) value;
+			_class* c_ptr = array_data<_class>(long_ref.object());
 			return jbool {
-				c == &bool_class.value()  ||
-				c == &byte_class.value()  ||
-				c == &short_class.value() ||
-				c == &char_class.value()  ||
-				c == &int_class.value()   ||
-				c == &long_class.value()  ||
-				c == &float_class.value() ||
-				c == &double_class.value()
+				c_ptr == bool_class.ptr()  ||
+				c_ptr == byte_class.ptr()  ||
+				c_ptr == short_class.ptr() ||
+				c_ptr == char_class.ptr()  ||
+				c_ptr == int_class.ptr()   ||
+				c_ptr == long_class.ptr()  ||
+				c_ptr == float_class.ptr() ||
+				c_ptr == double_class.ptr()
 			};
 		},
 		c_string{ "Java_java_lang_Class_isPrimitive" }
@@ -96,14 +98,11 @@ int main (int argc, const char** argv) {
 			}
 			auto value_location = value_location0.value();
 			auto& values = name->values()[value_location];
-			int64 data {
-				values.get<reference>().object().values()[0].get<jlong>()
-			};
-			int32 data_len {
-				values.get<reference>().object().values()[1].get<jint>()
-			};
-			auto it = (uint8*) data;
-			auto end = it + data_len;
+			auto& values_ob = values.get<reference>().object();
+			uint8* data = array_data<uint8>(values_ob);
+			int32 data_len = array_length(values_ob);
+			uint8* it = data;
+			uint8* end = it + data_len;
 			nuint characters_count = 0;
 			while(it != end) {
 				auto cp = utf_16::decoder<endianness::big>{}(it);
@@ -113,7 +112,7 @@ int main (int argc, const char** argv) {
 				++characters_count;
 			}
 			char chars[characters_count];
-			it = (uint8*) data;
+			it = data;
 			characters_count = 0;
 			while(it != end) {
 				auto cp = utf_16::decoder<endianness::big>{}(it);
@@ -169,14 +168,15 @@ int main (int argc, const char** argv) {
 	native_functions.emplace_back(
 		(void*) (jint(*)(jni_environment*, object*, object*))
 		[](jni_environment*, object*, object* o) -> jint {
-			if(&o->_class() == &bool_array_class.value())   return { 1 };
-			if(&o->_class() == &byte_array_class.value())   return { 1 };
-			if(&o->_class() == &short_array_class.value())  return { 2 };
-			if(&o->_class() == &char_array_class.value())   return { 2 };
-			if(&o->_class() == &int_array_class.value())    return { 4 };
-			if(&o->_class() == &long_array_class.value())   return { 8 };
-			if(&o->_class() == &float_array_class.value())  return { 8 };
-			if(&o->_class() == &double_array_class.value()) return { 8 };
+			_class* c_ptr = &o->_class();
+			if(c_ptr == bool_array_class.ptr())   return { 1 };
+			if(c_ptr == byte_array_class.ptr())   return { 1 };
+			if(c_ptr == short_array_class.ptr())  return { 2 };
+			if(c_ptr == char_array_class.ptr())   return { 2 };
+			if(c_ptr == int_array_class.ptr())    return { 4 };
+			if(c_ptr == long_array_class.ptr())   return { 8 };
+			if(c_ptr == float_array_class.ptr())  return { 8 };
+			if(c_ptr == double_array_class.ptr()) return { 8 };
 			return jint{ 0 };
 		},
 		c_string{ "Java_jdk_internal_misc_Unsafe_arrayIndexScale0" }
@@ -184,7 +184,36 @@ int main (int argc, const char** argv) {
 
 	native_functions.emplace_back(
 		(void*) (void(*)(jni_environment*)) [](jni_environment*) {
+			/*_class& file_os = find_or_load_class(
+				c_string{ "java/io/FileOutputStream" }
+			);
+			file_os.initialise_if_need();
 
+			auto constructor0 = file_os.try_find_method(
+				c_string{ "<init>" },
+				c_string {
+					"(Ljava/io/FileOutputStream;Ljava/io/FileDescriptor;)V"
+				}
+			);
+			if(!constructor0.has_value()) {
+				fputs("couldn't find FileOutputStream's constructor", stderr);
+				abort();
+			}
+			method& constructor = constructor0.value();
+
+			_class& file_descriptor = find_or_load_class(
+				c_string{ "java/io/FileDescriptor" }
+			);
+			file_descriptor.initialise_if_need();
+			static_field& out =
+				(static_field&) file_descriptor.find_field(c_string{ "out" });
+			reference out_ref = create_object(file_os);
+
+			stack_entry args[]{ out_ref, out.value().get<reference>() };
+			execute(
+				method_with_class{ constructor, file_os },
+				span<stack_entry, uint16>{ args }
+			);*/
 		},
 		c_string{ "Java_java_lang_System_registerNatives" }
 	);
@@ -214,8 +243,8 @@ int main (int argc, const char** argv) {
 				abort();
 			}
 
-			uint8* src_data = (uint8*) (int64) src->values()[0].get<jlong>();
-			uint8* dst_data = (uint8*) (int64) dst->values()[0].get<jlong>();
+			uint8* src_data = array_data<uint8>(*src);
+			uint8* dst_data = array_data<uint8>(*dst);
 			copy(
 				span{ src_data + src_pos * element_size, len * element_size }
 			).to(
@@ -270,15 +299,9 @@ int main (int argc, const char** argv) {
 		auto value_location = value_location0.value();
 
 		auto& values = fv.get<reference>().object().values()[value_location];
-
-		int64 data {
-			values.get<reference>().object().values()[0].get<jlong>()
-		};
-		int32 data_len {
-			values.get<reference>().object().values()[1].get<jint>()
-		};
-		
-		auto it = (uint8*) data;
+		auto& values_ob = values.get<reference>().object();
+		uint8* it = array_data<uint8>(values_ob);
+		int32 data_len = array_length(values_ob);
 		auto end = it + data_len;
 		while(it != end) {
 			auto cp = utf_16::decoder<endianness::big>{}(it);

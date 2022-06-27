@@ -29,40 +29,37 @@ struct field_value : elements::one_of<
 		using namespace class_file::descriptor;
 		if constexpr(same_as<DescriptorType, B>) {
 			*this = jbyte{};
-		} else
-		if constexpr(same_as<DescriptorType, C>) {
+		}
+		else if constexpr(same_as<DescriptorType, C>) {
 			*this = jchar{};
-		} else
-		if constexpr(same_as<DescriptorType, D>) {
+		}
+		else if constexpr(same_as<DescriptorType, D>) {
 			*this = jdouble{};
-		} else
-		if constexpr(same_as<DescriptorType, F>) {
+		}
+		else if constexpr(same_as<DescriptorType, F>) {
 			*this = jfloat{};
-		} else
-		if constexpr(same_as<DescriptorType, I>) {
+		}
+		else if constexpr(same_as<DescriptorType, I>) {
 			*this = jint{};
-		} else
-		if constexpr(same_as<DescriptorType, J>) {
+		}
+		else if constexpr(same_as<DescriptorType, J>) {
 			*this = jlong{};
-		} else
-		if constexpr(same_as<DescriptorType, S>) {
+		}
+		else if constexpr(same_as<DescriptorType, S>) {
 			*this = jshort{};
-		} else
-		if constexpr(same_as<DescriptorType, Z>) {
+		}
+		else if constexpr(same_as<DescriptorType, Z>) {
 			*this = jbool{};
-		} else
-		if constexpr(same_as<DescriptorType, object_type>) {
+		}
+		else if constexpr(same_as<DescriptorType, object_type>) {
 			*this = reference{};
-		} else
-		if constexpr(is_array_type<DescriptorType>) {
-			if constexpr(array_type_rank<DescriptorType> < 4) {
-				*this = reference{};
-			} else {
-				return false;
-			}
-		} else {
+		}
+		else if constexpr(same_as<DescriptorType, array_type>) {
+			*this = reference{};
+		}
+		else {
 			return false;
 		}
-			return true;
+		return true;
 	}
 };

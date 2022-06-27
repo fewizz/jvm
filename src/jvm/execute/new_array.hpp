@@ -2,6 +2,7 @@
 
 #include "info.hpp"
 #include "stack_entry.hpp"
+#include "../array.hpp"
 #include "../class/declaration.hpp"
 #include "../field/value.hpp"
 #include "../object/create.hpp"
@@ -43,13 +44,10 @@ inline void new_array(
 		concat_view{ array{'[' }, array{ type } }
 	);
 	auto ref = create_object(c0);
-	ref.object().values()[0] = field_value {
-		jlong {
-			(int64) default_allocator{}.allocate_zeroed(
-				count * size
-			)
-		}
-	};
-	ref.object().values()[1] = jint{ count };
+	array_data(
+		ref.object(),
+		default_allocator{}.allocate_zeroed(count * size)
+	);
+	array_length(ref.object(), count);
 	stack[stack_size++] = move(ref);
 }

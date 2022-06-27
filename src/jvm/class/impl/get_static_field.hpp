@@ -23,21 +23,6 @@ static_field_with_class _class::get_static_field(uint16 ref_index) {
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
-	bool result = class_file::descriptor::read_field(
-		descriptor.begin(),
-		[&]<typename Type>(Type x) {
-			if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-				find_or_load_class(x);
-			}
-			return true;
-		}
-	);
-
-	if(!result) {
-		fprintf(stderr, "couldn't read field descriptor");
-		abort();
-	}
-
 	_class& c0 = get_class(field_ref.class_index);
 	optional<field&> field = c0.try_find_field(name, descriptor);
 	if(!field.has_value()) {

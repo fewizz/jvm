@@ -32,7 +32,7 @@ public:
 
 	inline object(_class& c);
 
-	inline field_value& operator [] (field_index index);
+	inline field_value& operator [] (instance_field_index index);
 
 	_class& _class() {
 		return class_.value();

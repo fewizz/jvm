@@ -25,9 +25,9 @@ namespace class_file::attribute::code {
 		elements::of<reader<Iterator, reader_stage::max_locals>, uint16>
 		operator () () const
 		requires (Stage == reader_stage::max_stack) {
-			Iterator i = iterator_;
-			uint16 max_stack = read<uint16, endianness::big>(i);
-			return { { i }, { max_stack } };
+			Iterator cpy = iterator_;
+			uint16 max_stack = read<uint16, endianness::big>(cpy);
+			return { { cpy }, { max_stack } };
 		}
 
 		elements::of<reader<Iterator, reader_stage::code>, uint16>

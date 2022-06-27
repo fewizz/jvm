@@ -1,6 +1,7 @@
 #pragma once
 
 #include "declaration.hpp"
+#include "../array.hpp"
 #include "../object/create.hpp"
 #include "../classes/find_or_load.hpp"
 
@@ -36,8 +37,8 @@ reference _class::reference() {
 		::reference long_ref {
 			create_object(find_or_load_class(c_string{ "[J" }))
 		};
-		long_ref.object().values()[0] = jlong{ (int64) this };
-		field_index class_data_location = class_data_location0.value();
+		array_data(long_ref.object(), this);
+		instance_field_index class_data_location = class_data_location0.value();
 		reference_.object().values()[class_data_location] = long_ref;
 	}
 	return reference_;
@@ -127,7 +128,7 @@ bool try_find_instance_field_index0(
 }
 
 template<range Name, range Descriptor>
-optional<field_index>
+optional<instance_field_index>
 _class::try_find_instance_field_index(
 	Name name, Descriptor descriptor
 ) {
@@ -136,7 +137,7 @@ _class::try_find_instance_field_index(
 		try_find_instance_field_index0(*this, name, descriptor, index)
 	};
 	if(found) {
-		return field_index{ index };
+		return instance_field_index{ index };
 	} else {
 		return elements::none{};
 	}

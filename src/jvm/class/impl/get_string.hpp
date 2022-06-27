@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../array.hpp"
 #include "../../classes/find_or_load.hpp"
 #include "../../class/declaration.hpp"
 #include "../../object/create.hpp"
@@ -41,7 +42,7 @@ reference _class::get_string(uint16 string_index) {
 		}
 	}
 
-	auto data = (uint8*) malloc(utf16_units * sizeof(jchar));
+	uint8* data = (uint8*) malloc(utf16_units * sizeof(jchar));
 
 	{
 		auto data_it = data;
@@ -55,11 +56,8 @@ reference _class::get_string(uint16 string_index) {
 
 	_class& array_class = find_or_load_class(c_string{ "[B" });
 	::reference data_ref = create_object(array_class);
-	data_ref.object().values()[0] = field_value {
-		jlong { (int64) data }
-	};
-	data_ref.object().values()[1] =
-		jint{ (int32) (utf16_units * sizeof(jchar)) };
+	array_data(data_ref.object(), data);
+	array_length(data_ref.object(), (int32) (utf16_units * sizeof(jchar)));
 
 	_class& string_class = find_or_load_class(c_string{"java/lang/String"});
 	::reference string_ref = create_object(string_class);
