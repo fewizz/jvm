@@ -115,6 +115,10 @@ public:
 		return super_class_index_ != 0;
 	}
 
+	bool is_interface() const {
+		return access_flags().get(class_file::access_flag::interface);
+	}
+
 	_class& super_class() {
 		if(!has_super_class()) {
 			fputs("no super class", stderr);
@@ -160,6 +164,29 @@ public:
 
 	inline void initialise_if_need();
 
+	bool is_subclass_of(_class& other) {
+		if(has_super_class()) {
+			_class& super = super_class();
+			if(&super == &other) {
+				return true;
+			}
+			return super.is_subclass_of(other);
+		}
+		return false;
+	}
+
+	bool is_implements(_class& other) {
+		for(_class& i : interfaces()) {
+			if(&i == &other) {
+				return true;
+			}
+			if(i.is_implements(other)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	class_file::constant::utf8 name(const class_member& m) {
 		return utf8_constant(m.name_index());
 	}
@@ -188,11 +215,11 @@ public:
 	}
 
 	template<range Name>
-	inline optional<method&> try_find_method(Name name);
+	inline optional<method&> try_find_method(Name&& name);
 
 	template<range Name, range Descriptor>
 	inline optional<method&>
-	try_find_method(Name name, Descriptor descriptor);
+	try_find_method(Name&& name, Descriptor&& descriptor);
 
 	template<range Name>
 	method& find_method(Name&& name) {
@@ -205,12 +232,16 @@ public:
 	}
 
 	template<range Name>
-	inline optional<instance_field&>
-	try_find_declared_instance_field(Name name);
+	inline optional<declared_instance_field_index>
+	try_find_declared_instance_field_index(Name&& name);
 
-	template<range Name, range Descriptor>
+	template<range Name>
 	inline optional<instance_field&>
-	try_find_declared_instance_field(Name name, Descriptor descriptor);
+	try_find_declared_instance_field(Name&& name);
+
+	template<range Name>
+	inline declared_instance_field_index
+	find_declared_instance_field_index(Name&& name);
 
 	template<range Name>
 	inline instance_field&
@@ -218,14 +249,35 @@ public:
 
 	template<range Name, range Descriptor>
 	optional<instance_field_index>
-	try_find_instance_field_index(Name name, Descriptor descriptor);
+	try_find_instance_field_index(Name&& name, Descriptor&& descriptor);
+
+	template<range Name, range Descriptor>
+	instance_field_index
+	find_instance_field_index(Name&& name, Descriptor&& descriptor) {
+		optional<instance_field_index> result {
+			try_find_instance_field_index(name, descriptor)
+		};
+		if(!result.has_value()) {
+			fputs("couldn't find instance field ", stderr);
+			auto class_name = this->name();
+			fwrite(class_name.data(), 1, class_name.size(), stderr);
+			fputc('.', stderr);
+			fwrite(name.data(), 1, name.size(), stderr);
+			abort();
+		}
+		return result.value();
+	}
 
 	inline optional<instance_field_with_class>
 	try_get_instance_field(instance_field_index index);
 
 	template<range Name, range Descriptor>
 	inline optional<static_field&>
-	try_find_declared_static_field(Name name, Descriptor descriptor);
+	try_find_declared_static_field(Name&& name, Descriptor&& descriptor);
+
+	template<range Name, range Descriptor>
+	inline static_field&
+	find_declared_static_field(Name&& name, Descriptor&& descriptor);
 
 	inline method_with_class get_static_method(uint16 ref_index);
 	inline method_with_class get_resolved_method(uint16 ref_index);

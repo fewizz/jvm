@@ -67,7 +67,32 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			jbool res = ((jbool(*)(jni_environment* env)) ptr_ )(nullptr);
 			return jint{ int32(res.value) };
 		}
-	} else if (args.size() == 1) {
+		if constexpr(same_as<ReturnType, jlong>) {
+			return ((jlong(*)(jni_environment* env)) ptr_ )(nullptr);
+		}
+	}
+	if (args.size() == 1) {
+		if(args[0].is<jlong>()) {
+			if constexpr(same_as<ReturnType, jdouble>) {
+				return
+					((jlong (*)(jni_environment* env, jlong)) ptr_ )
+					(nullptr, args[0].get<jlong>());
+			}
+		}
+		if(args[0].is<jfloat>()) {
+			if constexpr(same_as<ReturnType, jint>) {
+				return
+					((jint (*)(jni_environment* env, jfloat)) ptr_ )
+					(nullptr, args[0].get<jfloat>());
+			}
+		}
+		if(args[0].is<jdouble>()) {
+			if constexpr(same_as<ReturnType, jlong>) {
+				return
+					((jlong (*)(jni_environment* env, jdouble)) ptr_ )
+					(nullptr, args[0].get<jdouble>());
+			}
+		}
 		if(args[0].is<reference>()) {
 			if constexpr(same_as<ReturnType, jvoid>) {
 				((void* (*)(jni_environment* env, object*)) ptr_ )
@@ -92,7 +117,8 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 				return reference{ *obj_ptr };
 			}
 		}
-	} else if (args.size() == 2) {
+	}
+	if (args.size() == 2) {
 		if(args[0].is<reference>()) {
 			if(args[1].is<reference>()) {
 				if constexpr(same_as<ReturnType, jint>) {
@@ -105,7 +131,28 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 				}
 			}
 		}
-	} else if (args.size() == 5) {
+	}
+	if (args.size() == 3) {
+		if(args[0].is<reference>()) {
+			if(args[1].is<reference>()) {
+				if(args[2].is<reference>()) {
+					if constexpr(same_as<ReturnType, jlong>) {
+						return
+						((jlong (*)(jni_environment* env,
+							object*, object*, object*
+						)) ptr_ )
+						(
+							nullptr,
+							args[0].get<reference>().object_ptr(),
+							args[1].get<reference>().object_ptr(),
+							args[2].get<reference>().object_ptr()
+						);
+					}
+				}
+			}
+		}
+	}
+	if (args.size() == 5) {
 		if(args[0].is<reference>()) {
 			if(args[1].is<jint>()) {
 				if(args[2].is<reference>()) {

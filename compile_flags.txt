@@ -3,6 +3,7 @@
 -Wextra
 -Wno-undefined-internal
 -Wno-undefined-inline
+-Wno-unused-function
 -fno-exceptions
 -nostdinc++
 -Iinclude

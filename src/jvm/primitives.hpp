@@ -48,14 +48,24 @@ struct jfloat {
 	float value;
 
 	explicit jfloat() = default;
-	explicit jfloat(float value) : value { value } {}
+	
+	template<typename Type>
+	requires (same_as<Type, float>)
+	jfloat(Type value) : value { value } {}
+
+	operator float () const { return value; }
 };
 
 struct jdouble {
 	double value;
 
 	explicit jdouble() = default;
-	explicit jdouble(double value) : value { value } {}
+	
+	template<typename Type>
+	requires (same_as<Type, double>)
+	jdouble(Type value) : value { value } {}
+
+	operator double () const { return value; }
 };
 
 #include <core/meta/elements/optional.hpp>

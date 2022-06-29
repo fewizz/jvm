@@ -51,7 +51,7 @@ reference _class::reference() {
 
 template<range Name, range Descriptor>
 optional<method&> _class::
-try_find_method(Name name, Descriptor descriptor) {
+try_find_method(Name&& name, Descriptor&& descriptor) {
 	for(method& m : methods_) {
 		if(
 			equals(this->name(m), name) &&
@@ -63,7 +63,7 @@ try_find_method(Name name, Descriptor descriptor) {
 
 template<range Name>
 optional<method&> _class::
-try_find_method(Name name) {
+try_find_method(Name&& name) {
 	for(method& m : methods_) {
 		if(equals(this->name(m), name)) {
 			return { m };
@@ -72,36 +72,55 @@ try_find_method(Name name) {
 	return elements::none{};
 }
 
-template<range Name, range Descriptor>
-optional<instance_field&> _class::
-try_find_declared_instance_field(Name name, Descriptor descriptor) {
+template<range Name>
+optional<declared_instance_field_index> _class::
+try_find_declared_instance_field_index(Name&& name) {
+	uint16 index = 0;
 	for(instance_field& f : instance_fields_) {
-		if(
-			equals(this->name(f), name) &&
-			equals(this->descriptor(f), descriptor)
-		) return { f };
+		if(equals(this->name(f), name)) {
+			return declared_instance_field_index{ index };
+		}
+		++index;
 	}
 	return elements::none{};
 }
 
 template<range Name>
 optional<instance_field&> _class::
-try_find_declared_instance_field(Name name) {
-	for(instance_field& f : instance_fields_) {
-		if(equals(this->name(f), name)) {
-			return { f };
-		}
+try_find_declared_instance_field(Name&& name) {
+	optional<declared_instance_field_index> result {
+		try_find_declared_static_field_index(name)
+	};
+	if(result.has_value()) {
+		return declared_instance_fields()[result.value()];
 	}
 	return elements::none{};
+}
+
+template<range Name>
+declared_instance_field_index _class::
+find_declared_instance_field_index(Name&& name) {
+	optional<declared_instance_field_index> result {
+		try_find_declared_instance_field_index(name)
+	};
+	if(result.has_value()) {
+		return result.value();
+	}
+	fputs("couldn't find declared instance field index for", stderr);
+	fwrite(name.data(), 1, name.size(), stderr);
+	abort();
 }
 
 template<range Name>
 instance_field& _class::
 find_declared_instance_field(Name&& name) {
-	if(auto f = try_find_instance_field(name); f.has_value()) {
-		return f.value();
+	optional<instance_field&> result {
+		try_find_declared_instance_field(name)
+	};
+	if(result.has_value()) {
+		return result.value();
 	}
-	fputs("couldn't find field ", stderr);
+	fputs("couldn't find declared instance field ", stderr);
 	fwrite(name.data(), 1, name.size(), stderr);
 	abort();
 }
@@ -109,7 +128,7 @@ find_declared_instance_field(Name&& name) {
 template<range Name, range Descriptor>
 static bool
 try_find_instance_field_index0(
-	_class& c, Name name, Descriptor descriptor, uint16& index
+	_class& c, Name&& name, Descriptor&& descriptor, uint16& index
 ) {
 	if(c.has_super_class()) {
 		_class& super = c.super_class();
@@ -134,7 +153,7 @@ try_find_instance_field_index0(
 
 template<range Name, range Descriptor>
 optional<instance_field_index>
-_class::try_find_instance_field_index(Name name, Descriptor descriptor) {
+_class::try_find_instance_field_index(Name&& name, Descriptor&& descriptor) {
 	uint16 index = 0;
 	bool result {
 		try_find_instance_field_index0(*this, name, descriptor, index)
@@ -173,8 +192,8 @@ try_get_instance_field(instance_field_index index) {
 }
 
 template<range Name, range Descriptor>
-inline optional<static_field&> _class::
-try_find_declared_static_field(Name name, Descriptor descriptor) {
+optional<static_field&> _class::
+try_find_declared_static_field(Name&& name, Descriptor&& descriptor) {
 	for(static_field& f : static_fields_) {
 		if(
 			equals(this->name(f), name) &&
@@ -182,6 +201,18 @@ try_find_declared_static_field(Name name, Descriptor descriptor) {
 		) return { f };
 	}
 	return elements::none{};
+}
+
+template<range Name, range Descriptor>
+static_field& _class::
+find_declared_static_field(Name&& name, Descriptor&& descriptor) {
+	optional<static_field&> result {
+		try_find_declared_static_field(name, descriptor)
+	};
+	if(!result.has_value()) {
+		fputs("couldn't find static field", stderr); abort();
+	}
+	return result.value();
 }
 
 void _class::initialise_if_need() {

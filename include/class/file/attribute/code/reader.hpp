@@ -76,6 +76,9 @@ namespace class_file::attribute::code {
 					case 8: handler(i_const_5{}, cpy); break;
 					case 9: handler(l_const_0{}, cpy); break;
 					case 10: handler(l_const_1{}, cpy); break;
+					case 11: handler(f_const_0{}, cpy); break;
+					case 12: handler(f_const_1{}, cpy); break;
+					case 13: handler(f_const_2{}, cpy); break;
 
 					case 16: {
 						int8 value = read<int8>(cpy);
@@ -105,6 +108,10 @@ namespace class_file::attribute::code {
 					case 22: {
 						uint8 index = read<uint8>(cpy);
 						handler(l_load{ index }, cpy); break;
+					}
+					case 23: {
+						uint8 index = read<uint8>(cpy);
+						handler(f_load{ index }, cpy); break;
 					}
 					case 25: {
 						uint8 index = read<uint8>(cpy);
@@ -143,6 +150,10 @@ namespace class_file::attribute::code {
 						uint8 index = read<uint8>(cpy);
 						handler(l_store{ index }, cpy); break;
 					}
+					case 56: {
+						uint8 index = read<uint8>(cpy);
+						handler(f_store{ index }, cpy); break;
+					}
 					case 58: {
 						uint8 index = read<uint8>(cpy);
 						handler(a_store{ index }, cpy); break;
@@ -165,22 +176,30 @@ namespace class_file::attribute::code {
 					case 85: handler(c_a_store{}, cpy); break;
 					case 87: handler(pop{}, cpy); break;
 					case 89: handler(dup{}, cpy); break;
+					case 90: handler(dup_x1{}, cpy); break;
 					case 92: handler(dup_2{}, cpy); break;
 
 					case 96: handler(i_add{}, cpy); break;
 					case 97: handler(l_add{}, cpy); break;
+					case 98: handler(f_add{}, cpy); break;
 					case 100: handler(i_sub{}, cpy); break;
 					case 101: handler(l_sub{}, cpy); break;
 					case 104: handler(i_mul{}, cpy); break;
 					case 105: handler(l_mul{}, cpy); break;
+					case 106: handler(f_mul{}, cpy); break;
 					case 107: handler(d_mul{}, cpy); break;
 					case 108: handler(i_div{}, cpy); break;
+					case 110: handler(f_div{}, cpy); break;
+					case 112: handler(i_rem{}, cpy); break;
 					case 116: handler(i_neg{}, cpy); break;
 					case 120: handler(i_sh_l{}, cpy); break;
 					case 121: handler(l_sh_l{}, cpy); break;
 					case 122: handler(i_sh_r{}, cpy); break;
 					case 123: handler(l_sh_r{}, cpy); break;
+					case 124: handler(i_ush_r{}, cpy); break;
+					case 125: handler(l_ush_r{}, cpy); break;
 					case 126: handler(i_and{}, cpy); break;
+					case 127: handler(l_and{}, cpy); break;
 					case 128: handler(i_or{}, cpy); break;
 					case 129: handler(l_or{}, cpy); break;
 					case 130: handler(i_xor{}, cpy); break;
@@ -190,14 +209,19 @@ namespace class_file::attribute::code {
 						handler(i_inc{ index, value }, cpy); break;
 					}
 					case 133: handler(i_to_l{}, cpy); break;
+					case 134: handler(i_to_f{}, cpy); break;
 					case 135: handler(i_to_d{}, cpy); break;
 					case 136: handler(l_to_i{}, cpy); break;
+					case 139: handler(f_to_i{}, cpy); break;
 					case 141: handler(f_to_d{}, cpy); break;
 					case 142: handler(d_to_i{}, cpy); break;
 					case 145: handler(i_to_b{}, cpy); break;
 					case 146: handler(i_to_c{}, cpy); break;
 
 					case 148: handler(l_cmp{}, cpy); break;
+
+					case 149: handler(f_cmp_l{}, cpy); break;
+					case 150: handler(f_cmp_g{}, cpy); break;
 
 					case 153: {
 						int16 branch = read<int16, endianness::big>(cpy);
@@ -298,25 +322,31 @@ namespace class_file::attribute::code {
 						handler(lookup_switch{ _default, pairs }, cpy); break;
 					}
 					case 172: {
-						if(handler(i_ret{}, cpy)) {
+						if(handler(i_return{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;
 					}
 					case 173: {
-						if(handler(l_ret{}, cpy)) {
+						if(handler(l_return{}, cpy)) {
+							return{ src0 + length };
+						}
+						break;
+					}
+					case 175: {
+						if(handler(d_return{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;
 					}
 					case 176: {
-						if(handler(a_ret{}, cpy)) {
+						if(handler(a_return{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;
 					}
 					case 177: {
-						if(handler(ret{}, cpy)) {
+						if(handler(_return{}, cpy)) {
 							return{ src0 + length };
 						}
 						break;

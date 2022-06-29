@@ -16,6 +16,9 @@ namespace class_file::code::instruction {
 	struct i_const_5    { static constexpr uint8 code = 8; };
 	struct l_const_0    { static constexpr uint8 code = 9; };
 	struct l_const_1    { static constexpr uint8 code = 10; };
+	struct f_const_0    { static constexpr uint8 code = 11; };
+	struct f_const_1    { static constexpr uint8 code = 12; };
+	struct f_const_2    { static constexpr uint8 code = 13; };
 
 	struct bi_push {
 		static constexpr uint8 code = 16;
@@ -45,6 +48,10 @@ namespace class_file::code::instruction {
 	};
 	struct l_load {
 		static constexpr uint8 code = 22;
+		uint8 index;
+	};
+	struct f_load {
+		static constexpr uint8 code = 23;
 		uint8 index;
 	};
 	struct a_load {
@@ -84,6 +91,10 @@ namespace class_file::code::instruction {
 		static constexpr uint8 code = 55;
 		uint8 index;
 	};
+	struct f_store {
+		static constexpr uint8 code = 56;
+		uint8 index;
+	};
 	struct a_store {
 		static constexpr uint8 code = 58;
 		uint8 index;
@@ -105,24 +116,32 @@ namespace class_file::code::instruction {
 	struct b_a_store { static constexpr uint8 code = 84; };
 	struct c_a_store { static constexpr uint8 code = 85; };
 
-	struct pop  {  static constexpr uint8 code = 87; };
-	struct dup  {  static constexpr uint8 code = 89; };
-	struct dup_2 { static constexpr uint8 code = 92; };
+	struct pop    {  static constexpr uint8 code = 87; };
+	struct dup    {  static constexpr uint8 code = 89; };
+	struct dup_x1 {  static constexpr uint8 code = 90; };
+	struct dup_2  { static constexpr uint8 code = 92; };
 
 	struct i_add {  static constexpr uint8 code = 96; };
 	struct l_add {  static constexpr uint8 code = 97; };
+	struct f_add {  static constexpr uint8 code = 98; };
 	struct i_sub {  static constexpr uint8 code = 100; };
 	struct l_sub {  static constexpr uint8 code = 101; };
 	struct i_mul {  static constexpr uint8 code = 104; };
 	struct l_mul {  static constexpr uint8 code = 105; };
+	struct f_mul {  static constexpr uint8 code = 106; };
 	struct d_mul {  static constexpr uint8 code = 107; };
 	struct i_div {  static constexpr uint8 code = 108; };
+	struct f_div {  static constexpr uint8 code = 110; };
+	struct i_rem {  static constexpr uint8 code = 112; };
 	struct i_neg {  static constexpr uint8 code = 116; };
 	struct i_sh_l { static constexpr uint8 code = 120; };
 	struct l_sh_l { static constexpr uint8 code = 121; };
 	struct i_sh_r { static constexpr uint8 code = 122; };
 	struct l_sh_r { static constexpr uint8 code = 123; };
+	struct i_ush_r { static constexpr uint8 code = 124; };
+	struct l_ush_r { static constexpr uint8 code = 125; };
 	struct i_and { static constexpr uint8 code = 126; };
+	struct l_and { static constexpr uint8 code = 127; };
 	struct i_or {  static constexpr uint8 code = 128; };
 	struct l_or {  static constexpr uint8 code = 129; };
 	struct i_xor { static constexpr uint8 code = 130; };
@@ -132,14 +151,19 @@ namespace class_file::code::instruction {
 		int8 value;
 	};
 	struct i_to_l { static constexpr uint8 code = 133; };
+	struct i_to_f { static constexpr uint8 code = 134; };
 	struct i_to_d { static constexpr uint8 code = 135; };
 	struct l_to_i { static constexpr uint8 code = 136; };
+	struct f_to_i { static constexpr uint8 code = 139; };
 	struct f_to_d { static constexpr uint8 code = 141; };
 	struct d_to_i { static constexpr uint8 code = 142; };
 	struct i_to_b { static constexpr uint8 code = 145; };
 	struct i_to_c { static constexpr uint8 code = 146; };
 
 	struct l_cmp { static constexpr uint8 code = 148; };
+
+	struct f_cmp_l { static constexpr uint8 code = 149; };
+	struct f_cmp_g { static constexpr uint8 code = 150; };
 
 	struct if_eq {
 		static constexpr uint8 code = 153;
@@ -216,10 +240,11 @@ namespace class_file::code::instruction {
 		span<match_offset, uint32> pairs;
 	};
 
-	struct i_ret { static constexpr uint8 code = 172; };
-	struct l_ret { static constexpr uint8 code = 173; };
-	struct a_ret { static constexpr uint8 code = 176; };
-	struct ret { static constexpr uint8 code = 177; };
+	struct i_return { static constexpr uint8 code = 172; };
+	struct l_return { static constexpr uint8 code = 173; };
+	struct d_return { static constexpr uint8 code = 175; };
+	struct a_return { static constexpr uint8 code = 176; };
+	struct _return { static constexpr uint8 code = 177; };
 
 	struct get_static {
 		static constexpr uint8 code = 178;
