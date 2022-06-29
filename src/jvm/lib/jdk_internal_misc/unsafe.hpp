@@ -15,32 +15,32 @@ static inline void init_jdk_internal_misc_unsafe() {
 	);
 
 	native_functions.emplace_back(
-		(void*) (jint(*)(jni_environment*, object*, object*))
+		(void*) (int32(*)(jni_environment*, object*, object*))
 		[](jni_environment*, object*, object*) {
-			return jint{ 0 };
+			return int32{ 0 };
 		},
 		c_string{ "Java_jdk_internal_misc_Unsafe_arrayBaseOffset0" }
 	);
 
 	native_functions.emplace_back(
-		(void*) (jint(*)(jni_environment*, object*, object*))
-		[](jni_environment*, object*, object* o) -> jint {
+		(void*) (int32(*)(jni_environment*, object*, object*))
+		[](jni_environment*, object*, object* o) -> int32 {
 			_class* c_ptr = &o->_class();
-			if(c_ptr == bool_array_class.ptr())   return { 1 };
-			if(c_ptr == byte_array_class.ptr())   return { 1 };
-			if(c_ptr == short_array_class.ptr())  return { 2 };
-			if(c_ptr == char_array_class.ptr())   return { 2 };
-			if(c_ptr == int_array_class.ptr())    return { 4 };
-			if(c_ptr == long_array_class.ptr())   return { 8 };
-			if(c_ptr == float_array_class.ptr())  return { 8 };
-			if(c_ptr == double_array_class.ptr()) return { 8 };
-			return jint{ 0 };
+			if(c_ptr == bool_array_class.ptr())   return 1;
+			if(c_ptr == byte_array_class.ptr())   return 1;
+			if(c_ptr == short_array_class.ptr())  return 2;
+			if(c_ptr == char_array_class.ptr())   return 2;
+			if(c_ptr == int_array_class.ptr())    return 4;
+			if(c_ptr == long_array_class.ptr())   return 8;
+			if(c_ptr == float_array_class.ptr())  return 8;
+			if(c_ptr == double_array_class.ptr()) return 8;
+			return 0;
 		},
 		c_string{ "Java_jdk_internal_misc_Unsafe_arrayIndexScale0" }
 	);
 
 	native_functions.emplace_back(
-		(void*) (jlong(*)(jni_environment*, object*, object*, object*))
+		(void*) (int64(*)(jni_environment*, object*, object*, object*))
 		[](jni_environment*, object*, object* c_instance, object* name) {
 			_class& c = class_from_class_instance(*c_instance);
 			nuint cps_count = 0;
@@ -55,10 +55,18 @@ static inline void init_jdk_internal_misc_unsafe() {
 					cps[char_index++] = cp;
 				});
 				int64 index = c.find_declared_instance_field_index(cps);
-				return jlong { index };
+				return index;
 			});
 		},
 		c_string{ "Java_jdk_internal_misc_Unsafe_objectFieldOffset1" }
+	);
+
+	native_functions.emplace_back(
+		(void*) (void(*)(jni_environment*, object*, object*))
+		[](jni_environment*, object*, object* c) {
+			class_from_class_instance(*c).initialise_if_need();
+		},
+		c_string{ "Java_jdk_internal_misc_Unsafe_ensureClassInitialized0" }
 	);
 
 }

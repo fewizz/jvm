@@ -1,63 +1,84 @@
 #pragma once
 
+#include "../../primitives.hpp"
 #include "../../native/functions/container.hpp"
 #include "../../array.hpp"
+#include "../../object/create.hpp"
+#include "../../lib/java_lang/string.hpp"
 #include "../../classes/find_or_load.hpp"
 
 #include <core/starts_with.hpp>
 #include <core/array.hpp>
 
 #include <unicode/utf_16.hpp>
+#include <unicode/utf_8.hpp>
+
+static optional<_class&> class_class{};
+static instance_field_index class_data_index{};
+static instance_field_index class_name_index{};
 
 static inline _class& class_from_class_instance(object& class_instance) {
-	auto data_location0 {
-		class_instance._class().try_find_instance_field_index(
-			c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
-		)
-	};
-	if(!data_location0.has_value()) {
-		fputs("couldn't find classData field in Class", stderr);
-		abort();
-	}
-	instance_field_index data_location = data_location0.value();
 	reference long_ref {
-		class_instance.values()[data_location].get<reference>()
+		class_instance.values()[class_data_index].get<reference>()
 	};
 	return *array_data<_class>(long_ref.object());
 }
 
-void inline init_java_lang_class() {
+static inline void init_java_lang_class() {
+
+	class_class = find_or_load_class(c_string{ "java/lang/Class" });
+	class_data_index = class_class->find_instance_field_index(
+		c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
+	);
+	class_name_index = class_class->find_instance_field_index(
+		c_string{ "name" }, c_string{ "Ljava/lang/String;" }
+	);
+
 	native_functions.emplace_back(
 		(void*) (void(*)(jni_environment*)) [](jni_environment*) {
-
+			// chillin
 		},
 		c_string{ "Java_java_lang_Class_registerNatives" }
 	);
 
 	native_functions.emplace_back(
-		(void*) (jbool(*)(jni_environment*, object*))
+		(void*) (object*(*)(jni_environment*, object*))
+		[](jni_environment*, object* ths) -> object* {
+			_class& c = class_from_class_instance(*ths);
+			auto utf8_name = c.name();
+
+			reference string_ref {
+				create_string_from_utf8(utf8_name, string_coder::utf16)
+			};
+
+			ths->values()[class_name_index] = string_ref;
+			return &string_ref.object();
+		},
+		c_string{ "Java_java_lang_Class_initClassName" }
+	);
+
+	native_functions.emplace_back(
+		(void*) (bool(*)(jni_environment*, object*))
 		[](jni_environment*, object*) {
-			return jbool{ true };
+			return true;
 		},
 		c_string{ "Java_java_lang_Class_desiredAssertionStatus0" }
 	);
 
 	native_functions.emplace_back(
-		(void*) (jbool(*)(jni_environment*, object*))
+		(void*) (bool(*)(jni_environment*, object*))
 		[](jni_environment*, object* o) {
 			auto class_name = class_from_class_instance(*o).name();
-			return jbool {
-				starts { class_name }.with(array{ '[' })
-			};
+			return starts { class_name }.with(array{ '[' });
 		},
 		c_string{ "Java_java_lang_Class_isArray" }
 	);
 
 	native_functions.emplace_back(
-		(void*) (jbool(*)(jni_environment*, object* ths))
+		(void*) (bool(*)(jni_environment*, object* ths))
 		[](jni_environment*, object* o) {
 			_class* c_ptr = &class_from_class_instance(*o);
-			return jbool {
+			return
 				c_ptr == bool_class.ptr()  ||
 				c_ptr == byte_class.ptr()  ||
 				c_ptr == short_class.ptr() ||
@@ -65,8 +86,7 @@ void inline init_java_lang_class() {
 				c_ptr == int_class.ptr()   ||
 				c_ptr == long_class.ptr()  ||
 				c_ptr == float_class.ptr() ||
-				c_ptr == double_class.ptr()
-			};
+				c_ptr == double_class.ptr();
 		},
 		c_string{ "Java_java_lang_Class_isPrimitive" }
 	);

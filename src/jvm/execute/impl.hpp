@@ -10,6 +10,7 @@
 #include "invoke_static.hpp"
 #include "invoke_interface.hpp"
 #include "new_array.hpp"
+#include "../callers.hpp"
 #include "../array.hpp"
 #include "../object/create.hpp"
 #include "../native/functions/find.hpp"
@@ -46,10 +47,13 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		fputc('\n', stderr);
 		++tab;
 	}
+	callers.emplace_back(c);
+
 	on_scope_exit _ { [] {
 		if(info) {
 			--tab;
 		}
+		callers.pop_back();
 	}};
 
 	stack_entry result;
@@ -821,7 +825,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			reference& value2 = stack[--stack_size].get<reference>();
 			reference& value1 = stack[--stack_size].get<reference>();
-			if(&value1.object() == &value2.object()) {
+			if(value1.object_ptr() == value2.object_ptr()) {
 				pc += x.branch - sizeof(int16) - sizeof(uint8);
 			}
 		}
@@ -832,7 +836,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			reference& value2 = stack[--stack_size].get<reference>();
 			reference& value1 = stack[--stack_size].get<reference>();
-			if(&value1.object() != &value2.object()) {
+			if(value1.object_ptr() != value2.object_ptr()) {
 				pc += x.branch - sizeof(int16) - sizeof(uint8);
 			}
 		}

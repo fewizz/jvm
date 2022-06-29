@@ -64,33 +64,57 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			return jvoid{};
 		}
 		if constexpr(same_as<ReturnType, jbool>) {
-			jbool res = ((jbool(*)(jni_environment* env)) ptr_ )(nullptr);
-			return jint{ int32(res.value) };
+			return jint { (int32)
+				((bool(*)(jni_environment* env)) ptr_ )(nullptr)
+			};
 		}
 		if constexpr(same_as<ReturnType, jlong>) {
-			return ((jlong(*)(jni_environment* env)) ptr_ )(nullptr);
+			return jlong {
+				((int64(*)(jni_environment* env)) ptr_ )(nullptr)
+			};
+		}
+		if constexpr(same_as<ReturnType, reference>) {
+			auto obj_ptr = ((object* (*)(jni_environment* env)) ptr_ )(nullptr);
+			return reference{ *obj_ptr };
 		}
 	}
 	if (args.size() == 1) {
+		if(args[0].is<jint>()) {
+			if constexpr(same_as<ReturnType, jbool>) {
+				return jint { (int32)
+					((bool (*)(jni_environment* env, int32)) ptr_ )
+					(nullptr, args[0].get<jint>())
+				};
+			}
+			if constexpr(same_as<ReturnType, jlong>) {
+				return jlong {
+					((int64 (*)(jni_environment* env, int32)) ptr_ )
+					(nullptr, args[0].get<jint>())
+				};
+			}
+		}
 		if(args[0].is<jlong>()) {
 			if constexpr(same_as<ReturnType, jdouble>) {
-				return
-					((jlong (*)(jni_environment* env, jlong)) ptr_ )
-					(nullptr, args[0].get<jlong>());
+				return jlong {
+					((int64 (*)(jni_environment* env, int64)) ptr_ )
+					(nullptr, args[0].get<jlong>())
+				};
 			}
 		}
 		if(args[0].is<jfloat>()) {
 			if constexpr(same_as<ReturnType, jint>) {
-				return
-					((jint (*)(jni_environment* env, jfloat)) ptr_ )
-					(nullptr, args[0].get<jfloat>());
+				return jint {
+					((int32 (*)(jni_environment* env, float)) ptr_ )
+					(nullptr, args[0].get<jfloat>())
+				};
 			}
 		}
 		if(args[0].is<jdouble>()) {
 			if constexpr(same_as<ReturnType, jlong>) {
-				return
-					((jlong (*)(jni_environment* env, jdouble)) ptr_ )
-					(nullptr, args[0].get<jdouble>());
+				return jlong {
+					((int64 (*)(jni_environment* env, double)) ptr_ )
+					(nullptr, args[0].get<jdouble>())
+				};
 			}
 		}
 		if(args[0].is<reference>()) {
@@ -100,15 +124,16 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 				return jvoid{};
 			}
 			if constexpr(same_as<ReturnType, jbool>) {
-				jbool res =
-					((jbool (*)(jni_environment* env, object*)) ptr_ )
-					(nullptr, args[0].get<reference>().object_ptr());
-				return jint{ int32(res.value) };
+				return jint { (int32)
+					((bool (*)(jni_environment* env, object*)) ptr_ )
+					(nullptr, args[0].get<reference>().object_ptr())
+				};
 			}
 			if constexpr(same_as<ReturnType, jint>) {
-				return
-					((jint (*)(jni_environment* env, object*)) ptr_ )
-					(nullptr, args[0].get<reference>().object_ptr());
+				return jint {
+					((int32 (*)(jni_environment* env, object*)) ptr_ )
+					(nullptr, args[0].get<reference>().object_ptr())
+				};
 			}
 			if constexpr(same_as<ReturnType, reference>) {
 				auto obj_ptr =
@@ -121,13 +146,24 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	if (args.size() == 2) {
 		if(args[0].is<reference>()) {
 			if(args[1].is<reference>()) {
-				if constexpr(same_as<ReturnType, jint>) {
-					return ((jint (*)(jni_environment*, object*, object*)) ptr_)
+				if constexpr(same_as<ReturnType, jvoid>) {
+					((void (*)(jni_environment*, object*, object*)) ptr_)
 					(
 						nullptr,
 						args[0].get<reference>().object_ptr(),
 						args[1].get<reference>().object_ptr()
 					);
+					return jvoid{};
+				}
+				if constexpr(same_as<ReturnType, jint>) {
+					return jint {
+						((int32 (*)(jni_environment*, object*, object*)) ptr_)
+						(
+							nullptr,
+							args[0].get<reference>().object_ptr(),
+							args[1].get<reference>().object_ptr()
+						)
+					};
 				}
 			}
 		}
@@ -137,16 +173,17 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			if(args[1].is<reference>()) {
 				if(args[2].is<reference>()) {
 					if constexpr(same_as<ReturnType, jlong>) {
-						return
-						((jlong (*)(jni_environment* env,
-							object*, object*, object*
-						)) ptr_ )
-						(
-							nullptr,
-							args[0].get<reference>().object_ptr(),
-							args[1].get<reference>().object_ptr(),
-							args[2].get<reference>().object_ptr()
-						);
+						return jlong {
+							((int64 (*)(jni_environment* env,
+								object*, object*, object*
+							)) ptr_ )
+							(
+								nullptr,
+								args[0].get<reference>().object_ptr(),
+								args[1].get<reference>().object_ptr(),
+								args[2].get<reference>().object_ptr()
+							)
+						};
 					}
 				}
 			}
@@ -160,7 +197,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 						if(args[4].is<jint>()) {
 							if constexpr(same_as<ReturnType, jvoid>) {
 								((void (*)(jni_environment*,
-									object*, jint, object*, jint, jint
+									object*, int32, object*, int32, int32
 								)) ptr_)
 								(
 									nullptr,

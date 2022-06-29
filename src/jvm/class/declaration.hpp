@@ -162,6 +162,10 @@ public:
 	auto& methods() const { return methods_; }
 	auto& methods() { return methods_; }
 
+	bool is_initialised() const {
+		return initialisation_state_ == initialisation_state::initialised;
+	}
+
 	inline void initialise_if_need();
 
 	bool is_subclass_of(_class& other) {
@@ -224,6 +228,16 @@ public:
 	template<range Name>
 	method& find_method(Name&& name) {
 		if(auto m = try_find_method(name); m.has_value()) {
+			return m.value();
+		}
+		fputs("couldn't find method ", stderr);
+		fwrite(name.data(), 1, name.size(), stderr);
+		abort();
+	}
+
+	template<range Name, range Descriptor>
+	method& find_method(Name&& name, Descriptor&& desc) {
+		if(auto m = try_find_method(name, desc); m.has_value()) {
 			return m.value();
 		}
 		fputs("couldn't find method ", stderr);
