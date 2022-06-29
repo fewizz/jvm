@@ -6,10 +6,10 @@
 
 using const_pool_entry = elements::one_of<
 	class_file::constant::utf8,
-	class_file::constant::int32,
-	class_file::constant::float32,
-	class_file::constant::int64,
-	class_file::constant::float64,
+	class_file::constant::_int,
+	class_file::constant::_float,
+	class_file::constant::_long,
+	class_file::constant::_double,
 	class_file::constant::_class,
 	class_file::constant::string,
 	class_file::constant::field_ref,
@@ -60,20 +60,20 @@ public:
 		return constant<class_file::constant::utf8>(index);
 	}
 
-	auto int32_constant(uint16 index) const {
-		return constant<class_file::constant::int32>(index);
+	auto int_constant(uint16 index) const {
+		return constant<class_file::constant::_int>(index);
 	}
 
-	auto float32_constant(uint16 index) const {
-		return constant<class_file::constant::float32>(index);
+	auto float_constant(uint16 index) const {
+		return constant<class_file::constant::_float>(index);
 	}
 
-	auto int64_constant(uint16 index) const {
-		return constant<class_file::constant::int64>(index);
+	auto long_constant(uint16 index) const {
+		return constant<class_file::constant::_long>(index);
 	}
 
-	auto float64_constant(uint16 index) const {
-		return constant<class_file::constant::float64>(index);
+	auto double_constant(uint16 index) const {
+		return constant<class_file::constant::_double>(index);
 	}
 
 	auto class_constant(uint16 index) const {

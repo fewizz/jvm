@@ -3,8 +3,10 @@
 #include "const_pool.hpp"
 #include "trampoline_pool.hpp"
 #include "../field/declaration.hpp"
+#include "../field/instance/declaration.hpp"
+#include "../field/instance/with_class/declaration.hpp"
 #include "../field/static/declaration.hpp"
-#include "../field/with_class/declaration.hpp"
+#include "../field/static/with_class/declaration.hpp"
 #include "../name_index.hpp"
 #include "../execute/declaration.hpp"
 #include "../../abort.hpp"
@@ -18,12 +20,6 @@
 #include <core/c_string.hpp>
 #include <core/meta/elements/optional.hpp>
 #include <stdio.h>
-
-template<typename... Args>
-static inline _class& define_class0(Args&&... args);
-
-template<range Name>
-static inline _class& define_primitive_class(Name&& name);
 
 struct class_data : span<uint8> {
 	using base_type = span<uint8>;
@@ -46,9 +42,14 @@ using interfaces_indices_container =
 		uint16, uint16, default_allocator
 	>;
 
-using fields_container =
+using instance_fields_container =
 	::limited_list<
-		elements::one_of<field, static_field>, uint16, default_allocator
+		instance_field, uint16, default_allocator
+	>;
+
+using static_fields_container =
+	::limited_list<
+		static_field, uint16, default_allocator
 	>;
 
 using methods_container =
@@ -73,7 +74,8 @@ private:
 	this_class_index             this_class_index_{};
 	super_class_index            super_class_index_{};
 	interfaces_indices_container interfaces_{};
-	fields_container             fields_{};
+	instance_fields_container    instance_fields_{};
+	static_fields_container      static_fields_{};
 	methods_container            methods_{};
 	reference                    reference_{};
 	enum initialisation_state {
@@ -89,7 +91,9 @@ public:
 		span<uint8> data, class_file::access_flags access_flags,
 		this_class_index, super_class_index,
 		interfaces_indices_container&& interfaces,
-		fields_container&& fields, methods_container&& methods
+		instance_fields_container&& instance_fields,
+		static_fields_container&& static_fields,
+		methods_container&& methods
 	);
 
 	_class(_class&&) = delete;
@@ -97,8 +101,12 @@ public:
 	_class& operator = (_class&&) = delete;
 	_class& operator = (const _class&) = delete;
 
-	auto name() const {
+	class_file::constant::utf8 name() const {
 		return utf8_constant(class_constant(this_class_index_).name_index);
+	}
+
+	class_file::access_flags access_flags() const {
+		return access_flags_;
 	}
 
 	inline reference reference();
@@ -115,25 +123,7 @@ public:
 		return get_class(super_class_index_);
 	}
 
-	inline void initialise_if_need();
-
-	auto name(const method& m) {
-		return utf8_constant(m.name_index());
-	}
-
-	auto descriptor(const method& m) {
-		return utf8_constant(m.descriptor_index());
-	}
-
-	auto name(const field& f) {
-		return utf8_constant(f.name_index());
-	}
-
-	auto descriptor(const field& f) {
-		return utf8_constant(f.descriptor_index());
-	}
-
-	const interfaces_indices_container& interfaces_indices() const {
+		const interfaces_indices_container& interfaces_indices() const {
 		return interfaces_;
 	}
 
@@ -159,101 +149,89 @@ public:
 		};
 	}
 
-	auto& fields() const { return fields_; }
-	auto& fields() { return fields_; }
+	auto& declared_instance_fields() const { return instance_fields_; }
+	auto& declared_instance_fields() { return instance_fields_; }
+
+	auto& declared_static_fields() const { return static_fields_; }
+	auto& declared_static_fields() { return static_fields_; }
 
 	auto& methods() const { return methods_; }
 	auto& methods() { return methods_; }
 
-	class_file::access_flags access_flags() const {
-		return access_flags_;
+	inline void initialise_if_need();
+
+	class_file::constant::utf8 name(const class_member& m) {
+		return utf8_constant(m.name_index());
+	}
+
+	class_file::constant::utf8 descriptor(const class_member& f) {
+		return utf8_constant(f.descriptor_index());
+	}
+
+	uint16 instance_fields_count() {
+		uint16 count = declared_instance_fields().size();
+		if(has_super_class()) {
+			count += super_class().instance_fields_count();
+		}
+		return count;
+	}
+
+	template<typename Handler>
+	void for_each_instance_field(Handler&& handler) {
+		if(has_super_class()) {
+			_class& super = super_class();
+			super.for_each_instance_field(handler);
+		}
+		for(instance_field& field : declared_instance_fields()) {
+			handler(instance_field_with_class{ field, *this });
+		}
 	}
 
 	template<range Name>
 	inline optional<method&> try_find_method(Name name);
 
 	template<range Name, range Descriptor>
-	inline const optional<method&>
-	try_find_method(Name name, Descriptor descriptor) const;
-
-	template<range Name, range Descriptor>
 	inline optional<method&>
 	try_find_method(Name name, Descriptor descriptor);
-
-	template<range Name>
-	inline optional<field&> try_find_field(Name name);
-
-	template<range Name, range Descriptor>
-	inline optional<field&> try_find_field(Name name, Descriptor descriptor);
 
 	template<range Name>
 	method& find_method(Name&& name) {
 		if(auto m = try_find_method(name); m.has_value()) {
 			return m.value();
 		}
-		fprintf(stderr, "couldn't find method %s", name.data());
+		fputs("couldn't find method ", stderr);
+		fwrite(name.data(), 1, name.size(), stderr);
 		abort();
 	}
 
 	template<range Name>
-	field& find_field(Name&& name) {
-		if(auto f = try_find_field(name); f.has_value()) {
-			return f.value();
-		}
-		fprintf(stderr, "couldn't find field %s", name.data());
-		abort();
-	}
+	inline optional<instance_field&>
+	try_find_declared_instance_field(Name name);
+
+	template<range Name, range Descriptor>
+	inline optional<instance_field&>
+	try_find_declared_instance_field(Name name, Descriptor descriptor);
+
+	template<range Name>
+	inline instance_field&
+	find_declared_instance_field(Name&& name);
+
+	template<range Name, range Descriptor>
+	optional<instance_field_index>
+	try_find_instance_field_index(Name name, Descriptor descriptor);
+
+	inline optional<instance_field_with_class>
+	try_get_instance_field(instance_field_index index);
+
+	template<range Name, range Descriptor>
+	inline optional<static_field&>
+	try_find_declared_static_field(Name name, Descriptor descriptor);
 
 	inline method_with_class get_static_method(uint16 ref_index);
 	inline method_with_class get_resolved_method(uint16 ref_index);
 	inline static_field_with_class get_static_field(uint16 ref_index);
 	inline instance_field_index get_resolved_instance_field_index(uint16);
 	inline _class& get_class(uint16 class_index);
-	const _class& get_class(uint16 class_index) const {
-		return ((_class*) this)->get_class(class_index);
-	}
-
-	template<typename Handler>
-	inline void for_each_instance_field(Handler handler) {
-		if(has_super_class()) {
-			super_class().for_each_instance_field(handler);
-		}
-		for(auto& f : fields_) {
-			if(!f.is<static_field>()) {
-				handler(field_with_class{ f.get<field>(), *this });
-			}
-		}
-	}
-
-	template<range Name, range Descriptor>
-	optional<instance_field_index>
-	try_find_instance_field_index(
-		Name name, Descriptor descriptor
-	);
-
-	uint16 instance_fields_count() {
-		uint16 count = 0;
-		for_each_instance_field([&](auto) { ++count; });
-		return count;
-	}
-
-	optional<field_with_class> instance_field(instance_field_index index) {
-		if(has_super_class()) {
-			auto result = instance_field(index);
-			if(result.has_value()) {
-				return result;
-			}
-		}
-		for(auto& f : fields_) {
-			if(f.is<field>()) {
-				if(index == 0) {
-					return field_with_class{ f.get<field>(), *this };
-				}
-				--index._;
-			}
-		}
-		return elements::none{};
-	}
 
 	inline ::reference get_string(uint16 string_index);
 

@@ -50,6 +50,7 @@ method_with_class _class::get_static_method(uint16 ref_index) {
 	}
 
 	_class& c0 = get_class(method_ref.class_index);
+	c0.initialise_if_need();
 	optional<method&> m0 = c0.try_find_method(method_name, method_desc);
 
 	if(!m0.has_value()) {

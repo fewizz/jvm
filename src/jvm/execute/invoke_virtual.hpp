@@ -58,8 +58,8 @@ inline void invoke_virtual(
 			method_name, method_desc,
 			[&](method_with_class mwc) {
 				if(index++ == 0) {
-					m0 = mwc.method;
-					c0 = mwc._class;
+					m0 = mwc.method();
+					c0 = mwc._class();
 					return;
 				}
 				fputs("more than one maximally-specific", stderr);

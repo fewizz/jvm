@@ -11,8 +11,8 @@ inline void put_field_value(
 	to.view([&]<typename ValueType>(ValueType& value) {
 		if constexpr(same_as<reference, ValueType>) {
 			value = move(from.get<reference>());
-		} else
-		if constexpr(
+		}
+		else if constexpr(
 			same_as<jint,   ValueType> ||
 			same_as<jshort, ValueType> ||
 			same_as<jchar,  ValueType> ||
@@ -21,17 +21,17 @@ inline void put_field_value(
 			value = ValueType {
 				(decltype(value.value)) from.get<jint>().value
 			};
-		} else
-		if constexpr(same_as<jbool, ValueType>) {
+		}
+		else if constexpr(same_as<jbool, ValueType>) {
 			value = jbool{ from.get<jint>().value == 1 };
-		} else
-		if constexpr(same_as<jfloat, ValueType>) {
+		}
+		else if constexpr(same_as<jfloat, ValueType>) {
 			value = from.get<jfloat>();
-		} else
-		if constexpr(same_as<jlong, ValueType>) {
+		}
+		else if constexpr(same_as<jlong, ValueType>) {
 			value = from.get<jlong>();
-		} else
-		if constexpr(same_as<jdouble, ValueType>) {
+		}
+		else if constexpr(same_as<jdouble, ValueType>) {
 			value = from.get<jdouble>();
 		}
 		else {

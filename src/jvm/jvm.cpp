@@ -27,8 +27,6 @@ exit 0
 #include "class/impl.hpp"
 #include "classes/impl.hpp"
 #include "execute/impl.hpp"
-#include "field/impl.hpp"
-#include "method/impl.hpp"
 #include "object/impl.hpp"
 #include "native/jni/environment.hpp"
 #include "array.hpp"
@@ -274,7 +272,7 @@ int main (int argc, const char** argv) {
 	double_array_class = define_array_class(c_string{ "[D" });
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
-	method& m = c.find_method(c_string{ argv[2] });
+	method& m = c.find_method(c_string{ argv[2] }.sized());
 	stack_entry fv = execute(method_with_class{ m, c });
 	if(fv.is<jint>()) {
 		printf("%d", fv.get<jint>().value);

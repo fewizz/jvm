@@ -39,7 +39,7 @@ native_function& find_native_function(Name name) {
 #include <core/transform.hpp>
 
 inline native_function& find_native_function(method_with_class m) {
-	transform_view undescored_class_name{ m._class.name(), [](const char c) {
+	transform_view undescored_class_name{ m._class().name(), [](const char c) {
 		if(c == '/') return '_';
 		return c;
 	} };

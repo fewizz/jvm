@@ -61,26 +61,26 @@ namespace class_file {
 						i += len;
 						break;
 					}
-					case constant::int32::tag : {
+					case constant::_int::tag : {
 						int32 value = read<int32, endianness::big>(i);
-						handler(constant::int32{ value });
+						handler(constant::_int{ value });
 						break;
 					}
-					case constant::float32::tag : {
+					case constant::_float::tag : {
 						float value = read<float, endianness::big>(i);
-						handler(constant::float32{ value });
+						handler(constant::_float{ value });
 						break;
 					}
-					case constant::int64::tag : {
+					case constant::_long::tag : {
 						int64 val = read<uint64, endianness::big>(i);
-						handler(constant::int64{ val });
+						handler(constant::_long{ val });
 						++x;
 						handler(constant::skip{});
 						break;
 					}
-					case constant::float64::tag : {
+					case constant::_double::tag : {
 						double value = read<double, endianness::big>(i);
-						handler(constant::float64{ value });
+						handler(constant::_double{ value });
 						++x;
 						handler(constant::skip{});
 						break;

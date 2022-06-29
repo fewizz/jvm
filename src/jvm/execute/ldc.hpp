@@ -15,14 +15,14 @@ inline void ldc(
 	}
 	namespace cc = class_file::constant;
 	const_pool_entry constatnt = c.constant(x.index);
-	if(constatnt.is<cc::int32>()) {
+	if(constatnt.is<cc::_int>()) {
 		stack[stack_size++] = jint {
-			constatnt.get<cc::int32>().value
+			constatnt.get<cc::_int>().value
 		};
 	} else
-	if(constatnt.is<cc::float32>()) {
+	if(constatnt.is<cc::_float>()) {
 		stack[stack_size++] = jfloat {
-			constatnt.get<cc::float32>().value
+			constatnt.get<cc::_float>().value
 		};
 	} else
 	if(constatnt.is<cc::string>()) {
@@ -46,14 +46,14 @@ inline void ldc_w(
 	}
 	namespace cc = class_file::constant;
 	const_pool_entry constatnt = c.constant(x.index);
-	if(constatnt.is<cc::int32>()) {
+	if(constatnt.is<cc::_int>()) {
 		stack[stack_size++] = jint {
-			constatnt.get<cc::int32>().value
+			constatnt.get<cc::_int>().value
 		};
 	} else
-	if(constatnt.is<cc::float32>()) {
+	if(constatnt.is<cc::_float>()) {
 		stack[stack_size++] = jfloat {
-			constatnt.get<cc::float32>().value
+			constatnt.get<cc::_float>().value
 		};
 	} else
 	if(constatnt.is<cc::string>()) {
@@ -77,14 +77,14 @@ inline void ldc_2_w(
 	}
 	namespace cc = class_file::constant;
 	const_pool_entry constatnt = c.constant(x.index);
-	if(constatnt.is<cc::int64>()) {
+	if(constatnt.is<cc::_long>()) {
 		stack[stack_size++] = jlong {
-			constatnt.get<cc::int64>().value
+			constatnt.get<cc::_long>().value
 		};
 	} else
-	if(constatnt.is<cc::float64>()) {
+	if(constatnt.is<cc::_double>()) {
 		stack[stack_size++] = jdouble {
-			constatnt.get<cc::float64>().value
+			constatnt.get<cc::_double>().value
 		};
 	}
 	else {

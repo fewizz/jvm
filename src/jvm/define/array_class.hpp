@@ -42,19 +42,15 @@ inline _class& define_array_class(Name&& name) {
 		len_desc.data(), (uint16) len_desc.size()
 	});
 
-	fields_container fields{ 2 };
+	instance_fields_container instance_fields { 2 };
 
-	fields.emplace_back(
-		field {
-			class_file::access_flags{ class_file::access_flag::_private },
-			name_index{ 3 }, descriptor_index{ 4 }
-		}
+	instance_fields.emplace_back(
+		class_file::access_flags{ class_file::access_flag::_private },
+		name_index{ 3 }, descriptor_index{ 4 }
 	);
-	fields.emplace_back(
-		field {
-			class_file::access_flags{ class_file::access_flag::_private },
-			name_index{ 5 }, descriptor_index{ 6 }
-		}
+	instance_fields.emplace_back(
+		class_file::access_flags{ class_file::access_flag::_private },
+		name_index{ 5 }, descriptor_index{ 6 }
 	);
 
 	this_class_index this_index{ 2 };
@@ -64,7 +60,9 @@ inline _class& define_array_class(Name&& name) {
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_index, super_class_index{}, // TODO extend from Object
 		interfaces_indices_container{},
-		move(fields), methods_container{}
+		move(instance_fields),
+		static_fields_container{},
+		methods_container{}
 	);
 
 	return classes.back();

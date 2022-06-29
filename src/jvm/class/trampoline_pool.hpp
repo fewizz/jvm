@@ -1,8 +1,8 @@
 #pragma once
 
+#include "declared_instance_field_index.hpp"
 #include "../method/with_class/declaration.hpp"
-#include "../field/index.hpp"
-#include "../field/static/with_class.hpp"
+#include "../field/static/with_class/declaration.hpp"
 #include "../method/declaration.hpp"
 #include "../object/reference/declaration.hpp"
 #include "../../alloc.hpp"
@@ -10,7 +10,6 @@
 #include <core/limited_list.hpp>
 
 struct _class;
-struct field;
 struct static_field;
 
 using trampoline_entry = elements::one_of<

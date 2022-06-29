@@ -1,5 +1,7 @@
 #pragma once
 
+#include "member/impl.hpp"
+
 #include "declaration.hpp"
 #include "../array.hpp"
 #include "../object/create.hpp"
@@ -10,7 +12,9 @@ _class::_class(
 	span<uint8> data, class_file::access_flags access_flags,
 	::this_class_index this_class_index, ::super_class_index super_class_index,
 	interfaces_indices_container&& interfaces,
-	fields_container&& fields, methods_container&& methods
+	instance_fields_container&& instance_fields,
+	static_fields_container&& static_fields,
+	methods_container&& methods
 ) :
 	::const_pool{ move(const_pool) },
 	::trampoline_pool{ ::const_pool::size() },
@@ -19,7 +23,8 @@ _class::_class(
 	this_class_index_{ this_class_index },
 	super_class_index_{ super_class_index },
 	interfaces_{ move(interfaces) },
-	fields_{ move(fields) },
+	instance_fields_{ move(instance_fields) },
+	static_fields_{ move(static_fields) },
 	methods_{ move(methods) }
 {}
 
@@ -45,32 +50,8 @@ reference _class::reference() {
 }
 
 template<range Name, range Descriptor>
-optional<field&> _class::try_find_field(Name name, Descriptor descriptor) {
-	for(auto& f0 : fields_) {
-		field& f = f0.get<field>();
-		if(
-			equals(this->name(f), name) &&
-			equals(this->descriptor(f), descriptor)
-		) return { f };
-	}
-	return elements::none{};
-}
-
-template<range Name>
-optional<field&> _class::try_find_field(Name name) {
-	for(auto& f0 : fields_) {
-		field& f = f0.get<field>();
-		if(equals(this->name(f), name)) {
-			return { f };
-		}
-	}
-	return elements::none{};
-}
-
-template<range Name, range Descriptor>
-optional<method&> _class::try_find_method(
-	Name name, Descriptor descriptor
-) {
+optional<method&> _class::
+try_find_method(Name name, Descriptor descriptor) {
 	for(method& m : methods_) {
 		if(
 			equals(this->name(m), name) &&
@@ -80,17 +61,9 @@ optional<method&> _class::try_find_method(
 	return elements::none{};
 }
 
-template<range Name, range Descriptor>
-const optional<method&> _class::try_find_method(
-	Name name, Descriptor descriptor
-) const {
-	return ((_class*)this)->try_find_method(
-		forward<Name>(name), forward<Descriptor>(descriptor)
-	);
-}
-
 template<range Name>
-optional<method&> _class::try_find_method(Name name) {
+optional<method&> _class::
+try_find_method(Name name) {
 	for(method& m : methods_) {
 		if(equals(this->name(m), name)) {
 			return { m };
@@ -100,47 +73,115 @@ optional<method&> _class::try_find_method(Name name) {
 }
 
 template<range Name, range Descriptor>
-bool try_find_instance_field_index0(
+optional<instance_field&> _class::
+try_find_declared_instance_field(Name name, Descriptor descriptor) {
+	for(instance_field& f : instance_fields_) {
+		if(
+			equals(this->name(f), name) &&
+			equals(this->descriptor(f), descriptor)
+		) return { f };
+	}
+	return elements::none{};
+}
+
+template<range Name>
+optional<instance_field&> _class::
+try_find_declared_instance_field(Name name) {
+	for(instance_field& f : instance_fields_) {
+		if(equals(this->name(f), name)) {
+			return { f };
+		}
+	}
+	return elements::none{};
+}
+
+template<range Name>
+instance_field& _class::
+find_declared_instance_field(Name&& name) {
+	if(auto f = try_find_instance_field(name); f.has_value()) {
+		return f.value();
+	}
+	fputs("couldn't find field ", stderr);
+	fwrite(name.data(), 1, name.size(), stderr);
+	abort();
+}
+
+template<range Name, range Descriptor>
+static bool
+try_find_instance_field_index0(
 	_class& c, Name name, Descriptor descriptor, uint16& index
 ) {
 	if(c.has_super_class()) {
 		_class& super = c.super_class();
-		bool found {
+		bool result {
 			try_find_instance_field_index0(super, name, descriptor, index)
 		};
-		if(found) {
+		if(result) {
 			return true;
 		}
 	}
-	for(auto& f0 : c.fields()) {
-		if(f0.is<field>()) {
-			field& f = f0.get<field>();
-			if(
-				equals(c.name(f), name) &&
-				equals(c.descriptor(f), descriptor)
-			) {
-				return true;
-			}
-			++index;
+	for(instance_field& f : c.declared_instance_fields()) {
+		if(
+			equals(c.name(f), name) &&
+			equals(c.descriptor(f), descriptor)
+		) {
+			return true;
 		}
+		++index;
 	}
 	return false;
 }
 
 template<range Name, range Descriptor>
 optional<instance_field_index>
-_class::try_find_instance_field_index(
-	Name name, Descriptor descriptor
-) {
+_class::try_find_instance_field_index(Name name, Descriptor descriptor) {
 	uint16 index = 0;
-	bool found {
+	bool result {
 		try_find_instance_field_index0(*this, name, descriptor, index)
 	};
-	if(found) {
+	if(result) {
 		return instance_field_index{ index };
-	} else {
+	}
+	return elements::none{};
+}
+
+static inline optional<instance_field_with_class>
+try_get_instance_field0(_class& c, uint16& index) {
+	if(c.has_super_class()) {
+		_class& super = c.super_class();
+		optional<instance_field_with_class> result {
+			try_get_instance_field0(super, index)
+		};
+		if(result.has_value()) {
+			return result;
+		}
+	}
+	// TODO
+	uint16 declared_instance_fields_count = c.declared_instance_fields().size();
+	if(index >= declared_instance_fields_count) {
+		index -= declared_instance_fields_count;
 		return elements::none{};
 	}
+	return instance_field_with_class{
+		c.declared_instance_fields()[index], c
+	};
+}
+
+optional<instance_field_with_class> _class::
+try_get_instance_field(instance_field_index index) {
+	return try_get_instance_field0(*this, index._);
+}
+
+template<range Name, range Descriptor>
+inline optional<static_field&> _class::
+try_find_declared_static_field(Name name, Descriptor descriptor) {
+	for(static_field& f : static_fields_) {
+		if(
+			equals(this->name(f), name) &&
+			equals(this->descriptor(f), descriptor)
+		) return { f };
+	}
+	return elements::none{};
 }
 
 void _class::initialise_if_need() {
@@ -159,19 +200,19 @@ void _class::initialise_if_need() {
 	}
 	initialisation_state_ = initialised;
 
-	if(has_super_class()) {
-		super_class().initialise_if_need();
-	}
+	//if(has_super_class()) {
+	//	super_class().initialise_if_need();
+	//}
 
-	for(_class& i : interfaces()) {
-		i.initialise_if_need();
-	}
+	//for(_class& i : interfaces()) {
+	//	i.initialise_if_need();
+	//}
 }
 
 #include "impl/get_static_field.hpp"
 #include "impl/get_static_method.hpp"
 #include "impl/get_resolved_method.hpp"
 #include "impl/get_class.hpp"
-#include "impl/get_resolved_field.hpp"
+#include "impl/get_resolved_instance_field.hpp"
 #include "impl/for_each_maximally_specific_superinterface_method.hpp"
 #include "impl/get_string.hpp"

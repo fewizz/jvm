@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../class/member/declaration.hpp"
 #include "../native/function/declaration.hpp"
 #include "../descriptor_index.hpp"
 #include "../name_index.hpp"
@@ -30,49 +31,38 @@ struct code : span<uint8, uint32> {
 using code_or_native_function =
 	elements::one_of<elements::none, code, native_function&>;
 
-struct method {
+struct method : class_member {
 private:
-	class_file::access_flags access_flags_;
-	name_index               name_index_;
-	descriptor_index         desc_index_;
+	using base_type = class_member;
 	code_or_native_function  code_;
 public:
 
 	method(
 		class_file::access_flags access_flags,
-		name_index               name_index,
-		descriptor_index         descriptor_index,
+		::name_index             name_index,
+		::descriptor_index       descriptor_index,
 		code_or_native_function  code
 	) :
-		access_flags_{ access_flags },
-		name_index_  { name_index },
-		desc_index_  { descriptor_index },
+		base_type{ access_flags, name_index, descriptor_index },
 		code_        { code }
 	{}
 
-	bool is_native() const {
-		return access_flags_.get(class_file::access_flag::native);
-	}
-
-	name_index name_index() const {
-		return name_index_;
-	}
-
-	descriptor_index descriptor_index() const {
-		return desc_index_;
-	}
-
 	code code() const { return code_.get<::code>(); }
+
+	bool is_native() const {
+		return access_flags().get(class_file::access_flag::native);
+	}
 
 	bool has_native_function() const {
 		return code_.is<::native_function&>();
 	}
 
-	void native_function(::native_function& f) {
-		code_ = f;
+	void native_function(::native_function& function) {
+		code_ = function;
 	}
 
 	::native_function& native_function() {
 		return code_.get<::native_function&>();
 	}
+
 };

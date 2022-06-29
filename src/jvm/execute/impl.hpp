@@ -30,8 +30,8 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
 	namespace instr = cf::code::instruction;
 
-	_class& c = mwc._class;
-	method& m = mwc.method;
+	_class& c = mwc._class();
+	method& m = mwc.method();
 
 	if(info) {
 		tabs();
@@ -681,8 +681,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				fprintf(stderr, "%hd\n", x.index);
 			}
 			static_field_with_class sfwc = c.get_static_field(x.index);
-			sfwc._class.initialise_if_need();
-			field_value& value = sfwc.static_field.value();
+			field_value& value = sfwc.static_field().value();
 			stack[stack_size++] = get_field_value(value);
 		}
 		else if constexpr (same_as<Type, put_static>) {
@@ -690,10 +689,8 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				tabs(); fputs("put_static ", stderr);
 				fprintf(stderr, "%hd\n", x.index);
 			}
-			c.initialise_if_need();
 			static_field_with_class sfwc = c.get_static_field(x.index);
-			sfwc._class.initialise_if_need();
-			field_value& static_field_value = sfwc.static_field.value();
+			field_value& static_field_value = sfwc.static_field().value();
 			stack_entry value = move(stack[--stack_size]);
 			put_field_value(static_field_value, move(value));
 		}

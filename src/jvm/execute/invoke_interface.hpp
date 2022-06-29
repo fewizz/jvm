@@ -56,8 +56,8 @@ inline void invoke_interface(
 			name, desc,
 			[&](method_with_class m) {
 				if(index++ == 0) {
-					m0 = m.method;
-					c0 = m._class;
+					m0 = m.method();
+					c0 = m._class();
 					return;
 				}
 				fputs(

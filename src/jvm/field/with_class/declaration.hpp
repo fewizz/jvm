@@ -1,15 +1,17 @@
 #pragma once
 
+#include "../declaration.hpp"
+#include "../../class/member/with_class/declaration.hpp"
 #include "class/file/constant.hpp"
 
-struct _class;
-struct field;
+struct field_with_class : class_member_with_class {
+	using base_type = class_member_with_class;
 
-struct field_with_class {
-	field& field;
-	_class& _class;
+	field_with_class(field& field, ::_class& _class) :
+		base_type{ (::class_member&) field, _class }
+	{}
 
-	inline class_file::constant::utf8 name() const;
-	inline class_file::constant::utf8 descriptor() const;
+	const ::field& field() const { return (::field&) class_member(); }
+	      ::field& field()       { return (::field&) class_member(); }
 
 };

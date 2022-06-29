@@ -11,7 +11,7 @@ object::object(::_class& c) :
 	class_{ c },
 	values_{ c.instance_fields_count() }
 {
-	c.for_each_instance_field([&](field_with_class fwc) {
+	c.for_each_instance_field([&](instance_field_with_class fwc) {
 		using namespace class_file;
 
 		field_value fv;
@@ -22,6 +22,7 @@ object::object(::_class& c) :
 				return fv.set_default_value<DescriptorType>();
 			}
 		);
+
 		if(!result) {
 			fputs(
 				"couldn't read field descriptor while creating object",

@@ -29,7 +29,9 @@ static inline _class& define_primitive_class(Name&& name) {
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_index, super_class_index{ 0 }, // TODO extend from Object?
 		interfaces_indices_container{},
-		fields_container{}, methods_container{}
+		instance_fields_container{},
+		static_fields_container{},
+		methods_container{}
 	);
 
 	return classes.back();

@@ -24,13 +24,13 @@ static_field_with_class _class::get_static_field(uint16 ref_index) {
 	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
 	_class& c0 = get_class(field_ref.class_index);
-	optional<field&> field = c0.try_find_field(name, descriptor);
+	c0.initialise_if_need();
+
+	optional<static_field&> field {
+		c0.try_find_declared_static_field(name, descriptor)
+	};
 	if(!field.has_value()) {
-		fputs("couldn't find field", stderr);
-		abort();
-	}
-	if(!field.value().is_static()) {
-		fputs("field isn't static", stderr);
+		fputs("couldn't find static field", stderr);
 		abort();
 	}
 	static_field_with_class sfwc{ (static_field&) field.value(), c0 };

@@ -38,8 +38,6 @@ inline void invoke_static(
 	stack_size -= args_count;
 	method_with_class wic = c.get_static_method(x.index);
 
-	wic._class.initialise_if_need();
-
 	stack_entry result = execute(
 		wic,
 		span{ stack + stack_size, args_count }

@@ -19,25 +19,25 @@ namespace class_file::constant {
 	};
 
 	// kind = Integer
-	struct int32 {
+	struct _int {
 		static constexpr uint8 tag = 3;
 		::int32 value;
 	};
 
 	// kind = Float
-	struct float32 {
+	struct _float {
 		static constexpr uint8 tag = 4;
 		float value;
 	};
 
 	// kind = Long
-	struct int64 {
+	struct _long {
 		static constexpr uint8 tag = 5;
 		::int64 value;
 	};
 
 	// kind = Double
-	struct float64 {
+	struct _double {
 		static constexpr uint8 tag = 6;
 		double value;
 	};

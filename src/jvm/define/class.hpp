@@ -2,7 +2,6 @@
 
 #include "fields_to_add.hpp"
 #include "constants_to_add.hpp"
-#include "read_field.hpp"
 #include "read_method.hpp"
 
 #include "../classes/find_or_load.hpp"
@@ -62,13 +61,52 @@ static inline _class& define_class0(Args&&... args) {
 
 	uint16 fields_count = read_fields.count();
 
-	fields_container fields{ fields_count };
+	limited_list<
+		::field, uint16, default_allocator
+	> fields{ fields_count };
+
+	uint16 instance_fields_count = 0;
+	uint16 static_fields_count = 0;
 
 	auto methods_reader = read_fields([&](auto field_reader) {
-		auto [reader, f] = read_field(const_pool, field_reader);
-		fields.emplace_back(move(f));
-		return reader;
+		auto access_reader = field_reader;
+		auto [name_index_reader, access_flags] = access_reader();
+		auto [descriptor_reader, name_index] = name_index_reader();
+		auto [attributes_reader, descriptor_index] = descriptor_reader();
+		auto end = attributes_reader(
+			[&](auto name_index) {
+				return const_pool.utf8_constant(name_index);
+			},
+			[&]<typename Type>(Type) {
+
+			}
+		);
+		bool is_static = access_flags.get(class_file::access_flag::_static);
+		if(is_static) {
+			++static_fields_count;
+		}
+		else {
+			++instance_fields_count;
+		}
+		fields.emplace_back(
+			access_flags,
+			::name_index{ name_index },
+			::descriptor_index{ descriptor_index }
+		);
+		return end;
 	});
+
+	instance_fields_container instance_fields{ instance_fields_count };
+	static_fields_container static_fields{ static_fields_count };
+
+	for(::field& field : fields) {
+		if(field.is_static()) {
+			static_fields.emplace_back(move(field), const_pool);
+		}
+		else {
+			instance_fields.emplace_back(move(field));
+		}
+	}
 
 	methods_container methods{ methods_reader.count() };
 
@@ -83,7 +121,9 @@ static inline _class& define_class0(Args&&... args) {
 		span<uint8>{ bytes.data(), bytes.size() }, access_flags,
 		this_class_index{ this_class }, super_class_index{ super_class },
 		move(interfaces),
-		move(fields), move(methods)
+		move(instance_fields),
+		move(static_fields),
+		move(methods)
 	);
 
 	return classes.back();
