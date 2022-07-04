@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../class/declaration.hpp"
+#include "../class/decl.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>

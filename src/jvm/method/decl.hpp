@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../class/member/declaration.hpp"
-#include "../native/function/declaration.hpp"
+#include "../class/member/decl.hpp"
+#include "../native/function/decl.hpp"
 #include "../descriptor_index.hpp"
 #include "../name_index.hpp"
 #include "class/file/access_flag.hpp"

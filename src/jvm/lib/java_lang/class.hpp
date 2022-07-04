@@ -10,8 +10,8 @@
 #include <core/starts_with.hpp>
 #include <core/array.hpp>
 
-#include <unicode/utf_16.hpp>
-#include <unicode/utf_8.hpp>
+#include <unicode/utf16.hpp>
+#include <unicode/utf8.hpp>
 
 static optional<_class&> class_class{};
 static instance_field_index class_data_index{};
@@ -110,7 +110,7 @@ static inline void init_java_lang_class() {
 			uint8* end = it + data_len;
 			nuint characters_count = 0;
 			while(it != end) {
-				auto cp = utf_16::decoder<endianness::big>{}(it);
+				auto cp = utf16::decoder<endianness::big>{}(it);
 				if(cp.is_unexpected()) {
 					abort();
 				}
@@ -120,7 +120,7 @@ static inline void init_java_lang_class() {
 			it = data;
 			characters_count = 0;
 			while(it != end) {
-				auto cp = utf_16::decoder<endianness::big>{}(it);
+				auto cp = utf16::decoder<endianness::big>{}(it);
 				chars[characters_count++] = (uint8) cp.get_expected();
 			}
 			_class& primitive_class {

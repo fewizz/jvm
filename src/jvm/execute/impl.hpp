@@ -1,6 +1,6 @@
 #pragma once
 
-#include "declaration.hpp"
+#include "decl.hpp"
 #include "info.hpp"
 #include "get_field_value.hpp"
 #include "put_field_value.hpp"
@@ -27,7 +27,7 @@
 #include <core/single.hpp>
 #include <core/on_scope_exit.hpp>
 
-inline stack_entry
+static inline stack_entry
 execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
 	namespace instr = cf::code::instruction;

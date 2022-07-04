@@ -34,9 +34,11 @@ exit 0
 
 #include "lib/init.hpp"
 
-#include <unicode/utf_16.hpp>
+#include <unicode/utf16.hpp>
 #include <core/c_string.hpp>
 #include <core/equals.hpp>
+
+#include <inttypes.h>
 
 int main (int argc, const char** argv) {
 	if(argc != 3) {
@@ -71,10 +73,10 @@ int main (int argc, const char** argv) {
 	stack_entry fv = execute(method_with_class{ m, c });
 
 	if(fv.is<jint>()) {
-		printf("%d", fv.get<jint>().value);
+		printf("%" PRId32, fv.get<jint>().value);
 	} else
 	if(fv.is<jlong>()) {
-		printf("%lld", fv.get<jlong>().value);
+		printf("%" PRId64, fv.get<jlong>().value);
 	} else
 	if(
 		fv.is<reference>() &&

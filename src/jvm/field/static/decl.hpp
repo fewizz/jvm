@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../declaration.hpp"
+#include "../decl.hpp"
 #include "../value.hpp"
 #include "../../class/const_pool.hpp"
 #include "../../../abort.hpp"

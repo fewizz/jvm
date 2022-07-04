@@ -33,7 +33,8 @@ public:
 		return access_flags_;
 	}
 
-	inline bool is_static() const {
+	bool is_static() const {
 		return access_flags().get(class_file::access_flag::_static);
 	}
+
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../native/functions/container.hpp"
-#include "../../class/declaration.hpp"
+#include "../../class/decl.hpp"
 
 static inline void init_java_lang_object() {
 

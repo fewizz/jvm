@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../../class/declaration.hpp"
+#include "../../class/decl.hpp"
 #include "../../classes/find_or_load.hpp"
 #include "../../array.hpp"
 #include "../../object/create.hpp"
 
 #include <core/meta/elements/optional.hpp>
-#include <unicode/utf_16.hpp>
-#include <unicode/utf_8.hpp>
+#include <unicode/utf16.hpp>
+#include <unicode/utf8.hpp>
 
 static optional<_class&> string_class{};
 static instance_field_index string_value_index{};
@@ -27,7 +27,7 @@ inline void for_each_string_codepoint(object& str, Handler&& handler) {
 	auto end = it + len;
 
 	while(it != end) {
-		unicode::code_point cp = utf_16::decoder<endianness::big>{}(it);
+		unicode::code_point cp = utf16::decoder<endianness::big>{}(it);
 		handler(cp);
 	}
 }
@@ -52,12 +52,12 @@ create_string_from_utf8(String&& str_utf8, string_coder coder) {
 	auto end = str_utf8.end();
 	nuint utf16_units = 0;
 	while(it != end) {
-		auto result = utf_8::decoder{}(it);
+		auto result = utf8::decoder{}(it);
 		if(result.is_unexpected()) {
 			fputs("invalid sequence", stderr); abort();
 		}
 		auto cp = result.get_expected();
-		utf16_units += utf_16::encoder<endianness::big>{}.units(cp);
+		utf16_units += utf16::encoder<endianness::big>{}.units(cp);
 	}
 
 	nuint data_len = utf16_units * sizeof(uint16);
@@ -65,8 +65,8 @@ create_string_from_utf8(String&& str_utf8, string_coder coder) {
 	auto data_it = data;
 	it = str_utf8.begin();
 	while(it != end) {
-		auto cp = utf_8::decoder{}(it).get_expected();
-		utf_16::encoder<endianness::big>{}(cp, data_it);
+		auto cp = utf8::decoder{}(it).get_expected();
+		utf16::encoder<endianness::big>{}(cp, data_it);
 	}
 
 	return create_string(span{ data, data_len }, coder);

@@ -22,7 +22,7 @@ private:
 		++references_;
 	}
 
-	inline void on_reference_removed();
+	void on_reference_removed();
 
 	friend reference;
 
@@ -30,9 +30,9 @@ private:
 
 public:
 
-	inline object(_class& c);
+	object(_class& c);
 
-	inline field_value& operator [] (instance_field_index index);
+	field_value& operator [] (instance_field_index index);
 
 	_class& _class() {
 		return class_.value();

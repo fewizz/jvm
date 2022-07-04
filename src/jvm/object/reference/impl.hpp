@@ -1,17 +1,17 @@
 #pragma once
 
-#include "declaration.hpp"
-#include "../declaration.hpp"
+#include "decl.hpp"
+#include "../decl.hpp"
 #include "../../../alloc.hpp"
 #include "../../../abort.hpp"
 #include <core/exchange.hpp>
 #include <stdio.h>
 
-reference::reference(::object& obj) : obj_{ &obj } {
+inline reference::reference(::object& obj) : obj_{ &obj } {
 	obj.on_reference_added();
 }
 
-reference::reference(const reference& other) :
+inline reference::reference(const reference& other) :
 	obj_{ other.obj_ }
 {
 	if(obj_ != nullptr) {
@@ -19,11 +19,11 @@ reference::reference(const reference& other) :
 	}
 }
 
-reference::reference(reference&& other) :
+inline reference::reference(reference&& other) :
 	obj_{ exchange(other.obj_, nullptr) }
 {}
 
-reference& reference::operator = (const reference& other) {
+inline reference& reference::operator = (const reference& other) {
 	if(obj_ != nullptr) {
 		obj_->on_reference_removed();
 	}
@@ -34,7 +34,7 @@ reference& reference::operator = (const reference& other) {
 	return *this;
 }
 
-reference& reference::operator = (reference&& other) {
+inline reference& reference::operator = (reference&& other) {
 	if(obj_ != nullptr) {
 		obj_->on_reference_removed();
 	}
@@ -42,7 +42,7 @@ reference& reference::operator = (reference&& other) {
 	return *this;
 }
 
-object& reference::object() {
+inline object& reference::object() {
 	if(obj_ == nullptr) {
 		fprintf(stderr, "obj_ is nullptr");
 		abort();
@@ -50,7 +50,7 @@ object& reference::object() {
 	return *obj_;
 }
 
-reference::~reference() {
+inline reference::~reference() {
 	if(obj_ != nullptr) {
 		obj_->on_reference_removed();
 	}

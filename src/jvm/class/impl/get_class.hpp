@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../field/declaration.hpp"
+#include "../../field/decl.hpp"
 #include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 

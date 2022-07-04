@@ -2,13 +2,13 @@
 
 #include "const_pool.hpp"
 #include "trampoline_pool.hpp"
-#include "../field/declaration.hpp"
-#include "../field/instance/declaration.hpp"
-#include "../field/instance/with_class/declaration.hpp"
-#include "../field/static/declaration.hpp"
-#include "../field/static/with_class/declaration.hpp"
+#include "../field/decl.hpp"
+#include "../field/instance/decl.hpp"
+#include "../field/instance/with_class/decl.hpp"
+#include "../field/static/decl.hpp"
+#include "../field/static/with_class/decl.hpp"
 #include "../name_index.hpp"
-#include "../execute/declaration.hpp"
+#include "../execute/decl.hpp"
 #include "../../abort.hpp"
 
 #include "class/file/access_flag.hpp"
@@ -86,7 +86,7 @@ private:
 
 public:
 
-	inline _class(
+	_class(
 		const_pool&& const_pool,
 		span<uint8> data, class_file::access_flags access_flags,
 		this_class_index, super_class_index,
@@ -109,7 +109,7 @@ public:
 		return access_flags_;
 	}
 
-	inline reference reference();
+	reference reference();
 
 	bool has_super_class() const {
 		return super_class_index_ != 0;
@@ -166,7 +166,7 @@ public:
 		return initialisation_state_ == initialisation_state::initialised;
 	}
 
-	inline void initialise_if_need();
+	void initialise_if_need();
 
 	bool is_subclass_of(_class& other) {
 		if(has_super_class()) {
@@ -219,10 +219,10 @@ public:
 	}
 
 	template<range Name>
-	inline optional<method&> try_find_method(Name&& name);
+	optional<method&> try_find_method(Name&& name);
 
 	template<range Name, range Descriptor>
-	inline optional<method&>
+	optional<method&>
 	try_find_method(Name&& name, Descriptor&& descriptor);
 
 	template<range Name>
@@ -246,19 +246,19 @@ public:
 	}
 
 	template<range Name>
-	inline optional<declared_instance_field_index>
+	optional<declared_instance_field_index>
 	try_find_declared_instance_field_index(Name&& name);
 
 	template<range Name>
-	inline optional<instance_field&>
+	optional<instance_field&>
 	try_find_declared_instance_field(Name&& name);
 
 	template<range Name>
-	inline declared_instance_field_index
+	declared_instance_field_index
 	find_declared_instance_field_index(Name&& name);
 
 	template<range Name>
-	inline instance_field&
+	instance_field&
 	find_declared_instance_field(Name&& name);
 
 	template<range Name, range Descriptor>
@@ -282,27 +282,27 @@ public:
 		return result.value();
 	}
 
-	inline optional<instance_field_with_class>
+	optional<instance_field_with_class>
 	try_get_instance_field(instance_field_index index);
 
 	template<range Name, range Descriptor>
-	inline optional<static_field&>
+	optional<static_field&>
 	try_find_declared_static_field(Name&& name, Descriptor&& descriptor);
 
 	template<range Name, range Descriptor>
-	inline static_field&
+	static_field&
 	find_declared_static_field(Name&& name, Descriptor&& descriptor);
 
-	inline method_with_class get_static_method(uint16 ref_index);
-	inline method_with_class get_resolved_method(uint16 ref_index);
-	inline static_field_with_class get_static_field(uint16 ref_index);
-	inline instance_field_index get_resolved_instance_field_index(uint16);
-	inline _class& get_class(uint16 class_index);
+	method_with_class get_static_method(uint16 ref_index);
+	method_with_class get_resolved_method(uint16 ref_index);
+	static_field_with_class get_static_field(uint16 ref_index);
+	instance_field_index get_resolved_instance_field_index(uint16);
+	_class& get_class(uint16 class_index);
 
-	inline ::reference get_string(uint16 string_index);
+	::reference get_string(uint16 string_index);
 
 	template<typename Name, typename Descriptor, typename Handler>
-	inline void for_each_maximally_specific_superinterface_method(
+	void for_each_maximally_specific_superinterface_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	);
 

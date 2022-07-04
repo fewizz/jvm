@@ -2,12 +2,12 @@
 
 #include "reference/impl.hpp"
 
-#include "declaration.hpp"
-#include "../class/declaration.hpp"
-#include "../field/declaration.hpp"
+#include "decl.hpp"
+#include "../class/decl.hpp"
+#include "../field/decl.hpp"
 #include "class/file/descriptor/reader.hpp"
 
-object::object(::_class& c) :
+inline object::object(::_class& c) :
 	class_{ c },
 	values_{ c.instance_fields_count() }
 {

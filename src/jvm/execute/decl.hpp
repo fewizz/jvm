@@ -1,8 +1,8 @@
 #pragma once
 
 #include "stack_entry.hpp"
-#include "../method/with_class/declaration.hpp"
+#include "../method/with_class/decl.hpp"
 
-inline stack_entry execute(
+static stack_entry execute(
 	method_with_class m, span<stack_entry, uint16> args = {}
 );

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "declaration.hpp"
+#include "decl.hpp"
 
-#include "../../class/declaration.hpp"
+#include "../../class/decl.hpp"
 
 inline class_file::constant::utf8 method_with_class::descriptor() const {
 	return _class.descriptor(method);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "object/declaration.hpp"
+#include "object/decl.hpp"
 
 template<typename Type>
 static Type* array_data(object& o) {

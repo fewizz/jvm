@@ -1,9 +1,9 @@
 #pragma once
 
-#include "declaration.hpp"
+#include "decl.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
-#include "../class/declaration.hpp"
+#include "../class/decl.hpp"
 #include "class/file/constant.hpp"
 #include "class/file/code/instruction.hpp"
 

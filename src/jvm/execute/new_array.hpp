@@ -3,7 +3,7 @@
 #include "info.hpp"
 #include "stack_entry.hpp"
 #include "../array.hpp"
-#include "../class/declaration.hpp"
+#include "../class/decl.hpp"
 #include "../field/value.hpp"
 #include "../object/create.hpp"
 #include "../classes/find_or_load.hpp"

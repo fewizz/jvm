@@ -5,9 +5,9 @@
 #include "read_method.hpp"
 
 #include "../classes/find_or_load.hpp"
-#include "../field/declaration.hpp"
-#include "../method/declaration.hpp"
-#include "../execute/declaration.hpp"
+#include "../field/decl.hpp"
+#include "../method/decl.hpp"
+#include "../execute/decl.hpp"
 #include "../../abort.hpp"
 
 #include "class/file/reader.hpp"

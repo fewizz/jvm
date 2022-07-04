@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../declaration.hpp"
+#include "../decl.hpp"
 #include "class/file/constant.hpp"
 
 struct _class;
@@ -24,6 +24,6 @@ public:
 	const ::_class& _class() const { return _class_; }
 	      ::_class& _class()       { return _class_; }
 
-	inline class_file::constant::utf8 descriptor();
-	inline class_file::constant::utf8 name();
+	class_file::constant::utf8 descriptor();
+	class_file::constant::utf8 name();
 };

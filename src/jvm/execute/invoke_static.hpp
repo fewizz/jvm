@@ -1,10 +1,10 @@
 #pragma once
 
-#include "declaration.hpp"
+#include "decl.hpp"
 #include "info.hpp"
 #include "stack_entry.hpp"
-#include "../class/declaration.hpp"
-#include "../method/declaration.hpp"
+#include "../class/decl.hpp"
+#include "../method/decl.hpp"
 #include "class/file/code/instruction.hpp"
 #include "class/file/descriptor/reader.hpp"
 

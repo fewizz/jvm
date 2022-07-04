@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../declaration.hpp"
-#include "../../method/declaration.hpp"
+#include "../decl.hpp"
+#include "../../method/decl.hpp"
 #include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 

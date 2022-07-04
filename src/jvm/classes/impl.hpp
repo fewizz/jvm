@@ -15,7 +15,7 @@ static inline _class& find_or_load_class(Name name) {
 #include "../define/class.hpp"
 #include "../define/primitive_class.hpp"
 #include "../define/array_class.hpp"
-#include "../execute/declaration.hpp"
+#include "../execute/decl.hpp"
 
 #include <core/ends_with.hpp>
 #include <core/starts_with.hpp>

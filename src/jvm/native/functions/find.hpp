@@ -1,7 +1,7 @@
 #pragma once
 
 #include "container.hpp"
-#include "../function/declaration.hpp"
+#include "../function/decl.hpp"
 #include <core/meta/elements/optional.hpp>
 #include <core/range.hpp>
 #include <core/equals.hpp>
@@ -33,8 +33,8 @@ native_function& find_native_function(Name name) {
 	abort();
 }
 
-#include "../../method/declaration.hpp"
-#include "../../class/declaration.hpp"
+#include "../../method/decl.hpp"
+#include "../../class/decl.hpp"
 #include <core/concat.hpp>
 #include <core/transform.hpp>
 

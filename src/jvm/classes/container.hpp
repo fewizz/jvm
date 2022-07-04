@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../class/declaration.hpp"
+#include "../class/decl.hpp"
 
 #include <core/limited_list.hpp>
 

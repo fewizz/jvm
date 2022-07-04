@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../declaration.hpp"
-#include "../../with_class/declaration.hpp"
+#include "../decl.hpp"
+#include "../../with_class/decl.hpp"
 
 struct static_field_with_class : field_with_class {
 	using base_type = field_with_class;

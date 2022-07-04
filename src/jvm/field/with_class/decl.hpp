@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../declaration.hpp"
-#include "../../class/member/with_class/declaration.hpp"
+#include "../decl.hpp"
+#include "../../class/member/with_class/decl.hpp"
 #include "class/file/constant.hpp"
 
 struct field_with_class : class_member_with_class {

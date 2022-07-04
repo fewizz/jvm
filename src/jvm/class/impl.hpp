@@ -2,12 +2,12 @@
 
 #include "member/impl.hpp"
 
-#include "declaration.hpp"
+#include "decl.hpp"
 #include "../array.hpp"
 #include "../object/create.hpp"
 #include "../classes/find_or_load.hpp"
 
-_class::_class(
+inline _class::_class(
 	const_pool&& const_pool,
 	span<uint8> data, class_file::access_flags access_flags,
 	::this_class_index this_class_index, ::super_class_index super_class_index,
@@ -28,7 +28,7 @@ _class::_class(
 	methods_{ move(methods) }
 {}
 
-reference _class::reference() {
+inline reference _class::reference() {
 	if(reference_.is_null()) {
 		_class& class_class = find_or_load_class(c_string{ "java/lang/Class" });
 		reference_ = create_object(class_class);
@@ -186,7 +186,7 @@ try_get_instance_field0(_class& c, uint16& index) {
 	};
 }
 
-optional<instance_field_with_class> _class::
+inline optional<instance_field_with_class> _class::
 try_get_instance_field(instance_field_index index) {
 	return try_get_instance_field0(*this, index._);
 }
@@ -204,7 +204,7 @@ try_find_declared_static_field(Name&& name, Descriptor&& descriptor) {
 }
 
 template<range Name, range Descriptor>
-static_field& _class::
+inline static_field& _class::
 find_declared_static_field(Name&& name, Descriptor&& descriptor) {
 	optional<static_field&> result {
 		try_find_declared_static_field(name, descriptor)
@@ -215,7 +215,7 @@ find_declared_static_field(Name&& name, Descriptor&& descriptor) {
 	return result.value();
 }
 
-void _class::initialise_if_need() {
+inline void _class::initialise_if_need() {
 	if(
 		initialisation_state_ == initialised ||
 		initialisation_state_ == pending
@@ -230,14 +230,6 @@ void _class::initialise_if_need() {
 		execute(method_with_class{ clinit.value(), *this });
 	}
 	initialisation_state_ = initialised;
-
-	//if(has_super_class()) {
-	//	super_class().initialise_if_need();
-	//}
-
-	//for(_class& i : interfaces()) {
-	//	i.initialise_if_need();
-	//}
 }
 
 #include "impl/get_static_field.hpp"
