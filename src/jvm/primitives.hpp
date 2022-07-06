@@ -29,7 +29,8 @@ struct jint {
 	requires (integer<Type> && sizeof(Type) <= sizeof(int32))
 	jint(Type value) : value { value } {}
 
-	operator int32 () const { return value; }
+	operator const int32& () const { return value; }
+	operator int32& () { return value; }
 };
 
 struct jlong {

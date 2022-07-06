@@ -69,4 +69,27 @@ static inline void init_jdk_internal_misc_unsafe() {
 		c_string{ "Java_jdk_internal_misc_Unsafe_ensureClassInitialized0" }
 	);
 
+	native_functions.emplace_back(
+		(void*) (int(*)(jni_environment*, object*, object*, int64))
+		[](jni_environment*, object*, object* o, int64 offset) -> int32 {
+			auto v_ptr = (volatile int32*) &o->values()[offset].get<jint>();
+			return *v_ptr;
+		},
+		c_string{ "Java_jdk_internal_misc_Unsafe_getIntVolatile" }
+	);
+
+	native_functions.emplace_back(
+		(void*) (bool(*)(jni_environment*, object*, object*, int64, int32, int32))
+		[](
+			jni_environment*, object*, object* o,
+			int64 offset, int32 expected, int32 x
+		) -> bool {
+			int32& i = o->values()[offset].get<jint>();
+			return __atomic_compare_exchange(
+				&i, &expected, &x, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST
+			); // TODO
+		},
+		c_string{ "Java_jdk_internal_misc_Unsafe_compareAndSetInt" }
+	);
+
 }

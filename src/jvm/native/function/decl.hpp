@@ -112,35 +112,35 @@ static inline stack_entry call_native_function0(
 	if constexpr(sizeof...(Args) > 2) {
 		fputs("too many arguments", stderr); abort();
 	} else {
-	span<stack_entry, uint16> next_rem{
-		rem.begin() + 1, (uint16) (rem.size() - 1)
-	};
-	if(rem[0].is<jint>()) {
-		return call_native_function0<ReturnType>(
-			ptr, next_rem, args..., (int32) rem[0].get<jint>()
-		);
-	}
-	if(rem[0].is<jfloat>()) {
-		return call_native_function0<ReturnType>(
-			ptr, next_rem, args..., (float) rem[0].get<jfloat>()
-		);
-	}
-	if(rem[0].is<jlong>()) {
-		return call_native_function0<ReturnType>(
-			ptr, next_rem, args..., (int64) rem[0].get<jlong>()
-		);
-	}
-	if(rem[0].is<jdouble>()) {
-		return call_native_function0<ReturnType>(
-			ptr, next_rem, args..., (double) rem[0].get<jdouble>()
-		);
-	}
-	if(rem[0].is<reference>()) {
-		return call_native_function0<ReturnType>(
-			ptr, next_rem, args..., rem[0].get<reference>().object_ptr()
-		);
-	}
-	fputs("unknown arg type", stderr); abort();
+		span<stack_entry, uint16> next_rem{
+			rem.begin() + 1, (uint16) (rem.size() - 1)
+		};
+		if(rem[0].is<jint>()) {
+			return call_native_function0<ReturnType>(
+				ptr, next_rem, args..., (int32) rem[0].get<jint>()
+			);
+		}
+		if(rem[0].is<jfloat>()) {
+			return call_native_function0<ReturnType>(
+				ptr, next_rem, args..., (float) rem[0].get<jfloat>()
+			);
+		}
+		if(rem[0].is<jlong>()) {
+			return call_native_function0<ReturnType>(
+				ptr, next_rem, args..., (int64) rem[0].get<jlong>()
+			);
+		}
+		if(rem[0].is<jdouble>()) {
+			return call_native_function0<ReturnType>(
+				ptr, next_rem, args..., (double) rem[0].get<jdouble>()
+			);
+		}
+		if(rem[0].is<reference>()) {
+			return call_native_function0<ReturnType>(
+				ptr, next_rem, args..., rem[0].get<reference>().object_ptr()
+			);
+		}
+		fputs("unknown arg type", stderr); abort();
 	}
 }
 
