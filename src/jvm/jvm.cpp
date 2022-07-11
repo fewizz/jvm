@@ -46,15 +46,15 @@ int main (int argc, const char** argv) {
 		return 1;
 	}
 
-	void_class   = define_primitive_class(c_string{ "void" });
+	void_class   = define_primitive_class(c_string{ "void"    });
 	bool_class   = define_primitive_class(c_string{ "boolean" });
-	byte_class   = define_primitive_class(c_string{ "byte" });
-	short_class  = define_primitive_class(c_string{ "short" });
-	char_class   = define_primitive_class(c_string{ "char" });
-	int_class    = define_primitive_class(c_string{ "int" });
-	long_class   = define_primitive_class(c_string{ "long" });
-	float_class  = define_primitive_class(c_string{ "float" });
-	double_class = define_primitive_class(c_string{ "double" });
+	byte_class   = define_primitive_class(c_string{ "byte"    });
+	short_class  = define_primitive_class(c_string{ "short"   });
+	char_class   = define_primitive_class(c_string{ "char"    });
+	int_class    = define_primitive_class(c_string{ "int"     });
+	long_class   = define_primitive_class(c_string{ "long"    });
+	float_class  = define_primitive_class(c_string{ "float"   });
+	double_class = define_primitive_class(c_string{ "double"  });
 
 	bool_array_class   = define_array_class(c_string{ "[Z" });
 	byte_array_class   = define_array_class(c_string{ "[B" });
