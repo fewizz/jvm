@@ -32,14 +32,14 @@ inline _class& load_class(Name name) {
 		fputc('\n', stderr);
 	});
 
-	if(starts{ name }.with(c_string{ "[" })) {
+	if(starts{ name }.with('[')) {
 		if(name.size() == 2) { // primitive
 			return find_class(name);
 		}
 
 		if(
-			!starts{ name }.with(c_string{ "[L" }) ||
-			!ends  { name }.with(single_view{ ';' })
+			!starts{ name }.with('[', 'L') ||
+			!ends  { name }.with(';')
 		) {
 			fputs("reference array type name should end with ';'", stderr);
 			abort();

@@ -69,7 +69,7 @@ static inline void init_java_lang_class() {
 		(void*) (bool(*)(jni_environment*, object*))
 		[](jni_environment*, object* o) {
 			auto class_name = class_from_class_instance(*o).name();
-			return starts { class_name }.with(array{ '[' });
+			return starts { class_name }.with('[');
 		},
 		c_string{ "Java_java_lang_Class_isArray" }
 	);

@@ -63,56 +63,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			m.native_function(find_native_function(mwc));
 		}
 		auto& native_function = m.native_function();
-		cf::descriptor::method_reader desc_reader{ c.descriptor(m).begin() };
-		auto [ret_type_reader, success0] = desc_reader.skip_parameters();
-		auto [end, success] = ret_type_reader([&]<typename Type>(Type) {
-			if constexpr(same_as<Type, cf::descriptor::V>) {
-				result = native_function.call<jvoid>(args);
-				return true;
-			}
-			if constexpr(same_as<Type, cf::descriptor::Z>) {
-				result = native_function.call<jbool>(args);
-				return true;
-			}
-			if constexpr(same_as<Type, cf::descriptor::B>) {
-				result = native_function.call<jbyte>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::S>) {
-				result = native_function.call<jshort>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::I>) {
-				result = native_function.call<jint>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::J>) {
-				result = native_function.call<jlong>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::F>) {
-				result = native_function.call<jfloat>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::D>) {
-				result = native_function.call<jdouble>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::object_type>) {
-				result = native_function.call<reference>(args);
-				return true;
-			}
-			else if constexpr(same_as<Type, cf::descriptor::array_type>) {
-				result = native_function.call<reference>(args);
-				return true;
-			}
-			return false;
-		});
-		if(!success) {
-			fputs("unknown native function return type", stderr);
-			abort();
-		}
-		return result;
+		return native_function.call(args);
 	}
 
 	if(m.code().data() == nullptr) {
