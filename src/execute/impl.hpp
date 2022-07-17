@@ -14,7 +14,7 @@
 #include "../array.hpp"
 #include "../object/create.hpp"
 #include "../native/functions/find.hpp"
-#include "../../abort.hpp"
+#include "../abort.hpp"
 
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"
@@ -518,15 +518,15 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int64 value1 = stack[--stack_size].get<jlong>();
 			stack[stack_size++] = jlong{ value1 >> (value2 & 0x3F) };
 		}
-		else if constexpr (same_as<Type, i_ush_r>) {
-			if(info) { tabs(); fputs("i_ush_r\n", stderr); }
+		else if constexpr (same_as<Type, i_u_sh_r>) {
+			if(info) { tabs(); fputs("i_u_sh_r\n", stderr); }
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			stack[stack_size++] = jint {
 				int32(uint32(value1) >> (value2 & 0x1F))
 			};
 		}
-		else if constexpr (same_as<Type, l_ush_r>) {
+		else if constexpr (same_as<Type, l_u_sh_r>) {
 			if(info) { tabs(); fputs("l_ush_r\n", stderr); }
 			int32 value2 = stack[--stack_size].get<jint>();
 			int64 value1 = stack[--stack_size].get<jlong>();
@@ -801,26 +801,26 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		else if constexpr (same_as<Type, i_return>) {
 			if(info) { tabs(); fputs("i_return\n", stderr); }
 			result = stack[--stack_size].get<jint>();
-			return true;
+			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, l_return>) {
 			if(info) { tabs(); fputs("l_return\n", stderr); }
 			result = stack[--stack_size].get<jlong>();
-			return true;
+			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, d_return>) {
 			if(info) { tabs(); fputs("d_return\n", stderr); }
 			result = stack[--stack_size].get<jdouble>();
-			return true;
+			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, a_return>) {
 			if(info) { tabs(); fputs("a_return\n", stderr); }
 			result = move(stack[--stack_size].get<reference>());
-			return true;
+			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, _return>) {
 			if(info) { tabs(); fputs("return\n", stderr); }
-			return true;
+			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, get_static>) {
 			if(info) {
@@ -1023,6 +1023,8 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			);
 			abort();
 		}
+
+		return loop_action::next;
 
 	}, m.code().size());
 

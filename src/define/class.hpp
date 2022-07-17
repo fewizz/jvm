@@ -8,7 +8,7 @@
 #include "../field/decl.hpp"
 #include "../method/decl.hpp"
 #include "../execute/decl.hpp"
-#include "../../abort.hpp"
+#include "../abort.hpp"
 
 #include "class/file/reader.hpp"
 #include "class/file/descriptor/reader.hpp"

@@ -9,7 +9,7 @@
 #include "../field/static/with_class/decl.hpp"
 #include "../name_index.hpp"
 #include "../execute/decl.hpp"
-#include "../../abort.hpp"
+#include "../abort.hpp"
 
 #include "class/file/access_flag.hpp"
 

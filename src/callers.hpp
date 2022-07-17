@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/decl.hpp"
-#include "../alloc.hpp"
+#include "alloc.hpp"
 
 #include <core/limited_list.hpp>
 

@@ -2,7 +2,7 @@
 
 #include "stack_entry.hpp"
 #include "../field/value.hpp"
-#include "../../abort.hpp"
+#include "../abort.hpp"
 #include <stdio.h>
 
 inline stack_entry get_field_value(

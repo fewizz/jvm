@@ -16,7 +16,7 @@ optional<native_function&> try_find_native_function(Name name) {
 	return elements::none{};
 }
 
-#include "../../../abort.hpp"
+#include "../../abort.hpp"
 #include <stdio.h>
 
 template<range Name>

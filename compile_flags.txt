@@ -11,6 +11,7 @@
 -fuse-ld=lld
 -I./
 -I../core/include
+-I../class-file/include
 -I../encoding/include
 -fmodules
 -Xclang -fimplicit-module-maps

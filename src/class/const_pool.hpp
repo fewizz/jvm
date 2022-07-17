@@ -25,7 +25,7 @@ using const_pool_entry = elements::one_of<
 	class_file::constant::skip
 >;
 
-#include "../../alloc.hpp"
+#include "../alloc.hpp"
 
 #include <core/limited_list.hpp>
 

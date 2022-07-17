@@ -5,7 +5,7 @@
 #include "../field/static/with_class/decl.hpp"
 #include "../method/decl.hpp"
 #include "../object/reference/decl.hpp"
-#include "../../alloc.hpp"
+#include "../alloc.hpp"
 #include <core/meta/elements/one_of.hpp>
 #include <core/limited_list.hpp>
 

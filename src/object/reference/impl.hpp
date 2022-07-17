@@ -2,8 +2,8 @@
 
 #include "decl.hpp"
 #include "../decl.hpp"
-#include "../../../alloc.hpp"
-#include "../../../abort.hpp"
+#include "../../alloc.hpp"
+#include "../../abort.hpp"
 #include <core/exchange.hpp>
 #include <stdio.h>
 
