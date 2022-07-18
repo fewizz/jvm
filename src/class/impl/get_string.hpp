@@ -12,7 +12,7 @@
 #include <unicode/utf16.hpp>
 #include <stdio.h>
 
-reference _class::get_string(uint16 string_index) {
+inline reference _class::get_string(uint16 string_index) {
 	if(auto& t = trampoline(string_index); !t.is<elements::none>()) {
 		if(!t.is<::reference>()) {
 			fputs("invalid const pool entry", stderr);
@@ -27,7 +27,7 @@ reference _class::get_string(uint16 string_index) {
 	cc::utf8 text_utf8 = utf8_constant(string.string_index);
 
 	::reference utf16_string_ref {
-		create_string_from_utf8(text_utf8, string_coder::utf16)
+		create_string_from_utf8(text_utf8)
 	};
 
 	trampoline(string_index) = utf16_string_ref;

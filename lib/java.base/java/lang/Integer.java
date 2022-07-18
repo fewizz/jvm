@@ -2,40 +2,42 @@ package java.lang;
 
 public class Integer extends Number {
 	
-	private int value;
+	private final int value_;
 
 	public Integer(int value) {
-		this.value = value;
+		this.value_ = value;
 	}
+
+	public static native String toHexString(int i);
 
 	@Override
 	public byte byteValue() {
-		return (byte) value;
+		return (byte) value_;
 	}
 
 	@Override
 	public short shortValue() {
-		return (short) value;
+		return (short) value_;
 	}
 
 	@Override
 	public int intValue() {
-		return value;
+		return value_;
 	}
 
 	@Override
 	public long longValue() {
-		return value;
+		return value_;
 	}
 
 	@Override
 	public float floatValue() {
-		return value;
+		return value_;
 	}
 
 	@Override
 	public double doubleValue() {
-		return value;
+		return value_;
 	}
 
 }

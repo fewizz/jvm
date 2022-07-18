@@ -2,12 +2,12 @@ package java.lang;
 
 public abstract class Enum<E extends Enum<E>> {
 
-	private String name;
-	private int ordinal;
+	private String name_;
+	private int ordinal_;
 
 	protected Enum(String name, int ordinal) {
-		this.name = name;
-		this.ordinal = ordinal;
+		this.name_ = name;
+		this.ordinal_ = ordinal;
 	}
 
 	public static <T extends Enum<T>> T
