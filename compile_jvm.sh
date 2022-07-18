@@ -2,6 +2,8 @@ d=`realpath ${BASH_SOURCE[0]}`
 d=`dirname ${d}`
 root=`realpath ${d}`
 
+mkdir -p ${root}/build
+
 if ! clang++ \
 	-std=c++20 \
 	-Wall -Wextra \

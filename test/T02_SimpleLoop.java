@@ -10,7 +10,6 @@ public class T02_SimpleLoop {
 		if(res != 10) {
 			System.exit(1);
 		}
-
 	}
 
 }
