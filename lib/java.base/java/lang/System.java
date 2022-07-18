@@ -8,4 +8,8 @@ public final class System {
 		Object src, int srcPos, Object dest, int destPos, int length
 	);
 
+	public static void exit(int status) {
+		Runtime.getRuntime().exit(status);
+	}
+
 }

@@ -10,7 +10,8 @@ static inline void init_java_lang_object() {
 		[](jni_environment*, object* o) {
 			return (int32) (nuint) o;
 		},
-		c_string{ "Java_java_lang_Object_hashCode" }
+		c_string{ "Java_java_lang_Object_hashCode" },
+		c_string{ "()I" }
 	);
 
 	native_functions.emplace_back(
@@ -18,7 +19,8 @@ static inline void init_java_lang_object() {
 		[](jni_environment*, object* o) {
 			return & o->_class().reference().object();
 		},
-		c_string{ "Java_java_lang_Object_getClass" }
+		c_string{ "Java_java_lang_Object_getClass" },
+		c_string{ "()Ljava/lang/Class;" }
 	);
 
 }

@@ -5,11 +5,11 @@
 #include "stack_entry.hpp"
 #include "../class/decl.hpp"
 #include "../method/decl.hpp"
-#include "class/file/code/instruction.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include <class/file/attribute/code/instruction.hpp>
+#include <class/file/descriptor/reader.hpp>
 
-inline void invoke_static(
-	_class& c, class_file::code::instruction::invoke_static x,
+inline optional<reference> invoke_static(
+	_class& c, class_file::attribute::code::instruction::invoke_static x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	namespace cc = class_file::constant;
@@ -38,11 +38,18 @@ inline void invoke_static(
 	stack_size -= args_count;
 	method_with_class wic = c.get_static_method(x.index);
 
-	stack_entry result = execute(
+	expected<stack_entry, reference> result = execute(
 		wic,
 		span{ stack + stack_size, args_count }
 	);
-	if(!result.is<jvoid>()) {
+
+	if(result.is_unexpected()) {
+		return result.get_unexpected();
+	}
+
+	if(!result.get_expected().is<jvoid>()) {
 		stack[stack_size++] = result;
 	}
+
+	return {};
 }

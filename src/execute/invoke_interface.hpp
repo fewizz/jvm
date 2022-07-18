@@ -4,11 +4,11 @@
 #include "info.hpp"
 #include "stack_entry.hpp"
 #include "../class/decl.hpp"
-#include "class/file/constant.hpp"
-#include "class/file/code/instruction.hpp"
+#include <class/file/constant.hpp>
+#include <class/file/attribute/code/instruction.hpp>
 
-inline void invoke_interface(
-	_class& c, class_file::code::instruction::invoke_interface x,
+inline optional<reference> invoke_interface(
+	_class& c, class_file::attribute::code::instruction::invoke_interface x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	namespace cf = class_file;
@@ -73,11 +73,18 @@ inline void invoke_interface(
 	}
 
 	stack_size -= args_count;
-	stack_entry result = execute(
+	expected<stack_entry, reference> result = execute(
 		method_with_class{ m0.value(), c0.value() },
 		span{ stack + stack_size, args_count }
 	);
-	if(!result.is<jvoid>()) {
+
+	if(result.is_unexpected()) {
+		return result.get_unexpected();
+	}
+
+	if(!result.get_expected().is<jvoid>()) {
 		stack[stack_size++] = result;
 	}
+
+	return {};
 }

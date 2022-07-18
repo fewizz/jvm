@@ -21,30 +21,45 @@ read_method(
 
 	code_or_native_function code_or_native_function{ elements::none{} };
 
+	exception_handlers_container exception_handlers;
+
 	auto end = read_attributes(
 		[&](auto name_index) {
 			return const_pool.utf8_constant(name_index);
 		},
 		[&]<typename Type>(Type x) {
-			if constexpr (Type::type == class_file::attribute::type::code) {
+			using namespace class_file;
+
+			if constexpr (Type::type == attribute::type::code) {
+				using namespace attribute::code;
+
 				auto [read_max_locals, max_stack] = x();
 				auto [read_code, max_locals] = read_max_locals();
-				auto src0 = read_code.iterator_;
-				uint32 length = read<uint32, endianness::big>(src0);
+
+				auto [read_exception_table, code_span] = read_code.as_span();
+
 				code_or_native_function = ::code {
-					span<uint8, uint32> { read_code.iterator_, length },
-					max_stack, max_locals
+					code_span, max_stack, max_locals
 				};
+
+				exception_handlers = { read_exception_table.count() };
+
+				read_exception_table([&](exception_handler eh) {
+					exception_handlers.emplace_back(eh);
+					return loop_action::next;
+				});
 			}
 		}
 	);
 
 	return {
-		end, method {
+		end,
+		method {
 			access_flags,
 			::name_index{ name_index },
 			::descriptor_index{ descriptor_index },
-			code_or_native_function
+			code_or_native_function,
+			move(exception_handlers)
 		}
 	};
 }

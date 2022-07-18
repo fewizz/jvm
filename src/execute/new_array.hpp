@@ -7,8 +7,8 @@
 #include "../field/value.hpp"
 #include "../object/create.hpp"
 #include "../classes/find_or_load.hpp"
-#include "class/file/code/instruction.hpp"
 
+#include <class/file/attribute/code/instruction.hpp>
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/array.hpp>
@@ -16,7 +16,7 @@
 
 inline void new_array(
 	//_class& c, TODO use trampoline
-	class_file::code::instruction::new_array x,
+	class_file::attribute::code::instruction::new_array x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	char type;

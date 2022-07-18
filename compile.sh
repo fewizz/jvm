@@ -1,5 +1,7 @@
+root=`dirname ${BASH_SOURCE[0]}`
+
 echo "compiling jvm"
-bash compile_jvm.sh
+if ! bash ${root}/compile_jvm.sh; then exit 1; fi
 
 echo "compiling lib"
-bash compile_lib.sh
+if ! bash ${root}/compile_lib.sh; then exit 1; fi

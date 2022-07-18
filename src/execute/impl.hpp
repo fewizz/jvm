@@ -27,10 +27,10 @@
 #include <core/single.hpp>
 #include <core/on_scope_exit.hpp>
 
-static inline stack_entry
+static inline expected<stack_entry, reference>
 execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	namespace cf = class_file;
-	namespace instr = cf::code::instruction;
+	namespace instr = cf::attribute::code::instruction;
 
 	_class& c = mwc._class();
 	method& m = mwc.method();
@@ -57,6 +57,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	}};
 
 	stack_entry result;
+	reference exception;
 
 	if(m.is_native()) {
 		if(!m.has_native_function()) {
@@ -94,10 +95,43 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		}
 	}
 
-	using namespace cf::code::instruction;
+	namespace attr = cf::attribute;
+	using namespace attr::code::instruction;
 	namespace cc = cf::constant;
 
 	reader([&]<typename Type>(Type x, uint8*& pc) {
+
+		auto handle_expeption = [&](reference ref) -> loop_action {
+			_class& thrown_class = ref.object()._class();
+
+			auto& exception_handlers = m.exception_handlers();
+
+			for(attr::code::exception_handler handler : exception_handlers) {
+				uint32 pc0 = pc - m.code().begin();
+				bool in_range = pc0 >= handler.start_pc && pc0 < handler.end_pc;
+				if(!in_range) {
+					continue;
+				}
+
+				_class& catch_class = c.get_class(handler.catch_type);
+
+				bool same = &thrown_class == &catch_class;
+				bool subclass = thrown_class.is_subclass_of(catch_class);
+
+				if(!(same || subclass)) {
+					continue;
+				}
+
+				pc = m.code().begin() + handler.handler_pc;
+				stack_size = 0;
+				stack[stack_size++] = move(ref);
+				return loop_action::next;
+			}
+
+			exception = move(ref);
+			return loop_action::stop;
+		};
+
 		if constexpr (same_as<Type, nop>) {}
 		else if constexpr (same_as<Type, a_const_null>) {
 			if(info) { tabs(); fputs("a_const_null\n", stderr); }
@@ -565,7 +599,9 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			stack[stack_size++] = jint{ value1 ^ value2 };
 		}
 		else if constexpr (same_as<Type, i_inc>) {
-			if(info) { tabs(); fputs("i_inc\n", stderr); }
+			if(info) {
+				tabs(); fprintf(stderr, "i_inc %hhu %hhd\n", x.index, x.value);
+			}
 			local[x.index].template get<jint>().value += x.value;
 		}
 		else if constexpr (same_as<Type, i_to_l>) {
@@ -891,16 +927,29 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			put_field_value(to, move(value));
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
-			::invoke_virtual(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_virtual(c, x, stack, stack_size);
+			if(possible_exception.has_value()) {
+				return handle_expeption(possible_exception.value());
+			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_special>) {
-			::invoke_special(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_special(c, x, stack, stack_size);
+			if(possible_exception.has_value()) {
+				return handle_expeption(possible_exception.value());
+			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_static>) {
-			::invoke_static(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_static(c, x, stack, stack_size);
+			if(possible_exception.has_value()) {
+				return handle_expeption(possible_exception.value());
+			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
-			::invoke_interface(c, x, stack, stack_size);
+			auto possible_exception =
+				::invoke_interface(c, x, stack, stack_size);
+			if(possible_exception.has_value()) {
+				return handle_expeption(possible_exception.value());
+			}
 		}
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {
@@ -941,10 +990,16 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			::array_length(ref.object(), count);
 			stack[stack_size++] = move(ref);
 		}
-		else if constexpr (same_as<Type, cf::code::instruction::array_length>) {
+		else if constexpr (same_as<Type, instr::array_length>) {
 			if(info) { tabs(); fputs("array_length\n", stderr); }
 			reference ref = stack[--stack_size].get<reference>();
 			stack[stack_size++] = jint{ ::array_length(ref.object()) };
+		}
+		else if constexpr (same_as<Type, a_throw>) {
+			if(info) { tabs(); fputs("a_throw\n", stderr); }
+
+			reference ref = move(stack[--stack_size].get<reference>());
+			return handle_expeption(move(ref));
 		}
 		else if constexpr (same_as<Type, check_cast>) {
 			if(info) {
@@ -1027,6 +1082,10 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		return loop_action::next;
 
 	}, m.code().size());
+
+	if(!exception.is_null()) {
+		return move(exception);
+	}
 
 	return result;
 }

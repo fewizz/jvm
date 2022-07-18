@@ -4,6 +4,7 @@
 #include "object/impl.hpp"
 #include "native/jni/environment.hpp"
 #include "array.hpp"
+#include "exe_path.hpp"
 #include "classes/load.hpp"
 
 #include "lib/init.hpp"
@@ -15,10 +16,13 @@
 #include <inttypes.h>
 
 int main (int argc, const char** argv) {
-	if(argc != 3) {
-		fputs("usage: 'class name' 'method name'", stderr);
+	if(argc != 2) {
+		fputs("usage: 'class name'", stderr);
 		return 1;
 	}
+
+	// TODO replace with somethig more reliable
+	exe_path = argv[0];
 
 	void_class   = define_primitive_class(c_string{ "void"    });
 	bool_class   = define_primitive_class(c_string{ "boolean" });
@@ -42,22 +46,34 @@ int main (int argc, const char** argv) {
 	init_lib();
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
-	method& m = c.find_method(c_string{ argv[2] }.sized());
+	method& m = c.find_method(
+		c_string{ "main" },
+		c_string{ "([Ljava/lang/String;)V" }
+	);
 
-	stack_entry fv = execute(method_with_class{ m, c });
+	method_with_class mwc{ m, c };
 
-	if(fv.is<jint>()) {
-		printf("%" PRId32, fv.get<jint>().value);
+	expected<stack_entry, reference> result = execute(mwc);
+
+	if(result.is_unexpected()) {
+		fputs("unexpected", stdout);
+		return 1;
+	}
+
+	stack_entry value = result.get_expected();
+
+	if(value.is<jint>()) {
+		printf("%" PRId32, value.get<jint>().value);
 	} else
-	if(fv.is<jlong>()) {
-		printf("%" PRId64, fv.get<jlong>().value);
+	if(value.is<jlong>()) {
+		printf("%" PRId64, value.get<jlong>().value);
 	} else
 	if(
-		fv.is<reference>() &&
-		&fv.get<reference>().object()._class() == &string_class.value()
+		value.is<reference>() &&
+		&value.get<reference>().object()._class() == &string_class.value()
 	) {
 		for_each_string_codepoint(
-			fv.get<reference>().object(),
+			value.get<reference>().object(),
 			[](unicode::code_point cp) {
 				fputc(cp, stderr);
 			}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../class/decl.hpp"
+#include "../exe_path.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>
@@ -14,27 +15,65 @@
 
 template<typename Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
-	auto name0 = transform_view{ name, [&](auto ch) {
-		return (const char) ch;
-	}};
+	auto try_at = [&](auto path) -> decltype(auto) {
+		auto name0 = transform_view{ name, [&](auto ch) {
+			return (const char) ch;
+		}};
 
-	auto null_terminated = concat_view {
-		name0, c_string{ ".class" }, single_view{ '\0' }
+		auto null_terminated = concat_view {
+			path, single_view{'/'},
+			name0, c_string{ ".class" }, single_view{ '\0' }
+		};
+
+		return view_copy_on_stack{ null_terminated }(
+			[&](auto on_stack) -> optional<decltype(handler(declval<FILE*>()))> {
+				FILE* f = fopen(on_stack.data(), "rb");
+
+				if(f == nullptr) {
+					return {};
+				}
+
+				on_scope_exit close_file{[&]{ fclose(f); }};
+
+				return handler(f);
+			}
+		);
 	};
 
-	return view_copy_on_stack{ null_terminated }(
-		[&](auto on_stack) -> decltype(auto) {
-			FILE* f = fopen(on_stack.data(), "rb");
-			on_scope_exit close_file{[&]{ fclose(f); }};
+	auto exe = exe_path.value().sized();
 
-			if(f == nullptr) {
-				fprintf(stderr, "couldn't open class file %s", on_stack.data());
-				abort();
-			}
+	// TODO replace with algo
+	nuint last_slash = exe.size() - 1;
 
-			return handler(f);
+	while(
+		last_slash >= 0 &&
+		(exe[last_slash] != '\\' && exe[last_slash] != '/')
+	){
+		--last_slash;
+	}
+
+	auto result = view_copy_on_stack {
+		concat_view {
+			c_string{ exe.data(), last_slash },
+			c_string{ "/java.base"}
 		}
-	);
+	}([&](auto on_stack) {
+		return try_at(on_stack);
+	});
+
+	if(!result.has_value()) {
+		result = try_at(c_string{ "." });
+	}
+
+	if(!result) {
+		fputs("couldn't find class file ", stdout);
+		view_copy_on_stack{ name }([&](auto name_on_stack) {
+			fwrite(name_on_stack.data(), 1, name_on_stack.size(), stderr);
+		});
+		abort();
+	}
+
+	return result.value();
 }
 
 template<range Name>

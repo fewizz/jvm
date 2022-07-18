@@ -6,7 +6,7 @@
 // #include "java_lang/double.hpp"
 // #include "java_lang/float.hpp"
 #include "java_lang/object.hpp"
-// #include "java_lang/runtime.hpp"
+#include "java_lang/runtime.hpp"
 #include "java_lang/string.hpp"
 #include "java_lang/system.hpp"
 // #include "jdk_internal_misc/cds.hpp"
@@ -21,7 +21,7 @@ static inline void init_lib() {
 	// init_java_lang_double();
 	// init_java_lang_float();
 	init_java_lang_object();
-	// init_java_lang_runtime();
+	init_java_lang_runtime();
 	init_java_lang_string();
 	init_java_lang_system();
 	// init_jdk_internal_misc_cds();

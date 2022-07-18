@@ -5,7 +5,7 @@
 #include "../../classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
-static_field_with_class _class::get_static_field(uint16 ref_index) {
+inline static_field_with_class _class::get_static_field(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		if(!t.is<static_field_with_class>()) {
 			fputs("invalid const pool entry", stderr);

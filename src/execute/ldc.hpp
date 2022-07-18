@@ -3,10 +3,10 @@
 #include "info.hpp"
 #include "stack_entry.hpp"
 #include "../class/decl.hpp"
-#include "class/file/code/instruction.hpp"
+#include <class/file/attribute/code/instruction.hpp>
 
 inline void ldc(
-	_class& c, class_file::code::instruction::ldc x,
+	_class& c, class_file::attribute::code::instruction::ldc x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	if(info) {
@@ -37,7 +37,7 @@ inline void ldc(
 }
 
 inline void ldc_w(
-	_class& c, class_file::code::instruction::ldc_w x,
+	_class& c, class_file::attribute::code::instruction::ldc_w x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	if(info) {
@@ -68,7 +68,7 @@ inline void ldc_w(
 }
 
 inline void ldc_2_w(
-	_class& c, class_file::code::instruction::ldc_2_w x,
+	_class& c, class_file::attribute::code::instruction::ldc_2_w x,
 	stack_entry* stack, nuint& stack_size
 ) {
 	if(info) {

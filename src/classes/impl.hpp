@@ -19,6 +19,7 @@ static inline _class& find_or_load_class(Name name) {
 
 #include <core/ends_with.hpp>
 #include <core/starts_with.hpp>
+#include <stdio.h>
 
 template<range Name>
 inline _class& load_class(Name name) {
