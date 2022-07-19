@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../class/decl.hpp"
-#include "../method/decl.hpp"
-#include "class/file/method/reader.hpp"
+#include "class/decl.hpp"
+#include "method/decl.hpp"
+
+#include <class/file/method/reader.hpp>
 
 #include <core/meta/elements/of.hpp>
 #include <core/meta/elements/one_of.hpp>

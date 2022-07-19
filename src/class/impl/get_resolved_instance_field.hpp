@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../decl.hpp"
-#include "../../field/decl.hpp"
-#include "../../classes/find_or_load.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "class/decl.hpp"
+#include "field/decl.hpp"
+#include "classes/find_or_load.hpp"
+#include <class/file/descriptor/reader.hpp>
 
 instance_field_index
-_class::get_resolved_instance_field_index(uint16 ref_index) {
+inline _class::get_resolved_instance_field_index(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		if(!t.is<instance_field_index>()) {
 			fputs("invalid const pool entry", stderr);

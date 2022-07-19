@@ -1,17 +1,17 @@
 #pragma once
 
-#include "const_pool.hpp"
-#include "trampoline_pool.hpp"
-#include "../field/decl.hpp"
-#include "../field/instance/decl.hpp"
-#include "../field/instance/with_class/decl.hpp"
-#include "../field/static/decl.hpp"
-#include "../field/static/with_class/decl.hpp"
-#include "../name_index.hpp"
-#include "../execute/decl.hpp"
-#include "../abort.hpp"
+#include "./const_pool.hpp"
+#include "./trampoline_pool.hpp"
+#include "field/decl.hpp"
+#include "field/instance/decl.hpp"
+#include "field/instance/with_class/decl.hpp"
+#include "field/static/decl.hpp"
+#include "field/static/with_class/decl.hpp"
+#include "name_index.hpp"
+#include "execute/decl.hpp"
+#include "abort.hpp"
 
-#include "class/file/access_flag.hpp"
+#include <class/file/access_flag.hpp>
 
 #include <core/range.hpp>
 #include <core/limited_list.hpp>
@@ -19,6 +19,7 @@
 #include <core/expected.hpp>
 #include <core/c_string.hpp>
 #include <core/meta/elements/optional.hpp>
+
 #include <stdio.h>
 
 struct class_data : span<uint8> {

@@ -7,26 +7,30 @@
 #include "../../abort.hpp"
 #include <core/bit_cast.hpp>
 #include <stdio.h>
-//#include <immintrin.h>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
 inline stack_entry native_function::call(span<stack_entry, uint16> args) {
-	if(args.size() > 4) {
-		fputs("> 4", stderr);
+	if(args.size() > 3) {
+		fputs("args.size() > 3", stderr);
 		abort();
 	}
 
-	uint64 iorref_storage[4] { 0 }; {
+	uint64 iorref_storage[args.size() + 1]; {
 		nuint arg = 0;
+
+		iorref_storage[arg++] = (uint64) nullptr; // jni_environment*
+
 		for(stack_entry& se : args) {
 			se.view([&]<typename Type>(Type& value) {
 				if constexpr(same_as<Type, reference>) {
-					iorref_storage[arg++] = bit_cast<uint64>(value.object_ptr());
+					iorref_storage[arg++] =
+						bit_cast<uint64>(value.object_ptr());
 				}
 				else if constexpr(same_as<Type, jlong>) {
-					iorref_storage[arg++] = bit_cast<uint64>(value);
+					iorref_storage[arg++] =
+						bit_cast<uint64>(value);
 				}
 				else if constexpr(
 					same_as<Type, jbool> || same_as<Type, jbyte> ||
@@ -44,10 +48,12 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 		for(stack_entry& se : args) {
 			se.view([&]<typename Type>(Type& value) {
 				if constexpr(same_as<Type, jfloat>) {
-					floating_storage[arg++] = __extension__ (__m128){ value, 0, 0, 0 };
+					floating_storage[arg++] =
+						__extension__ (__m128){ value, 0, 0, 0 };
 				}
 				if constexpr(same_as<Type, jdouble>) {
-					floating_storage[arg++] = __extension__ (__m128d){ value, 0 };
+					floating_storage[arg++] =
+						__extension__ (__m128d){ value, 0 };
 				}
 			});
 		}

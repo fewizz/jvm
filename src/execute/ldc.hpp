@@ -1,8 +1,10 @@
 #pragma once
 
-#include "info.hpp"
-#include "stack_entry.hpp"
-#include "../class/decl.hpp"
+#include "./info.hpp"
+#include "./stack_entry.hpp"
+
+#include "class/decl.hpp"
+
 #include <class/file/attribute/code/instruction.hpp>
 
 inline void ldc(

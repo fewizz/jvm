@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../class/decl.hpp"
-#include "../exe_path.hpp"
+#include "class/decl.hpp"
+#include "exe_path.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>

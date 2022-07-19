@@ -10,21 +10,25 @@ public class Throwable implements Serializable {
 	public Throwable() {
 		this.message_ = null;
 		this.cause_ = null;
+		fillInStackTrace();
 	}
 
 	public Throwable(String message) {
 		this.message_ = message;
 		this.cause_ = null;
+		fillInStackTrace();
 	}
 
 	public Throwable(String message, Throwable cause) {
 		this.message_ = message;
 		this.cause_ = cause;
+		fillInStackTrace();
 	}
 
 	public Throwable(Throwable cause) {
-		this.message_ = null;
+		this.message_ = cause == null ? null : cause.toString();
 		this.cause_ = cause;
+		fillInStackTrace();
 	}
 
 	public String getMessage() {
@@ -53,5 +57,7 @@ public class Throwable implements Serializable {
 		String className = this.getClass().getName();
 		return className + ": " + mess;
 	}
+
+	public native Throwable fillInStackTrace();
 
 }

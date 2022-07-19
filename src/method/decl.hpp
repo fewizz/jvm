@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../class/member/decl.hpp"
-#include "../native/function/decl.hpp"
-#include "../descriptor_index.hpp"
-#include "../name_index.hpp"
+#include "class/member/decl.hpp"
+#include "native/function/decl.hpp"
+#include "descriptor_index.hpp"
+#include "name_index.hpp"
 
 #include <class/file/access_flag.hpp>
 #include <class/file/constant.hpp>
 #include <class/file/attribute/code/exception_handler.hpp>
+
 #include <core/span.hpp>
 #include <core/meta/elements/one_of.hpp>
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "member/impl.hpp"
+#include "./decl.hpp"
 
-#include "decl.hpp"
-#include "../array.hpp"
-#include "../object/create.hpp"
-#include "../classes/find_or_load.hpp"
+#include "member/impl.hpp"
+#include "array.hpp"
+#include "object/create.hpp"
+#include "classes/find_or_load.hpp"
 
 inline _class::_class(
 	const_pool&& const_pool,

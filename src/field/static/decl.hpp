@@ -1,10 +1,12 @@
 #pragma once
 
-#include "../decl.hpp"
-#include "../value.hpp"
-#include "../../class/const_pool.hpp"
-#include "../../abort.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "field/decl.hpp"
+#include "field/value.hpp"
+#include "class/const_pool.hpp"
+#include "abort.hpp"
+
+#include <class/file/descriptor/reader.hpp>
+
 #include <stdio.h>
 
 struct static_field : field {

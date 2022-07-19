@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../decl.hpp"
+#include "field/decl.hpp"
+
 #include <core/move.hpp>
 
 struct instance_field : field {

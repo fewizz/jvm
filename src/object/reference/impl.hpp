@@ -1,10 +1,13 @@
 #pragma once
 
-#include "decl.hpp"
-#include "../decl.hpp"
-#include "../../alloc.hpp"
-#include "../../abort.hpp"
+#include "./decl.hpp"
+
+#include "object/decl.hpp"
+#include "alloc.hpp"
+#include "abort.hpp"
+
 #include <core/exchange.hpp>
+
 #include <stdio.h>
 
 inline reference::reference(::object& obj) : obj_{ &obj } {

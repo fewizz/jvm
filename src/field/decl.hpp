@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../class/member/decl.hpp"
+#include "class/member/decl.hpp"
 
 struct field : class_member {
 	using base_type = class_member;

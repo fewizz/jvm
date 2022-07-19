@@ -1,11 +1,12 @@
 #pragma once
 
-#include "reference/impl.hpp"
+#include "./decl.hpp"
 
-#include "decl.hpp"
-#include "../class/decl.hpp"
-#include "../field/decl.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "object/reference/impl.hpp"
+#include "class/decl.hpp"
+#include "field/decl.hpp"
+
+#include <class/file/descriptor/reader.hpp>
 
 inline object::object(::_class& c) :
 	class_{ c },

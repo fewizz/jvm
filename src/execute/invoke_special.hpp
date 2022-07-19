@@ -1,10 +1,12 @@
 #pragma once
 
-#include "info.hpp"
-#include "stack_entry.hpp"
-#include "decl.hpp"
-#include "../class/decl.hpp"
-#include "../method/decl.hpp"
+#include "./info.hpp"
+#include "./stack_entry.hpp"
+#include "./decl.hpp"
+
+#include "class/decl.hpp"
+#include "method/decl.hpp"
+
 #include <class/file/attribute/code/instruction.hpp>
 #include <class/file/descriptor/reader.hpp>
 

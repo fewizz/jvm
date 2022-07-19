@@ -1,8 +1,9 @@
 #pragma once
 
-#include "jni_call.hpp"
-#include "../../primitives.hpp"
-#include "../../object/decl.hpp"
+#include "./jni_call.hpp"
+
+#include "primitives.hpp"
+#include "object/decl.hpp"
 
 struct jni_environment;
 struct jmethod_id;
@@ -20,6 +21,10 @@ struct jni_native_interface {
 	);
 	object* (JNI_CALL* find_class)(jni_environment* env, const char *name);
 
-	jmethod_id* (JNI_CALL* from_reflected_method)(jni_environment* env, object* method);
-	jmethod_id* (JNI_CALL* from_reflected_field)(jni_environment* env, object* field);
+	jmethod_id* (JNI_CALL* from_reflected_method)(
+		jni_environment* env, object* method
+	);
+	jmethod_id* (JNI_CALL* from_reflected_field)(
+		jni_environment* env, object* field
+	);
 };

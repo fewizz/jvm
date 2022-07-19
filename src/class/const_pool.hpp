@@ -1,7 +1,10 @@
 #pragma once
 
-#include "class/file/constant.hpp"
+#include "alloc.hpp"
 
+#include <class/file/constant.hpp>
+
+#include <core/limited_list.hpp>
 #include <core/meta/elements/one_of.hpp>
 
 using const_pool_entry = elements::one_of<
@@ -24,10 +27,6 @@ using const_pool_entry = elements::one_of<
 	class_file::constant::package,
 	class_file::constant::skip
 >;
-
-#include "../alloc.hpp"
-
-#include <core/limited_list.hpp>
 
 struct const_pool :
 	private limited_list<const_pool_entry, uint16, default_allocator>
@@ -95,4 +94,5 @@ public:
 	auto name_and_type_constant(uint16 index) const {
 		return constant<class_file::constant::name_and_type>(index);
 	}
+
 };

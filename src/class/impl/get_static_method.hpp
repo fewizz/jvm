@@ -1,11 +1,12 @@
 #pragma once
 
-#include "../decl.hpp"
-#include "../../method/decl.hpp"
-#include "../../classes/find_or_load.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "class/decl.hpp"
+#include "method/decl.hpp"
+#include "classes/find_or_load.hpp"
 
-method_with_class _class::get_static_method(uint16 ref_index) {
+#include <class/file/descriptor/reader.hpp>
+
+inline method_with_class _class::get_static_method(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
 		if(!t.is<method_with_class>()) {
 			fputs("invalid const pool entry", stderr);

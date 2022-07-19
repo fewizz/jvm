@@ -22,6 +22,23 @@ public final class String {
 		// TODO throws IndexOutOfBoundsException
 	}
 
+	
+	public boolean startsWith(String prefix) {
+		int prefix_len = prefix.length();
+
+		if(prefix_len > length()) {
+			return false;
+		}
+
+		for(int i = 0; i < prefix_len; ++i) {
+			if(this.charAt(i) != prefix.charAt(i)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	@Override
 	public int hashCode() {
 		int result = 0;

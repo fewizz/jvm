@@ -9,7 +9,7 @@
 -Iinclude
 -ftemplate-backtrace-limit=0
 -fuse-ld=lld
--I./
+-iquote ./src
 -I../core/include
 -I../class-file/include
 -I../encoding/include

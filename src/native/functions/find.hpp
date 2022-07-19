@@ -1,10 +1,18 @@
 #pragma once
 
+#include "method/decl.hpp"
+#include "class/decl.hpp"
 #include "container.hpp"
-#include "../function/decl.hpp"
+#include "native/function/decl.hpp"
+#include "abort.hpp"
+
 #include <core/meta/elements/optional.hpp>
 #include <core/range.hpp>
 #include <core/equals.hpp>
+#include <core/concat.hpp>
+#include <core/transform.hpp>
+
+#include <stdio.h>
 
 template<range Name>
 optional<native_function&> try_find_native_function(Name name) {
@@ -15,9 +23,6 @@ optional<native_function&> try_find_native_function(Name name) {
 	}
 	return elements::none{};
 }
-
-#include "../../abort.hpp"
-#include <stdio.h>
 
 template<range Name>
 native_function& find_native_function(Name name) {
@@ -32,11 +37,6 @@ native_function& find_native_function(Name name) {
 	fputs("couldn't find native function in container", stderr);
 	abort();
 }
-
-#include "../../method/decl.hpp"
-#include "../../class/decl.hpp"
-#include <core/concat.hpp>
-#include <core/transform.hpp>
 
 inline native_function& find_native_function(method_with_class m) {
 	transform_view undescored_class_name{ m._class().name(), [](const char c) {

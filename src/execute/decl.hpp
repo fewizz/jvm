@@ -1,7 +1,8 @@
 #pragma once
 
-#include "stack_entry.hpp"
-#include "../method/with_class/decl.hpp"
+#include "./stack_entry.hpp"
+
+#include "method/with_class/decl.hpp"
 
 #include <core/expected.hpp>
 

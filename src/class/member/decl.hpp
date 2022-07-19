@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../../name_index.hpp"
-#include "../../descriptor_index.hpp"
-#include "class/file/access_flag.hpp"
+#include "name_index.hpp"
+#include "descriptor_index.hpp"
+
+#include <class/file/access_flag.hpp>
 
 struct class_member {
 private:

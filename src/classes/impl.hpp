@@ -1,7 +1,18 @@
 #pragma once
 
-#include "find_or_load.hpp"
-#include "load.hpp"
+#include "./find_or_load.hpp"
+#include "./load.hpp"
+
+#include "execute/info.hpp"
+#include "define/class.hpp"
+#include "define/primitive_class.hpp"
+#include "define/array_class.hpp"
+#include "execute/decl.hpp"
+
+#include <core/ends_with.hpp>
+#include <core/starts_with.hpp>
+
+#include <stdio.h>
 
 template<range Name>
 static inline _class& find_or_load_class(Name name) {
@@ -10,16 +21,6 @@ static inline _class& find_or_load_class(Name name) {
 	}
 	return load_class(name);
 }
-
-#include "../execute/info.hpp"
-#include "../define/class.hpp"
-#include "../define/primitive_class.hpp"
-#include "../define/array_class.hpp"
-#include "../execute/decl.hpp"
-
-#include <core/ends_with.hpp>
-#include <core/starts_with.hpp>
-#include <stdio.h>
 
 template<range Name>
 inline _class& load_class(Name name) {

@@ -1,15 +1,17 @@
 #pragma once
 
-#include "../../array.hpp"
-#include "../../classes/find_or_load.hpp"
-#include "../../class/decl.hpp"
-#include "../../object/create.hpp"
-#include "../../lib/java_lang/string.hpp"
-#include "../../abort.hpp"
+#include "array.hpp"
+#include "classes/find_or_load.hpp"
+#include "class/decl.hpp"
+#include "object/create.hpp"
+#include "lib/java_lang/string.hpp"
+#include "abort.hpp"
 
-#include <core/transform.hpp>
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
+
+#include <core/transform.hpp>
+
 #include <stdio.h>
 
 inline reference _class::get_string(uint16 string_index) {

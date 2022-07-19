@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../decl.hpp"
-#include "../../field/decl.hpp"
-#include "../../classes/find_or_load.hpp"
+#include "class/decl.hpp"
+#include "field/decl.hpp"
+#include "classes/find_or_load.hpp"
 #include "class/file/descriptor/reader.hpp"
 
 inline static_field_with_class _class::get_static_field(uint16 ref_index) {

@@ -1,9 +1,11 @@
 #pragma once
 
-#include "decl.hpp"
-#include "info.hpp"
-#include "stack_entry.hpp"
-#include "../class/decl.hpp"
+#include "./decl.hpp"
+#include "./info.hpp"
+#include "./stack_entry.hpp"
+
+#include "class/decl.hpp"
+
 #include <class/file/constant.hpp>
 #include <class/file/attribute/code/instruction.hpp>
 

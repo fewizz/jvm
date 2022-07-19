@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../../class/member/with_class/decl.hpp"
-#include "class/file/constant.hpp"
+#include "class/member/with_class/decl.hpp"
+
+#include <class/file/constant.hpp>
 
 struct _class;
 struct method;

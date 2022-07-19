@@ -1,17 +1,17 @@
 #pragma once
 
-#include "fields_to_add.hpp"
-#include "constants_to_add.hpp"
-#include "read_method.hpp"
+#include "./fields_to_add.hpp"
+#include "./constants_to_add.hpp"
+#include "./read_method.hpp"
 
-#include "../classes/find_or_load.hpp"
-#include "../field/decl.hpp"
-#include "../method/decl.hpp"
-#include "../execute/decl.hpp"
-#include "../abort.hpp"
+#include "classes/find_or_load.hpp"
+#include "field/decl.hpp"
+#include "method/decl.hpp"
+#include "execute/decl.hpp"
+#include "abort.hpp"
 
-#include "class/file/reader.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include <class/file/reader.hpp>
+#include <class/file/descriptor/reader.hpp>
 
 #include <core/span.hpp>
 #include <core/c_string.hpp>

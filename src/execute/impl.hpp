@@ -1,31 +1,33 @@
 #pragma once
 
-#include "decl.hpp"
-#include "info.hpp"
-#include "get_field_value.hpp"
-#include "put_field_value.hpp"
-#include "ldc.hpp"
-#include "invoke_virtual.hpp"
-#include "invoke_special.hpp"
-#include "invoke_static.hpp"
-#include "invoke_interface.hpp"
-#include "new_array.hpp"
-#include "../callers.hpp"
-#include "../array.hpp"
-#include "../object/create.hpp"
-#include "../native/functions/find.hpp"
-#include "../abort.hpp"
+#include "./decl.hpp"
+#include "./info.hpp"
+#include "./get_field_value.hpp"
+#include "./put_field_value.hpp"
+#include "./ldc.hpp"
+#include "./invoke_virtual.hpp"
+#include "./invoke_special.hpp"
+#include "./invoke_static.hpp"
+#include "./invoke_interface.hpp"
+#include "./new_array.hpp"
 
-#include "class/file/reader.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "callers.hpp"
+#include "array.hpp"
+#include "object/create.hpp"
+#include "native/functions/find.hpp"
+#include "abort.hpp"
 
-#include <stdio.h>
-#include <math.h>
+#include <class/file/reader.hpp>
+#include <class/file/descriptor/reader.hpp>
+
 #include <core/number.hpp>
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/single.hpp>
 #include <core/on_scope_exit.hpp>
+
+#include <stdio.h>
+#include <math.h>
 
 static inline expected<stack_entry, reference>
 execute(method_with_class mwc, span<stack_entry, uint16> args) {

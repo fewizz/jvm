@@ -1,13 +1,15 @@
 #pragma once
 
-#include "../../execute/stack_entry.hpp"
-#include "../../alloc.hpp"
-#include "../../abort.hpp"
+#include "execute/stack_entry.hpp"
+#include "alloc.hpp"
+#include "abort.hpp"
+
 #include <core/c_string.hpp>
 #include <core/range.hpp>
 #include <core/copy.hpp>
 #include <core/span.hpp>
 #include <core/exchange.hpp>
+
 #include <stdio.h>
 
 struct native_function {

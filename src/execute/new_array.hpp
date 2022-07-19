@@ -1,14 +1,16 @@
 #pragma once
 
-#include "info.hpp"
-#include "stack_entry.hpp"
-#include "../array.hpp"
-#include "../class/decl.hpp"
-#include "../field/value.hpp"
-#include "../object/create.hpp"
-#include "../classes/find_or_load.hpp"
+#include "./info.hpp"
+#include "./stack_entry.hpp"
+
+#include "array.hpp"
+#include "class/decl.hpp"
+#include "field/value.hpp"
+#include "object/create.hpp"
+#include "classes/find_or_load.hpp"
 
 #include <class/file/attribute/code/instruction.hpp>
+
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/array.hpp>
