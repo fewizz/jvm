@@ -42,7 +42,8 @@ inline optional<reference> invoke_special(
 	stack_size -= args_count;
 	method_with_class wic = c.get_resolved_method(x.index);
 	expected<stack_entry, reference> result = execute(
-		wic, span{ stack + stack_size, args_count }
+		wic,
+		args_container{ stack + stack_size, args_count }
 	);
 
 	if(result.is_unexpected()) {

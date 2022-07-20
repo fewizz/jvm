@@ -11,11 +11,11 @@
 #include "./invoke_interface.hpp"
 #include "./new_array.hpp"
 
-#include "callers.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 #include "native/functions/find.hpp"
 #include "abort.hpp"
+#include "lib/java_lang/null_pointer_exception.hpp"
 
 #include <class/file/reader.hpp>
 #include <class/file/descriptor/reader.hpp>
@@ -30,7 +30,10 @@
 #include <math.h>
 
 static inline expected<stack_entry, reference>
-execute(method_with_class mwc, span<stack_entry, uint16> args) {
+execute(
+	method_with_class mwc,
+	args_container args
+) {
 	namespace cf = class_file;
 	namespace instr = cf::attribute::code::instruction;
 
@@ -49,17 +52,26 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 		fputc('\n', stderr);
 		++tab;
 	}
-	callers.emplace_back(c);
 
 	on_scope_exit _ { [] {
 		if(info) {
 			--tab;
 		}
-		callers.pop_back();
 	}};
 
 	stack_entry result;
 	reference exception;
+	uint32 pc = 0;
+
+	execution_context ctx {
+		c, m, pc, latest_execution_ctx
+	};
+
+	latest_execution_ctx = ctx;
+
+	on_scope_exit return_ctx{ [&]() {
+		latest_execution_ctx = ctx.previous;
+	}};
 
 	if(m.is_native()) {
 		if(!m.has_native_function()) {
@@ -101,16 +113,21 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 	using namespace attr::code::instruction;
 	namespace cc = cf::constant;
 
-	reader([&]<typename Type>(Type x, uint8*& pc) {
+	reader([&]<typename Type>(Type x, uint8*& it) {
+		on_scope_exit update_pc{[&](){
+			pc = it - m.code().begin();
+		}};
 
 		auto handle_expeption = [&](reference ref) -> loop_action {
+			if(ref.is_null()) {
+				ref = create_null_pointer_exception();
+			}
 			_class& thrown_class = ref.object()._class();
 
 			auto& exception_handlers = m.exception_handlers();
 
 			for(attr::code::exception_handler handler : exception_handlers) {
-				uint32 pc0 = pc - m.code().begin();
-				bool in_range = pc0 >= handler.start_pc && pc0 < handler.end_pc;
+				bool in_range = pc >= handler.start_pc && pc < handler.end_pc;
 				if(!in_range) {
 					continue;
 				}
@@ -124,7 +141,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 					continue;
 				}
 
-				pc = m.code().begin() + handler.handler_pc;
+				it = m.code().begin() + handler.handler_pc;
 				stack_size = 0;
 				stack[stack_size++] = move(ref);
 				return loop_action::next;
@@ -688,7 +705,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value == 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_ne>) {
@@ -698,7 +715,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value != 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_lt>) {
@@ -708,7 +725,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value < 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_ge>) {
@@ -718,7 +735,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value >= 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_gt>) {
@@ -728,7 +745,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value > 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_le>) {
@@ -738,7 +755,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			int32 value = stack[--stack_size].get<jint>();
 			if(value <= 0) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_eq>) {
@@ -749,7 +766,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 == value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ne>) {
@@ -760,7 +777,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 != value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_lt>) {
@@ -771,7 +788,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 < value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ge>) {
@@ -782,7 +799,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 >= value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_gt>) {
@@ -793,7 +810,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 > value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_le>) {
@@ -804,7 +821,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			int32 value2 = stack[--stack_size].get<jint>();
 			int32 value1 = stack[--stack_size].get<jint>();
 			if(value1 <= value2) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_a_cmp_eq>) {
@@ -815,7 +832,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			reference& value2 = stack[--stack_size].get<reference>();
 			reference& value1 = stack[--stack_size].get<reference>();
 			if(value1.object_ptr() == value2.object_ptr()) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_a_cmp_ne>) {
@@ -826,7 +843,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			reference& value2 = stack[--stack_size].get<reference>();
 			reference& value1 = stack[--stack_size].get<reference>();
 			if(value1.object_ptr() != value2.object_ptr()) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, go_to>) {
@@ -834,7 +851,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 				tabs(); fputs("go_to ", stderr);
 				fprintf(stderr, "%hd\n", x.branch);
 			}
-			pc += x.branch - sizeof(int16) - sizeof(uint8);
+			it = m.code().begin() + pc + x.branch;
 		}
 		else if constexpr (same_as<Type, i_return>) {
 			if(info) { tabs(); fputs("i_return\n", stderr); }
@@ -929,26 +946,37 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			put_field_value(to, move(value));
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
-			auto possible_exception = ::invoke_virtual(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_virtual(
+				c, x, stack, stack_size
+			);
+
 			if(possible_exception.has_value()) {
 				return handle_expeption(possible_exception.value());
 			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_special>) {
-			auto possible_exception = ::invoke_special(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_special(
+				c, x, stack, stack_size
+			);
+
 			if(possible_exception.has_value()) {
 				return handle_expeption(possible_exception.value());
 			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_static>) {
-			auto possible_exception = ::invoke_static(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_static(
+				c, x, stack, stack_size
+			);
+
 			if(possible_exception.has_value()) {
 				return handle_expeption(possible_exception.value());
 			}
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
-			auto possible_exception =
-				::invoke_interface(c, x, stack, stack_size);
+			auto possible_exception = ::invoke_interface(
+				c, x, stack, stack_size
+			);
+
 			if(possible_exception.has_value()) {
 				return handle_expeption(possible_exception.value());
 			}
@@ -1049,7 +1077,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			reference ref = move(stack[--stack_size].get<reference>());
 			if(ref.is_null()) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_non_null>) {
@@ -1059,7 +1087,7 @@ execute(method_with_class mwc, span<stack_entry, uint16> args) {
 			}
 			reference ref = move(stack[--stack_size].get<reference>());
 			if(!ref.is_null()) {
-				pc += x.branch - sizeof(int16) - sizeof(uint8);
+				it = m.code().begin() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, uint8>) {

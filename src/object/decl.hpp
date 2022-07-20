@@ -41,4 +41,5 @@ public:
 
 	auto& values() { return values_; }
 	uint32 references() { return references_; }
+
 };

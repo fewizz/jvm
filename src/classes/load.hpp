@@ -66,7 +66,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	}
 
 	if(!result) {
-		fputs("couldn't find class file ", stdout);
+		fputs("couldn't find class file ", stderr);
 		view_copy_on_stack{ name }([&](auto name_on_stack) {
 			fwrite(name_on_stack.data(), 1, name_on_stack.size(), stderr);
 		});

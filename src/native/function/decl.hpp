@@ -57,7 +57,3 @@ public:
 #include "../jni/environment.hpp"
 #include <core/bit_cast.hpp>
 #include <class/file/descriptor/reader.hpp>
-
-#if __x86_64__
-#include "x86_64.hpp"
-#endif

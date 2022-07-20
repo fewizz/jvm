@@ -17,6 +17,8 @@ public:
 
 	reference() {};
 
+	~reference();
+
 	reference(const reference&);
 	reference(reference&&);
 
@@ -25,7 +27,10 @@ public:
 
 	::object& object();
 	::object* object_ptr() { return obj_; }
-	~reference();
+
+	::object* operator -> () { return obj_; }
 
 	bool is_null() const;
 };
+
+static_assert(sizeof(reference) == sizeof(void*));

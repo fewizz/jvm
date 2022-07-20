@@ -2,10 +2,12 @@
 #include "classes/impl.hpp"
 #include "execute/impl.hpp"
 #include "object/impl.hpp"
+#include "native/impl.hpp"
 #include "native/jni/environment.hpp"
 #include "array.hpp"
 #include "exe_path.hpp"
 #include "classes/load.hpp"
+#include "lib/java_lang/null_pointer_exception.hpp"
 
 #include "lib/init.hpp"
 
@@ -53,7 +55,9 @@ int main (int argc, const char** argv) {
 
 	method_with_class mwc{ m, c };
 
-	expected<stack_entry, reference> result = execute(mwc);
+	expected<stack_entry, reference> result = execute(
+		mwc, args_container{}
+	);
 
 	if(result.is_unexpected()) {
 		fputs("unexpected", stdout);

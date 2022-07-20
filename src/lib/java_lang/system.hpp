@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../native/functions/container.hpp"
-#include "../../classes/find_or_load.hpp"
-#include "../../object/create.hpp"
-#include "../../array.hpp"
+#include "native/functions/container.hpp"
+#include "classes/find_or_load.hpp"
+#include "object/create.hpp"
+#include "array.hpp"
 
 #include <time.h>
 

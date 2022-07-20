@@ -2,8 +2,8 @@
 
 #include "./jni_call.hpp"
 
-#include "primitives.hpp"
 #include "object/decl.hpp"
+#include "primitives.hpp"
 
 struct jni_environment;
 struct jmethod_id;

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../../class/decl.hpp"
-#include "../../classes/find_or_load.hpp"
-#include "../../array.hpp"
-#include "../../object/create.hpp"
+#include "class/decl.hpp"
+#include "classes/find_or_load.hpp"
+#include "array.hpp"
+#include "object/create.hpp"
 
-#include <core/meta/elements/optional.hpp>
 #include <unicode/utf16.hpp>
 #include <unicode/utf8.hpp>
+
+#include <core/meta/elements/optional.hpp>
 
 static optional<_class&> string_class{};
 static instance_field_index string_value_index{};

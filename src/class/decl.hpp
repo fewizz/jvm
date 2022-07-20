@@ -307,4 +307,6 @@ public:
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	);
 
+	_class& find_or_load_array_class();
+
 };

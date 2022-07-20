@@ -6,6 +6,7 @@ public class Throwable implements Serializable {
 
 	private final String message_;
 	private Throwable cause_;
+	private StackTraceElement[] stackTrace_;
 
 	public Throwable() {
 		this.message_ = null;

@@ -3,7 +3,7 @@
 #include <core/integer.hpp>
 
 extern "C" void* __cdecl malloc(nuint size);
-extern "C" void* __cdecl calloc(nuint size);
+extern "C" void* __cdecl calloc(nuint num, nuint size);
 extern "C" void* __cdecl realloc(void *ptr, nuint new_size);
 extern "C" void  __cdecl free(void* ptr);
 
@@ -14,7 +14,7 @@ struct default_allocator {
 	}
 
 	uint8* allocate_zeroed(auto size) {
-		return (uint8*) calloc(size);
+		return (uint8*) calloc(size, 1);
 	}
 
 	void deallocate(uint8* ptr, auto) {

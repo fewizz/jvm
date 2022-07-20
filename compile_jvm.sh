@@ -11,13 +11,13 @@ if ! clang++ \
 	-static \
 	-nostdinc++ \
 	-fno-exceptions \
+	-pthreads \
 	-fno-rtti \
 	-fuse-ld=lld \
 	-iquote ${root}/src \
 	-I ${root}/../core/include \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \
-	-I ${root}/include \
 	-o ${root}/build/jvm \
 	${root}/src/jvm.cpp
 then

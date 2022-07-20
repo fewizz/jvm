@@ -16,4 +16,15 @@ public final class Objects {
 		return o != null ? o.hashCode() : 0;
 	}
 
+	public static int checkFromIndexSize(int fromIndex, int size, int length) {
+		if(!(
+			fromIndex >= 0 && size >= 0 && length >= 0 &&
+			fromIndex + size <= length
+		)) {
+			throw new IndexOutOfBoundsException();
+		}
+
+		return fromIndex;
+	}
+
 }

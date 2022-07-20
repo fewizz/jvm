@@ -2,10 +2,12 @@
 
 #include "./decl.hpp"
 
-#include "member/impl.hpp"
+#include "class/member/impl.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 #include "classes/find_or_load.hpp"
+
+#include <core/concat.hpp>
 
 inline _class::_class(
 	const_pool&& const_pool,
@@ -227,9 +229,17 @@ inline void _class::initialise_if_need() {
 
 	auto clinit = try_find_method(c_string{ "<clinit>" });
 	if(clinit.has_value()) {
-		execute(method_with_class{ clinit.value(), *this });
+		execute(
+			method_with_class{ clinit.value(), *this },
+			args_container{}
+		);
 	}
 	initialisation_state_ = initialised;
+}
+
+inline _class& _class::find_or_load_array_class() {
+	concat_view array_class_name{ c_string{ "[L" }, name(), c_string{ ";" } };
+	return find_or_load_class(array_class_name);
 }
 
 #include "impl/get_static_field.hpp"

@@ -78,7 +78,7 @@ inline optional<reference> invoke_virtual(
 	stack_size -= args_count;
 	expected<stack_entry, reference> result = execute(
 		method_with_class{ m0.value(), c0.value() },
-		span{ stack + stack_size, args_count }
+		args_container{ stack + stack_size, args_count }
 	);
 
 	if(result.is_unexpected()) {

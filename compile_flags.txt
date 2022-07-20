@@ -6,13 +6,12 @@
 -Wno-unused-function
 -fno-exceptions
 -nostdinc++
--Iinclude
 -ftemplate-backtrace-limit=0
 -fuse-ld=lld
--iquote ./src
 -I../core/include
 -I../class-file/include
 -I../encoding/include
+-iquote./src
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build
