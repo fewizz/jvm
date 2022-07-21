@@ -2,6 +2,6 @@ package java.io;
 
 public interface AutoCloseable {
 
-	void close();
+	void close() throws Exception;
 
 }

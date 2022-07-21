@@ -2,24 +2,24 @@ package java.io;
 
 public final class FileDescriptor {
 
-	private final int fd_;
+	final int value_;
 
 	public FileDescriptor() { // Why??
-		this.fd_ = -1;
+		this.value_ = -1;
 	}
 
-	private FileDescriptor(int fd) {
-		this.fd_ = fd;
+	FileDescriptor(int fd) {
+		this.value_ = fd;
 	}
 
 	public boolean valid() {
-		return this.fd_ != -1;
+		return this.value_ != -1;
 	}
 
 	public static native int __sync(int fd);
 
 	public void sync() throws SyncFailedException {
-		if(__sync(this.fd_) == -1) {
+		if(__sync(this.value_) == -1) {
 			throw new SyncFailedException("Bad file descriptor");
 		}
 	}
