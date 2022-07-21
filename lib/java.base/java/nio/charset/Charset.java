@@ -22,8 +22,33 @@ public abstract class Charset implements Comparable<Charset> {
 		return !(name_.startsWith("X-") || name_.startsWith("x-"));
 	}
 
+	public abstract CharsetDecoder newDecoder();
+
+	public abstract CharsetEncoder newEncoder();
+
 	public boolean canEncode() {
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return name_.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Charset) {
+			if(obj == this) {
+				return true;
+			}
+			return this.name_.equals(obj);
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return name_.toString();
 	}
 
 }

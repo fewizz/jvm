@@ -6,6 +6,7 @@
 #include "array.hpp"
 #include "object/create.hpp"
 #include "classes/find_or_load.hpp"
+#include "lib/java_lang/class.hpp"
 
 #include <core/concat.hpp>
 
@@ -32,21 +33,8 @@ inline _class::_class(
 
 inline reference _class::reference() {
 	if(reference_.is_null()) {
-		_class& class_class = find_or_load_class(c_string{ "java/lang/Class" });
-		reference_ = create_object(class_class);
-		auto class_data_location0 = class_class.try_find_instance_field_index(
-			c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
-		);
-		if(!class_data_location0.has_value()) {
-			fputs("couldn't find classData field in Class class", stderr);
-			abort();
-		}
-		::reference long_ref {
-			create_object(find_or_load_class(c_string{ "[J" }))
-		};
-		array_data(long_ref.object(), this);
-		instance_field_index class_data_location = class_data_location0.value();
-		reference_.object().values()[class_data_location] = long_ref;
+		reference_ = create_object(class_class.value());
+		reference_.object().values()[class_ptr_field_index] = (int64) this;
 	}
 	return reference_;
 }

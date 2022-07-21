@@ -1,11 +1,21 @@
 package java.nio;
 
 public abstract class ByteBuffer
-	extends Buffer implements Comparable<ByteBuffer>
+extends Buffer implements Comparable<ByteBuffer>
 {
 
-	protected ByteBuffer(int capacity) {
+	private final boolean readOnly_;
+	private final byte[] backingArray_;
+	private final int offset_;
+	protected ByteOrder endianness_ = ByteOrder.BIG_ENDIAN;
+
+	protected ByteBuffer(
+		int capacity, boolean readOnly, byte[] backingArray, int offset
+	) {
 		super(capacity);
+		this.readOnly_ = readOnly;
+		this.backingArray_ = backingArray;
+		this.offset_ = offset;
 	}
 
 	public static native ByteBuffer allocateDirect(int capacity);
@@ -35,48 +45,100 @@ public abstract class ByteBuffer
 
 	public abstract ByteBuffer put(int index, byte b);
 
-	public ByteBuffer get(byte[] dst, int offset, int length) {
-		if(offset + length >= dst.length) {
-			throw new IndexOutOfBoundsException();
+	public final boolean hasArray() {
+		return this.backingArray_ != null && !this.readOnly_;
+	}
+
+	public final byte[] array() {
+		if(this.backingArray_ == null) {
+			throw new UnsupportedOperationException();
 		}
-
-		if(dst.length > remaining()) {
-			throw new BufferUnderflowException();
+		if(this.readOnly_) {
+			throw new ReadOnlyBufferException();
 		}
+		return this.backingArray_;
+	}
 
-		int end = length + offset;
-
-		for (int x = offset; x < end; ++x) {
-			dst[x] = get();
+	public final int arrayOffset() {
+		if(this.backingArray_ == null) {
+			throw new UnsupportedOperationException();
 		}
+		if(this.readOnly_) {
+			throw new ReadOnlyBufferException();
+		}
+		return this.offset_;
+	}
 
+	@Override
+	public ByteBuffer position(int newPosition) {
+		super.position(newPosition);
 		return this;
 	}
 
-	public ByteBuffer get(byte[] dst) {
-		return get(dst, 0, dst.length);
-	}
-
-	public ByteBuffer get(int index, byte[] dst, int offset, int length) {
-		if(offset + length >= dst.length) {
-			throw new IndexOutOfBoundsException();
-		}
-
-		if(index + length > limit()) {
-			throw new IndexOutOfBoundsException();
-		}
-
-		for (int x = 0; x < length; ++x) {
-			dst[x + offset] = get(index + x);
-		}
-
+	@Override
+	public ByteBuffer limit(int newLimit) {
+		super.limit(newLimit);
 		return this;
 	}
 
-	public ByteBuffer get(int index, byte[] dst) {
-		return get(index, dst, 0, dst.length);
+	@Override
+	public ByteBuffer mark() {
+		super.mark();
+		return this;
 	}
 
+	@Override
+	public ByteBuffer reset() {
+		super.reset();
+		return this;
+	}
+
+	@Override
+	public ByteBuffer clear() {
+		super.clear();
+		return this;
+	}
+
+	public ByteBuffer flip() {
+		super.flip();
+		return this;
+	}
+
+	public ByteBuffer rewind() {
+		super.rewind();
+		return this;
+	}
+
+	public abstract ByteBuffer compact();
+
+	@Override
+	public abstract boolean isDirect();
+
+	@Override
+	public String toString() {
+		return super.toString() + 
+			"(pos = " + this.position() +
+			", limit = " + this.limit() +
+			", capacity = " + this.capacity() + ")";
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		for(int x = this.position(); x < this.limit(); ++x) {
+			result = result * 31 + (int) this.get(x);
+		}
+		return result;
+	}
+
+	public final ByteOrder order() {
+		return this.endianness_;
+	}
+
+	public final ByteBuffer order(ByteOrder bo) {
+		this.endianness_ = bo;
+		return this;
+	}
 	
 
 }

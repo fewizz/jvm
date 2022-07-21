@@ -1,6 +1,6 @@
 package java.lang;
 
-public class Integer extends Number {
+public final class Integer extends Number implements Comparable<Integer> {
 	
 	private final int value_;
 
@@ -38,6 +38,17 @@ public class Integer extends Number {
 	@Override
 	public double doubleValue() {
 		return value_;
+	}
+
+	@Override
+	public int compareTo(Integer anotherInteger) {
+		return compare(this.value_, anotherInteger.value_);
+	}
+
+	public static int compare(int x, int y) {
+		return
+			x == y ? 0 :
+			x > y ? x : y;
 	}
 
 }

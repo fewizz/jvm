@@ -14,34 +14,24 @@
 #include <unicode/utf8.hpp>
 
 static optional<_class&> class_class{};
-static instance_field_index class_data_index{};
-static instance_field_index class_name_index{};
+static instance_field_index class_ptr_field_index{};
+static instance_field_index class_name_field_index{};
 
 static inline _class& class_from_class_instance(object& class_instance) {
-	reference long_ref {
-		class_instance.values()[class_data_index].get<reference>()
-	};
-	return *array_data<_class>(long_ref.object());
+	return * (_class*) (int64)
+		class_instance.values()[class_ptr_field_index].get<jlong>();
 }
 
 static inline void init_java_lang_class() {
-
 	class_class = find_or_load_class(c_string{ "java/lang/Class" });
-	class_data_index = class_class->find_instance_field_index(
-		c_string{ "classData" }, c_string{ "Ljava/lang/Object;" }
+	class_ptr_field_index = class_class->find_instance_field_index(
+		c_string{ "ptr_" }, c_string{ "J" }
 	);
-	class_name_index = class_class->find_instance_field_index(
-		c_string{ "name" }, c_string{ "Ljava/lang/String;" }
-	);
-
-	native_functions.emplace_back(
-		(void*) (void(*)(jni_environment*)) [](jni_environment*) {
-			// chillin
-		},
-		c_string{ "Java_java_lang_Class_registerNatives" }
+	class_name_field_index = class_class->find_instance_field_index(
+		c_string{ "name_" }, c_string{ "Ljava/lang/String;" }
 	);
 
-	native_functions.emplace_back(
+	/*native_functions.emplace_back(
 		(void*) (object*(*)(jni_environment*, object*))
 		[](jni_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
@@ -55,15 +45,15 @@ static inline void init_java_lang_class() {
 			return &string_ref.object();
 		},
 		c_string{ "Java_java_lang_Class_initClassName" }
-	);
+	);*/
 
-	native_functions.emplace_back(
+	/*native_functions.emplace_back(
 		(void*) (bool(*)(jni_environment*, object*))
 		[](jni_environment*, object*) {
 			return true;
 		},
 		c_string{ "Java_java_lang_Class_desiredAssertionStatus0" }
-	);
+	);*/
 
 	native_functions.emplace_back(
 		(void*) (bool(*)(jni_environment*, object*))
@@ -91,7 +81,7 @@ static inline void init_java_lang_class() {
 		c_string{ "Java_java_lang_Class_isPrimitive" }
 	);
 
-	native_functions.emplace_back(
+	/*native_functions.emplace_back(
 		(void*) (object* (*)(jni_environment*, object*))
 		[](jni_environment*, ::object* name) {
 			auto value_location0 = name->_class().try_find_instance_field_index(
@@ -129,5 +119,5 @@ static inline void init_java_lang_class() {
 			return &primitive_class.reference().object();
 		},
 		c_string{ "Java_java_lang_Class_getPrimitiveClass" }
-	);
+	);*/
 }

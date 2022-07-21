@@ -57,4 +57,10 @@ public final class String {
 		return this;
 	}
 
+	public char[] toCharArray() {
+		char[] copy = new char[value_.length];
+		System.arraycopy(value_, 0, copy, 0, value_.length);
+		return copy;
+	}
+
 }

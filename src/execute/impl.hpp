@@ -999,25 +999,17 @@ execute(
 		}
 		else if constexpr (same_as<Type, a_new_array>) {
 			_class& element_class = c.get_class(x.index);
-			auto name = element_class.name();
 
 			if(info) {
 				tabs(); fputs("a_new_array ", stderr);
+				auto name = element_class.name();
 				fwrite(name.data(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
 			int32 count = stack[--stack_size].get<jint>();
-			_class& c0 = find_or_load_class(
-				concat_view{ array{ '[', 'L' }, name, array{ ';' } }
-			);
 
-			auto ref = create_object(c0);
-			::array_data(
-				ref.object(),
-				default_allocator{}.allocate_zeroed(count * sizeof(reference))
-			);
-			::array_length(ref.object(), count);
+			auto ref = create_object_array_of(element_class, count);
 			stack[stack_size++] = move(ref);
 		}
 		else if constexpr (same_as<Type, instr::array_length>) {
