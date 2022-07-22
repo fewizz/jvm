@@ -1,5 +1,6 @@
 #pragma once
 
+#include "java_io/file_descriptor.hpp"
 #include "java_io/file_output_stream.hpp"
 #include "java_lang/class.hpp"
 // #include "java_lang/double.hpp"
@@ -16,6 +17,7 @@
 // #include "jdk_internal_reflect/reflect.hpp"*/
 
 static inline void init_lib() {
+	init_java_io_file_descriptor();
 	init_java_io_file_output_stream();
 	init_java_lang_class();
 	// init_java_lang_double();

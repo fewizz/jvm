@@ -8,10 +8,10 @@ public class FileOutputStream {
 		this.fd_ = fdObj;
 	}
 
-	private static native int __write(int fd, int b);
+	private static native boolean write(long fd, int b);
 
 	public void write(int b) throws IOException {
-		if(__write(fd_.value_, b) == -1) {
+		if(!write(fd_.value_, b)) {
 			throw new IOException();
 		}
 	}
@@ -20,18 +20,20 @@ public class FileOutputStream {
 		write(b, 0, b.length);
 	}
 
-	public static native int __write_b(int fd, byte[] b, int off, int len);
+	public static native boolean write_buffer(
+		long fd, byte[] b, int off, int len
+	);
 
 	public void write(byte[] b, int off, int len) throws IOException {
-		if(__write_b(fd_.value_, b, off, len) == -1) {
+		if(!write_buffer(fd_.value_, b, off, len)) {
 			throw new IOException();
 		}
 	}
 
-	private static native int __close(int fd);
+	private static native boolean close(long fd);
 
 	public void close() throws IOException {
-		if(__close(fd_.value_) == -1) {
+		if(!close(fd_.value_)) {
 			throw new IOException();
 		}
 	}

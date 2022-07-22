@@ -7,8 +7,8 @@ public class T05_PrintToStdOut {
 	public static void main(String... args) throws IOException {
 		FileOutputStream out = new FileOutputStream(FileDescriptor.out);
 		out.write(new byte[] {
-			'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!' }
-		);
+			'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!'
+		});
 	}
 
 }
