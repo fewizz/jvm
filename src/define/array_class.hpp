@@ -17,7 +17,10 @@ inline _class& define_array_class(Name&& name) {
 	c_string len_name { "len_" };
 	c_string len_desc { "I" };
 
-	span data{ default_allocator{}.allocate(name.size()), name.size() };
+	span data {
+		default_allocator{}.allocate(name.size()), nuint{ name.size() }
+	};
+
 	copy{ name }.to(data);
 
 	const_pool.emplace_back(class_file::constant::utf8 {
@@ -62,7 +65,10 @@ inline _class& define_array_class(Name&& name) {
 		interfaces_indices_container{},
 		move(instance_fields),
 		static_fields_container{},
-		methods_container{}
+		methods_container{},
+		optional<_class&>{},
+		is_array_class{ true },
+		is_primitive_class{ false }
 	);
 
 	return classes.back();

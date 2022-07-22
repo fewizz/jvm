@@ -82,12 +82,3 @@ inline optional<_class&> int_class{};
 inline optional<_class&> long_class{};
 inline optional<_class&> float_class{};
 inline optional<_class&> double_class{};
-
-inline optional<_class&> bool_array_class{};
-inline optional<_class&> byte_array_class{};
-inline optional<_class&> short_array_class{};
-inline optional<_class&> char_array_class{};
-inline optional<_class&> int_array_class{};
-inline optional<_class&> long_array_class{};
-inline optional<_class&> float_array_class{};
-inline optional<_class&> double_array_class{};

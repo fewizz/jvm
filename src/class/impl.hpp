@@ -17,18 +17,24 @@ inline _class::_class(
 	interfaces_indices_container&& interfaces,
 	instance_fields_container&& instance_fields,
 	static_fields_container&& static_fields,
-	methods_container&& methods
+	methods_container&& methods,
+	optional<_class&> array_class,
+	is_array_class is_array_class,
+	is_primitive_class is_primitive_class
 ) :
-	::const_pool{ move(const_pool) },
-	::trampoline_pool{ ::const_pool::size() },
-	data_{ data },
-	access_flags_{ access_flags },
-	this_class_index_{ this_class_index },
-	super_class_index_{ super_class_index },
-	interfaces_{ move(interfaces) },
-	instance_fields_{ move(instance_fields) },
-	static_fields_{ move(static_fields) },
-	methods_{ move(methods) }
+	::const_pool       { move(const_pool)      },
+	::trampoline_pool  { ::const_pool::size()  },
+	data_              { data                  },
+	access_flags_      { access_flags          },
+	this_class_index_  { this_class_index      },
+	super_class_index_ { super_class_index     },
+	interfaces_        { move(interfaces)      },
+	instance_fields_   { move(instance_fields) },
+	static_fields_     { move(static_fields)   },
+	methods_           { move(methods)         },
+	array_class_       { array_class           },
+	is_array_class_    { is_array_class        },
+	is_primitive_class_{ is_primitive_class    }
 {}
 
 inline reference _class::reference() {
@@ -225,9 +231,26 @@ inline void _class::initialise_if_need() {
 	initialisation_state_ = initialised;
 }
 
-inline _class& _class::find_or_load_array_class() {
-	concat_view array_class_name{ c_string{ "[L" }, name(), c_string{ ";" } };
-	return find_or_load_class(array_class_name);
+inline _class& _class::get_array_class() {
+	// array class for primitives are passed by constructor,
+	// no special handling needed
+	if(!array_class_.has_value()) {
+		// case when current class is already an array of some dimensionality
+		// for example, array of [Ljava/lang/String; is [[Ljava/lang/String
+		if(is_array_class_) {
+			concat_view array_class_name {
+				c_string{ "[" }, name()
+			};
+			array_class_ = find_or_load_class(array_class_name);
+		}
+		else {
+			concat_view array_class_name {
+				c_string{ "[L" }, name(), c_string{ ";" }
+			};
+			array_class_ = find_or_load_class(array_class_name);
+		}
+	}
+	return array_class_.value();
 }
 
 #include "impl/get_static_field.hpp"

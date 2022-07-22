@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/decl.hpp"
-#include "classes/find_or_load.hpp"
+#include "classes/load.hpp"
 #include "object/create.hpp"
 
 #include <core/meta/elements/optional.hpp>
@@ -25,7 +25,7 @@ inline reference create_null_pointer_exception() {
 
 inline void init_java_lang_null_pointer_exception() {
 	null_pointer_exception_class =
-		find_or_load_class(c_string{ "java/lang/NullPointerException" });
+		load_class(c_string{ "java/lang/NullPointerException" });
 
 	null_pointer_exception_constructor =
 		null_pointer_exception_class.value()

@@ -36,7 +36,7 @@ static inline reference create_stack_trace_element(
 
 static inline void init_java_lang_stack_trace_element() {
 	stack_trace_element_class =
-		find_or_load_class(c_string{ "java/lang/StackTraceElement" });
+		load_class(c_string{ "java/lang/StackTraceElement" });
 
 	stack_trace_element_constructor =
 		stack_trace_element_class->find_method(

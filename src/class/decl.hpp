@@ -2,6 +2,8 @@
 
 #include "./const_pool.hpp"
 #include "./trampoline_pool.hpp"
+#include "./is_array.hpp"
+#include "./is_primitive.hpp"
 #include "field/decl.hpp"
 #include "field/instance/decl.hpp"
 #include "field/instance/with_class/decl.hpp"
@@ -78,6 +80,9 @@ private:
 	instance_fields_container    instance_fields_{};
 	static_fields_container      static_fields_{};
 	methods_container            methods_{};
+	optional<_class&>            array_class_{};
+	is_array_class               is_array_class_{};
+	is_primitive_class           is_primitive_class_{};
 	reference                    reference_{};
 	enum initialisation_state {
 		not_initialised,
@@ -89,12 +94,15 @@ public:
 
 	_class(
 		const_pool&& const_pool,
-		span<uint8> data, class_file::access_flags access_flags,
+		span<uint8> data, class_file::access_flags,
 		this_class_index, super_class_index,
-		interfaces_indices_container&& interfaces,
-		instance_fields_container&& instance_fields,
-		static_fields_container&& static_fields,
-		methods_container&& methods
+		interfaces_indices_container&&,
+		instance_fields_container&&,
+		static_fields_container&&,
+		methods_container&&,
+		optional<_class&> array_class,
+		is_array_class,
+		is_primitive_class
 	);
 
 	_class(_class&&) = delete;
@@ -307,6 +315,6 @@ public:
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	);
 
-	_class& find_or_load_array_class();
+	_class& get_array_class();
 
 };

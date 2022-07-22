@@ -24,30 +24,6 @@ inline method_with_class _class::get_resolved_method(uint16 ref_index) {
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
-	class_file::descriptor::method_reader params{ descriptor.begin() };
-	auto [ret_reader, result0] = params([&]<typename Type>(Type x) {
-		if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-			find_or_load_class(x);
-		}
-		return true;
-	});
-	if(!result0) {
-		fprintf(stderr, "couldn't read method descriptor parameters");
-		abort();
-	}
-
-	auto [end, result1] = ret_reader([&]<typename Type>(Type x) {
-		if constexpr(same_as<Type, class_file::descriptor::object_type>) {
-			find_or_load_class(x);
-		}
-		return true;
-	});
-
-	if(!result1) {
-		fprintf(stderr, "couldn't read method descriptor return type");
-		abort();
-	}
-
 	optional<_class&> c0 = get_class(method_ref.class_index);
 	optional<method&> m0{};
 

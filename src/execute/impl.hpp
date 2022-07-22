@@ -991,7 +991,6 @@ execute(
 				fputc('\n', stderr);
 			}
 			_class& c0 = c.get_class(x.index);
-			c0.initialise_if_need();
 			stack[stack_size++] = create_object(c0);
 		}
 		else if constexpr (same_as<Type, instr::new_array>) {
@@ -1009,7 +1008,7 @@ execute(
 
 			int32 count = stack[--stack_size].get<jint>();
 
-			auto ref = create_object_array_of(element_class, count);
+			auto ref = create_array_of(element_class, count);
 			stack[stack_size++] = move(ref);
 		}
 		else if constexpr (same_as<Type, instr::array_length>) {

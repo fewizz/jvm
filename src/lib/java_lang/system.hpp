@@ -1,7 +1,7 @@
 #pragma once
 
 #include "native/functions/container.hpp"
-#include "classes/find_or_load.hpp"
+#include "classes/load.hpp"
 #include "object/create.hpp"
 #include "array.hpp"
 
@@ -11,7 +11,7 @@ static optional<_class&> system_class{};
 
 static inline void init_java_lang_system() {
 
-	system_class = find_or_load_class(c_string{ "java/lang/System" });
+	system_class = load_class(c_string{ "java/lang/System" });
 
 	native_functions.emplace_back(
 		(void*) (void(*)(

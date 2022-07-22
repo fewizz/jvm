@@ -15,7 +15,8 @@ static instance_field_index throwable_stack_trace_field_index;
 
 static inline void init_java_lang_throwable() {
 
-	throwable_class = find_or_load_class(c_string{ "java/lang/Throwable" });
+	throwable_class = load_class(c_string{ "java/lang/Throwable" });
+
 	throwable_stack_trace_field_index =
 		throwable_class->find_instance_field_index(
 			c_string{ "stackTrace_" },
@@ -33,7 +34,7 @@ static inline void init_java_lang_throwable() {
 				++frames_count;
 			}
 
-			reference ste_array = create_object_array_of(
+			reference ste_array = create_array_of(
 				stack_trace_element_class.value(), frames_count
 			);
 			reference* data = array_data<reference>(ste_array.object());

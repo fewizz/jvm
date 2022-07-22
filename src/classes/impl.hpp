@@ -22,6 +22,8 @@ static inline _class& find_or_load_class(Name name) {
 	return load_class(name);
 }
 
+// only for loading NON-LOADED classes.
+// otherwise, use find_or_load_class(name)
 template<range Name>
 inline _class& load_class(Name name) {
 	if(info) {
@@ -35,27 +37,6 @@ inline _class& load_class(Name name) {
 	});
 
 	if(starts{ name }.with('[')) {
-		if(name.size() == 2) { // primitive
-			return find_class(name);
-		}
-
-		if(
-			!starts{ name }.with('[', 'L') ||
-			!ends  { name }.with(';')
-		) {
-			fputs("reference array type name should end with ';'", stderr);
-			abort();
-		}
-
-		auto element_name = to_range(
-			name.begin() + 2,
-			name.begin() + (name.size() - 1)
-		);
-
-		find_or_load_class(element_name);
-		auto name = concat_view{
-			array{ '[', 'L' }, element_name, array{ ';' }
-		};
 		return define_array_class(name);
 	}
 

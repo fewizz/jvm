@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/decl.hpp"
-#include "classes/find_or_load.hpp"
+#include "classes/load.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 
@@ -15,8 +15,8 @@ static instance_field_index string_value_index{};
 
 template<typename Handler>
 inline void for_each_string_codepoint(object& str, Handler&& handler) {
-	reference& values_ref = str.values()[string_value_index].get<reference>();
-	object& values = values_ref.object();
+	reference& value_ref = str.values()[string_value_index].get<reference>();
+	object& values = value_ref.object();
 
 	uint16* it = array_data<uint16>(values);
 	int32 len = array_length(values);
@@ -30,15 +30,11 @@ inline void for_each_string_codepoint(object& str, Handler&& handler) {
 }
 
 static inline reference create_string(span<uint16> data) {
-	reference data_ref = create_object(char_array_class.value());
+	reference data_ref = create_char_array(data.size());
 	array_data(data_ref.object(), data.data());
-	array_length(data_ref.object(), data.size());
-
-	reference ref = create_object(string_class.value());
-
-	ref.object().values()[string_value_index] = move(data_ref);
-
-	return ref;
+	reference string_ref = create_object(string_class.value());
+	string_ref.object().values()[string_value_index] = move(data_ref);
+	return string_ref;
 }
 
 template<range String>
@@ -71,7 +67,7 @@ create_string_from_utf8(String&& str_utf8) {
 
 static inline void init_java_lang_string() {
 
-	string_class = find_or_load_class(c_string{ "java/lang/String" });
+	string_class = load_class(c_string{ "java/lang/String" });
 	string_value_index = string_class->find_instance_field_index(
 		c_string{ "value_" }, c_string{ "[C" }
 	);

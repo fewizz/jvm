@@ -27,23 +27,39 @@ int main (int argc, const char** argv) {
 	exe_path = argv[0];
 
 	void_class   = define_primitive_class(c_string{ "void"    });
-	bool_class   = define_primitive_class(c_string{ "boolean" });
-	byte_class   = define_primitive_class(c_string{ "byte"    });
-	short_class  = define_primitive_class(c_string{ "short"   });
-	char_class   = define_primitive_class(c_string{ "char"    });
-	int_class    = define_primitive_class(c_string{ "int"     });
-	long_class   = define_primitive_class(c_string{ "long"    });
-	float_class  = define_primitive_class(c_string{ "float"   });
-	double_class = define_primitive_class(c_string{ "double"  });
+	bool_class = {
+		define_primitive_class_and_its_array(c_string{ "boolean" }, 'Z')
+	};
+	byte_class = {
+		define_primitive_class_and_its_array(c_string{ "byte" }, 'B')
+	};
+	short_class = {
+		define_primitive_class_and_its_array(c_string{ "short" }, 'S')
+	};
+	char_class = {
+		define_primitive_class_and_its_array(c_string{ "char" }, 'C')
+	};
+	int_class = {
+		define_primitive_class_and_its_array(c_string{ "int" }, 'I')
+	};
+	long_class = {
+		define_primitive_class_and_its_array(c_string{ "long"}, 'J')
+	};
+	float_class = {
+		define_primitive_class_and_its_array(c_string{ "float" }, 'F')
+	};
+	double_class = {
+		define_primitive_class_and_its_array(c_string{ "double" }, 'D')
+	};
 
-	bool_array_class   = define_array_class(c_string{ "[Z" });
-	byte_array_class   = define_array_class(c_string{ "[B" });
-	short_array_class  = define_array_class(c_string{ "[S" });
-	char_array_class   = define_array_class(c_string{ "[C" });
-	int_array_class    = define_array_class(c_string{ "[I" });
-	long_array_class   = define_array_class(c_string{ "[J" });
-	float_array_class  = define_array_class(c_string{ "[F" });
-	double_array_class = define_array_class(c_string{ "[D" });
+	bool_array_class   = bool_class  ->get_array_class();
+	byte_array_class   = byte_class  ->get_array_class();
+	short_array_class  = short_class ->get_array_class();
+	char_array_class   = char_class  ->get_array_class();
+	int_array_class    = int_class   ->get_array_class();
+	long_array_class   = long_class  ->get_array_class();
+	float_array_class  = float_class ->get_array_class();
+	double_array_class = double_class->get_array_class();
 
 	init_lib();
 
