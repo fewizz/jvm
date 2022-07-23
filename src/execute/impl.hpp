@@ -1,7 +1,5 @@
 #pragma once
 
-#include "./decl.hpp"
-#include "./info.hpp"
 #include "./get_field_value.hpp"
 #include "./put_field_value.hpp"
 #include "./ldc.hpp"
@@ -11,6 +9,10 @@
 #include "./invoke_interface.hpp"
 #include "./new_array.hpp"
 
+#include "execute.hpp"
+#include "execution/info.hpp"
+#include "thrown.hpp"
+#include "execution/latest_context.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 #include "native/functions/find.hpp"
@@ -29,10 +31,9 @@
 #include <stdio.h>
 #include <math.h>
 
-static inline expected<stack_entry, reference>
-execute(
+static inline stack_entry invoke(
 	method_with_class mwc,
-	args_container args
+	arguments_container args
 ) {
 	namespace cf = class_file;
 	namespace instr = cf::attribute::code::instruction;
@@ -42,7 +43,7 @@ execute(
 
 	if(info) {
 		tabs();
-		fputs("executing: ", stderr);
+		fputs("invoking: ", stderr);
 		fwrite(c.name().data(), 1, c.name().size(), stderr);
 		fputc('.', stderr);
 		fwrite(c.name(m).data(), 1, c.name(m).size(), stderr);
@@ -60,17 +61,16 @@ execute(
 	}};
 
 	stack_entry result;
-	reference exception;
 	uint32 pc = 0;
 
 	execution_context ctx {
-		c, m, pc, latest_execution_ctx
+		c, m, latest_execution_context
 	};
 
-	latest_execution_ctx = ctx;
+	latest_execution_context = ctx;
 
 	on_scope_exit return_ctx{ [&]() {
-		latest_execution_ctx = ctx.previous;
+		latest_execution_context = ctx.previous;
 	}};
 
 	if(m.is_native()) {
@@ -118,11 +118,12 @@ execute(
 			pc = it - m.code().begin();
 		}};
 
-		auto handle_expeption = [&](reference ref) -> loop_action {
-			if(ref.is_null()) {
-				ref = create_null_pointer_exception();
+		auto handle_thrown = [&]() -> loop_action {
+			if(thrown.is_null()) {
+				return loop_action::next;
 			}
-			_class& thrown_class = ref.object()._class();
+
+			_class& thrown_class = thrown.object()._class();
 
 			auto& exception_handlers = m.exception_handlers();
 
@@ -143,11 +144,10 @@ execute(
 
 				it = m.code().begin() + handler.handler_pc;
 				stack_size = 0;
-				stack[stack_size++] = move(ref);
+				stack[stack_size++] = move(thrown);
 				return loop_action::next;
 			}
 
-			exception = move(ref);
 			return loop_action::stop;
 		};
 
@@ -946,40 +946,28 @@ execute(
 			put_field_value(to, move(value));
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
-			auto possible_exception = ::invoke_virtual(
+			::invoke_virtual(
 				c, x, stack, stack_size
 			);
-
-			if(possible_exception.has_value()) {
-				return handle_expeption(possible_exception.value());
-			}
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_special>) {
 			auto possible_exception = ::invoke_special(
 				c, x, stack, stack_size
 			);
-
-			if(possible_exception.has_value()) {
-				return handle_expeption(possible_exception.value());
-			}
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_static>) {
 			auto possible_exception = ::invoke_static(
 				c, x, stack, stack_size
 			);
-
-			if(possible_exception.has_value()) {
-				return handle_expeption(possible_exception.value());
-			}
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
 			auto possible_exception = ::invoke_interface(
 				c, x, stack, stack_size
 			);
-
-			if(possible_exception.has_value()) {
-				return handle_expeption(possible_exception.value());
-			}
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {
@@ -1020,7 +1008,11 @@ execute(
 			if(info) { tabs(); fputs("a_throw\n", stderr); }
 
 			reference ref = move(stack[--stack_size].get<reference>());
-			return handle_expeption(move(ref));
+			if(ref.is_null()) {
+				ref = create_null_pointer_exception();
+			}
+			thrown = move(ref);
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, check_cast>) {
 			if(info) {
@@ -1103,10 +1095,6 @@ execute(
 		return loop_action::next;
 
 	}, m.code().size());
-
-	if(!exception.is_null()) {
-		return move(exception);
-	}
 
 	return result;
 }

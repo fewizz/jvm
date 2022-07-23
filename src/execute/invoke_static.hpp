@@ -1,11 +1,10 @@
 #pragma once
 
-#include "./decl.hpp"
-#include "./info.hpp"
-#include "./stack_entry.hpp"
-
-#include "../class/decl.hpp"
-#include "../method/decl.hpp"
+#include "execute.hpp"
+#include "execution/info.hpp"
+#include "execution/stack_entry.hpp"
+#include "class/decl.hpp"
+#include "method/decl.hpp"
 
 #include <class/file/attribute/code/instruction.hpp>
 #include <class/file/descriptor/reader.hpp>
@@ -40,9 +39,9 @@ inline optional<reference> invoke_static(
 	stack_size -= args_count;
 	method_with_class wic = c.get_static_method(x.index);
 
-	expected<stack_entry, reference> result = execute(
+	expected<stack_entry, reference> result = invoke(
 		wic,
-		args_container{ stack + stack_size, args_count }
+		arguments_container{ stack + stack_size, args_count }
 	);
 
 	if(result.is_unexpected()) {

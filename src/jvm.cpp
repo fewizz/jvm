@@ -5,8 +5,9 @@
 #include "native/impl.hpp"
 #include "native/jni/environment.hpp"
 #include "array.hpp"
-#include "exe_path.hpp"
+#include "executable_path.hpp"
 #include "classes/load.hpp"
+#include "thrown.hpp"
 #include "lib/java_lang/null_pointer_exception.hpp"
 
 #include "lib/init.hpp"
@@ -24,7 +25,7 @@ int main (int argc, const char** argv) {
 	}
 
 	// TODO replace with somethig more reliable
-	exe_path = argv[0];
+	executable_path = argv[0];
 
 	void_class   = define_primitive_class(c_string{ "void"    });
 	bool_class = {
@@ -71,16 +72,14 @@ int main (int argc, const char** argv) {
 
 	method_with_class mwc{ m, c };
 
-	expected<stack_entry, reference> result = execute(
-		mwc, args_container{}
+	stack_entry value = invoke(
+		mwc, arguments_container{}
 	);
 
-	if(result.is_unexpected()) {
-		fputs("unexpected", stdout);
+	if(!thrown.is_null()) {
+		fputs("unhandled throwable", stdout);
 		return 1;
 	}
-
-	stack_entry value = result.get_expected();
 
 	if(value.is<jint>()) {
 		printf("%" PRId32, value.get<jint>().value);

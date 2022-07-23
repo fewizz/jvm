@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./stack_entry.hpp"
+#include "execution/stack_entry.hpp"
 
 #include "field/value.hpp"
 #include "abort.hpp"

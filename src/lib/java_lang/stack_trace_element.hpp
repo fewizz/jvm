@@ -23,12 +23,12 @@ static inline reference create_stack_trace_element(
 		result, class_name_str, method_name_str, reference{}, jint{ -1 }
 	};
 
-	execute(
+	invoke(
 		method_with_class {
 			stack_trace_element_constructor.value(),
 			stack_trace_element_class.value()
 		},
-		args_container{ args }
+		arguments_container{ args }
 	);
 
 	return move(result);

@@ -7,7 +7,7 @@
 #include "classes/find_or_load.hpp"
 #include "field/decl.hpp"
 #include "method/decl.hpp"
-#include "execute/decl.hpp"
+#include "execute.hpp"
 #include "abort.hpp"
 
 #include <class/file/reader.hpp>

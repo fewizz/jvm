@@ -223,9 +223,9 @@ inline void _class::initialise_if_need() {
 
 	auto clinit = try_find_method(c_string{ "<clinit>" });
 	if(clinit.has_value()) {
-		execute(
+		invoke(
 			method_with_class{ clinit.value(), *this },
-			args_container{}
+			arguments_container{}
 		);
 	}
 	initialisation_state_ = initialised;

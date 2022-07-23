@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/decl.hpp"
-#include "exe_path.hpp"
+#include "executable_path.hpp"
 
 #include <core/range.hpp>
 #include <core/transform.hpp>
@@ -40,7 +40,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		);
 	};
 
-	auto exe = exe_path.value().sized();
+	auto exe = executable_path.value().sized();
 
 	// TODO replace with algo
 	nuint last_slash = exe.size() - 1;

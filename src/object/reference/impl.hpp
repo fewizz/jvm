@@ -41,7 +41,7 @@ inline reference& reference::operator = (reference&& other) {
 	if(obj_ != nullptr) {
 		obj_->on_reference_removed();
 	}
-	obj_ = { exchange(other.obj_, nullptr) };
+	obj_ = exchange(other.obj_, nullptr);
 	return *this;
 }
 
@@ -56,6 +56,7 @@ inline object& reference::object() {
 inline reference::~reference() {
 	if(obj_ != nullptr) {
 		obj_->on_reference_removed();
+		obj_ = nullptr;
 	}
 }
 

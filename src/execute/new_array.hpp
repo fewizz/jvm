@@ -1,8 +1,7 @@
 #pragma once
 
-#include "./info.hpp"
-#include "./stack_entry.hpp"
-
+#include "execution/info.hpp"
+#include "execution/stack_entry.hpp"
 #include "array.hpp"
 #include "class/decl.hpp"
 #include "field/value.hpp"

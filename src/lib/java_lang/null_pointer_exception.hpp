@@ -18,7 +18,7 @@ inline reference create_null_pointer_exception() {
 	stack_entry se{ ref };
 	span<stack_entry, uint16> args{ &se, 1 };
 
-	execute(method_with_class{ m, c }, args);
+	invoke(method_with_class{ m, c }, args);
 
 	return move(ref);
 }

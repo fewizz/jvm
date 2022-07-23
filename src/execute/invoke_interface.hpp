@@ -1,9 +1,8 @@
 #pragma once
 
-#include "./decl.hpp"
-#include "./info.hpp"
-#include "./stack_entry.hpp"
-
+#include "execute.hpp"
+#include "execution/info.hpp"
+#include "execution/stack_entry.hpp"
 #include "class/decl.hpp"
 
 #include <class/file/constant.hpp>
@@ -75,9 +74,9 @@ inline optional<reference> invoke_interface(
 	}
 
 	stack_size -= args_count;
-	expected<stack_entry, reference> result = execute(
+	expected<stack_entry, reference> result = invoke(
 		method_with_class{ m0.value(), c0.value() },
-		args_container{ stack + stack_size, args_count }
+		arguments_container{ stack + stack_size, args_count }
 	);
 
 	if(result.is_unexpected()) {

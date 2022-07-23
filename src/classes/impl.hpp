@@ -3,11 +3,11 @@
 #include "./find_or_load.hpp"
 #include "./load.hpp"
 
-#include "execute/info.hpp"
+#include "execute.hpp"
+#include "execution/info.hpp"
 #include "define/class.hpp"
 #include "define/primitive_class.hpp"
 #include "define/array_class.hpp"
-#include "execute/decl.hpp"
 
 #include <core/ends_with.hpp>
 #include <core/starts_with.hpp>

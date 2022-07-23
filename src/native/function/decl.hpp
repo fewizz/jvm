@@ -1,6 +1,6 @@
 #pragma once
 
-#include "execute/stack_entry.hpp"
+#include "execution/stack_entry.hpp"
 #include "alloc.hpp"
 #include "abort.hpp"
 

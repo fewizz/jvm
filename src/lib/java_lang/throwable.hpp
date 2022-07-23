@@ -2,7 +2,7 @@
 
 #include "native/jni/environment.hpp"
 #include "native/functions/container.hpp"
-#include "execute/decl.hpp"
+#include "execution/latest_context.hpp"
 #include "array.hpp"
 #include "primitives.hpp"
 #include "object/reference/decl.hpp"
@@ -26,7 +26,7 @@ static inline void init_java_lang_throwable() {
 	native_functions.emplace_back(
 		(void*) (object* (*)(jni_environment*, object*))
 		[](jni_environment*, object* ths) {
-			execution_context* ctx = latest_execution_ctx.ptr();
+			execution_context* ctx = latest_execution_context.ptr();
 			int32 frames_count = 0;
 
 			while(ctx != nullptr) {
@@ -39,7 +39,7 @@ static inline void init_java_lang_throwable() {
 			);
 			reference* data = array_data<reference>(ste_array.object());
 
-			ctx = latest_execution_ctx.ptr();
+			ctx = latest_execution_context.ptr();
 
 			for(int32 x = 0; x < frames_count; ++x) {
 				data[x] = create_stack_trace_element(
