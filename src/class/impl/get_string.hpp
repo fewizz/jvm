@@ -4,7 +4,7 @@
 #include "classes/find_or_load.hpp"
 #include "class/decl.hpp"
 #include "object/create.hpp"
-#include "lib/java_lang/string.hpp"
+#include "lib/java/lang/string.hpp"
 #include "abort.hpp"
 
 #include <unicode/utf8.hpp>

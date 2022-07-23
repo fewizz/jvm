@@ -1,6 +1,10 @@
 package java.lang;
 
 public final class Integer extends Number implements Comparable<Integer> {
+
+	private static native Class<Integer> getPrimitiveClass();
+
+	public static final Class<Integer> TYPE = getPrimitiveClass();
 	
 	private final int value_;
 

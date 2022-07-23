@@ -6,7 +6,7 @@
 #include "array.hpp"
 #include "object/create.hpp"
 #include "classes/find_or_load.hpp"
-#include "lib/java_lang/class.hpp"
+#include "lib/java/lang/class.hpp"
 
 #include <core/concat.hpp>
 

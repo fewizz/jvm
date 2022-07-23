@@ -44,6 +44,10 @@ inline void object::on_reference_removed() {
 	}
 }
 
+inline void object::unsafe_decrease_reference_count_without_destroing() {
+	--references_;
+}
+
 inline field_value& object::operator [] (instance_field_index index) {
 	return values_[(uint16) index];
 }

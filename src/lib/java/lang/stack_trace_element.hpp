@@ -2,7 +2,7 @@
 
 #include "class/decl.hpp"
 #include "classes/find_or_load.hpp"
-#include "lib/java_lang/string.hpp"
+#include "lib/java/lang/string.hpp"
 
 #include <core/meta/elements/optional.hpp>
 #include <core/c_string.hpp>

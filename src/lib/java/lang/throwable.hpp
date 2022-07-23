@@ -6,7 +6,7 @@
 #include "array.hpp"
 #include "primitives.hpp"
 #include "object/reference/decl.hpp"
-#include "lib/java_lang/stack_trace_element.hpp"
+#include "lib/java/lang/stack_trace_element.hpp"
 
 #include <core/meta/elements/optional.hpp>
 

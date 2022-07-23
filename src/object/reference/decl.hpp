@@ -18,6 +18,7 @@ public:
 	reference() {};
 
 	~reference();
+	object& unsafe_release_without_destroing();
 
 	reference(const reference&);
 	reference(reference&&);

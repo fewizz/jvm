@@ -60,6 +60,11 @@ inline reference::~reference() {
 	}
 }
 
+inline ::object& reference::unsafe_release_without_destroing() {
+	obj_->unsafe_decrease_reference_count_without_destroing();
+	return *exchange(obj_, nullptr);
+}
+
 inline bool reference::is_null() const {
 	return obj_ == nullptr;
 }

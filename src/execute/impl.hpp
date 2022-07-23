@@ -17,7 +17,7 @@
 #include "object/create.hpp"
 #include "native/functions/find.hpp"
 #include "abort.hpp"
-#include "lib/java_lang/null_pointer_exception.hpp"
+#include "lib/java/lang/null_pointer_exception.hpp"
 
 #include <class/file/reader.hpp>
 #include <class/file/descriptor/reader.hpp>
@@ -880,7 +880,13 @@ static inline stack_entry invoke(
 		else if constexpr (same_as<Type, get_static>) {
 			if(info) {
 				tabs(); fputs("get_static ", stderr);
-				fprintf(stderr, "%hd\n", x.index);
+				cc::field_ref field_ref = c.field_ref_constant(x.index);
+				cc::name_and_type nat {
+					c.name_and_type_constant(field_ref.name_and_type_index)
+				};
+				cc::utf8 name = c.utf8_constant(nat.name_index);
+				fwrite(name.data(), 1, name.size(), stderr);
+				fputc('\n', stderr);
 			}
 			static_field_with_class sfwc = c.get_static_field(x.index);
 			field_value& value = sfwc.static_field().value();

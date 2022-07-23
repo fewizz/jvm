@@ -8,7 +8,7 @@
 #include "executable_path.hpp"
 #include "classes/load.hpp"
 #include "thrown.hpp"
-#include "lib/java_lang/null_pointer_exception.hpp"
+#include "lib/java/lang/null_pointer_exception.hpp"
 
 #include "lib/init.hpp"
 

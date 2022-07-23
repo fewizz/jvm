@@ -4,7 +4,7 @@
 #include "native/functions/container.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
-#include "lib/java_lang/string.hpp"
+#include "lib/java/lang/string.hpp"
 #include "classes/load.hpp"
 
 #include <core/starts_with.hpp>
