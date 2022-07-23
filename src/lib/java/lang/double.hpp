@@ -11,7 +11,9 @@ static inline void init_java_lang_double() {
 		[](jni_environment*, jdouble value) {
 			return bit_cast<int64>(value.value);
 		},
-		c_string{ "Java_java_lang_Double_doubleToRawLongBits" }
+		c_string{ "Java_java_lang_Double_doubleToRawLongBits" },
+		c_string{ "(D)J" }
+		
 	);
 
 	native_functions.emplace_back(
@@ -23,7 +25,8 @@ static inline void init_java_lang_double() {
 			}
 			return result;
 		},
-		c_string{ "Java_java_lang_Double_longBitsToDouble" }
+		c_string{ "Java_java_lang_Double_longBitsToDouble" },
+		c_string{ "(J)D" }
 	);
 
 }
