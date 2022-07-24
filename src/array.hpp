@@ -32,12 +32,11 @@ static inline void array_length(object& o, int32 length) {
 	o.values()[1].get<jint>() = length;
 }
 
-
 static inline reference create_array_by_class(
 	_class& array_class, nuint element_size, int32 length
 ) {
 	reference* data = (reference*) default_allocator{}.allocate_zeroed(
-		element_size * sizeof(reference)
+		element_size * length
 	);
 	reference ref = create_object(array_class);
 	array_length(ref.object(), length);

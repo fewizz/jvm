@@ -6,6 +6,7 @@
 #include "java/lang/class.hpp"
 #include "java/lang/double.hpp"
 #include "java/lang/float.hpp"
+#include "java/lang/index_out_of_bounds_exception.hpp"
 #include "java/lang/integer.hpp"
 #include "java/lang/negative_array_size_exception.hpp"
 #include "java/lang/null_pointer_exception.hpp"
@@ -26,6 +27,7 @@ static inline void init_lib() {
 	init_java_lang_class();
 	init_java_lang_double();
 	init_java_lang_float();
+	init_java_lang_index_of_of_bounds_exception();
 	init_java_lang_integer();
 	init_java_lang_negative_array_size_exception();
 	init_java_lang_null_pointer_exception();

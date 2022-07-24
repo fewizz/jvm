@@ -18,6 +18,7 @@
 #include "native/functions/find.hpp"
 #include "abort.hpp"
 #include "lib/java/lang/null_pointer_exception.hpp"
+#include "lib/java/lang/index_out_of_bounds_exception.hpp"
 
 #include <class/file/reader.hpp>
 #include <class/file/descriptor/reader.hpp>
@@ -149,6 +150,25 @@ static inline stack_entry invoke(
 			}
 
 			return loop_action::stop;
+		};
+
+		auto view_array = [&]<typename E, typename Handler>(
+			Handler&& handler
+		) {
+			int32 element_index = stack[--stack_size].get<jint>();
+			reference array_ref = move(stack[--stack_size].get<reference>());
+			if(array_ref.is_null()) {
+				thrown = create_null_pointer_exception();
+				return handle_thrown();
+			}
+			int32 len = ::array_length(array_ref.object());
+			if(element_index < 0 || element_index >= len) {
+				thrown = create_index_of_of_bounds_exception();
+				return handle_thrown();
+			}
+			E* ptr = array_data<E>(array_ref.object());
+			handler(ptr[element_index]);
+			return loop_action::next;
 		};
 
 		if constexpr (same_as<Type, nop>) {}
@@ -310,24 +330,21 @@ static inline stack_entry invoke(
 		}
 		else if constexpr (same_as<Type, i_a_load>) {
 			if(info) { tabs(); fputs("i_a_load\n", stderr); }
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			int32* ptr = array_data<int32>(ref.object());
-			stack[stack_size++] = jint{ ptr[index] };
+			return view_array.template operator()<int32>([&](int32& v) {
+				stack[stack_size++] = jint{ v };
+			});
 		}
 		else if constexpr (same_as<Type, a_a_load>) {
 			if(info) { tabs(); fputs("a_a_load\n", stderr); }
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			reference* ptr = array_data<reference>(ref.object());
-			stack[stack_size++] = ptr[index];
+			return view_array.template operator()<reference>([&](reference& v) {
+				stack[stack_size++] = v;
+			});
 		}
 		else if constexpr (same_as<Type, b_a_load>) {
 			if(info) { tabs(); fputs("b_a_load\n", stderr); }
-			int32 index = stack[--stack_size].get<jint>();
-			auto ref = move(stack[--stack_size].get<reference>());
-			int8* ptr = array_data<int8>(ref.object());
-			stack[stack_size++] = jint{ ptr[index] };
+			return view_array.template operator()<int8>([&](int8& v) {
+				stack[stack_size++] = jint{ v };
+			});
 		}
 		else if constexpr (same_as<Type, i_store>) {
 			if(info) {
@@ -412,34 +429,30 @@ static inline stack_entry invoke(
 		else if constexpr (same_as<Type, i_a_store>) {
 			if(info) { tabs(); fputs("i_a_store\n", stderr); }
 			int32 value = stack[--stack_size].get<jint>();
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			int32* ptr = array_data<int32>(ref.object());
-			ptr[index] = value;
+			return view_array.template operator()<int32>([&](int32& v) {
+				v = value;
+			});
 		}
 		else if constexpr (same_as<Type, a_a_store>) {
 			if(info) { tabs(); fputs("a_a_store\n", stderr); }
 			reference value = move(stack[--stack_size].get<reference>());
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			reference* ptr = array_data<reference>(ref.object());
-			ptr[index] = move(value);
+			return view_array.template operator()<reference>([&](reference& v) {
+				v = value;
+			});
 		}
 		else if constexpr (same_as<Type, b_a_store>) {
 			if(info) { tabs(); fputs("b_a_store\n", stderr); }
 			int32 value = stack[--stack_size].get<jint>();
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			int8* ptr = array_data<int8>(ref.object());
-			ptr[index] = value;
+			return view_array.template operator()<int8>([&](int8& v) {
+				v = (int8) value;
+			});
 		}
 		else if constexpr (same_as<Type, c_a_store>) {
 			if(info) { tabs(); fputs("c_a_store\n", stderr); }
 			int32 value = stack[--stack_size].get<jint>();
-			int32 index = stack[--stack_size].get<jint>();
-			reference ref = move(stack[--stack_size].get<reference>());
-			int16* ptr = array_data<int16>(ref.object());
-			ptr[index] = value;
+			return view_array.template operator() <int16>([&](int16& v) {
+				v = (int16) value;
+			});
 		}
 
 		else if constexpr (same_as<Type, pop>) {
@@ -1008,6 +1021,10 @@ static inline stack_entry invoke(
 		else if constexpr (same_as<Type, instr::array_length>) {
 			if(info) { tabs(); fputs("array_length\n", stderr); }
 			reference ref = stack[--stack_size].get<reference>();
+			if(ref.is_null()) {
+				thrown = create_null_pointer_exception();
+				return handle_thrown();
+			}
 			stack[stack_size++] = jint{ ::array_length(ref.object()) };
 		}
 		else if constexpr (same_as<Type, a_throw>) {

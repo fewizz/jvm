@@ -2,7 +2,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileDescriptor;
 
-public class T01_PrintToStdOut {
+public class HelloWorldFOS {
 
 	public static void main(String... args) throws IOException {
 		FileOutputStream out = new FileOutputStream(FileDescriptor.out);
