@@ -1,7 +1,5 @@
 package java.util;
 
-import java.util.Objects;
-
 public class Arrays {
 
 	public static int hashCode(Object[] a) {
@@ -17,5 +15,13 @@ public class Arrays {
 
 		return result;
 	}
+
+	public static void sort(Object[] a) {
+		throw new UnsupportedOperationException(); // TODO
+	}
+
+	//public static <T> T[] copyOf(T[] original, int newLength) {
+	//
+	//}
 
 }
