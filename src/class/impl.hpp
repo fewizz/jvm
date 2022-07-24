@@ -18,9 +18,8 @@ inline _class::_class(
 	instance_fields_container&& instance_fields,
 	static_fields_container&& static_fields,
 	methods_container&& methods,
-	optional<_class&> array_class,
-	is_array_class is_array_class,
-	is_primitive_class is_primitive_class
+	::is_array_class is_array_class,
+	::is_primitive_class is_primitive_class
 ) :
 	::const_pool       { move(const_pool)      },
 	::trampoline_pool  { ::const_pool::size()  },
@@ -32,7 +31,6 @@ inline _class::_class(
 	instance_fields_   { move(instance_fields) },
 	static_fields_     { move(static_fields)   },
 	methods_           { move(methods)         },
-	array_class_       { array_class           },
 	is_array_class_    { is_array_class        },
 	is_primitive_class_{ is_primitive_class    }
 {}
@@ -237,7 +235,7 @@ inline _class& _class::get_array_class() {
 	if(!array_class_.has_value()) {
 		// case when current class is already an array of some dimensionality
 		// for example, array of [Ljava/lang/String; is [[Ljava/lang/String
-		if(is_array_class_) {
+		if(is_array_class()) {
 			concat_view array_class_name {
 				c_string{ "[" }, name()
 			};
@@ -249,8 +247,42 @@ inline _class& _class::get_array_class() {
 			};
 			array_class_ = find_or_load_class(array_class_name);
 		}
+		array_class_->component_class_ = *this;
 	}
 	return array_class_.value();
+}
+
+inline _class& _class::get_component_class() {
+	// component class for primitives are passed by constructor,
+	// no special handling needed
+	if(!component_class_.has_value()) {
+		if(!is_array_class()) {
+			fputs("asking component class of non-array class", stderr);
+			abort();
+		}
+		auto n = name();
+		// skip [L and ;
+		auto component_name = to_range(n.begin() + 2, n.begin() + n.size() - 1);
+		component_class_ = find_or_load_class(component_name);
+		component_class_->array_class_ = *this;
+	}
+	return component_class_.value();
+}
+
+inline bool _class::is_array_class() {
+	return is_array_class_;
+}
+
+inline bool _class::is_primitive_class() {
+	return is_primitive_class_;
+}
+
+inline void _class::unsafe_set_array_class(_class& c) {
+	array_class_ = c;
+}
+
+inline void _class::unsafe_set_component_class(_class& c) {
+	component_class_ = c;
 }
 
 #include "impl/get_static_field.hpp"

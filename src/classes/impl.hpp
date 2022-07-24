@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 template<range Name>
-static inline _class& find_or_load_class(Name name) {
+static inline _class& find_or_load_class(Name&& name) {
 	if(optional<_class&> c = try_find_class(name); c.has_value()) {
 		return c.value();
 	}
@@ -25,7 +25,7 @@ static inline _class& find_or_load_class(Name name) {
 // only for loading NON-LOADED classes.
 // otherwise, use find_or_load_class(name)
 template<range Name>
-inline _class& load_class(Name name) {
+inline _class& load_class(Name&& name) {
 	if(info) {
 		tabs();
 		fputs("loading class ", stderr);

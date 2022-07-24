@@ -81,6 +81,7 @@ private:
 	static_fields_container      static_fields_{};
 	methods_container            methods_{};
 	optional<_class&>            array_class_{};
+	optional<_class&>            component_class_{};
 	is_array_class               is_array_class_{};
 	is_primitive_class           is_primitive_class_{};
 	reference                    reference_{};
@@ -100,7 +101,6 @@ public:
 		instance_fields_container&&,
 		static_fields_container&&,
 		methods_container&&,
-		optional<_class&> array_class,
 		is_array_class,
 		is_primitive_class
 	);
@@ -316,5 +316,13 @@ public:
 	);
 
 	_class& get_array_class();
+
+	_class& get_component_class();
+
+	bool is_array_class();
+	bool is_primitive_class();
+
+	void unsafe_set_array_class(_class&);
+	void unsafe_set_component_class(_class&);
 
 };

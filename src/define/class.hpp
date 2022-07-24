@@ -124,7 +124,6 @@ static inline _class& define_class0(Args&&... args) {
 		move(instance_fields),
 		move(static_fields),
 		move(methods),
-		optional<_class&>{},
 		is_array_class{ false },
 		is_primitive_class{ false }
 	);

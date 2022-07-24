@@ -20,6 +20,10 @@ public class Arrays {
 		throw new UnsupportedOperationException(); // TODO
 	}
 
+	public static <T> void sort(T[] a, Comparator<? super T> c) {
+		throw new UnsupportedOperationException(); // TODO
+	}
+
 	//public static <T> T[] copyOf(T[] original, int newLength) {
 	//
 	//}

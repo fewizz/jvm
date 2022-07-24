@@ -29,21 +29,37 @@ static inline void init_java_lang_system() {
 			if(dst == nullptr) {
 				fputs("dst is nullptr", stderr); abort();
 			}
-			nuint element_size = 0;
-			if(&dst->_class() == &byte_array_class.value()) {
-				element_size = 1;
+			if(&src->_class() != &dst->_class()) {
+				fputs("different classes", stderr); abort();
+			}
+			if(!src->_class().is_array_class()) {
+				fputs("src is not array", stderr); abort();
+			}
+			if(!dst->_class().is_array_class()) {
+				fputs("dst is not array", stderr); abort();
+			}
+			
+			if(&src->_class() == &byte_array_class.value()) {
+				uint8* src_data = array_data<uint8>(*src);
+				uint8* dst_data = array_data<uint8>(*dst);
+				copy(
+					span{ src_data + src_pos, (nuint) len }
+				).to(
+					span{ dst_data + dst_pos, (nuint) len }
+				);
+			}
+			else if(!src->_class().is_primitive_class()) {
+				reference* src_data = array_data<reference>(*src);
+				reference* dst_data = array_data<reference>(*dst);
+				copy(
+					span{ src_data + src_pos, (nuint) len }
+				).to(
+					span{ dst_data + dst_pos, (nuint) len }
+				);
 			}
 			else {
-				fputs("unknown element type", stderr); abort();
+				fputs("unknown array element type", stderr); abort();
 			}
-
-			uint8* src_data = array_data<uint8>(*src);
-			uint8* dst_data = array_data<uint8>(*dst);
-			copy(
-				span{ src_data + src_pos * element_size, len * element_size }
-			).to(
-				span{ dst_data + dst_pos * element_size, len * element_size }
-			);
 		},
 		c_string{ "Java_java_lang_System_arraycopy" },
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }

@@ -11,10 +11,12 @@ struct classes_container :
 	using base_type::base_type;
 
 	template<typename... Args>
-	void emplace_back(Args&&... args) {
+	_class& emplace_back(Args&&... args) {
 		new (base_type::ptr_ + base_type::size_)
 			value_type{ forward<Args>(args)... };
+		_class& c = (*this)[base_type::size_];
 		++size_;
+		return c;
 	}
 
 };

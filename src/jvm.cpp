@@ -72,8 +72,11 @@ int main (int argc, const char** argv) {
 
 	method_with_class mwc{ m, c };
 
+	reference args = create_array_of(string_class.value(), 0);
+	stack_entry arg0 = args;
+
 	stack_entry value = invoke(
-		mwc, arguments_container{}
+		mwc, arguments_container{ &arg0, 1 }
 	);
 
 	if(!thrown.is_null()) {

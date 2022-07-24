@@ -10,4 +10,6 @@ public final class Class<T> {
 
 	private native String __getName();
 
+	public native Class<?> getComponentType();
+
 }

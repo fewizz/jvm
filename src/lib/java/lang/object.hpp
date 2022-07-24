@@ -19,7 +19,7 @@ static inline void init_java_lang_object() {
 		[](jni_environment*, object* o) {
 			return & o->_class().reference().object();
 		},
-		c_string{ "Java_java/_ang_Object_getClass" },
+		c_string{ "Java_java_lang_Object_getClass" },
 		c_string{ "()Ljava/lang/Class;" }
 	);
 

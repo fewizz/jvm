@@ -27,4 +27,14 @@ static inline void init_java_lang_class() {
 	class_ptr_field_index = class_class->find_instance_field_index(
 		c_string{ "ptr_" }, c_string{ "J" }
 	);
+
+	native_functions.emplace_back(
+		(void*) (object*(*)(jni_environment*, object*))
+		[](jni_environment*, object* ths) -> object* {
+			_class& c = class_from_class_instance(*ths);
+			return & c.get_component_class().reference().object();
+		},
+		c_string{ "Java_java_lang_Class_getComponentType" },
+		c_string{ "()Ljava/lang/Class;" }
+	);
 }

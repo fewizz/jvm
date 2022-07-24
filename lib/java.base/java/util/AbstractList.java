@@ -131,7 +131,7 @@ public abstract class AbstractList<E>
 	}
 
 	protected void removeRange(int fromIndex, int toIndex) {
-		
+		throw new UnsupportedOperationException(); // TODO
 	}
 
 	class __Iterator implements Iterator<E> {

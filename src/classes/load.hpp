@@ -77,4 +77,4 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 }
 
 template<range Name>
-inline _class& load_class(Name name);
+inline _class& load_class(Name&& name);
