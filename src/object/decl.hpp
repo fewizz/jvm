@@ -4,7 +4,7 @@
 #include "class/instance_field_index.hpp"
 #include "alloc.hpp"
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 #include <core/limited_list.hpp>
 #include <core/integer.hpp>
 

@@ -78,7 +78,7 @@ static inline _class& define_primitive_class(Name&& name) {
 		base_class.data(), (uint16) base_class.size()
 	});
 
-	classes.emplace_back(
+	return classes.emplace_back(
 		move(const_pool), data,
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_index{ 2 }, super_class_index{ 3 },
@@ -89,6 +89,4 @@ static inline _class& define_primitive_class(Name&& name) {
 		is_array_class{ false },
 		is_primitive_class{ true }
 	);
-
-	return classes.back();
 }

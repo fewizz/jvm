@@ -116,7 +116,7 @@ static inline _class& define_class0(Args&&... args) {
 		return reader;
 	});
 
-	classes.emplace_back(
+	return classes.emplace_back(
 		move(const_pool),
 		span<uint8>{ bytes.data(), bytes.size() }, access_flags,
 		this_class_index{ this_class }, super_class_index{ super_class },
@@ -127,8 +127,6 @@ static inline _class& define_class0(Args&&... args) {
 		is_array_class{ false },
 		is_primitive_class{ false }
 	);
-
-	return classes.back();
 }
 
 template<typename... Args>

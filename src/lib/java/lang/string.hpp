@@ -8,7 +8,7 @@
 #include <unicode/utf16.hpp>
 #include <unicode/utf8.hpp>
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 
 static optional<_class&> string_class{};
 static instance_field_index string_value_index{};

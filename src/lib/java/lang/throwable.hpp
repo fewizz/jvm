@@ -8,7 +8,7 @@
 #include "object/reference/decl.hpp"
 #include "lib/java/lang/stack_trace_element.hpp"
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 
 static optional<_class&> throwable_class;
 static instance_field_index throwable_stack_trace_field_index;

@@ -6,7 +6,7 @@
 #include "native/function/decl.hpp"
 #include "abort.hpp"
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 #include <core/range.hpp>
 #include <core/equals.hpp>
 #include <core/concat.hpp>

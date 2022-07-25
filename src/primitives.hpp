@@ -69,7 +69,7 @@ struct jdouble {
 	operator double () const { return value; }
 };
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 
 struct _class;
 

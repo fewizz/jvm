@@ -6,7 +6,7 @@
 #include "classes/load.hpp"
 #include "object/create.hpp"
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 #include <core/span.hpp>
 
 static optional<_class&> negative_array_size_exception_class;

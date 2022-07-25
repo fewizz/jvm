@@ -78,7 +78,7 @@ inline _class& define_array_class(Name&& name) {
 		name_index{ 5 }, descriptor_index{ 6 }
 	);
 
-	classes.emplace_back(
+	return classes.emplace_back(
 		move(const_pool), data,
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_index{ 2 }, super_class_index{ 8 },
@@ -89,6 +89,4 @@ inline _class& define_array_class(Name&& name) {
 		is_array_class{ true },
 		is_primitive_class{ false }
 	);
-
-	return classes.back();
 }

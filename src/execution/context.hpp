@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 #include "object/reference/decl.hpp"
 
 struct _class;

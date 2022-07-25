@@ -4,7 +4,7 @@
 #include "classes/find_or_load.hpp"
 #include "lib/java/lang/string.hpp"
 
-#include <core/meta/elements/optional.hpp>
+#include <core/optional.hpp>
 #include <core/c_string.hpp>
 
 static optional<_class&> stack_trace_element_class;
