@@ -1,9 +1,10 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "field/decl.hpp"
-#include "classes/find_or_load.hpp"
-#include "class/file/descriptor/reader.hpp"
+#include "class.hpp"
+#include "field.hpp"
+#include "class/es/find_or_load.hpp"
+
+#include <class_file/descriptor/reader.hpp>
 
 inline static_field_with_class _class::get_static_field(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {

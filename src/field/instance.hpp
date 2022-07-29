@@ -1,6 +1,6 @@
 #pragma once
 
-#include "field/decl.hpp"
+#include "field.hpp"
 
 #include <core/move.hpp>
 

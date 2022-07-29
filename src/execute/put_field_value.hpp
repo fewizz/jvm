@@ -5,6 +5,8 @@
 #include "field/value.hpp"
 #include "abort.hpp"
 
+#include <core/integer.hpp>
+
 #include <stdio.h>
 
 inline void put_field_value(
@@ -17,15 +19,17 @@ inline void put_field_value(
 		else if constexpr(
 			same_as<jint,   ValueType> ||
 			same_as<jshort, ValueType> ||
-			same_as<jchar,  ValueType> ||
 			same_as<jbyte,  ValueType>
 		) {
 			value = ValueType {
-				(decltype(value.value)) from.get<jint>().value
+				(int_of_bits<sizeof(ValueType) * 8>) from.get<jint>()
 			};
 		}
+		else if constexpr(same_as<jchar, ValueType>) {
+			value = jchar{ (uint16) from.get<jint>() };
+		}
 		else if constexpr(same_as<jbool, ValueType>) {
-			value = jbool{ from.get<jint>().value == 1 };
+			value = jbool{ from.get<jint>() == 1 };
 		}
 		else if constexpr(same_as<jfloat, ValueType>) {
 			value = from.get<jfloat>();
@@ -37,7 +41,8 @@ inline void put_field_value(
 			value = from.get<jdouble>();
 		}
 		else {
-			fputs("couldn't put field value", stderr); abort();
+			fputs("couldn't put field value", stderr);
+			abort();
 		}
 	});
 };

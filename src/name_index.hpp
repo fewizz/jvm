@@ -2,7 +2,12 @@
 
 #include <core/integer.hpp>
 
-struct name_index {
+class name_index {
 	uint16 value_;
-	operator uint16 () const { return value_; }
+public:
+
+	name_index(uint16 value) : value_{ value } {}
+
+	operator uint16& () { return value_; }
+
 };

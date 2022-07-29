@@ -3,7 +3,7 @@
 #include "name_index.hpp"
 #include "descriptor_index.hpp"
 
-#include <class/file/access_flag.hpp>
+#include <class_file/access_flag.hpp>
 
 struct class_member {
 private:
@@ -35,7 +35,7 @@ public:
 	}
 
 	bool is_static() const {
-		return access_flags().get(class_file::access_flag::_static);
+		return access_flags()._static();
 	}
 
 };

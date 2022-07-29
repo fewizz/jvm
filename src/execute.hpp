@@ -1,10 +1,10 @@
 #pragma once
 
 #include "execution/stack_entry.hpp"
-#include "method/with_class/decl.hpp"
+#include "method/with_class.hpp"
 
 using arguments_container = span<stack_entry, uint16>;
 
-static stack_entry invoke(
+static stack_entry execute(
 	method_with_class m, arguments_container args = {}
 );

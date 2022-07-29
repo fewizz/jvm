@@ -1,9 +1,9 @@
 #pragma once
 
 #include "primitives.hpp"
-#include "object/reference/decl.hpp"
+#include "object/reference.hpp"
 
-#include <class/file/descriptor/type.hpp>
+#include <class_file/descriptor/type.hpp>
 
 #include <core/meta/elements/one_of.hpp>
 

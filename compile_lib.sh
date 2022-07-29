@@ -1,6 +1,4 @@
-d=`realpath ${BASH_SOURCE[0]}`
-d=`dirname ${d}`
-root=`realpath ${d}`
+root=`dirname $(realpath ${BASH_SOURCE[0]})`
 
 mkdir -p ${root}/build
 if ! javac \

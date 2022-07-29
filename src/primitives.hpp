@@ -1,84 +1,139 @@
 #pragma once
 
 #include <core/integer.hpp>
+#include <core/meta/type/is_same_as.hpp>
 
 struct jvoid{};
 
-struct jbool {
-	bool value;
+class jbool {
+	bool value_;
+public:
+
+	jbool() = default;
+
+	template<same_as<bool> Type>
+	jbool(Type value) : value_ { value } {}
+
+	operator const bool& () const { return value_; }
+	operator bool& () { return value_; }
+
 };
 
-struct jbyte {
-	uint8 value;
+class jbyte {
+	int8 value_;
+public:
+
+	jbyte() = default;
+
+	template<typename Type>
+	requires (integer<Type> && sizeof(Type) <= sizeof(int8))
+	jbyte(Type value) : value_ { value } {}
+
+	operator const int8& () const { return value_; }
+	operator int8& () { return value_; }
+
 };
 
-struct jshort {
-	int16 value;
+class jshort {
+	int16 value_;
+public:
+
+	jshort() = default;
+
+	template<typename Type>
+	requires (integer<Type> && sizeof(Type) <= sizeof(int16))
+	jshort(Type value) : value_ { value } {}
+
+	operator const int16& () const { return value_; }
+	operator int16& () { return value_; }
+
 };
 
-struct jchar {
-	int16 value;
+class jchar {
+	uint16 value_;
+public:
+
+	jchar() = default;
+
+	template<typename Type>
+	requires (integer<Type> && sizeof(Type) <= sizeof(int16))
+	jchar(Type value) : value_ { value } {}
+
+	operator const uint16& () const { return value_; }
+	operator uint16& () { return value_; }
+
 };
 
-struct jint {
-	int32 value;
+class jint {
+	int32 value_;
+public:
 
-	explicit jint() = default;
+	jint() = default;
 
 	template<typename Type>
 	requires (integer<Type> && sizeof(Type) <= sizeof(int32))
-	jint(Type value) : value { value } {}
+	jint(Type value) : value_ { value } {}
 
-	operator const int32& () const { return value; }
-	operator int32& () { return value; }
+	operator const int32& () const { return value_; }
+	operator int32& () { return value_; }
+
 };
 
-struct jlong {
-	int64 value;
+class jlong {
+	int64 value_;
+public:
 
-	explicit jlong() = default;
+	jlong() = default;
 
 	template<typename Type>
 	requires (integer<Type> && sizeof(Type) <= sizeof(int64))
-	jlong(Type value) : value { value } {}
+	jlong(Type value) : value_ { value } {}
 
-	operator int64 () const { return value; }
+	operator const int64& () const { return value_; }
+	operator int64& () { return value_; }
+
 };
 
-struct jfloat {
-	float value;
+class jfloat {
+	float value_;
+public:
 
-	explicit jfloat() = default;
+	jfloat() = default;
 	
 	template<typename Type>
 	requires (same_as<Type, float>)
-	jfloat(Type value) : value { value } {}
+	jfloat(Type value) : value_ { value } {}
 
-	operator float () const { return value; }
+	operator const float& () const { return value_; }
+	operator float& () { return value_; }
+
 };
 
-struct jdouble {
-	double value;
+class jdouble {
+	double value_;
+public:
 
-	explicit jdouble() = default;
+	jdouble() = default;
 	
 	template<typename Type>
 	requires (same_as<Type, double>)
-	jdouble(Type value) : value { value } {}
+	jdouble(Type value) : value_ { value } {}
 
-	operator double () const { return value; }
+	operator const double& () const { return value_; }
+	operator double& () { return value_; }
+
 };
 
 #include <core/optional.hpp>
 
 struct _class;
 
-inline optional<_class&> void_class{};
-inline optional<_class&> bool_class{};
-inline optional<_class&> byte_class{};
-inline optional<_class&> short_class{};
-inline optional<_class&> char_class{};
-inline optional<_class&> int_class{};
-inline optional<_class&> long_class{};
-inline optional<_class&> float_class{};
-inline optional<_class&> double_class{};
+static optional<_class&> void_class{};
+static optional<_class&> bool_class{};
+static optional<_class&> byte_class{};
+static optional<_class&> short_class{};
+static optional<_class&> char_class{};
+static optional<_class&> int_class{};
+static optional<_class&> long_class{};
+static optional<_class&> float_class{};
+static optional<_class&> double_class{};

@@ -2,7 +2,12 @@
 
 #include <core/integer.hpp>
 
-struct descriptor_index {
+class descriptor_index {
 	uint16 value_;
-	operator uint16 () const { return value_; }
+public:
+
+	explicit descriptor_index(uint16 value) : value_{ value } {}
+
+	operator uint16& () { return value_; }
+
 };

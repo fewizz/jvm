@@ -1,10 +1,10 @@
 #pragma once
 
 #include "./declared_instance_field_index.hpp"
-#include "method/with_class/decl.hpp"
-#include "field/static/with_class/decl.hpp"
-#include "method/decl.hpp"
-#include "object/reference/decl.hpp"
+#include "method/with_class.hpp"
+#include "field/static/with_class.hpp"
+#include "method.hpp"
+#include "object/reference.hpp"
 #include "alloc.hpp"
 
 #include <core/meta/elements/one_of.hpp>

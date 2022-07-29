@@ -2,7 +2,7 @@
 
 #include "./jni_call.hpp"
 
-#include "object/decl.hpp"
+#include "object.hpp"
 #include "primitives.hpp"
 
 struct jni_environment;

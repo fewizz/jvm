@@ -2,7 +2,7 @@
 
 #ifdef __x86_64__
 
-#include "./decl.hpp"
+#include "native/function.hpp"
 
 #include "execution/stack_entry.hpp"
 #include "abort.hpp"
@@ -19,7 +19,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 		abort();
 	}
 
-	uint64 iorref_storage[args.size() + 1]; {
+	uint64 iorref_storage[6] { 0 }; {
 		nuint arg = 0;
 
 		iorref_storage[arg++] = (uint64) nullptr; // jni_environment*
@@ -90,6 +90,8 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 				"+r"(arg_f_0), "+r"(arg_f_1), "+r"(arg_f_2), "+r"(arg_f_3),
 				"+r"(arg_f_4), "+r"(arg_f_5), "+r"(arg_f_6), "+r"(arg_f_7),
 				"=r"(result)
+			:
+			: "r10", "r11", "r12", "r13", "r14", "cc", "memory"
 		);
 	}
 

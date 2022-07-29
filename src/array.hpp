@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "object/decl.hpp"
+#include "class.hpp"
+#include "object.hpp"
 #include "object/create.hpp"
 
 inline optional<_class&> bool_array_class{};

@@ -1,23 +1,22 @@
 #pragma once
 
+#include "./method_ref_index.hpp"
 #include "execute.hpp"
 #include "execution/info.hpp"
 #include "execution/stack_entry.hpp"
-#include "class/decl.hpp"
-#include "object/decl.hpp"
+#include "class.hpp"
+#include "object.hpp"
 
-#include <class/file/constant.hpp>
-#include <class/file/attribute/code/instruction.hpp>
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/constant.hpp>
 
 inline reference invoke_virtual(
-	_class& c, class_file::attribute::code::instruction::invoke_virtual x,
+	method_ref_index ref_index, _class& c,
 	stack_entry* stack, nuint& stack_size
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
 
-	cc::method_ref method_ref { c.method_ref_constant(x.index) };
+	cc::method_ref method_ref { c.method_ref_constant(ref_index) };
 	cc::name_and_type nat {
 		c.name_and_type_constant(method_ref.name_and_type_index)
 	};
@@ -35,11 +34,14 @@ inline reference invoke_virtual(
 		fputc('\n', stderr);
 	}
 
-	cf::descriptor::method_reader params_reader{ method_desc.begin() };
-	uint16 args_count = 0;
-	params_reader([&](auto){ ++args_count; return true; });
+	uint8 args_count;
+	{
+		method_with_class virt_mwc = c.get_resolved_method(ref_index);
+		args_count = virt_mwc.method().arguments_count();
+	}
+	++args_count; // this
 
-	reference& ref = stack[stack_size - args_count - 1].get<reference>();
+	reference& ref = stack[stack_size - args_count].get<reference>();
 	optional<_class&> c0 = ref.object()._class();
 	optional<method&> m0{};
 
@@ -73,9 +75,8 @@ inline reference invoke_virtual(
 		fputs("couldn't find method", stderr); abort();
 	}
 
-	++args_count; // this
 	stack_size -= args_count;
-	expected<stack_entry, reference> result = invoke(
+	expected<stack_entry, reference> result = execute(
 		method_with_class{ m0.value(), c0.value() },
 		arguments_container{ stack + stack_size, args_count }
 	);

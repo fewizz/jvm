@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./decl.hpp"
+#include "object/reference.hpp"
 
-#include "object/decl.hpp"
+#include "object.hpp"
 #include "alloc.hpp"
 #include "abort.hpp"
 

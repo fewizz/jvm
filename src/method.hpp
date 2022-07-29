@@ -1,34 +1,20 @@
 #pragma once
 
-#include "class/member/decl.hpp"
-#include "native/function/decl.hpp"
+#include "method/code.hpp"
+#include "arguments_count.hpp"
+#include "class/member.hpp"
+#include "native/function.hpp"
 #include "descriptor_index.hpp"
 #include "name_index.hpp"
 
-#include <class/file/access_flag.hpp>
-#include <class/file/constant.hpp>
-#include <class/file/attribute/code/exception_handler.hpp>
+#include <class_file/access_flag.hpp>
+#include <class_file/constant.hpp>
+#include <class_file/attribute/code/exception_handler.hpp>
 
 #include <core/span.hpp>
 #include <core/meta/elements/one_of.hpp>
 
 struct _class;
-
-struct code : span<uint8, uint32> {
-	using base_type = span<uint8, uint32>;
-
-	uint16 max_stack;
-	uint16 max_locals;
-
-	code() = default;
-
-	code(span<uint8, uint32> bytes, uint16 max_stack, uint16 max_locals) :
-		base_type{ bytes },
-		max_stack{ max_stack },
-		max_locals{ max_locals }
-	{}
-
-};
 
 using code_or_native_function =
 	elements::one_of<elements::none, code, native_function&>;
@@ -43,7 +29,8 @@ struct method : class_member {
 private:
 	using base_type = class_member;
 
-	code_or_native_function  code_;
+	arguments_count              arguments_count_;
+	code_or_native_function      code_;
 	exception_handlers_container exception_handlers_;
 
 public:
@@ -52,21 +39,26 @@ public:
 		class_file::access_flags       access_flags,
 		::name_index                   name_index,
 		::descriptor_index             descriptor_index,
+		arguments_count                arguments_count,
 		code_or_native_function        code,
 		exception_handlers_container&& exception_handlers
 	) :
-		base_type{ access_flags, name_index, descriptor_index },
-		code_        { code },
-		exception_handlers_{ move(exception_handlers) }
+		base_type          { access_flags, name_index, descriptor_index },
+		arguments_count_   { arguments_count                            },
+		code_              { code                                       },
+		exception_handlers_{ move(exception_handlers)                   }
 	{}
 
+	arguments_count arguments_count() { return arguments_count_; }
+
 	code code() const { return code_.get<::code>(); }
+
 	exception_handlers_container& exception_handlers() {
 		return exception_handlers_;
 	}
 
 	bool is_native() const {
-		return access_flags().get(class_file::access_flag::native);
+		return access_flags().native();
 	}
 
 	bool has_native_function() const {

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "class/decl.hpp"
-#include "classes/load.hpp"
+#include "class.hpp"
+#include "class/es/load.hpp"
 #include "object/create.hpp"
 
 #include <core/optional.hpp>
@@ -20,7 +20,7 @@ inline reference create_negative_array_size_exception() {
 	stack_entry se{ ref };
 	span<stack_entry, uint16> args{ &se, 1 };
 
-	invoke(method_with_class{ m, c }, args);
+	execute(method_with_class{ m, c }, args);
 
 	return move(ref);
 }

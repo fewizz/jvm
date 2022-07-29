@@ -1,5 +1,5 @@
 #pragma once
 
-#include "object/reference/decl.hpp"
+#include "object/reference.hpp"
 
 static thread_local reference thrown;

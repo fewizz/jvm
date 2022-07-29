@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "classes/container.hpp"
+#include "class.hpp"
+#include "class/es/container.hpp"
 
 #include <core/array.hpp>
 #include <core/copy.hpp>
@@ -30,7 +30,9 @@ inline _class& define_array_class(Name&& name) {
 	});
 
 	// 2
-	const_pool.emplace_back(class_file::constant::_class { 1 });
+	const_pool.emplace_back(
+		class_file::constant::_class { class_file::utf8_index{ 1 }}
+	);
 
 	// 3
 	const_pool.emplace_back(class_file::constant::utf8 {
@@ -59,7 +61,7 @@ inline _class& define_array_class(Name&& name) {
 
 	// 8
 	const_pool.emplace_back(class_file::constant::_class {
-		.name_index = 9
+		class_file::utf8_index{ 9 }
 	});
 
 	// 9

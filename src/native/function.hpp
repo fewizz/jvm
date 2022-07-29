@@ -54,6 +54,6 @@ public:
 	auto name() { return name_; }
 };
 
-#include "../jni/environment.hpp"
+#include "native/jni/environment.hpp"
 #include <core/bit_cast.hpp>
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/descriptor/reader.hpp>

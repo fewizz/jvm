@@ -1,12 +1,12 @@
 #include "class/impl.hpp"
-#include "classes/impl.hpp"
+#include "class/es/impl.hpp"
 #include "execute/impl.hpp"
 #include "object/impl.hpp"
 #include "native/impl.hpp"
 #include "native/jni/environment.hpp"
 #include "array.hpp"
 #include "executable_path.hpp"
-#include "classes/load.hpp"
+#include "class/es/load.hpp"
 #include "thrown.hpp"
 #include "lib/java/lang/null_pointer_exception.hpp"
 
@@ -75,7 +75,7 @@ int main (int argc, const char** argv) {
 	reference args = create_array_of(string_class.value(), 0);
 	stack_entry arg0 = args;
 
-	stack_entry value = invoke(
+	stack_entry value = execute(
 		mwc, arguments_container{ &arg0, 1 }
 	);
 
@@ -85,10 +85,10 @@ int main (int argc, const char** argv) {
 	}
 
 	if(value.is<jint>()) {
-		printf("%" PRId32, value.get<jint>().value);
+		printf("%" PRId32, (int32) value.get<jint>());
 	} else
 	if(value.is<jlong>()) {
-		printf("%" PRId64, value.get<jlong>().value);
+		printf("%" PRId64, (int64) value.get<jlong>());
 	} else
 	if(
 		value.is<reference>() &&

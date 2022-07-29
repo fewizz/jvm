@@ -1,10 +1,10 @@
 #pragma once
 
-#include "field/decl.hpp"
+#include "field.hpp"
 
-#include "class/member/with_class/decl.hpp"
+#include "class/member/with_class.hpp"
 
-#include <class/file/constant.hpp>
+#include <class_file/constant.hpp>
 
 struct field_with_class : class_member_with_class {
 	using base_type = class_member_with_class;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "array.hpp"
-#include "classes/find_or_load.hpp"
-#include "class/decl.hpp"
+#include "class/es/find_or_load.hpp"
+#include "class.hpp"
 #include "object/create.hpp"
 #include "lib/java/lang/string.hpp"
 #include "abort.hpp"

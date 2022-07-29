@@ -2,7 +2,7 @@
 
 #include "alloc.hpp"
 
-#include <class/file/constant.hpp>
+#include <class_file/constant.hpp>
 
 #include <core/limited_list.hpp>
 #include <core/meta/elements/one_of.hpp>

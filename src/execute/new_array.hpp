@@ -3,17 +3,16 @@
 #include "execution/info.hpp"
 #include "execution/stack_entry.hpp"
 #include "array.hpp"
-#include "class/decl.hpp"
+#include "class.hpp"
 #include "field/value.hpp"
 #include "object/create.hpp"
-#include "classes/find_or_load.hpp"
+#include "class/es/find_or_load.hpp"
 
-#include <class/file/attribute/code/instruction.hpp>
+#include <class_file/attribute/code/instruction.hpp>
 
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/array.hpp>
-
 
 inline void new_array(
 	//_class& c, TODO use trampoline

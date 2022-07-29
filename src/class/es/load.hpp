@@ -1,6 +1,6 @@
 #pragma once
 
-#include "class/decl.hpp"
+#include "class.hpp"
 #include "executable_path.hpp"
 
 #include <core/range.hpp>

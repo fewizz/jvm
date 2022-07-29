@@ -1,9 +1,9 @@
 #pragma once
 
-#include "field/decl.hpp"
-#include "classes/find_or_load.hpp"
+#include "field.hpp"
+#include "class/es/find_or_load.hpp"
 
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/descriptor/reader.hpp>
 
 inline _class& _class::get_class(uint16 class_index) {
 	if(auto& t = trampoline(class_index); !t.is<elements::none>()) {

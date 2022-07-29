@@ -1,11 +1,11 @@
 #pragma once
 
 #include "primitives.hpp"
-#include "native/functions/container.hpp"
+#include "native/function/s/container.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 #include "lib/java/lang/string.hpp"
-#include "classes/load.hpp"
+#include "class/es/load.hpp"
 
 #include <core/starts_with.hpp>
 #include <core/array.hpp>

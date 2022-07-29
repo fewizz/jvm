@@ -1,6 +1,6 @@
 #pragma once
 
-#include "native/functions/container.hpp"
+#include "native/function/s/container.hpp"
 #include "array.hpp"
 #include "thrown.hpp"
 #include "lib/java/lang/negative_array_size_exception.hpp"

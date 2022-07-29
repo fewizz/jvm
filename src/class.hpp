@@ -1,19 +1,19 @@
 #pragma once
 
-#include "./const_pool.hpp"
-#include "./trampoline_pool.hpp"
-#include "./is_array.hpp"
-#include "./is_primitive.hpp"
-#include "field/decl.hpp"
-#include "field/instance/decl.hpp"
-#include "field/instance/with_class/decl.hpp"
-#include "field/static/decl.hpp"
-#include "field/static/with_class/decl.hpp"
+#include "class/const_pool.hpp"
+#include "class/trampoline_pool.hpp"
+#include "class/is_array.hpp"
+#include "class/is_primitive.hpp"
+#include "field.hpp"
+#include "field/instance.hpp"
+#include "field/instance/with_class.hpp"
+#include "field/static.hpp"
+#include "field/static/with_class.hpp"
 #include "name_index.hpp"
 #include "execute.hpp"
 #include "abort.hpp"
 
-#include <class/file/access_flag.hpp>
+#include <class_file/access_flag.hpp>
 
 #include <core/range.hpp>
 #include <core/limited_list.hpp>
@@ -42,7 +42,7 @@ struct class_data : span<uint8> {
 
 using interfaces_indices_container =
 	::limited_list<
-		uint16, uint16, default_allocator
+		class_file::interface_index, uint16, default_allocator
 	>;
 
 using instance_fields_container =

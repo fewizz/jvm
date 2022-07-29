@@ -1,9 +1,9 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "field/decl.hpp"
-#include "classes/find_or_load.hpp"
-#include <class/file/descriptor/reader.hpp>
+#include "class.hpp"
+#include "field.hpp"
+#include "class/es/find_or_load.hpp"
+#include <class_file/descriptor/reader.hpp>
 
 instance_field_index
 inline _class::get_resolved_instance_field_index(uint16 ref_index) {

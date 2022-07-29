@@ -1,6 +1,6 @@
 #pragma once
 
-#include "native/functions/container.hpp"
+#include "native/function/s/container.hpp"
 #include <core/bit_cast.hpp>
 #include <math.h>
 
@@ -9,7 +9,7 @@ static inline void init_java_lang_double() {
 	native_functions.emplace_back(
 		(void*) (int64(*)(jni_environment*, jdouble))
 		[](jni_environment*, jdouble value) {
-			return bit_cast<int64>(value.value);
+			return bit_cast<int64>(value);
 		},
 		c_string{ "Java_java_lang_Double_doubleToRawLongBits" },
 		c_string{ "(D)J" }

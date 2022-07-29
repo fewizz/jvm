@@ -1,9 +1,9 @@
 #pragma once
 
-#include "method/decl.hpp"
-#include "class/decl.hpp"
+#include "method.hpp"
+#include "class.hpp"
 #include "container.hpp"
-#include "native/function/decl.hpp"
+#include "native/function.hpp"
 #include "abort.hpp"
 
 #include <core/optional.hpp>

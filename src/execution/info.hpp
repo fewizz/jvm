@@ -9,6 +9,6 @@ inline static nuint tab = 0;
 
 inline void tabs() {
 	for(nuint i = 0; i < tab; ++i) {
-		fputc('\t', stderr);
+		fputs("  ", stderr);
 	}
 }

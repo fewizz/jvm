@@ -1,6 +1,6 @@
 #pragma once
 
-#include "native/function/decl.hpp"
+#include "native/function.hpp"
 #include "alloc.hpp"
 
 #include <core/limited_list.hpp>

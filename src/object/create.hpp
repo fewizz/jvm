@@ -1,8 +1,8 @@
 #pragma once
 
-#include "reference/decl.hpp"
-#include "class/decl.hpp"
-#include "./decl.hpp"
+#include "reference.hpp"
+#include "class.hpp"
+#include "object.hpp"
 
 inline reference create_object(_class& c) {
 	c.initialise_if_need();

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "classes/find_or_load.hpp"
+#include "class.hpp"
+#include "class/es/find_or_load.hpp"
 #include "lib/java/lang/string.hpp"
 
 #include <core/optional.hpp>
@@ -23,7 +23,7 @@ static inline reference create_stack_trace_element(
 		result, class_name_str, method_name_str, reference{}, jint{ -1 }
 	};
 
-	invoke(
+	execute(
 		method_with_class {
 			stack_trace_element_constructor.value(),
 			stack_trace_element_class.value()

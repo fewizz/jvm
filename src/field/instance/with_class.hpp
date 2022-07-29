@@ -1,7 +1,7 @@
 #pragma once
 
-#include "field/instance/decl.hpp"
-#include "field/with_class/decl.hpp"
+#include "field/instance.hpp"
+#include "field/with_class.hpp"
 
 struct instance_field_with_class : field_with_class {
 	using base_type = field_with_class;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "native/functions/container.hpp"
-#include "classes/load.hpp"
+#include "native/function/s/container.hpp"
+#include "class/es/load.hpp"
 #include "object/create.hpp"
 #include "array.hpp"
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "field/decl.hpp"
+#include "field.hpp"
 #include "field/value.hpp"
 #include "class/const_pool.hpp"
 #include "abort.hpp"
 
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/descriptor/reader.hpp>
 
 #include <stdio.h>
 

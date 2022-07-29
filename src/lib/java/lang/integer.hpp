@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "native/functions/container.hpp"
+#include "class.hpp"
+#include "native/function/s/container.hpp"
 #include "primitives.hpp"
 
 static void init_java_lang_integer() {

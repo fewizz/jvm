@@ -1,11 +1,11 @@
 #pragma once
 
-#include "./decl.hpp"
+#include "../class.hpp"
 
 #include "class/member/impl.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
-#include "classes/find_or_load.hpp"
+#include "class/es/find_or_load.hpp"
 #include "lib/java/lang/class.hpp"
 
 #include <core/concat.hpp>
@@ -221,7 +221,7 @@ inline void _class::initialise_if_need() {
 
 	auto clinit = try_find_method(c_string{ "<clinit>" });
 	if(clinit.has_value()) {
-		invoke(
+		execute(
 			method_with_class{ clinit.value(), *this },
 			arguments_container{}
 		);

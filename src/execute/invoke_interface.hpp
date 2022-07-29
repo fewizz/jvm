@@ -1,21 +1,22 @@
 #pragma once
 
+#include "./method_ref_index.hpp"
+#include "arguments_count.hpp"
 #include "execute.hpp"
 #include "execution/info.hpp"
 #include "execution/stack_entry.hpp"
-#include "class/decl.hpp"
+#include "class.hpp"
 
-#include <class/file/constant.hpp>
-#include <class/file/attribute/code/instruction.hpp>
+#include <class_file/constant.hpp>
 
 inline optional<reference> invoke_interface(
-	_class& c, class_file::attribute::code::instruction::invoke_interface x,
-	stack_entry* stack, nuint& stack_size
+	method_ref_index ref_index, arguments_count args_count,
+	_class& c, stack_entry* stack, nuint& stack_size
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
 
-	cc::method_ref method_ref_info { c.method_ref_constant(x.index) };
+	cc::method_ref method_ref_info { c.method_ref_constant(ref_index) };
 	cc::name_and_type name_and_type_info {
 		c.name_and_type_constant(method_ref_info.name_and_type_index)
 	};
@@ -34,8 +35,6 @@ inline optional<reference> invoke_interface(
 		fwrite(desc.data(), 1, desc.size(), stderr);
 		fputc('\n', stderr);
 	}
-
-	uint16 args_count = x.count;
 
 	optional<method&> m0{};
 	optional<_class&> c0 = stack[stack_size - args_count]
@@ -74,7 +73,7 @@ inline optional<reference> invoke_interface(
 	}
 
 	stack_size -= args_count;
-	expected<stack_entry, reference> result = invoke(
+	expected<stack_entry, reference> result = execute(
 		method_with_class{ m0.value(), c0.value() },
 		arguments_container{ stack + stack_size, args_count }
 	);

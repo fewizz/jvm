@@ -1,21 +1,19 @@
 #pragma once
 
+#include "./method_ref_index.hpp"
 #include "execute.hpp"
 #include "execution/info.hpp"
 #include "execution/stack_entry.hpp"
-#include "class/decl.hpp"
-#include "method/decl.hpp"
-
-#include <class/file/attribute/code/instruction.hpp>
-#include <class/file/descriptor/reader.hpp>
+#include "class.hpp"
+#include "method.hpp"
 
 inline optional<reference> invoke_static(
-	_class& c, class_file::attribute::code::instruction::invoke_static x,
+	method_ref_index ref_index, _class& c,
 	stack_entry* stack, nuint& stack_size
 ) {
 	namespace cc = class_file::constant;
 
-	cc::method_ref method_ref = c.method_ref_constant(x.index);
+	cc::method_ref method_ref = c.method_ref_constant(ref_index);
 	cc::name_and_type nat {
 		c.name_and_type_constant(method_ref.name_and_type_index)
 	};
@@ -33,13 +31,12 @@ inline optional<reference> invoke_static(
 		fputc('\n', stderr);
 	}
 
-	class_file::descriptor::method_reader params_reader{ method_desc.begin() };
-	uint16 args_count = 0;
-	params_reader([&](auto){ ++args_count; return true; });
-	stack_size -= args_count;
-	method_with_class wic = c.get_static_method(x.index);
+	method_with_class wic = c.get_static_method(ref_index);
 
-	expected<stack_entry, reference> result = invoke(
+	auto args_count = wic.method().arguments_count();
+	stack_size -= args_count;
+
+	expected<stack_entry, reference> result = execute(
 		wic,
 		arguments_container{ stack + stack_size, args_count }
 	);

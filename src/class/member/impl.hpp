@@ -1,3 +1,14 @@
 #pragma once
 
-#include "with_class/impl.hpp"
+#include "with_class.hpp"
+#include "class.hpp"
+
+inline class_file::constant::utf8
+class_member_with_class::name() {
+	return _class().name(class_member());
+}
+
+inline class_file::constant::utf8
+class_member_with_class::descriptor() {
+	return _class().descriptor(class_member());
+}

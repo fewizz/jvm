@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "field/decl.hpp"
+#include "class.hpp"
+#include "field.hpp"
 
 template<typename Name, typename Descriptor, typename Handler>
 inline void _class::for_each_maximally_specific_superinterface_method(

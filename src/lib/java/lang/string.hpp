@@ -1,7 +1,7 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "classes/load.hpp"
+#include "class.hpp"
+#include "class/es/load.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
 

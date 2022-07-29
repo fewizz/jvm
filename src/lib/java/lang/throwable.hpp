@@ -1,11 +1,11 @@
 #pragma once
 
 #include "native/jni/environment.hpp"
-#include "native/functions/container.hpp"
+#include "native/function/s/container.hpp"
 #include "execution/latest_context.hpp"
 #include "array.hpp"
 #include "primitives.hpp"
-#include "object/reference/decl.hpp"
+#include "object/reference.hpp"
 #include "lib/java/lang/stack_trace_element.hpp"
 
 #include <core/optional.hpp>

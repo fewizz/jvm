@@ -15,24 +15,25 @@
 #include "execution/latest_context.hpp"
 #include "array.hpp"
 #include "object/create.hpp"
-#include "native/functions/find.hpp"
+#include "native/function/s/find.hpp"
 #include "abort.hpp"
 #include "lib/java/lang/null_pointer_exception.hpp"
 #include "lib/java/lang/index_out_of_bounds_exception.hpp"
 
-#include <class/file/reader.hpp>
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/reader.hpp>
+#include <class_file/descriptor/reader.hpp>
 
 #include <core/number.hpp>
 #include <core/c_string.hpp>
 #include <core/concat.hpp>
 #include <core/single.hpp>
 #include <core/on_scope_exit.hpp>
+#include <core/max.hpp>
 
 #include <stdio.h>
 #include <math.h>
 
-static inline stack_entry invoke(
+static stack_entry execute(
 	method_with_class mwc,
 	arguments_container args
 ) {
@@ -44,7 +45,7 @@ static inline stack_entry invoke(
 
 	if(info) {
 		tabs();
-		fputs("invoking: ", stderr);
+		fputs("executing: ", stderr);
 		fwrite(c.name().data(), 1, c.name().size(), stderr);
 		fputc('.', stderr);
 		fwrite(c.name(m).data(), 1, c.name(m).size(), stderr);
@@ -55,11 +56,9 @@ static inline stack_entry invoke(
 		++tab;
 	}
 
-	on_scope_exit _ { [] {
-		if(info) {
-			--tab;
-		}
-	}};
+	on_scope_exit bring_tab_back {
+		[] { if(info) { --tab; } }
+	};
 
 	stack_entry result;
 	uint32 pc = 0;
@@ -70,9 +69,9 @@ static inline stack_entry invoke(
 
 	latest_execution_context = ctx;
 
-	on_scope_exit return_ctx{ [&]() {
-		latest_execution_context = ctx.previous;
-	}};
+	on_scope_exit set_latest_execution_context_to_previous {
+		[&] { latest_execution_context = ctx.previous; }
+	};
 
 	if(m.is_native()) {
 		if(!m.has_native_function()) {
@@ -91,7 +90,7 @@ static inline stack_entry invoke(
 		cf::attribute::code::reader_stage::code
 	> reader{ m.code().data() };
 
-	stack_entry stack[m.code().max_stack];
+	stack_entry stack[max(m.code().max_stack, 1)]; // ub if 0
 	nuint stack_size = 0;
 
 	stack_entry local[m.code().max_locals * 2]; // there may be longs or doubles
@@ -113,6 +112,16 @@ static inline stack_entry invoke(
 	namespace attr = cf::attribute;
 	using namespace attr::code::instruction;
 	namespace cc = cf::constant;
+
+	auto on_unimplemented_instruction = [] (uint8 code) {
+		if(info) tabs();
+		fprintf(stderr, "unimplemented instruction ");
+		for_each_digit_in_number(
+			number{ code }, base{ 10 },
+			[](auto digit) { fputc('0' + digit, stderr); }
+		);
+		abort();
+	};
 
 	reader([&]<typename Type>(Type x, uint8*& it) {
 		on_scope_exit update_pc{[&](){
@@ -239,13 +248,13 @@ static inline stack_entry invoke(
 			stack[stack_size++] = jint{ x.value };
 		}
 		else if constexpr (same_as<Type, instr::ldc>) {
-			::ldc(c, x, stack, stack_size);
+			::ldc(constant_index{ x.index }, c, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, instr::ldc_w>) {
-			::ldc_w(c, x, stack, stack_size);
+			::ldc_w(wide_constant_index{ x.index }, c, stack, stack_size);
 		}
 		else if constexpr (same_as<Type, instr::ldc_2_w>) {
-			::ldc_2_w(c, x, stack, stack_size);
+			::ldc_2_w(wide_constant_index{ x.index }, c, stack, stack_size);
 		}
 
 		else if constexpr (same_as<Type, i_load>) {
@@ -634,7 +643,7 @@ static inline stack_entry invoke(
 			if(info) {
 				tabs(); fprintf(stderr, "i_inc %hhu %hhd\n", x.index, x.value);
 			}
-			local[x.index].template get<jint>().value += x.value;
+			local[x.index].template get<jint>() += x.value;
 		}
 		else if constexpr (same_as<Type, i_to_l>) {
 			if(info) { tabs(); fputs("i_to_l\n", stderr); }
@@ -966,27 +975,31 @@ static inline stack_entry invoke(
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
 			::invoke_virtual(
-				c, x, stack, stack_size
+				method_ref_index{ x.index }, c, stack, stack_size
 			);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_special>) {
 			auto possible_exception = ::invoke_special(
-				c, x, stack, stack_size
+				method_ref_index{ x.index }, c, stack, stack_size
 			);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_static>) {
 			auto possible_exception = ::invoke_static(
-				c, x, stack, stack_size
+				method_ref_index{ x.index }, c, stack, stack_size
 			);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
 			auto possible_exception = ::invoke_interface(
-				c, x, stack, stack_size
+				method_ref_index{ x.index }, arguments_count{ x.count },
+				c, stack, stack_size
 			);
 			return handle_thrown();
+		}
+		else if constexpr (same_as<Type, instr::invoke_dynamic>) {
+
 		}
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {
@@ -1106,13 +1119,7 @@ static inline stack_entry invoke(
 			abort();
 		}
 		else {
-			if(info) tabs();
-			fprintf(stderr, "unimplemented instruction ");
-			for_each_digit_in_number(
-				number{ Type::code }, base{ 10 },
-				[](auto digit) { fputc('0' + digit, stderr); }
-			);
-			abort();
+			on_unimplemented_instruction(Type::code);
 		}
 
 		return loop_action::next;

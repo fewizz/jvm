@@ -24,6 +24,7 @@ private:
 	}
 
 	void on_reference_removed();
+
 	void unsafe_decrease_reference_count_without_destroing();
 
 	friend reference;
@@ -41,6 +42,7 @@ public:
 	}
 
 	auto& values() { return values_; }
+
 	uint32 references() { return references_; }
 
 };

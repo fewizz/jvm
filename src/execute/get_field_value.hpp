@@ -20,12 +20,12 @@ inline stack_entry get_field_value(
 			same_as<ValueType, jchar>  ||
 			same_as<ValueType, jbyte>
 		) {
-			return jint{ value.value };
+			return jint{ (int32) value };
 		}
 		else if constexpr(
 			same_as<ValueType, jbool>
 		) {
-			return jint{ int32(value.value) };
+			return jint{ (int32) value };
 		}
 		else if constexpr(
 			same_as<jfloat, ValueType> ||

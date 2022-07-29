@@ -2,9 +2,9 @@
 
 #ifdef __x86_64__
 
-#include "./decl.hpp"
+#include "native/function.hpp"
 
-#include "invocation/stack_entry.hpp"
+#include "execution/stack_entry.hpp"
 #include "abort.hpp"
 
 #include <core/bit_cast.hpp>

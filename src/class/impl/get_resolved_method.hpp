@@ -1,10 +1,10 @@
 #pragma once
 
-#include "class/decl.hpp"
-#include "method/decl.hpp"
-#include "classes/find_or_load.hpp"
+#include "class.hpp"
+#include "method.hpp"
+#include "class/es/find_or_load.hpp"
 
-#include <class/file/descriptor/reader.hpp>
+#include <class_file/descriptor/reader.hpp>
 
 inline method_with_class _class::get_resolved_method(uint16 ref_index) {
 	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
