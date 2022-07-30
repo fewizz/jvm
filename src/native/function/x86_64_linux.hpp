@@ -91,7 +91,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 				"+r"(arg_f_4), "+r"(arg_f_5), "+r"(arg_f_6), "+r"(arg_f_7),
 				"=r"(result)
 			:
-			: "r10", "r11", "r12", "r13", "r14", "cc", "memory"
+			: "r10", "r11", "r12", "r13", "r14", "r15", "cc", "memory"
 		);
 	}
 

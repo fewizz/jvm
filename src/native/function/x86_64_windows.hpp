@@ -8,6 +8,7 @@
 #include "abort.hpp"
 
 #include <core/bit_cast.hpp>
+#include <core/max.hpp>
 #include <stdio.h>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
@@ -19,7 +20,11 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 		abort();
 	}
 
-	uint64 iorref_storage[args.size() + 1]; {
+	nuint iorref_storage_size = max(4, args.size() + 1);
+	uint64 iorref_storage[iorref_storage_size];
+	for(nuint x = 0; x < iorref_storage_size; ++x) {
+		iorref_storage[x] = 0; // TODO use algo
+	} {
 		nuint arg = 0;
 
 		iorref_storage[arg++] = (uint64) nullptr; // jni_environment*
@@ -64,8 +69,8 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	register uint64 result asm("rax");
 	register __m128 result_f asm("xmm0");
 	{
-		register uint64 arg_0 asm("rdx") = iorref_storage[0];
-		register uint64 arg_1 asm("rcx") = iorref_storage[1];
+		register uint64 arg_1 asm("rcx") = iorref_storage[0];
+		register uint64 arg_0 asm("rdx") = iorref_storage[1];
 		register uint64 arg_2 asm("r8")  = iorref_storage[2];
 		register uint64 arg_3 asm("r9")  = iorref_storage[3];
 
@@ -81,10 +86,14 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			"callq *%[function_ptr]\n"
 			"add $32, %%rsp\n"
 			:
-				[function_ptr]"+r"(function_ptr),
-				"+r"(arg_0), "+r"(arg_1), "+r"(arg_2), "+r"(arg_3),
+				[function_ptr] "+r"(function_ptr),
+				"+r"(arg_0),   "+r"(arg_1),   "+r"(arg_2),   "+r"(arg_3),
 				"+r"(arg_f_0), "+r"(arg_f_1), "+r"(arg_f_2), "+r"(arg_f_3),
-				"=r"(result), "=r"(result_f)
+				"=r"(result),  "=r"(result_f)
+			:
+			:
+				"rsi", "rdi", "r10", "r11", "r12", "r13", "r14", "r15",
+				"cc", "memory"
 		);
 	}
 

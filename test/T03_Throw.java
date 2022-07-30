@@ -21,7 +21,7 @@ public class T03_Throw {
 		}
 
 		if(i != 3) {
-			System.exit(1);
+			System.exit(2);
 		}
 	}
 	
