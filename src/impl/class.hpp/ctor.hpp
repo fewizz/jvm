@@ -2,7 +2,7 @@
 
 inline _class::_class(
 	const_pool&& const_pool,
-	span<uint8> data, class_file::access_flags access_flags,
+	span<uint8> bytes, class_file::access_flags access_flags,
 	::this_class_index this_class_index, ::super_class_index super_class_index,
 	interfaces_indices_container&& interfaces,
 	instance_fields_container&& instance_fields,
@@ -13,7 +13,7 @@ inline _class::_class(
 ) :
 	::const_pool       { move(const_pool)      },
 	::trampoline_pool  { ::const_pool::size()  },
-	data_              { data                  },
+	bytes_             { bytes                 },
 	access_flags_      { access_flags          },
 	this_class_index_  { this_class_index      },
 	super_class_index_ { super_class_index     },

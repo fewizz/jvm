@@ -1,14 +1,13 @@
 #include "execute.hpp"
 #include "execution/info.hpp"
-#include "execution/stack_entry.hpp"
+#include "execution/stack.hpp"
 #include "class.hpp"
 #include "object.hpp"
 
 #include <class_file/constant.hpp>
 
-inline reference invoke_virtual(
-	class_file::constant::method_ref_index ref_index, _class& c,
-	stack_entry* stack, nuint& stack_size
+inline void invoke_virtual(
+	class_file::constant::method_ref_index ref_index, _class& c, stack& stack
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
@@ -38,7 +37,7 @@ inline reference invoke_virtual(
 	}
 	++args_count; // this
 
-	reference& ref = stack[stack_size - args_count].get<reference>();
+	reference& ref = stack[stack.size() - args_count].get<reference>();
 	optional<_class&> c0 = ref.object()._class();
 	optional<method&> m0{};
 
@@ -72,19 +71,17 @@ inline reference invoke_virtual(
 		fputs("couldn't find method", stderr); abort();
 	}
 
-	stack_size -= args_count;
-	expected<stack_entry, reference> result = execute(
+	stack_entry result = execute(
 		method_with_class{ m0.value(), c0.value() },
-		arguments_span{ stack + stack_size, args_count }
+		arguments_span{ stack.begin() + stack.size() - args_count, args_count }
 	);
 
-	if(result.is_unexpected()) {
-		return result.get_unexpected();
+	while(args_count > 0) {
+		--args_count;
+		stack.pop_back();
 	}
 
-	if(!result.get_expected().is<jvoid>()) {
-		stack[stack_size++] = result;
+	if(!result.is<jvoid>()) {
+		stack.emplace_back(move(result));
 	}
-
-	return {};
 }

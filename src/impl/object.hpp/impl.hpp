@@ -2,6 +2,9 @@
 
 #include "class.hpp"
 #include "field.hpp"
+#include "array.hpp"
+
+#include "execution/info.hpp"
 
 inline object::object(::_class& c) :
 	class_{ c },
@@ -29,9 +32,56 @@ inline object::object(::_class& c) :
 
 		values_.emplace_back(move(fv));
 	});
+
+	if(info) {
+		tabs();
+		fprintf(
+			stderr,
+			"object constructed with address = %p, type = ", this
+		);
+		auto name = _class().name();
+		fwrite(name.data(), 1, name.size(), stderr);
+		fputc('\n', stderr);
+	}
+}
+
+inline object::~object() {
+	if(_class().is_array_class()) {
+		uint8* data = array_data<uint8>(*this);
+
+		if(!_class().get_component_class().is_primitive_class()) {
+			for(nuint x = array_length(*this); x > 0; --x) {
+				((reference*) data)[x].~reference();
+			}
+		}
+		default_allocator{}.deallocate(
+			(uint8*)data, 0 // TODO compute actual size, uses free so its safe
+		);
+	}
+	if(info) {
+		tabs();
+		fprintf(
+			stderr,
+			"object destructed with address = %p\n", this
+		);
+	}
+}
+
+inline void object::on_reference_added() {
+	/*tabs();
+		fprintf(
+		stderr,
+		"on reference added for object with address = %p\n", this
+	);*/
+	++references_;
 }
 
 inline void object::on_reference_removed() {
+	/*tabs();
+		fprintf(
+		stderr,
+		"on reference removed for object with address = %p\n", this
+	);*/
 	--references_;
 	if(references_ == 0) {
 		this->~object();

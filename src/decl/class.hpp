@@ -30,25 +30,25 @@
 
 #include <stdio.h>
 
-struct class_data : span<uint8> {
+struct class_bytes : span<uint8> {
 	using base_type = span<uint8>;
 	using base_type::base_type;
 
-	class_data(span<uint8> data) :
+	class_bytes(span<uint8> data) :
 		base_type{ data }
 	{}
 
-	class_data(class_data&&) = delete;
-	class_data(const class_data&) = delete;
+	class_bytes(class_bytes&&) = delete;
+	class_bytes(const class_bytes&) = delete;
 
-	~class_data() {
+	~class_bytes() {
 		free(data());
 	}
 };
 
 struct _class : const_pool, trampoline_pool {
 private:
-	class_data                   data_{};
+	class_bytes                  bytes_{};
 	class_file::access_flags     access_flags_;
 	this_class_index             this_class_index_;
 	super_class_index            super_class_index_;

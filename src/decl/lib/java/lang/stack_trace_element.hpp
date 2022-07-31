@@ -19,7 +19,8 @@ static inline reference create_stack_trace_element(
 	reference result = create_object(stack_trace_element_class.value());
 
 	stack_entry args[] {
-		result, class_name_str, method_name_str, reference{}, jint{ -1 }
+		result, move(class_name_str), move(method_name_str),
+		reference{}, jint{ -1 }
 	};
 
 	execute(

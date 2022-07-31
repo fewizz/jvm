@@ -1,12 +1,11 @@
 #include "execute.hpp"
 #include "execution/info.hpp"
-#include "execution/stack_entry.hpp"
+#include "execution/stack.hpp"
 #include "class.hpp"
 #include "method.hpp"
 
-inline optional<reference> invoke_static(
-	class_file::constant::method_ref_index ref_index, _class& c,
-	stack_entry* stack, nuint& stack_size
+inline void invoke_static(
+	class_file::constant::method_ref_index ref_index, _class& c, stack& stack
 ) {
 	namespace cc = class_file::constant;
 
@@ -31,20 +30,18 @@ inline optional<reference> invoke_static(
 	method_with_class wic = c.get_static_method(ref_index);
 
 	auto args_count = wic.method().arguments_count();
-	stack_size -= args_count;
 
-	expected<stack_entry, reference> result = execute(
+	stack_entry result = execute(
 		wic,
-		arguments_span{ stack + stack_size, args_count }
+		arguments_span{ stack.begin() + stack.size() - args_count, args_count }
 	);
 
-	if(result.is_unexpected()) {
-		return result.get_unexpected();
+	while(args_count > 0) {
+		--args_count;
+		stack.pop_back();
 	}
 
-	if(!result.get_expected().is<jvoid>()) {
-		stack[stack_size++] = result;
+	if(!result.is<jvoid>()) {
+		stack.emplace_back(move(result));
 	}
-
-	return {};
 }

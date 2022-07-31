@@ -1,6 +1,6 @@
 #include "array.hpp"
 #include "execution/info.hpp"
-#include "execution/stack_entry.hpp"
+#include "execution/stack.hpp"
 
 #include "abort.hpp"
 
@@ -9,10 +9,9 @@
 
 inline void new_array(
 	//_class& c, TODO use trampoline
-	class_file::attribute::code::instruction::new_array_type type,
-	stack_entry* stack, nuint& stack_size
+	class_file::attribute::code::instruction::new_array_type type, stack& stack
 ) {
-	int32 count = stack[--stack_size].get<jint>();
+	int32 count = stack.pop_back().get<jint>();
 	reference ref;
 
 	using namespace class_file::attribute::code::instruction;
@@ -49,5 +48,5 @@ inline void new_array(
 		fputc('\n', stderr);
 	}
 
-	stack[stack_size++] = move(ref);
+	stack.emplace_back(move(ref));
 }

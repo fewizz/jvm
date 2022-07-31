@@ -1,12 +1,11 @@
 #include "execution/info.hpp"
-#include "execution/stack_entry.hpp"
+#include "execution/stack.hpp"
 #include "class.hpp"
 
 #include <class_file/constant.hpp>
 
 inline void ldc(
-	class_file::constant::index const_index, _class& c,
-	stack_entry* stack, nuint& stack_size
+	class_file::constant::index const_index, _class& c, stack& stack
 ) {
 	if(info) {
 		tabs(); fputs("ldc ", stderr);
@@ -14,24 +13,24 @@ inline void ldc(
 	}
 	const_pool_entry constatnt = c.constant(const_index);
 	if(constatnt.is<class_file::constant::_int>()) {
-		stack[stack_size++] = jint {
+		stack.emplace_back(jint {
 			constatnt.get<class_file::constant::_int>().value
-		};
+		});
 	} else
 	if(constatnt.is<class_file::constant::_float>()) {
-		stack[stack_size++] = jfloat {
+		stack.emplace_back(jfloat {
 			constatnt.get<class_file::constant::_float>().value
-		};
+		});
 	} else
 	if(constatnt.is<class_file::constant::string>()) {
-		stack[stack_size++] = c.get_string(
+		stack.emplace_back(c.get_string(
 			class_file::constant::string_index{ const_index }
-		);
+		));
 	} else
 	if(constatnt.is<class_file::constant::_class>()) {
-		stack[stack_size++] = c.get_class(
+		stack.emplace_back(c.get_class(
 			class_file::constant::class_index{ const_index }
-		).instance();
+		).instance());
 	}
 	else {
 		fputs("unknown constant", stderr); abort();
@@ -39,8 +38,7 @@ inline void ldc(
 }
 
 inline void ldc_2_w(
-	class_file::constant::index const_index, _class& c,
-	stack_entry* stack, nuint& stack_size
+	class_file::constant::index const_index, _class& c, stack& stack
 ) {
 	if(info) {
 		tabs(); fputs("ldc_2_w ", stderr);
@@ -48,14 +46,14 @@ inline void ldc_2_w(
 	}
 	const_pool_entry constatnt = c.constant(const_index);
 	if(constatnt.is<class_file::constant::_long>()) {
-		stack[stack_size++] = jlong {
+		stack.emplace_back(jlong {
 			constatnt.get<class_file::constant::_long>().value
-		};
+		});
 	} else
 	if(constatnt.is<class_file::constant::_double>()) {
-		stack[stack_size++] = jdouble {
+		stack.emplace_back(jdouble {
 			constatnt.get<class_file::constant::_double>().value
-		};
+		});
 	}
 	else {
 		fputs("unknown constant", stderr); abort();

@@ -73,11 +73,11 @@ int main (int argc, const char** argv) {
 
 	if(value.is<jint>()) {
 		printf("%" PRId32, (int32) value.get<jint>());
-	} else
-	if(value.is<jlong>()) {
+	}
+	else if(value.is<jlong>()) {
 		printf("%" PRId64, (int64) value.get<jlong>());
-	} else
-	if(
+	}
+	else if(
 		value.is<reference>() &&
 		&value.get<reference>().object()._class() == &string_class.value()
 	) {

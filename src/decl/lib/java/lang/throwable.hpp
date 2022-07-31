@@ -49,7 +49,7 @@ static inline void init_java_lang_throwable() {
 				ctx = ctx->previous.ptr();
 			}
 
-			ths->values()[throwable_stack_trace_field_index] = ste_array;
+			ths->values()[throwable_stack_trace_field_index] = move(ste_array);
 			return ths;
 		},
 		c_string{ "Java_java_lang_Throwable_fillInStackTrace" },

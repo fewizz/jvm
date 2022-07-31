@@ -19,9 +19,7 @@ private:
 	using values_type = limited_list<field_value, uint16, default_allocator>;
 	values_type values_;
 
-	void on_reference_added() {
-		++references_;
-	}
+	void on_reference_added();
 
 	void on_reference_removed();
 
@@ -34,6 +32,7 @@ private:
 public:
 
 	object(_class& c);
+	~object();
 
 	field_value& operator [] (instance_field_index index);
 

@@ -1,14 +1,14 @@
 #include "arguments_count.hpp"
 #include "execute.hpp"
 #include "execution/info.hpp"
-#include "execution/stack_entry.hpp"
+#include "execution/stack.hpp"
 #include "class.hpp"
 
 #include <class_file/constant.hpp>
 
-inline optional<reference> invoke_interface(
+inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
-	arguments_count args_count, _class& c, stack_entry* stack, nuint& stack_size
+	arguments_count args_count, _class& c, stack& stack
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
@@ -36,7 +36,7 @@ inline optional<reference> invoke_interface(
 	}
 
 	optional<method&> m0{};
-	optional<_class&> c0 = stack[stack_size - args_count]
+	optional<_class&> c0 = stack[stack.size() - args_count]
 		.get<reference>().object()._class();
 
 	while(true) {
@@ -71,19 +71,17 @@ inline optional<reference> invoke_interface(
 		fputs("couldn't find method", stderr); abort();
 	}
 
-	stack_size -= args_count;
-	expected<stack_entry, reference> result = execute(
+	stack_entry result = execute(
 		method_with_class{ m0.value(), c0.value() },
-		arguments_span{ stack + stack_size, args_count }
+		arguments_span{ stack.begin() + stack.size() - args_count, args_count }
 	);
 
-	if(result.is_unexpected()) {
-		return result.get_unexpected();
+	while(args_count > 0) {
+		--args_count;
+		stack.pop_back();
 	}
 
-	if(!result.get_expected().is<jvoid>()) {
-		stack[stack_size++] = result;
+	if(!result.is<jvoid>()) {
+		stack.emplace_back(move(result));
 	}
-
-	return {};
 }
