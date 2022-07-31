@@ -11,7 +11,7 @@
 -I../core/include
 -I../class-file/include
 -I../encoding/include
--iquote./src
+-iquote./src/decl
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build

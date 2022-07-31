@@ -1,20 +1,7 @@
-#include "class/impl.hpp"
-#include "class/es/impl.hpp"
-#include "execute/impl.hpp"
-#include "object/impl.hpp"
-#include "native/impl.hpp"
-#include "native/jni/environment.hpp"
-#include "array.hpp"
-#include "executable_path.hpp"
-#include "class/es/load.hpp"
-#include "thrown.hpp"
-#include "lib/java/lang/null_pointer_exception.hpp"
+#include "impl/impl.hpp"
 
+#include "define/primitive_class.hpp"
 #include "lib/init.hpp"
-
-#include <unicode/utf16.hpp>
-#include <core/c_string.hpp>
-#include <core/equals.hpp>
 
 #include <inttypes.h>
 
@@ -76,7 +63,7 @@ int main (int argc, const char** argv) {
 	stack_entry arg0 = args;
 
 	stack_entry value = execute(
-		mwc, arguments_container{ &arg0, 1 }
+		mwc, arguments_span{ &arg0, 1 }
 	);
 
 	if(!thrown.is_null()) {

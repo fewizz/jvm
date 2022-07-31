@@ -18,7 +18,7 @@ if ! clang++ \
 	-fno-exceptions \
 	-fno-rtti \
 	-fuse-ld=lld \
-	-iquote ${root}/src \
+	-iquote ${root}/src/decl \
 	-I ${root}/../core/include \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \
