@@ -1,6 +1,7 @@
 #include "./get_field_value.hpp"
 #include "./put_field_value.hpp"
 #include "./ldc.hpp"
+#include "./invoke_dynamic.hpp"
 #include "./invoke_virtual.hpp"
 #include "./invoke_special.hpp"
 #include "./invoke_static.hpp"
@@ -993,7 +994,8 @@ static stack_entry execute(
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_dynamic>) {
-
+			::invoke_dynamic(x.index, c, stack);
+			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {

@@ -8,6 +8,7 @@
 #include "class/super_class_index.hpp"
 #include "class/const_pool.hpp"
 #include "class/trampoline_pool.hpp"
+#include "class/bootstrap_method_pool.hpp"
 #include "class/is_array.hpp"
 #include "class/is_primitive.hpp"
 
@@ -46,7 +47,7 @@ struct class_bytes : span<uint8> {
 	}
 };
 
-struct _class : const_pool, trampoline_pool {
+struct _class : const_pool, trampoline_pool, bootstrap_method_pool {
 private:
 	class_bytes                  bytes_{};
 	class_file::access_flags     access_flags_;
@@ -70,7 +71,7 @@ private:
 public:
 
 	_class(
-		const_pool&& const_pool,
+		const_pool&&, bootstrap_method_pool&&,
 		span<uint8> data, class_file::access_flags,
 		this_class_index, super_class_index,
 		interfaces_indices_container&&,

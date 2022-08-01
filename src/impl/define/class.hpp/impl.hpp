@@ -1,6 +1,7 @@
 #include "define/class.hpp"
 
 #include "./read_method.hpp"
+#include "./read_bootstrap_methods.hpp"
 #include "classes.hpp"
 
 #include <core/integer.hpp>
@@ -56,7 +57,7 @@ static inline _class& define_class(BytesRange&& bytes) {
 
 	auto fields_reader {
 		interfaces_reader.read_and_get_fields_reader(
-			[&](class_file::constant::interface_index interface_index) {
+			[&](constant::interface_index interface_index) {
 				interfaces.emplace_back(interface_index);
 			}
 		)
@@ -119,16 +120,33 @@ static inline _class& define_class(BytesRange&& bytes) {
 
 	methods_container methods{ methods_reader.count() };
 
-	methods_reader.read_and_get_attributes_reader([&](auto method_reader) {
-		auto [m, it] = read_method_and_get_advaned_iterator(
-			const_pool, method_reader
-		);
-		methods.emplace_back(move(m));
-		return it;
-	});
+	auto attributes_reader = methods_reader.read_and_get_attributes_reader(
+		[&](auto method_reader) {
+			auto [m, it] = read_method_and_get_advaned_iterator(
+				const_pool, method_reader
+			);
+			methods.emplace_back(move(m));
+			return it;
+		}
+	);
+
+	bootstrap_method_pool bootstrap_methods{};
+
+	attributes_reader.read_and_get_advanced_iterator(
+		[&](auto attribute_name_index) {
+			return const_pool.utf8_constant(attribute_name_index);
+		},
+		[&]<typename Type>(Type attribute_reader) {
+			if constexpr(
+				Type::attribute_type == attribute::type::bootstrap_methods
+			) {
+				bootstrap_methods = read_bootstap_methods(attribute_reader);
+			}
+		}
+	);
 
 	return classes.emplace_back(
-		move(const_pool),
+		move(const_pool), move(bootstrap_methods),
 		span<uint8>{ bytes.data(), bytes.size() }, access_flags,
 		this_class_index{ this_class }, super_class_index{ super_class },
 		move(interfaces),

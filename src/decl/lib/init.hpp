@@ -16,6 +16,7 @@
 #include "java/lang/string.hpp"
 #include "java/lang/system.hpp"
 #include "java/lang/throwable.hpp"
+#include "java/nio/buffer.hpp"
 // #include "jdk_internal_misc/cds.hpp"
 // #include "jdk_internal_misc/unsafe.hpp"
 // #include "jdk_internal_reflect/reflect.hpp"*/
@@ -37,6 +38,7 @@ static inline void init_lib() {
 	init_java_lang_string();
 	init_java_lang_system();
 	init_java_lang_throwable();
+	init_java_nio_buffer();
 	// init_jdk_internal_misc_cds();
 	// init_jdk_internal_misc_unsafe();
 	// init_jdk_internal_reflect();

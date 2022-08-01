@@ -55,7 +55,7 @@ inline object::~object() {
 			}
 		}
 		default_allocator{}.deallocate(
-			(uint8*)data, 0 // TODO compute actual size, uses free so its safe
+			data, 0 // TODO compute actual size, uses free so its safe
 		);
 	}
 	if(info) {

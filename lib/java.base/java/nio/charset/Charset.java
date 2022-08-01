@@ -22,12 +22,19 @@ public abstract class Charset implements Comparable<Charset> {
 		return !(name_.startsWith("X-") || name_.startsWith("x-"));
 	}
 
+	public abstract boolean contains(Charset cs);
+
 	public abstract CharsetDecoder newDecoder();
 
 	public abstract CharsetEncoder newEncoder();
 
 	public boolean canEncode() {
 		return true;
+	}
+
+	@Override
+	public final int compareTo(Charset that) {
+		return 0; // TODO
 	}
 
 	@Override

@@ -1,5 +1,8 @@
 package java.nio.charset;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
 public abstract class CharsetDecoder {
 
 	private final Charset charset_;
@@ -90,5 +93,7 @@ public abstract class CharsetDecoder {
 	public final float maxCharsPerByte() {
 		return this.maxCharsPerByte_;
 	}
+
+	protected abstract CoderResult decodeLoop(ByteBuffer in, CharBuffer out);
 
 }

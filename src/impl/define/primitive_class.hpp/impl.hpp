@@ -39,7 +39,8 @@ static inline _class& define_primitive_class(Name&& name) {
 	);
 
 	return classes.emplace_back(
-		move(const_pool), data,
+		move(const_pool), bootstrap_method_pool{},
+		data,
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_index{ 2 }, super_class_index{ 4 },
 		interfaces_indices_container{},
