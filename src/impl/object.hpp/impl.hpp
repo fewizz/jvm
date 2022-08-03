@@ -51,7 +51,7 @@ inline object::~object() {
 
 		if(!_class().get_component_class().is_primitive_class()) {
 			for(nuint x = array_length(*this); x > 0; --x) {
-				((reference*) data)[x].~reference();
+				((reference*) data)[x - 1].~reference();
 			}
 		}
 		default_allocator{}.deallocate(
@@ -82,14 +82,27 @@ inline void object::on_reference_removed() {
 		stderr,
 		"on reference removed for object with address = %p\n", this
 	);*/
+	if(references_ == 0) {
+		fputs("'on_reference_removed' on object without references", stderr);
+		abort();
+	}
 	--references_;
 	if(references_ == 0) {
+		uint8* ptr_to_this = (uint8*) this;
 		this->~object();
-		free(this);
+		default_allocator{}.deallocate(ptr_to_this, sizeof(object));
 	}
 }
 
 inline void object::unsafe_decrease_reference_count_without_destroing() {
+	if(references_ == 0) {
+		fputs(
+			"'unsafe_decrease_reference_count_without_destroing'"
+			" on object without references",
+			stderr
+		);
+		abort();
+	}
 	--references_;
 }
 

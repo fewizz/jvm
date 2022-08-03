@@ -3,12 +3,12 @@ package java.lang.invoke;
 import java.util.List;
 
 public final class MethodType {
-	final Class<?> return_type_;
-	final Class<?>[] parameter_types_;
+	final Class<?> returnType_;
+	final Class<?>[] parameterTypes_;
 
-	private MethodType(Class<?> return_type, Class<?>[] parameter_types) {
-		this.return_type_ = return_type;
-		this.parameter_types_ = parameter_types;
+	private MethodType(Class<?> returnType, Class<?>[] parameterTypes) {
+		this.returnType_ = returnType;
+		this.parameterTypes_ = parameterTypes;
 	}
 
 	public static MethodType methodType(Class<?> rtype, Class<?>[] ptypes) {

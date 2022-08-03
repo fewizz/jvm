@@ -7,7 +7,7 @@ struct _class;
 
 struct reference {
 private:
-	object* obj_{};
+	object* obj_{ nullptr };
 
 	friend reference create_object(_class& c);
 

@@ -32,7 +32,7 @@ static inline void init_java_lang_class() {
 		(void*) (object*(*)(jni_environment*, object*))
 		[](jni_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
-			return & c.get_component_class().instance().object();
+			return c.get_component_class().instance().object_ptr();
 		},
 		c_string{ "Java_java_lang_Class_getComponentType" },
 		c_string{ "()Ljava/lang/Class;" }

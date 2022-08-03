@@ -65,7 +65,6 @@ create_string_from_utf8(String&& str_utf8) {
 }
 
 static inline void init_java_lang_string() {
-
 	string_class = load_class(c_string{ "java/lang/String" });
 	string_value_index = string_class->find_instance_field_index(
 		c_string{ "value_" }, c_string{ "[C" }

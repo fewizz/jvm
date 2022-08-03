@@ -2,12 +2,12 @@ root=`dirname $(realpath ${BASH_SOURCE[0]})`
 
 mkdir -p ${root}/build
 
-declare -a additional_params
+declare -a additional_args
 
 if [[ $OS != Windows_NT ]]; then
-	additional_parameters+=(-fsanitize=undefined)
-	additional_parameters+=(-fsanitize=memory)
-	additional_parameters+=(-pthreads)
+	additional_args+=(-fsanitize=undefined)
+	additional_args+=(-fsanitize=memory)
+	additional_args+=(-pthreads)
 fi
 
 if ! clang++ \
@@ -23,7 +23,7 @@ if ! clang++ \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \
 	-o ${root}/build/jvm \
-	${additional_parameters[@]} \
+	${additional_args[@]} \
 	${root}/src/jvm.cpp
 then
 	exit 1

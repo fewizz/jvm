@@ -25,21 +25,23 @@ inline reference::reference(reference&& other) :
 {}
 
 inline reference& reference::operator = (const reference& other) {
-	if(obj_ != nullptr) {
-		obj_->on_reference_removed();
-	}
+	::object* prev = obj_; // in case if assigning to self
 	obj_ = other.obj_;
 	if(obj_ != nullptr) {
 		obj_->on_reference_added();
+	}
+	if(prev != nullptr) {
+		prev->on_reference_removed();
 	}
 	return *this;
 }
 
 inline reference& reference::operator = (reference&& other) {
-	if(obj_ != nullptr) {
-		obj_->on_reference_removed();
-	}
+	::object* prev = obj_; // in case if assigning to self
 	obj_ = exchange(other.obj_, nullptr);
+	if(prev != nullptr) {
+		prev->on_reference_removed();
+	}
 	return *this;
 }
 
@@ -53,8 +55,12 @@ inline object& reference::object() {
 
 inline reference::~reference() {
 	if(obj_ != nullptr) {
-		obj_->on_reference_removed();
-		obj_ = nullptr;
+		/*fprintf(
+			stderr,
+			"reference destruction with object address = %p\n",
+			obj_
+		);*/
+		exchange(obj_, nullptr)->on_reference_removed();
 	}
 }
 

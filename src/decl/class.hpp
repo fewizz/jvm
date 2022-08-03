@@ -304,8 +304,8 @@ public:
 
 	_class& get_component_class();
 
-	bool is_array_class() { return is_array_class_; }
-	bool is_primitive_class() { return is_primitive_class_; }
+	bool is_array_class() const { return is_array_class_; }
+	bool is_primitive_class() const { return is_primitive_class_; }
 
 	void unsafe_set_array_class(_class& c) {
 		array_class_ = c;

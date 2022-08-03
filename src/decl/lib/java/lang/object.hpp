@@ -17,7 +17,7 @@ static inline void init_java_lang_object() {
 	native_functions.emplace_back(
 		(void*) (object*(*)(jni_environment*, object*))
 		[](jni_environment*, object* o) {
-			return & o->_class().instance().object();
+			return o->_class().instance().object_ptr();
 		},
 		c_string{ "Java_java_lang_Object_getClass" },
 		c_string{ "()Ljava/lang/Class;" }
