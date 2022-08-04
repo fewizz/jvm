@@ -1,5 +1,6 @@
 #pragma once
 
+#include "class/fields_container.hpp"
 #include "class/interfaces_indices_container.hpp"
 #include "class/instance_fields_container.hpp"
 #include "class/static_fields_container.hpp"
@@ -28,6 +29,7 @@
 #include <core/expected.hpp>
 #include <core/c_string.hpp>
 #include <core/optional.hpp>
+#include <core/loop_action.hpp>
 
 #include <stdio.h>
 
@@ -54,9 +56,17 @@ private:
 	this_class_index             this_class_index_;
 	super_class_index            super_class_index_;
 	interfaces_indices_container interfaces_;
-	instance_fields_container    instance_fields_;
-	static_fields_container      static_fields_;
-	methods_container            methods_;
+
+	fields_container             declared_fields_;
+	fields_container             declared_instance_fields_;
+	fields_container             declared_static_fields_;
+	fields_container             instance_fields_;
+
+	methods_container            declared_methods_;
+	methods_container            declared_instance_methods_;
+	methods_container            declared_static_methods_;
+	methods_container            instance_methods_;
+
 	optional<_class&>            array_class_;
 	optional<_class&>            component_class_;
 	is_array_class               is_array_class_;
@@ -75,8 +85,7 @@ public:
 		span<uint8> data, class_file::access_flags,
 		this_class_index, super_class_index,
 		interfaces_indices_container&&,
-		instance_fields_container&&,
-		static_fields_container&&,
+		fields_container&&,
 		methods_container&&,
 		is_array_class,
 		is_primitive_class
@@ -121,15 +130,6 @@ public:
 		return interfaces_;
 	}
 
-	auto interfaces() const {
-		return transform_view {
-			interfaces_indices(),
-			[&](auto interface_index) -> decltype(auto) {
-				return this->get_class(interface_index);
-			}
-		};
-	}
-
 	auto interfaces() {
 		return transform_view {
 			interfaces_indices(),
@@ -139,14 +139,44 @@ public:
 		};
 	}
 
-	auto& declared_instance_fields() const { return instance_fields_; }
-	auto& declared_instance_fields() { return instance_fields_; }
+	template<typename Handler>
+	void for_each_superinterface(Handler&& handler) {
+		for(_class& i : interfaces()) {
+			loop_action action = handler(i);
+			switch (action) {
+				case loop_action::stop: return;
+				case loop_action::next: i.for_each_superinterface(handler);
+			}
+		}
+	}
 
-	auto& declared_static_fields() const { return static_fields_; }
-	auto& declared_static_fields() { return static_fields_; }
+	auto& declared_fields() const & { return declared_fields_; }
+	auto& declared_fields()       & { return declared_fields_; }
 
-	auto& methods() const { return methods_; }
-	auto& methods() { return methods_; }
+	auto& declared_instance_fields() const & { return instance_fields_; }
+	auto& declared_instance_fields()       & { return instance_fields_; }
+
+	auto& declared_static_fields() const & { return declared_static_fields_; }
+	auto& declared_static_fields()       & { return declared_static_fields_; }
+
+	auto& instance_fields() const & { return instance_fields_; }
+	auto& instance_fields()       & { return instance_fields_; }
+
+	auto& declared_methods() const & { return declared_methods_; }
+	auto& declared_methods()       & { return declared_methods_; }
+
+	auto& declared_instance_methods() const & {
+		return declared_instance_methods_;
+	}
+	auto& declared_instance_methods()       & {
+		return declared_instance_methods_;
+	}
+
+	auto& declared_static_methods() const & { return declared_static_methods_; }
+	auto& declared_static_methods()       & { return declared_static_methods_; }
+
+	auto& instance_methods() const & { return instance_methods_; }
+	auto& instance_methods()       & { return instance_methods_; }
 
 	bool is_initialised() const {
 		return initialisation_state_ == initialisation_state::initialised;
@@ -165,12 +195,12 @@ public:
 		return false;
 	}
 
-	bool is_implements(_class& other) {
+	bool is_implementing(_class& other) {
 		for(_class& i : interfaces()) {
 			if(&i == &other) {
 				return true;
 			}
-			if(i.is_implements(other)) {
+			if(i.is_implementing(other)) {
 				return true;
 			}
 		}

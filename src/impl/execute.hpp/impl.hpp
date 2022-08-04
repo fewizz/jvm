@@ -917,7 +917,13 @@ static stack_entry execute(
 		else if constexpr (same_as<Type, put_static>) {
 			if(info) {
 				tabs(); fputs("put_static ", stderr);
-				fprintf(stderr, "%hd\n", x.index);
+				cc::field_ref field_ref = c.field_ref_constant(x.index);
+				cc::name_and_type nat {
+					c.name_and_type_constant(field_ref.name_and_type_index)
+				};
+				cc::utf8 name = c.utf8_constant(nat.name_index);
+				fwrite(name.data(), 1, name.size(), stderr);
+				fputc('\n', stderr);
 			}
 			static_field_with_class sfwc = c.get_static_field(x.index);
 			field_value& static_field_value = sfwc.static_field().value();
@@ -1049,7 +1055,7 @@ static stack_entry execute(
 		else if constexpr (same_as<Type, check_cast>) {
 			if(info) {
 				tabs(); fputs("check_cast ", stderr);
-				fprintf(stderr, "%hu\n", x.index);
+				fprintf(stderr, "%hu\n", (uint16) x.index);
 			}
 			//_class& type = c.get_class(x.index);
 			//reference objectref = stack[stack_size - 1].get<reference>();
@@ -1076,7 +1082,7 @@ static stack_entry execute(
 						result = &s == &t || s.is_subclass_of(t);
 					}
 					else {
-						result = s.is_implements(t);
+						result = s.is_implementing(t);
 					}
 				}
 				else {

@@ -1,10 +1,7 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include "./field_index.hpp"
 
-struct instance_field_index {
-	uint16 _;
-
-	operator uint16 () const { return _; }
-
+struct instance_field_index : field_index {
+	using field_index::field_index;
 };

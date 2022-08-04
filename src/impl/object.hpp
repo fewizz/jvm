@@ -1,4 +1,4 @@
-#include "object.hpp"
+#include "decl/object.hpp"
 
 #include "class.hpp"
 #include "field.hpp"

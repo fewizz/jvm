@@ -8,7 +8,7 @@ public class MethodHandles {
 		return new Lookup();
 	}
 
-	static final class Lookup {
+	public static final class Lookup {
 
 		public native MethodHandle findStatic(
 			Class<?> refc, String name, MethodType type

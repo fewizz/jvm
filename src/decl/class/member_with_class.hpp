@@ -19,11 +19,14 @@ public:
 		_class_{ _class }
 	{}
 
-	const ::class_member& class_member() const { return class_member_; }
-	      ::class_member& class_member()       { return class_member_; }
+	const ::class_member& class_member() const & { return class_member_; }
+	      ::class_member& class_member()       & { return class_member_; }
 
-	const ::_class& _class() const { return _class_; }
-	      ::_class& _class()       { return _class_; }
+	const ::_class& _class() const & { return _class_; }
+	      ::_class& _class()       & { return _class_; }
+
+	const ::_class* class_ptr() const & { return &_class_; }
+	      ::_class* class_ptr()       & { return &_class_; }
 
 	class_file::constant::utf8 descriptor();
 	class_file::constant::utf8 name();

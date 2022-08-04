@@ -1,4 +1,4 @@
-#include "object/reference.hpp"
+#include "decl/object/reference.hpp"
 
 #include "object.hpp"
 #include "alloc.hpp"

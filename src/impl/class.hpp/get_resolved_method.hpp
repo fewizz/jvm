@@ -3,6 +3,8 @@
 
 #include <class_file/constant.hpp>
 
+#include <core/loop_action.hpp>
+
 inline method_with_class _class::get_resolved_method(
 	class_file::constant::method_ref_index ref_index
 ) {
@@ -23,24 +25,46 @@ inline method_with_class _class::get_resolved_method(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 descriptor = utf8_constant(nat.descriptor_index);
 
-	optional<_class&> c0 = get_class(method_ref.class_index);
-	optional<method&> m0{};
+	_class& c = get_class(method_ref.class_index);
+	optional<_class&> c0 = c;
+	optional<method&> m{};
 
 	while(true) {
-		if(
-			m0 = c0->try_find_method(name, descriptor);
-			m0.has_value()
-		) {
+		if(m = c0->try_find_method(name, descriptor); m.has_value()) {
 			break;
 		}
 		if(!c0->has_super_class()) {
-			fprintf(stderr, "couldn't resolve method");
-			abort();
+			break;
 		}
 		c0 = c0->super_class();
 	}
 
-	method_with_class mwc{ m0.value(), c0.value() };
+	// "If the maximally-specific superinterface methods of C for the name and
+	// descriptor specified by the method reference include exactly one method
+	// that does not have its ACC_ABSTRACT flag set, then this method is chosen
+	// and method lookup succeeds."
+	if(!m.has_value()) {
+		c.for_each_maximally_specific_superinterface_method(name, descriptor,
+			[&](method_with_class mwc) {
+				if(!mwc.method().access_flags().abstract()) {
+					return loop_action::stop;
+				}
+				return loop_action::next;
+			}
+		);
+	}
+
+	// "Otherwise, if any superinterface of C declares a method with the name
+	// and descriptor specified by the method reference that has neither
+	// its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
+	// arbitrarily chosen and method lookup succeeds.""
+	if(!m.has_value()) {
+		c.for_each_superinterface([&](_class& i) {
+			
+		})
+	}
+
+	method_with_class mwc{ m.value(), c.value() };
 	trampoline(ref_index) = mwc;
 	return mwc;
 }

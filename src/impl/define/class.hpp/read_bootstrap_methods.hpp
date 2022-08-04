@@ -5,13 +5,13 @@
 static bootstrap_method_pool read_bootstap_methods(auto reader) {
 	using namespace class_file::attribute::bootstrap::method;
 
-	auto [count, methods_reader] {
+	auto [count, bootstrap_methods_reader] {
 		reader.read_count_and_get_methods_reader()
 	};
 
 	bootstrap_method_pool bootstrap_methods = bootstrap_method_pool{ count };
 
-	methods_reader.read(
+	bootstrap_methods_reader.read(
 		count,
 		[&](auto method_reader) {
 			auto [reference_index, arguments_count_reader] {

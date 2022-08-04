@@ -25,7 +25,9 @@ read_method_and_get_advaned_iterator(
 		descriptor_index_reader.read_and_get_attributes_reader()
 	};
 
-	code_or_native_function code_or_native_function{ elements::none{} };
+	code_or_native_function code_or_native_function {
+		optional<native_function&>()
+	};
 
 	exception_handlers_container exception_handlers;
 
@@ -62,19 +64,27 @@ read_method_and_get_advaned_iterator(
 		const_pool.utf8_constant(descriptor_index).begin()
 	};
 
-	arguments_count args_count{0};
-
+	parameters_count params_count{0};
 	descriptor_parameters_reader([&](auto) {
-		++args_count;
+		++params_count;
 		return true;
 	});
+
+	parameter_type_names_container parameter_names{ params_count };
+
+	descriptor_parameters_reader.paramerter_names(
+		[&](c_string<c_string_type::known_size> parameter_name) {
+			parameter_names.emplace_back(parameter_name);
+			return true;
+		}
+	);
 
 	return {
 		method {
 			access_flags,
 			class_file::constant::name_index{ name_index },
 			class_file::constant::descriptor_index{ descriptor_index },
-			args_count,
+			move(parameter_names),
 			code_or_native_function,
 			move(exception_handlers)
 		},

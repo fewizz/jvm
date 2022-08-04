@@ -1,7 +1,7 @@
 #pragma once
 
 #include "method/code.hpp"
-#include "arguments_count.hpp"
+#include "parameters_count.hpp"
 #include "class/member.hpp"
 #include "native/function.hpp"
 
@@ -15,7 +15,7 @@
 struct _class;
 
 using code_or_native_function =
-	elements::one_of<elements::none, code, native_function&>;
+	elements::one_of<code, optional<native_function&>>;
 
 using exception_handlers_container = limited_list<
 	class_file::attribute::code::exception_handler,
@@ -23,13 +23,19 @@ using exception_handlers_container = limited_list<
 	default_allocator
 >;
 
+using parameter_type_names_container = limited_list<
+	c_string<c_string_type::known_size>,
+	uint8,
+	default_allocator
+>;
+
 struct method : class_member {
 private:
 	using base_type = class_member;
 
-	arguments_count              arguments_count_;
-	code_or_native_function      code_;
-	exception_handlers_container exception_handlers_;
+	parameter_type_names_container parameter_names_;
+	code_or_native_function        code_;
+	exception_handlers_container   exception_handlers_;
 
 public:
 
@@ -37,19 +43,25 @@ public:
 		class_file::access_flags               access_flags,
 		class_file::constant::name_index       name_index,
 		class_file::constant::descriptor_index descriptor_index,
-		arguments_count                        arguments_count,
+		parameter_type_names_container         paramerter_names,
 		code_or_native_function                code,
 		exception_handlers_container&&         exception_handlers
 	) :
 		base_type          { access_flags, name_index, descriptor_index },
-		arguments_count_   { arguments_count                            },
+		parameter_names_   { move(paramerter_names)                     },
 		code_              { code                                       },
 		exception_handlers_{ move(exception_handlers)                   }
 	{}
 
-	arguments_count arguments_count() { return arguments_count_; }
+	parameters_count parameters_count() {
+		return ::parameters_count{ parameter_names_.size() };
+	}
 
 	code code() const { return code_.get<::code>(); }
+
+	const parameter_type_names_container& parameter_names() {
+		return parameter_names_;
+	}
 
 	exception_handlers_container& exception_handlers() {
 		return exception_handlers_;
@@ -59,8 +71,8 @@ public:
 		return access_flags().native();
 	}
 
-	bool has_native_function() const {
-		return code_.is<::native_function&>();
+	bool native_function_is_loaded() const {
+		return code_.get<optional<::native_function&>>().has_value();
 	}
 
 	void native_function(::native_function& function) {
@@ -68,7 +80,7 @@ public:
 	}
 
 	::native_function& native_function() {
-		return code_.get<::native_function&>();
+		return code_.get<optional<::native_function&>>().value();
 	}
 
 };

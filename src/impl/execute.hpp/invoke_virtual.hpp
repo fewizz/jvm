@@ -33,16 +33,16 @@ inline void invoke_virtual(
 	uint8 args_count;
 	{
 		method_with_class virt_mwc = c.get_resolved_method(ref_index);
-		args_count = virt_mwc.method().arguments_count();
+		args_count = virt_mwc.method().parameters_count();
 	}
 	++args_count; // this
 
 	reference& ref = stack[stack.size() - args_count].get<reference>();
 	optional<_class&> c0 = ref.object()._class();
-	optional<method&> m0{};
+	optional<method&> m{};
 
 	while(true) {
-		if(m0 = c0->try_find_method(method_name, method_desc); m0.has_value()) {
+		if(m = c0->try_find_method(method_name, method_desc); m.has_value()) {
 			break;
 		}
 		if(!c0->has_super_class()) {
@@ -51,28 +51,27 @@ inline void invoke_virtual(
 		c0 = c0->super_class();
 	}
 
-	if(!m0.has_value()) {
+	if(!m.has_value()) {
 		nuint index = 0;
 		c.for_each_maximally_specific_superinterface_method(
 			method_name, method_desc,
 			[&](method_with_class mwc) {
-				if(index++ == 0) {
-					m0 = mwc.method();
+				if(index == 0) {
+					m = mwc.method();
 					c0 = mwc._class();
 					return;
 				}
-				fputs("more than one maximally-specific", stderr);
-				abort();
+				index++;
 			}
 		);
 	}
 
-	if(!m0.has_value()) {
+	if(!m.has_value()) {
 		fputs("couldn't find method", stderr); abort();
 	}
 
 	stack_entry result = execute(
-		method_with_class{ m0.value(), c0.value() },
+		method_with_class{ m.value(), c0.value() },
 		arguments_span{ stack.begin() + stack.size() - args_count, args_count }
 	);
 
