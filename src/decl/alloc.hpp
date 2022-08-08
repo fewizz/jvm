@@ -1,24 +1,20 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include <memory_span.hpp>
 
 extern "C" void* __cdecl malloc(nuint size);
 extern "C" void* __cdecl calloc(nuint num, nuint size);
 extern "C" void* __cdecl realloc(void *ptr, nuint new_size);
 extern "C" void  __cdecl free(void* ptr);
 
-struct default_allocator {
+inline memory_span allocate(auto size) {
+	return { malloc(size), size };
+}
 
-	uint8* allocate(auto size) {
-		return (uint8*) malloc(size);
-	}
+inline memory_span allocate_zeroed(auto size) {
+	return { (uint8*) calloc(size, 1), size };
+}
 
-	uint8* allocate_zeroed(auto size) {
-		return (uint8*) calloc(size, 1);
-	}
-
-	void deallocate(uint8* ptr, auto) {
-		free(ptr);
-	}
-
-};
+inline void deallocate(memory_span memory_span) {
+	free(memory_span.elements_ptr());
+}

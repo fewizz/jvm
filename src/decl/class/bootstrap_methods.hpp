@@ -5,19 +5,17 @@
 #include <class_file/constant.hpp>
 #include <class_file/attribute/bootstrap/method/argument_index.hpp>
 
-#include <core/limited_list.hpp>
+#include <memory_list.hpp>
 
 struct bootstrap_method_arguments_indices :
-	limited_list<
+	memory_list<
 		class_file::attribute::bootstrap::method::argument_index,
-		uint16,
-		default_allocator
+		uint16
 	>
 {
-	using base_type = limited_list<
+	using base_type = memory_list<
 		class_file::attribute::bootstrap::method::argument_index,
-		uint16,
-		default_allocator
+		uint16
 	>;
 	using base_type::base_type;
 };
@@ -27,9 +25,9 @@ struct bootstrap_method {
 	bootstrap_method_arguments_indices arguments_indices;
 };
 
-struct bootstrap_method_pool :
-	limited_list<bootstrap_method, uint16, default_allocator>
+struct bootstrap_methods :
+	memory_list<bootstrap_method, uint16>
 {
-	using base_type = limited_list<bootstrap_method, uint16, default_allocator>;
+	using base_type = memory_list<bootstrap_method, uint16>;
 	using base_type::base_type;
 };

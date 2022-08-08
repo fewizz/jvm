@@ -4,9 +4,9 @@
 #include "class/instance_field_index.hpp"
 #include "alloc.hpp"
 
-#include <core/optional.hpp>
-#include <core/limited_list.hpp>
-#include <core/integer.hpp>
+#include <optional.hpp>
+#include <memory_list.hpp>
+#include <integer.hpp>
 
 struct _class;
 struct reference;
@@ -16,7 +16,7 @@ struct object {
 private:
 	uint32 references_ = 0;
 	optional<_class&> class_;
-	using values_type = limited_list<field_value, uint16, default_allocator>;
+	using values_type = memory_list<field_value, uint16>;
 	values_type values_;
 
 	void on_reference_added();

@@ -2,7 +2,6 @@
 
 #include "class.hpp"
 #include "object.hpp"
-#include "object/create.hpp"
 
 inline optional<_class&> bool_array_class{};
 inline optional<_class&> byte_array_class{};
@@ -34,23 +33,12 @@ static inline void array_length(object& o, int32 length) {
 
 static inline reference create_array_by_class(
 	_class& array_class, nuint element_size, int32 length
-) {
-	reference* data = (reference*) default_allocator{}.allocate_zeroed(
-		element_size * length
-	);
-	reference ref = create_object(array_class);
-	array_length(ref.object(), length);
-	array_data(ref.object(), data);
-	return move(ref);
-}
+);
 
 
 static inline reference create_array_of(
 	_class& element_class, int32 length
-) {
-	_class& array_class = element_class.get_array_class();
-	return create_array_by_class(array_class, sizeof(reference), length);
-}
+);
 
 static inline reference create_bool_array(int32 length) {
 	return create_array_by_class(

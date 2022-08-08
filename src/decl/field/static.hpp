@@ -22,7 +22,7 @@ public:
 		};
 
 		bool result = descriptor::read_field(
-			descriptor.begin(),
+			descriptor.iterator(),
 			[&]<typename DescriptorType>(DescriptorType) {
 				return value_.set_default_value<DescriptorType>();
 			}

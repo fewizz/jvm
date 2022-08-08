@@ -2,7 +2,7 @@
 
 #include "field/value.hpp"
 
-#include <core/meta/elements/one_of.hpp>
+#include <elements/one_of.hpp>
 
 struct stack_entry :
 	elements::one_of<jvoid, jint, jfloat, jlong, jdouble, reference>

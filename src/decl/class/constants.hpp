@@ -4,8 +4,8 @@
 
 #include <class_file/constant.hpp>
 
-#include <core/limited_list.hpp>
-#include <core/meta/elements/one_of.hpp>
+#include <memory_list.hpp>
+#include <elements/one_of.hpp>
 
 using const_pool_entry = elements::one_of<
 	class_file::constant::utf8,
@@ -29,9 +29,9 @@ using const_pool_entry = elements::one_of<
 >;
 
 struct const_pool :
-	private limited_list<const_pool_entry, uint16, default_allocator>
+	private memory_list<const_pool_entry, uint16>
 {
-	using base_type = limited_list<const_pool_entry, uint16, default_allocator>;
+	using base_type = memory_list<const_pool_entry, uint16>;
 	using base_type::base_type;
 
 public:

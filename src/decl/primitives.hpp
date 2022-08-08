@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/integer.hpp>
-#include <core/meta/type/is_same_as.hpp>
+#include <integer.hpp>
+#include <type/is_same_as.hpp>
 
 struct jvoid{};
 
@@ -124,7 +124,7 @@ public:
 
 };
 
-#include <core/optional.hpp>
+#include <optional.hpp>
 
 struct _class;
 

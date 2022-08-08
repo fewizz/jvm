@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include <integer.hpp>
 
 class parameters_count {
 	uint8 value_;

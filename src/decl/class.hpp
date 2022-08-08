@@ -1,10 +1,11 @@
 #pragma once
 
 #include "class/fields_container.hpp"
+#include "class/methods_container.hpp"
 #include "class/interfaces_indices_container.hpp"
 #include "class/instance_fields_container.hpp"
+#include "class/instance_field_index.hpp"
 #include "class/static_fields_container.hpp"
-#include "class/methods_container.hpp"
 #include "class/this_class_index.hpp"
 #include "class/super_class_index.hpp"
 #include "class/const_pool.hpp"
@@ -23,49 +24,32 @@
 
 #include <class_file/access_flag.hpp>
 
-#include <core/range.hpp>
-#include <core/limited_list.hpp>
-#include <core/transform.hpp>
-#include <core/expected.hpp>
-#include <core/c_string.hpp>
-#include <core/optional.hpp>
-#include <core/loop_action.hpp>
+#include <range.hpp>
+#include <memory_list.hpp>
+#include <expected.hpp>
+#include <c_string.hpp>
+#include <optional.hpp>
+#include <loop_action.hpp>
 
 #include <stdio.h>
 
-struct class_bytes : span<uint8> {
-	using base_type = span<uint8>;
-	using base_type::base_type;
-
-	class_bytes(span<uint8> data) :
-		base_type{ data }
-	{}
-
-	class_bytes(class_bytes&&) = delete;
-	class_bytes(const class_bytes&) = delete;
-
-	~class_bytes() {
-		free(data());
-	}
-};
-
 struct _class : const_pool, trampoline_pool, bootstrap_method_pool {
 private:
-	class_bytes                  bytes_{};
+	memory_span                  bytes_{};
 	class_file::access_flags     access_flags_;
 	this_class_index             this_class_index_;
 	super_class_index            super_class_index_;
 	interfaces_indices_container interfaces_;
 
 	fields_container             declared_fields_;
-	fields_container             declared_instance_fields_;
-	fields_container             declared_static_fields_;
-	fields_container             instance_fields_;
+	memory_list<field&, uint16>  declared_instance_fields_;
+	memory_list<field&, uint16>  declared_static_fields_;
+	memory_list<field&, uint16>  instance_fields_;
 
 	methods_container            declared_methods_;
-	methods_container            declared_instance_methods_;
-	methods_container            declared_static_methods_;
-	methods_container            instance_methods_;
+	memory_list<method&, uint16> declared_instance_methods_;
+	memory_list<method&, uint16> declared_static_methods_;
+	memory_list<method&, uint16> instance_methods_;
 
 	optional<_class&>            array_class_;
 	optional<_class&>            component_class_;
@@ -81,8 +65,10 @@ private:
 public:
 
 	_class(
-		const_pool&&, bootstrap_method_pool&&,
-		span<uint8> data, class_file::access_flags,
+		const_pool&&,
+		trampoline_pool&& trampoline_pool,
+		bootstrap_method_pool&&,
+		memory_span bytes, class_file::access_flags,
 		this_class_index, super_class_index,
 		interfaces_indices_container&&,
 		fields_container&&,
@@ -131,12 +117,11 @@ public:
 	}
 
 	auto interfaces() {
-		return transform_view {
-			interfaces_indices(),
+		return ::range{ interfaces_indices() }.transform_view(
 			[&](auto interface_index) -> decltype(auto) {
 				return this->get_class(interface_index);
 			}
-		};
+		);
 	}
 
 	template<typename Handler>
@@ -214,100 +199,6 @@ public:
 	class_file::constant::utf8 descriptor(const class_member& f) {
 		return utf8_constant(f.descriptor_index());
 	}
-
-	uint16 instance_fields_count() {
-		uint16 count = declared_instance_fields().size();
-		if(has_super_class()) {
-			count += super_class().instance_fields_count();
-		}
-		return count;
-	}
-
-	template<typename Handler>
-	void for_each_instance_field(Handler&& handler) {
-		if(has_super_class()) {
-			_class& super = super_class();
-			super.for_each_instance_field(handler);
-		}
-		for(instance_field& field : declared_instance_fields()) {
-			handler(instance_field_with_class{ field, *this });
-		}
-	}
-
-	template<range Name>
-	optional<method&> try_find_method(Name&& name);
-
-	template<range Name, range Descriptor>
-	optional<method&>
-	try_find_method(Name&& name, Descriptor&& descriptor);
-
-	template<range Name>
-	method& find_method(Name&& name) {
-		if(auto m = try_find_method(name); m.has_value()) {
-			return m.value();
-		}
-		fputs("couldn't find method ", stderr);
-		fwrite(name.data(), 1, name.size(), stderr);
-		abort();
-	}
-
-	template<range Name, range Descriptor>
-	method& find_method(Name&& name, Descriptor&& desc) {
-		if(auto m = try_find_method(name, desc); m.has_value()) {
-			return m.value();
-		}
-		fputs("couldn't find method ", stderr);
-		fwrite(name.data(), 1, name.size(), stderr);
-		abort();
-	}
-
-	template<range Name>
-	optional<declared_instance_field_index>
-	try_find_declared_instance_field_index(Name&& name);
-
-	template<range Name>
-	optional<instance_field&>
-	try_find_declared_instance_field(Name&& name);
-
-	template<range Name>
-	declared_instance_field_index
-	find_declared_instance_field_index(Name&& name);
-
-	template<range Name>
-	instance_field&
-	find_declared_instance_field(Name&& name);
-
-	template<range Name, range Descriptor>
-	optional<instance_field_index>
-	try_find_instance_field_index(Name&& name, Descriptor&& descriptor);
-
-	template<range Name, range Descriptor>
-	instance_field_index
-	find_instance_field_index(Name&& name, Descriptor&& descriptor) {
-		optional<instance_field_index> result {
-			try_find_instance_field_index(name, descriptor)
-		};
-		if(!result.has_value()) {
-			fputs("couldn't find instance field ", stderr);
-			auto class_name = this->name();
-			fwrite(class_name.data(), 1, class_name.size(), stderr);
-			fputc('.', stderr);
-			fwrite(name.data(), 1, name.size(), stderr);
-			abort();
-		}
-		return result.value();
-	}
-
-	optional<instance_field_with_class>
-	try_get_instance_field(instance_field_index index);
-
-	template<range Name, range Descriptor>
-	optional<static_field&>
-	try_find_declared_static_field(Name&& name, Descriptor&& descriptor);
-
-	template<range Name, range Descriptor>
-	static_field&
-	find_declared_static_field(Name&& name, Descriptor&& descriptor);
 
 	method_with_class get_static_method(
 		class_file::constant::method_ref_index ref_index

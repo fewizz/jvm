@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/integer.hpp>
-#include <core/span.hpp>
+#include <integer.hpp>
+#include <span.hpp>
 
 struct code : span<uint8, uint32> {
 	using base_type = span<uint8, uint32>;

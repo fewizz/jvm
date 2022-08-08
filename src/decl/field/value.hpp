@@ -5,7 +5,7 @@
 
 #include <class_file/descriptor/type.hpp>
 
-#include <core/meta/elements/one_of.hpp>
+#include <elements/one_of.hpp>
 
 struct field_value : elements::one_of<
 	jvoid, jbool, jbyte, jchar, jshort, jint,

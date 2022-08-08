@@ -3,30 +3,30 @@
 #include "method/code.hpp"
 #include "parameters_count.hpp"
 #include "class/member.hpp"
-#include "native/function.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 #include <class_file/attribute/code/exception_handler.hpp>
 
-#include <core/span.hpp>
-#include <core/meta/elements/one_of.hpp>
+#include <span.hpp>
+#include <elements/one_of.hpp>
+#include <optional.hpp>
+#include <memory_list.hpp>
 
 struct _class;
+struct native_function;
 
 using code_or_native_function =
 	elements::one_of<code, optional<native_function&>>;
 
-using exception_handlers_container = limited_list<
+using exception_handlers_container = memory_list<
 	class_file::attribute::code::exception_handler,
-	uint16,
-	default_allocator
+	uint16
 >;
 
-using parameter_type_names_container = limited_list<
+using parameter_type_names_container = memory_list<
 	c_string<c_string_type::known_size>,
-	uint8,
-	default_allocator
+	uint8
 >;
 
 struct method : class_member {
