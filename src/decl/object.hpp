@@ -1,8 +1,8 @@
 #pragma once
 
 #include "field/value.hpp"
-#include "class/instance_field_index.hpp"
 #include "alloc.hpp"
+#include "class/field_index.hpp"
 
 #include <optional.hpp>
 #include <memory_list.hpp>

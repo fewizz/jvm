@@ -1,27 +1,29 @@
 #include "class.hpp"
 
 inline _class::_class(
-	const_pool&& const_pool,
-	trampoline_pool&& trampoline_pool,
-	bootstrap_method_pool&& bootstrap_method_pool,
-	memory_span bytes, class_file::access_flags access_flags,
-	::this_class_index this_class_index, ::super_class_index super_class_index,
-	interfaces_indices_container&& interfaces,
-	fields_container&& fields,
-	methods_container&& methods,
-	::is_array_class is_array_class,
-	::is_primitive_class is_primitive_class
+	constants&&                    constants,
+	trampolines&&                  trampolines,
+	bootstrap_methods&&            bootstrap_methods,
+	memory_span                    bytes,
+	class_file::access_flags       access_flags,
+	this_name                      this_name,
+	super_name                     super_name,
+	memory_list<_class&, uint16>&& interfaces,
+	declared_fields&&              declared_fields,
+	declared_methods&&             declared_methods,
+	is_array                       is_array,
+	is_primitive                   is_primitive
 ) :
-	::const_pool           { move(const_pool)            },
-	::trampoline_pool      { move(trampoline_pool)       },
-	::bootstrap_method_pool{ move(bootstrap_method_pool) },
-	bytes_                 { bytes                       },
-	access_flags_          { access_flags                },
-	this_class_index_      { this_class_index            },
-	super_class_index_     { super_class_index           },
-	interfaces_            { move(interfaces)            },
-	declared_fields_       { move(fields)                },
-	declared_methods_      { move(methods)               },
-	is_array_class_        { is_array_class              },
-	is_primitive_class_    { is_primitive_class          }
+	::constants            { move(constants)         },
+	::trampolines          { move(trampolines)       },
+	::bootstrap_methods    { move(bootstrap_methods) },
+	bytes_                 { bytes                   },
+	access_flags_          { access_flags            },
+	this_name_             { this_name               },
+	super_name_            { super_name              },
+	interfaces_            { move(interfaces)        },
+	declared_fields_       { move(declared_fields)   },
+	declared_methods_      { move(declared_methods)  },
+	is_array_              { is_array                },
+	is_primitive_          { is_primitive            }
 {}

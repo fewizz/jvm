@@ -3,30 +3,30 @@
 #include "executable_path.hpp"
 #include "abort.hpp"
 
-#include <core/transform.hpp>
-#include <core/concat.hpp>
-#include <core/single.hpp>
-#include <core/c_string.hpp>
-#include <core/view_copy_on_stack.hpp>
-#include <core/optional.hpp>
-#include <core/on_scope_exit.hpp>
+#include <range.hpp>
+#include <ranges.hpp>
+#include <c_string.hpp>
+#include <optional.hpp>
+#include <on_scope_exit.hpp>
+#include <expression_of_type.hpp>
 
 #include <stdio.h>
 
-template<typename Name, typename Handler>
+template<basic_range Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	auto try_at = [&](auto path) -> decltype(auto) {
-		auto name0 = transform_view{ name, [&](auto ch) {
+		auto name0 = range{ name }.transform_view([&](auto ch) {
 			return (const char) ch;
-		}};
+		});
 
-		auto null_terminated = concat_view {
-			path, single_view{'/'},
-			name0, c_string{ ".class" }, single_view{ '\0' }
-		};
+		auto null_terminated = ranges {
+			path, array{'/'},
+			name0, c_string{ ".class" }, array{ '\0' }
+		}.concat_view();
 
-		return view_copy_on_stack{ null_terminated }(
-			[&](auto on_stack) -> optional<decltype(handler(declval<FILE*>()))> {
+		return range{ null_terminated }.view_copied_elements_on_stack(
+			[&](auto on_stack)
+			-> optional<decltype(handler(expression_of_type<FILE*>))> {
 				FILE* f = fopen(on_stack.data(), "rb");
 
 				if(f == nullptr) {
@@ -52,12 +52,12 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		--last_slash;
 	}
 
-	auto result = view_copy_on_stack {
-		concat_view {
-			c_string{ exe.data(), last_slash },
+	auto result = range {
+		ranges {
+			c_string{ exe.elements_ptr(), last_slash },
 			c_string{ "/java.base"}
-		}
-	}([&](auto on_stack) {
+		}.concat_view()
+	}.view_copied_elements_on_stack([&](auto on_stack) {
 		return try_at(on_stack);
 	});
 
@@ -67,7 +67,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 
 	if(!result) {
 		fputs("couldn't find class file ", stderr);
-		view_copy_on_stack{ name }([&](auto name_on_stack) {
+		range{ name}.view_copied_elements_on_stack([&](auto name_on_stack) {
 			fwrite(name_on_stack.data(), 1, name_on_stack.size(), stderr);
 		});
 		abort();

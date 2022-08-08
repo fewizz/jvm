@@ -9,13 +9,11 @@
 
 struct bootstrap_method_arguments_indices :
 	memory_list<
-		class_file::attribute::bootstrap::method::argument_index,
-		uint16
+		class_file::attribute::bootstrap::method::argument_index, uint16
 	>
 {
 	using base_type = memory_list<
-		class_file::attribute::bootstrap::method::argument_index,
-		uint16
+		class_file::attribute::bootstrap::method::argument_index, uint16
 	>;
 	using base_type::base_type;
 };

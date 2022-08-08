@@ -3,29 +3,36 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
+#include <optional.hpp>
+
+struct _class;
+
 struct class_member {
 private:
-	class_file::access_flags access_flags_;
-	class_file::constant::name_index               name_index_;
-	class_file::constant::descriptor_index         desc_index_;
+	optional<_class&>                              class_;
+	class_file::access_flags                       access_flags_;
+	class_file::constant::utf8                     name_;
+	class_file::constant::utf8                     desc_;
+
+	friend _class;
 public:
 
 	class_member(
 		class_file::access_flags               access_flags,
-		class_file::constant::name_index       name_index,
-		class_file::constant::descriptor_index desc_index
+		class_file::constant::utf8             name,
+		class_file::constant::utf8             desc
 	) :
 		access_flags_{ access_flags },
-		name_index_  { name_index   },
-		desc_index_  { desc_index   }
+		name_        { name   },
+		desc_        { desc   }
 	{}
 
-	class_file::constant::name_index name_index() const {
-		return name_index_;
+	class_file::constant::utf8 name() const {
+		return name_;
 	};
 
-	class_file::constant::descriptor_index descriptor_index() const {
-		return desc_index_;
+	class_file::constant::utf8 descriptor() const {
+		return desc_;
 	}
 
 	class_file::access_flags access_flags() const {

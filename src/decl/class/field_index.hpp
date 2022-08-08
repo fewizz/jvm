@@ -12,10 +12,18 @@ public:
 	operator       uint16& ()       & { return value_; }
 };
 
+struct declared_field_index : field_index {
+	using field_index::field_index;
+};
+
 struct declared_instance_field_index : field_index {
 	using field_index::field_index;
 };
 
 struct instance_field_index : field_index {
+	using field_index::field_index;
+};
+
+struct declared_static_field_index : field_index {
 	using field_index::field_index;
 };

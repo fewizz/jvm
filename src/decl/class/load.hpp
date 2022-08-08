@@ -5,26 +5,25 @@
 #include "class.hpp"
 #include "define/class.hpp"
 
-#include <core/range.hpp>
-#include <core/starts_with.hpp>
+#include <range.hpp>
 
 #include <stdio.h>
 
 // only for loading NON-LOADED classes.
 // otherwise, use find_or_load_class(name)
-template<range Name>
+template<basic_range Name>
 inline _class& load_class(Name&& name) {
 	if(info) {
 		tabs();
 		fputs("loading class ", stderr);
 	}
 
-	view_copy_on_stack{ name }([&](auto on_stack) {
+	range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
 		fwrite(on_stack.data(), 1, on_stack.size(), stderr);
 		fputc('\n', stderr);
 	});
 
-	if(starts{ name }.with('[')) {
+	if(range{ name }.starts_with('[')) {
 		return define_array_class(name);
 	}
 

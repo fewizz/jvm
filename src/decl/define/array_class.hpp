@@ -2,7 +2,7 @@
 
 #include "class.hpp"
 
-#include <core/range.hpp>
+#include <range.hpp>
 
-template<range Name>
+template<basic_range Name>
 inline _class& define_array_class(Name&& name);

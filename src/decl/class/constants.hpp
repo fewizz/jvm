@@ -7,7 +7,7 @@
 #include <memory_list.hpp>
 #include <elements/one_of.hpp>
 
-using const_pool_entry = elements::one_of<
+using constant = elements::one_of<
 	class_file::constant::utf8,
 	class_file::constant::_int,
 	class_file::constant::_float,
@@ -28,10 +28,10 @@ using const_pool_entry = elements::one_of<
 	class_file::constant::skip
 >;
 
-struct const_pool :
-	private memory_list<const_pool_entry, uint16>
+struct constants :
+	private memory_list<constant, uint16>
 {
-	using base_type = memory_list<const_pool_entry, uint16>;
+	using base_type = memory_list<constant, uint16>;
 	using base_type::base_type;
 
 public:
@@ -41,17 +41,17 @@ public:
 
 	uint16 constants_count() const { return capacity(); }
 
-	const auto& constant(class_file::constant::index index) const {
+	const ::constant& constant(class_file::constant::index index) const {
 		return (*this)[index - 1];
 	}
 
-	auto& constant(class_file::constant::index index) {
+	::constant& constant(class_file::constant::index index) {
 		return (*this)[index - 1];
 	}
 
 	template<typename Type>
 	Type constant(class_file::constant::index index) const {
-		const const_pool_entry& entry = constant(index);
+		const ::constant& entry = constant(index);
 		return entry.get<Type>();
 	}
 

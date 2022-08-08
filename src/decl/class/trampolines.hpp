@@ -1,25 +1,22 @@
 #pragma once
 
-#include "method/with_class.hpp"
-
 #include <elements/one_of.hpp>
 #include <elements/none.hpp>
 
-struct _class;
+#include <memory_list.hpp>
+
 struct static_field;
 
-using trampoline_entry = elements::one_of<
-	elements::none, _class&, method_with_class,
-	static_field_with_class,
-	reference
+using trampoline = elements::one_of<
+	elements::none
 >;
 
-struct trampoline_pool :
-	protected memory_list<trampoline_entry, uint16>
+struct trampolines :
+	protected memory_list<trampoline, uint16>
 {
-	using base_type = memory_list<trampoline_entry, uint16>;
+	using base_type = memory_list<trampoline, uint16>;
 
-	trampoline_pool(memory_span memory_span) : base_type{ memory_span } {
+	trampolines(memory_span memory_span) : base_type{ memory_span } {
 		base_type::fill(elements::none{});
 	}
 
@@ -29,7 +26,12 @@ struct trampoline_pool :
 		return capacity();
 	}
 
-	const auto& trampoline(uint16 index) const { return (*this)[index - 1]; }
-	auto& trampoline(uint16 index) { return (*this)[index - 1]; }
+	const ::trampoline& trampoline(uint16 index) const {
+		return (*this)[index - 1];
+	}
+
+	      ::trampoline& trampoline(uint16 index)       {
+		return (*this)[index - 1];
+	}
 
 };

@@ -3,24 +3,15 @@
 #include "class.hpp"
 #include "class/load.hpp"
 
-#include <core/limited_list.hpp>
+#include <memory_list.hpp>
 
 static struct class_container :
-	limited_list<_class, uint32, default_allocator>
+	memory_list<_class, uint32>
 {
-	using base_type = limited_list<_class, uint32, default_allocator>;
+	using base_type = memory_list<_class, uint32>;
 	using base_type::base_type;
 
-	template<typename... Args>
-	_class& emplace_back(Args&&... args) {
-		new (base_type::ptr_ + base_type::size_)
-			value_type{ forward<Args>(args)... };
-		_class& c = (*this)[base_type::size_];
-		++size_;
-		return c;
-	}
-
-	template<range Name>
+	template<basic_range Name>
 	_class& find_or_load(Name&& name) {
 		if(optional<_class&> c = try_find(name); c.has_value()) {
 			return c.value();
@@ -28,7 +19,7 @@ static struct class_container :
 		return ::load_class(name);
 	}
 
-	template<range Name>
+	template<basic_range Name>
 	optional<_class&> try_find(Name name) {
 		for(auto& c : *this) {
 			if(equals(c.name(), name)) {
@@ -38,7 +29,7 @@ static struct class_container :
 		return elements::none{};
 	}
 
-	template<range Name>
+	template<basic_range Name>
 	_class& find_class(Name name) {
 		optional<_class&> raw = try_find(name);
 		if(!raw.has_value()) {
@@ -48,9 +39,9 @@ static struct class_container :
 		return raw.value();
 	}
 
-	template<range Name>
+	template<basic_range Name>
 	static inline bool contains(Name name) {
 		return try_find_class(name).has_value();
 	}
 
-} classes{ 65536 };
+} classes{ allocate(sizeof(_class) * 65536) };

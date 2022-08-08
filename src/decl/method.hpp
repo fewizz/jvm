@@ -41,16 +41,16 @@ public:
 
 	method(
 		class_file::access_flags               access_flags,
-		class_file::constant::name_index       name_index,
-		class_file::constant::descriptor_index descriptor_index,
+		class_file::constant::utf8             name,
+		class_file::constant::utf8             descriptor,
 		parameter_type_names_container         paramerter_names,
 		code_or_native_function                code,
 		exception_handlers_container&&         exception_handlers
 	) :
-		base_type          { access_flags, name_index, descriptor_index },
-		parameter_names_   { move(paramerter_names)                     },
-		code_              { code                                       },
-		exception_handlers_{ move(exception_handlers)                   }
+		base_type          { access_flags, name, descriptor },
+		parameter_names_   { move(paramerter_names)         },
+		code_              { code                           },
+		exception_handlers_{ move(exception_handlers)       }
 	{}
 
 	parameters_count parameters_count() {
