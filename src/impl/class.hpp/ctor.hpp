@@ -11,8 +11,8 @@ inline _class::_class(
 	memory_list<_class&, uint16>&& interfaces,
 	declared_fields&&              declared_fields,
 	declared_methods&&             declared_methods,
-	is_array                       is_array,
-	is_primitive                   is_primitive
+	is_array_class                 is_array,
+	is_primitive_class             is_primitive
 ) :
 	::constants            { move(constants)         },
 	::trampolines          { move(trampolines)       },

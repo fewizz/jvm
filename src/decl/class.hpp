@@ -7,6 +7,9 @@
 #include "./class/declared_fields.hpp"
 #include "./class/declared_methods.hpp"
 
+#include "./class/is_array.hpp"
+#include "./class/is_primitive.hpp"
+
 #include "object/reference.hpp"
 
 #include <class_file/access_flag.hpp>
@@ -39,20 +42,8 @@ private:
 	optional<_class&>            component_class_;
 	reference                    instance_{};
 
-	class is_array {
-		bool value_;
-	public:
-		is_array(bool value): value_{ value } {}
-		operator       bool& ()       & { return value_; }
-		operator const bool& () const & { return value_; }
-	}                            is_array_;
-	class is_primitive {
-		bool value_;
-	public:
-		is_primitive(bool value): value_{ value } {}
-		operator       bool& ()       & { return value_; }
-		operator const bool& () const & { return value_; }
-	}                            is_primitive_;
+	is_array_class               is_array_;
+	is_primitive_class           is_primitive_;
 	enum initialisation_state {
 		not_initialised,
 		pending,
@@ -68,8 +59,8 @@ public:
 		memory_list<_class&, uint16>&& interfaces,
 		declared_fields&&,
 		declared_methods&&,
-		is_array,
-		is_primitive
+		is_array_class,
+		is_primitive_class
 	);
 
 	_class(_class&&) = delete;
@@ -78,5 +69,10 @@ public:
 	_class& operator = (const _class&) = delete;
 
 	auto name() const { return this_name_; }
+
+	bool is_array() { return is_array_; }
+
+	_class& get_array_class();
+	_class& get_component_class();
 
 };
