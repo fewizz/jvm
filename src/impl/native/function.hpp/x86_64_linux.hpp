@@ -1,11 +1,11 @@
 #ifdef __x86_64__
 
-#include "native/function.hpp"
+#include "decl/native/function.hpp"
 
-#include "execution/stack_entry.hpp"
+#include "decl/execution/stack_entry.hpp"
 #include "abort.hpp"
 
-#include <core/bit_cast.hpp>
+#include <bit_cast.hpp>
 #include <stdio.h>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
@@ -96,7 +96,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	stack_entry se_result; {
 		using namespace class_file::descriptor;
 
-		method_reader params_reader{ desc_.data() };
+		method_reader params_reader{ desc_.elements_ptr() };
 		auto [return_type_reader, reading_result] =
 			params_reader.skip_parameters();
 		if(!reading_result) {

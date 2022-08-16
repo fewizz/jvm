@@ -1,4 +1,3 @@
-#include "class/member_with_class.hpp"
 #include "class.hpp/impl.hpp"
 #include "define/array_class.hpp"
 #include "define/class.hpp/impl.hpp"

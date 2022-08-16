@@ -1,24 +1,24 @@
-#include "arguments_count.hpp"
-#include "execute.hpp"
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
-#include "class.hpp"
+#include "decl/parameters_count.hpp"
+#include "decl/execute.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/class.hpp"
+#include "decl/object.hpp"
 
 #include <class_file/constant.hpp>
 
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
-	arguments_count args_count, _class& c, stack& stack
+	parameters_count args_count, _class& c, stack& stack
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
 
-	cc::interface_method_ref method_ref_info {
-		c.interface_method_ref_constant(ref_index)
-	};
-	cc::name_and_type name_and_type_info {
-		c.name_and_type_constant(method_ref_info.name_and_type_index)
-	};
+	/*cc::interface_method_ref method_ref_info =
+		c.interface_method_ref_constant(ref_index);
+	cc::name_and_type name_and_type_info =
+		c.name_and_type_constant(method_ref_info.name_and_type_index);
+
 	auto name = c.utf8_constant(name_and_type_info.name_index);
 	auto desc = c.utf8_constant(name_and_type_info.descriptor_index);
 
@@ -28,10 +28,10 @@ inline void invoke_interface(
 		};
 		auto class_name = c.utf8_constant(class_info.name_index);
 		tabs(); fputs("invoke_interface ", stderr);
-		fwrite(class_name.data(), 1, class_name.size(), stderr);
+		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
 		fputc('.', stderr);
-		fwrite(name.data(), 1, name.size(), stderr);
-		fwrite(desc.data(), 1, desc.size(), stderr);
+		fwrite(name.elements_ptr(), 1, name.size(), stderr);
+		fwrite(desc.elements_ptr(), 1, desc.size(), stderr);
 		fputc('\n', stderr);
 	}
 
@@ -51,9 +51,9 @@ inline void invoke_interface(
 
 	if(!m0.has_value()) {
 		nuint index = 0;
-		c.for_each_maximally_specific_superinterface_method(
+		c.for_each_maximally_specific_super_interface_method(
 			name, desc,
-			[&](method_with_class m) {
+			[&](method& m) {
 				if(index++ == 0) {
 					m0 = m.method();
 					c0 = m._class();
@@ -83,5 +83,6 @@ inline void invoke_interface(
 
 	if(!result.is<jvoid>()) {
 		stack.emplace_back(move(result));
-	}
+	}*/
+	abort();
 }

@@ -1,5 +1,12 @@
 #pragma once
 
+#include "object/reference.hpp"
+#include "method.hpp"
+#include "field/value.hpp"
+#include "class/instance_methods.hpp"
+#include "class/instance_fields.hpp"
+#include "alloc.hpp"
+
 #include <elements/one_of.hpp>
 #include <elements/none.hpp>
 
@@ -8,7 +15,8 @@
 struct static_field;
 
 using trampoline = elements::one_of<
-	elements::none
+	elements::none, reference, _class&, method&, field_value,
+	instance_method_index, instance_field_index
 >;
 
 struct trampolines :
@@ -16,7 +24,7 @@ struct trampolines :
 {
 	using base_type = memory_list<trampoline, uint16>;
 
-	trampolines(memory_span memory_span) : base_type{ memory_span } {
+	trampolines(uint16 count) : base_type{ allocate_for<::trampoline>(count) } {
 		base_type::fill(elements::none{});
 	}
 

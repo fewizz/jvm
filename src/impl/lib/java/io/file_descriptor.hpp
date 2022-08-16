@@ -1,4 +1,4 @@
-#include "native/functions.hpp"
+#include "decl/native/functions.hpp"
 
 #include <stdio.h>
 

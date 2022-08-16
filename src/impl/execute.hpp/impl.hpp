@@ -1,3 +1,15 @@
+#include "decl/execute.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/execution/latest_context.hpp"
+#include "decl/thrown.hpp"
+#include "decl/array.hpp"
+#include "decl/object/create.hpp"
+#include "decl/native/functions.hpp"
+#include "decl/abort.hpp"
+#include "decl/lib/java/lang/null_pointer_exception.hpp"
+#include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
+
 #include "./get_field_value.hpp"
 #include "./put_field_value.hpp"
 #include "./ldc.hpp"
@@ -8,49 +20,34 @@
 #include "./invoke_interface.hpp"
 #include "./new_array.hpp"
 
-#include "execute.hpp"
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
-#include "execution/latest_context.hpp"
-#include "thrown.hpp"
-#include "array.hpp"
-#include "object/create.hpp"
-#include "native/functions.hpp"
-#include "abort.hpp"
-#include "lib/java/lang/null_pointer_exception.hpp"
-#include "lib/java/lang/index_out_of_bounds_exception.hpp"
-
 #include <class_file/reader.hpp>
 #include <class_file/descriptor/reader.hpp>
 #include <class_file/attribute/code/reader.hpp>
 
-#include <core/number.hpp>
-#include <core/c_string.hpp>
-#include <core/concat.hpp>
-#include <core/single.hpp>
-#include <core/on_scope_exit.hpp>
-#include <core/max.hpp>
+#include <number.hpp>
+#include <c_string.hpp>
+#include <on_scope_exit.hpp>
+#include <max.hpp>
+#include <range.hpp>
 
 #include <stdio.h>
 #include <math.h>
 
 static stack_entry execute(
-	method_with_class mwc,
+	method& m,
 	arguments_span args
 ) {
 	namespace cf = class_file;
 	namespace instr = cf::attribute::code::instruction;
 
-	_class& c = mwc._class();
-	method& m = mwc.method();
-
+	_class& c = m._class();
 	if(info) {
 		tabs();
 		fputs("executing: ", stderr);
-		fwrite(c.name().data(), 1, c.name().size(), stderr);
+		fwrite(c.name().elements_ptr(), 1, c.name().size(), stderr);
 		fputc('.', stderr);
-		fwrite(c.name(m).data(), 1, c.name(m).size(), stderr);
-		fwrite(c.descriptor(m).data(), 1, c.descriptor(m).size(), stderr);
+		fwrite(m.name().elements_ptr(), 1, m.name().size(), stderr);
+		fwrite(m.descriptor().elements_ptr(), 1, m.descriptor().size(), stderr);
 		fputc(' ', stderr);
 		fprintf(stderr, "max_stack: %hu", m.code().max_stack);
 		fputc('\n', stderr);
@@ -75,23 +72,25 @@ static stack_entry execute(
 	};
 
 	if(m.is_native()) {
-		if(!m.has_native_function()) {
-			m.native_function(native_functions.find(mwc));
+		if(!m.native_function_is_loaded()) {
+			//m.native_function(native_functions.find(mwc));
 		}
 		auto& native_function = m.native_function();
 		return native_function.call(args);
 	}
 
-	if(m.code().data() == nullptr) {
+	if(m.code().elements_ptr() == nullptr) {
 		fputs("no code", stderr); abort();
 	}
 
 	cf::attribute::code::reader<
 		uint8*,
 		cf::attribute::code::reader_stage::code
-	> reader{ m.code().data() };
+	> reader{ m.code().elements_ptr() };
 
-	::stack stack{ (uint16) max(m.code().max_stack, 1) };
+	nuint stack_size = (nuint) max(m.code().max_stack, 1) * sizeof(stack_entry);
+	alignas(stack_entry) uint8 stack_storage[stack_size];
+	::stack stack{ memory_span{ stack_storage, stack_size } };
 
 	stack_entry local[
 		max(m.code().max_locals * 2, 1)
@@ -119,7 +118,7 @@ static stack_entry execute(
 		if(info) tabs();
 		fprintf(stderr, "unimplemented instruction ");
 		for_each_digit_in_number(
-			number{ code }, base{ 10 },
+			code, number_base{ 10 },
 			[](auto digit) { fputc('0' + digit, stderr); }
 		);
 		abort();
@@ -127,7 +126,7 @@ static stack_entry execute(
 
 	reader([&]<typename Type>(Type x, uint8*& it) {
 		on_scope_exit update_pc{[&](){
-			pc = it - m.code().begin();
+			pc = it - m.code().iterator();
 		}};
 
 		auto handle_thrown = [&]() -> loop_action {
@@ -148,13 +147,13 @@ static stack_entry execute(
 				_class& catch_class = c.get_class(handler.catch_type);
 
 				bool same = &thrown_class == &catch_class;
-				bool subclass = thrown_class.is_subclass_of(catch_class);
+				bool subclass = thrown_class.is_sub_of(catch_class);
 
 				if(!(same || subclass)) {
 					continue;
 				}
 
-				it = m.code().begin() + handler.handler_pc;
+				it = m.code().iterator() + handler.handler_pc;
 				stack.clear();
 				stack.emplace_back(move(thrown));
 				return loop_action::next;
@@ -727,7 +726,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value == 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_ne>) {
@@ -737,7 +736,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value != 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_lt>) {
@@ -747,7 +746,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value < 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_ge>) {
@@ -757,7 +756,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value >= 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_gt>) {
@@ -767,7 +766,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value > 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_le>) {
@@ -777,7 +776,7 @@ static stack_entry execute(
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value <= 0) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_eq>) {
@@ -788,7 +787,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 == value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ne>) {
@@ -799,7 +798,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 != value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_lt>) {
@@ -810,7 +809,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 < value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ge>) {
@@ -821,7 +820,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 >= value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_gt>) {
@@ -832,7 +831,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 > value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_i_cmp_le>) {
@@ -843,7 +842,7 @@ static stack_entry execute(
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
 			if(value1 <= value2) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_a_cmp_eq>) {
@@ -854,7 +853,7 @@ static stack_entry execute(
 			reference value2 = stack.pop_back().get<reference>();
 			reference value1 = stack.pop_back().get<reference>();
 			if(value1.object_ptr() == value2.object_ptr()) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_a_cmp_ne>) {
@@ -865,7 +864,7 @@ static stack_entry execute(
 			reference value2 = stack.pop_back().get<reference>();
 			reference value1 = stack.pop_back().get<reference>();
 			if(value1.object_ptr() != value2.object_ptr()) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, go_to>) {
@@ -873,7 +872,7 @@ static stack_entry execute(
 				tabs(); fputs("go_to ", stderr);
 				fprintf(stderr, "%hd\n", x.branch);
 			}
-			it = m.code().begin() + pc + x.branch;
+			it = m.code().iterator() + pc + x.branch;
 		}
 		else if constexpr (same_as<Type, i_return>) {
 			if(info) { tabs(); fputs("i_return\n", stderr); }
@@ -907,11 +906,10 @@ static stack_entry execute(
 					c.name_and_type_constant(field_ref.name_and_type_index)
 				};
 				cc::utf8 name = c.utf8_constant(nat.name_index);
-				fwrite(name.data(), 1, name.size(), stderr);
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
-			static_field_with_class sfwc = c.get_static_field(x.index);
-			field_value& value = sfwc.static_field().value();
+			field_value& value = c.get_static_field_value(x.index);
 			stack.emplace_back(get_field_value(value));
 		}
 		else if constexpr (same_as<Type, put_static>) {
@@ -922,13 +920,12 @@ static stack_entry execute(
 					c.name_and_type_constant(field_ref.name_and_type_index)
 				};
 				cc::utf8 name = c.utf8_constant(nat.name_index);
-				fwrite(name.data(), 1, name.size(), stderr);
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
-			static_field_with_class sfwc = c.get_static_field(x.index);
-			field_value& static_field_value = sfwc.static_field().value();
-			stack_entry value = stack.pop_back();
-			put_field_value(static_field_value, move(value));
+			field_value& field_value = c.get_static_field_value(x.index);
+			stack_entry stack_value = stack.pop_back();
+			put_field_value(field_value, move(stack_value));
 		}
 		else if constexpr (same_as<Type, get_field>) {
 			if(info) {
@@ -940,18 +937,18 @@ static stack_entry execute(
 				cc::_class class_ = c.class_constant(field_ref.class_index);
 				cc::utf8 class_name = c.utf8_constant(class_.name_index);
 				cc::utf8 field_name = c.utf8_constant(nat.name_index);
-				fwrite(class_name.data(), 1, class_name.size(), stderr);
+				fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
 				fputc('.', stderr);
-				fwrite(field_name.data(), 1, field_name.size(), stderr);
+				fwrite(field_name.elements_ptr(), 1, field_name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
-			instance_field_index instance_field_index {
+			instance_field_index index {
 				c.get_resolved_instance_field_index(x.index)
 			};
 
 			reference ref = stack.pop_back().get<reference>();
-			field_value& value = ref.object()[instance_field_index];
+			field_value& value = ref.object()[index];
 			stack.emplace_back(get_field_value(value));
 		}
 		else if constexpr (same_as<Type, put_field>) {
@@ -964,13 +961,13 @@ static stack_entry execute(
 				cc::_class class_ = c.class_constant(field_ref.class_index);
 				cc::utf8 class_name = c.utf8_constant(class_.name_index);
 				cc::utf8 name = c.utf8_constant(nat.name_index);
-				fwrite(class_name.data(), 1, class_name.size(), stderr);
+				fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
 				fputc('.', stderr);
-				fwrite(name.data(), 1, name.size(), stderr);
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
-			auto instance_field_index {
+			instance_field_index index {
 				c.get_resolved_instance_field_index(x.index)
 			};
 
@@ -980,7 +977,7 @@ static stack_entry execute(
 				fputs("object containing field is null", stderr);
 				abort();
 			}
-			field_value& to = ref.object()[instance_field_index];
+			field_value& to = ref.object()[index];
 			put_field_value(to, move(value));
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
@@ -996,7 +993,7 @@ static stack_entry execute(
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
-			::invoke_interface(x.index, arguments_count{ x.count }, c, stack);
+			::invoke_interface(x.index, parameters_count{ x.count }, c, stack);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_dynamic>) {
@@ -1006,10 +1003,10 @@ static stack_entry execute(
 		else if constexpr (same_as<Type, _new>) {
 			if(info) {
 				tabs(); fputs("new ", stderr);
-				auto name = c.utf8_constant(
+				cc::utf8 name = c.utf8_constant(
 					c.class_constant(x.index).name_index
 				);
-				fwrite(name.data(), 1, name.size(), stderr);
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 			_class& c0 = c.get_class(x.index);
@@ -1023,8 +1020,8 @@ static stack_entry execute(
 
 			if(info) {
 				tabs(); fputs("a_new_array ", stderr);
-				auto name = element_class.name();
-				fwrite(name.data(), 1, name.size(), stderr);
+				cc::utf8 name = element_class.name();
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
@@ -1066,7 +1063,7 @@ static stack_entry execute(
 				cc::_class _class = c.class_constant(x.index);
 				cc::utf8 name = c.utf8_constant(_class.name_index);
 				tabs(); fputs("instance_of ", stderr);
-				fwrite(name.data(), 1, name.size(), stderr);
+				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
 
@@ -1079,7 +1076,7 @@ static stack_entry execute(
 
 				if(!s.is_interface()) {
 					if(!t.is_interface()) {
-						result = &s == &t || s.is_subclass_of(t);
+						result = &s == &t || s.is_sub_of(t);
 					}
 					else {
 						result = s.is_implementing(t);
@@ -1098,7 +1095,7 @@ static stack_entry execute(
 			}
 			reference ref = stack.pop_back().get<reference>();
 			if(ref.is_null()) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, if_non_null>) {
@@ -1108,14 +1105,14 @@ static stack_entry execute(
 			}
 			reference ref = stack.pop_back().get<reference>();
 			if(!ref.is_null()) {
-				it = m.code().begin() + pc + x.branch;
+				it = m.code().iterator() + pc + x.branch;
 			}
 		}
 		else if constexpr (same_as<Type, uint8>) {
 			if(info) tabs();
 			fprintf(stderr, "unknown instruction ");
 			for_each_digit_in_number(
-				number{ x }, base{ 10 },
+				x, number_base{ 10 },
 				[](auto digit) { fputc('0' + digit, stderr); }
 			);
 			abort();

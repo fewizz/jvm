@@ -3,35 +3,18 @@
 #include "class.hpp"
 #include "field.hpp"
 #include "array.hpp"
+#include "abort.hpp"
+#include "range.hpp"
 
 #include "execution/info.hpp"
 
 inline object::object(::_class& c) :
 	class_{ c },
-	values_{ c.instance_fields_count() }
+	values_{ allocate_for<field_value>(c.instance_fields().size()) }
 {
-	c.for_each_instance_field([&](instance_field_with_class fwc) {
-		using namespace class_file;
-
-		field_value fv;
-
-		bool result = descriptor::read_field(
-			fwc.descriptor().begin(),
-			[&]<typename DescriptorType>(DescriptorType) {
-				return fv.set_default_value<DescriptorType>();
-			}
-		);
-
-		if(!result) {
-			fputs(
-				"couldn't read field descriptor while creating object",
-				stderr
-			);
-			abort();
-		}
-
-		values_.emplace_back(move(fv));
-	});
+	for(field& instance_field : c.instance_fields()) {
+		values_.emplace_back(instance_field.descriptor());
+	}
 
 	if(info) {
 		tabs();
@@ -40,23 +23,22 @@ inline object::object(::_class& c) :
 			"object constructed with address = %p, type = ", this
 		);
 		auto name = _class().name();
-		fwrite(name.data(), 1, name.size(), stderr);
+		fwrite(name.elements_ptr(), 1, name.size(), stderr);
 		fputc('\n', stderr);
 	}
 }
 
 inline object::~object() {
-	if(_class().is_array_class()) {
+	if(_class().is_array()) {
 		uint8* data = array_data<uint8>(*this);
 
-		if(!_class().get_component_class().is_primitive_class()) {
+		if(!_class().get_component_class().is_primitive()) {
 			for(nuint x = array_length(*this); x > 0; --x) {
 				((reference*) data)[x - 1].~reference();
 			}
 		}
-		default_allocator{}.deallocate(
-			data, 0 // TODO compute actual size, uses free so its safe
-		);
+		// TODO compute actual size, uses free so its safe
+		deallocate(memory_span{ data, 0 });
 	}
 	if(info) {
 		tabs();
@@ -68,20 +50,20 @@ inline object::~object() {
 }
 
 inline void object::on_reference_added() {
-	/*tabs();
+	tabs();
 		fprintf(
 		stderr,
 		"on reference added for object with address = %p\n", this
-	);*/
+	);
 	++references_;
 }
 
 inline void object::on_reference_removed() {
-	/*tabs();
+	tabs();
 		fprintf(
 		stderr,
 		"on reference removed for object with address = %p\n", this
-	);*/
+	);
 	if(references_ == 0) {
 		fputs("'on_reference_removed' on object without references", stderr);
 		abort();
@@ -90,7 +72,7 @@ inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 		this->~object();
-		default_allocator{}.deallocate(ptr_to_this, sizeof(object));
+		deallocate(memory_span{ ptr_to_this, sizeof(object) });
 	}
 }
 

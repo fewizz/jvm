@@ -1,8 +1,8 @@
 #pragma once
 
-#include "method/code.hpp"
-#include "parameters_count.hpp"
-#include "class/member.hpp"
+#include "decl/method/code.hpp"
+#include "decl/parameters_count.hpp"
+#include "decl/class/member.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
@@ -12,6 +12,7 @@
 #include <elements/one_of.hpp>
 #include <optional.hpp>
 #include <memory_list.hpp>
+#include <c_string.hpp>
 
 struct _class;
 struct native_function;
@@ -19,13 +20,12 @@ struct native_function;
 using code_or_native_function =
 	elements::one_of<code, optional<native_function&>>;
 
-using exception_handlers_container = memory_list<
-	class_file::attribute::code::exception_handler,
-	uint16
+using exception_handlers = memory_list<
+	class_file::attribute::code::exception_handler, uint16
 >;
 
-using parameter_type_names_container = memory_list<
-	c_string<c_string_type::known_size>,
+using parameters_type_names = memory_list<
+	c_string_of_known_size,
 	uint8
 >;
 
@@ -33,9 +33,9 @@ struct method : class_member {
 private:
 	using base_type = class_member;
 
-	parameter_type_names_container parameter_names_;
-	code_or_native_function        code_;
-	exception_handlers_container   exception_handlers_;
+	parameters_type_names   parameters_names_;
+	code_or_native_function code_;
+	exception_handlers      exception_handlers_;
 
 public:
 
@@ -43,27 +43,27 @@ public:
 		class_file::access_flags               access_flags,
 		class_file::constant::utf8             name,
 		class_file::constant::utf8             descriptor,
-		parameter_type_names_container         paramerter_names,
+		parameters_type_names                  parameters_names,
 		code_or_native_function                code,
-		exception_handlers_container&&         exception_handlers
+		exception_handlers&&         exception_handlers
 	) :
 		base_type          { access_flags, name, descriptor },
-		parameter_names_   { move(paramerter_names)         },
+		parameters_names_  { move(parameters_names)         },
 		code_              { code                           },
 		exception_handlers_{ move(exception_handlers)       }
 	{}
 
 	parameters_count parameters_count() {
-		return ::parameters_count{ parameter_names_.size() };
+		return ::parameters_count{ parameters_names_.size() };
 	}
 
 	code code() const { return code_.get<::code>(); }
 
-	const parameter_type_names_container& parameter_names() {
-		return parameter_names_;
+	const parameters_type_names& parameters_names() {
+		return parameters_names_;
 	}
 
-	exception_handlers_container& exception_handlers() {
+	exception_handlers& exception_handlers() {
 		return exception_handlers_;
 	}
 

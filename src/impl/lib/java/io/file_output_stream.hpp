@@ -1,8 +1,6 @@
-#pragma once
+#include "decl/native/functions.hpp"
+#include "decl/array.hpp"
 
-#include "native/functions.hpp"
-
-#include "array.hpp"
 #include <stdio.h>
 
 static inline void init_java_io_file_output_stream() {

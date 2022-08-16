@@ -1,6 +1,4 @@
-#pragma once
-
-#include "native/functions.hpp"
+#include "decl/native/functions.hpp"
 
 extern "C" [[ noreturn ]] void exit(int exit_code);
 

@@ -1,7 +1,6 @@
-#pragma once
+#include "decl/native/functions.hpp"
 
-#include "native/functions.hpp"
-#include <core/bit_cast.hpp>
+#include <bit_cast.hpp>
 
 static inline void init_java_lang_float() {
 

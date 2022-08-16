@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class.hpp"
-#include <core/optional.hpp>
+#include <optional.hpp>
 
 static optional<_class&> method_handle_class;
 inline instance_field_index method_handle_class_instance_field_index;

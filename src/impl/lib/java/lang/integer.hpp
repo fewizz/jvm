@@ -1,8 +1,5 @@
-#pragma once
-
-#include "class.hpp"
-#include "native/functions.hpp"
-#include "primitives.hpp"
+#include "decl/native/functions.hpp"
+#include "decl/primitives.hpp"
 
 static void init_java_lang_integer() {
 

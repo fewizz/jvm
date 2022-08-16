@@ -3,22 +3,46 @@
 #include "primitives.hpp"
 #include "object/reference.hpp"
 
-#include <class_file/descriptor/type.hpp>
+#include "abort.hpp"
+
+#include <class_file/descriptor/reader.hpp>
 
 #include <elements/one_of.hpp>
+#include <range.hpp>
+
+#include <stdio.h>
 
 struct field_value : elements::one_of<
-	jvoid, jbool, jbyte, jchar, jshort, jint,
-	jlong, jfloat, jdouble, reference
+	reference, jvoid, jbool, jbyte, jchar, jshort, jint,
+	jlong, jfloat, jdouble
 > {
 	using base_type = elements::one_of<
-		jvoid, jbool, jbyte, jchar, jshort, jint,
-		jlong, jfloat, jdouble, reference
+		reference, jvoid, jbool, jbyte, jchar, jshort, jint,
+		jlong, jfloat, jdouble
 	>;
 	using base_type::base_type;
 	using base_type::operator = ;
 
 	field_value() : base_type{ jvoid{} } {};
+
+	template<basic_range Descriptor>
+	field_value(Descriptor&& descriptor) : base_type{ jvoid{} } {
+		set_default_value_from_descriptor(forward<Descriptor>(descriptor));
+	};
+
+	template<basic_range Descriptor>
+	void set_default_value_from_descriptor(Descriptor&& descriptor) {
+		bool result = class_file::descriptor::read_field(
+			descriptor.iterator(),
+			[&]<typename DescriptorType>(DescriptorType) {
+				return set_default_value<DescriptorType>();
+			}
+		);
+
+		if(!result) {
+			fputs("couldn't read field descriptor", stderr); abort();
+		}
+	}
 
 	void set_default_value() {
 		view([&]<typename ValueType>(ValueType& value) {

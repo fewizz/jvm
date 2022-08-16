@@ -1,7 +1,8 @@
 #pragma once
 
-#include <core/optional.hpp>
 #include "object/reference.hpp"
+
+#include <optional.hpp>
 
 struct _class;
 struct method;

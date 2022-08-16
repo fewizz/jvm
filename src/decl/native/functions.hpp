@@ -7,7 +7,7 @@
 #include <memory_list.hpp>
 #include <range.hpp>
 
-static struct native_functoins_container :
+static struct native_functoins :
 	memory_list<native_function, uint32>
 {
 	using base_type = memory_list<native_function, uint32>;

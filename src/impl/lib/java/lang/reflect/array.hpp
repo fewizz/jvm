@@ -1,10 +1,7 @@
-#pragma once
-
-#include "native/functions.hpp"
-#include "array.hpp"
-#include "thrown.hpp"
-#include "lib/java/lang/negative_array_size_exception.hpp"
-#include "lib/java/lang/class.hpp"
+#include "decl/native/functions.hpp"
+#include "decl/array.hpp"
+#include "decl/thrown.hpp"
+#include "decl/lib/java/lang/negative_array_size_exception.hpp"
 
 static void init_java_lang_reflect_array() {
 

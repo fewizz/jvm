@@ -27,6 +27,9 @@ public:
 		desc_        { desc   }
 	{}
 
+	const ::_class& _class() const { return class_.value(); }
+	      ::_class& _class()       { return class_.value(); }
+
 	class_file::constant::utf8 name() const {
 		return name_;
 	};

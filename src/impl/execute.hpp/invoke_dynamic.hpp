@@ -26,8 +26,8 @@ inline void invoke_dynamic(
 
 		fputc(' ', stderr);
 
-		fwrite(method_name.data(), 1, method_name.size(), stderr);
-		fwrite(method_desc.data(), 1, method_desc.size(), stderr);
+		fwrite(method_name.elements_ptr(), 1, method_name.size(), stderr);
+		fwrite(method_desc.elements_ptr(), 1, method_desc.size(), stderr);
 
 		fputc('\n', stderr);
 	}

@@ -11,7 +11,7 @@ static inline reference create_array_by_class(
 	reference ref = create_object(array_class);
 	array_length(ref.object(), length);
 	array_data(ref.object(), data);
-	return move(ref);
+	return ref;
 }
 
 static inline reference create_array_of(

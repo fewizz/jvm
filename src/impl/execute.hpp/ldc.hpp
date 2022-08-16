@@ -11,23 +11,23 @@ inline void ldc(
 		tabs(); fputs("ldc ", stderr);
 		fprintf(stderr, "%hhd\n", (uint8) const_index);
 	}
-	const_pool_entry constatnt = c.constant(const_index);
-	if(constatnt.is<class_file::constant::_int>()) {
+	constant constant = c.constant(const_index);
+	if(constant.is<class_file::constant::_int>()) {
 		stack.emplace_back(jint {
-			constatnt.get<class_file::constant::_int>().value
+			constant.get<class_file::constant::_int>().value
 		});
 	} else
-	if(constatnt.is<class_file::constant::_float>()) {
+	if(constant.is<class_file::constant::_float>()) {
 		stack.emplace_back(jfloat {
-			constatnt.get<class_file::constant::_float>().value
+			constant.get<class_file::constant::_float>().value
 		});
 	} else
-	if(constatnt.is<class_file::constant::string>()) {
+	if(constant.is<class_file::constant::string>()) {
 		stack.emplace_back(c.get_string(
 			class_file::constant::string_index{ const_index }
 		));
 	} else
-	if(constatnt.is<class_file::constant::_class>()) {
+	if(constant.is<class_file::constant::_class>()) {
 		stack.emplace_back(c.get_class(
 			class_file::constant::class_index{ const_index }
 		).instance());
@@ -44,15 +44,15 @@ inline void ldc_2_w(
 		tabs(); fputs("ldc_2_w ", stderr);
 		fprintf(stderr, "%hd\n", (uint16) const_index);
 	}
-	const_pool_entry constatnt = c.constant(const_index);
-	if(constatnt.is<class_file::constant::_long>()) {
+	constant constant = c.constant(const_index);
+	if(constant.is<class_file::constant::_long>()) {
 		stack.emplace_back(jlong {
-			constatnt.get<class_file::constant::_long>().value
+			constant.get<class_file::constant::_long>().value
 		});
 	} else
-	if(constatnt.is<class_file::constant::_double>()) {
+	if(constant.is<class_file::constant::_double>()) {
 		stack.emplace_back(jdouble {
-			constatnt.get<class_file::constant::_double>().value
+			constant.get<class_file::constant::_double>().value
 		});
 	}
 	else {

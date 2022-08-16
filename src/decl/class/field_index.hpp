@@ -6,6 +6,7 @@ class field_index {
 	uint16 value_;
 public:
 
+	field_index() = default;
 	field_index(uint16 value) : value_{ value } {}
 
 	operator const uint16& () const & { return value_; }

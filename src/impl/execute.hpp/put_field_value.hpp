@@ -1,9 +1,8 @@
-#include "execution/stack_entry.hpp"
+#include "decl/execution/stack_entry.hpp"
+#include "decl/field/value.hpp"
+#include "decl/abort.hpp"
 
-#include "field/value.hpp"
-#include "abort.hpp"
-
-#include <core/integer.hpp>
+#include <integer.hpp>
 
 #include <stdio.h>
 

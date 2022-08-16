@@ -14,11 +14,13 @@ if ! clang++ \
 	-std=c++20 \
 	-Wall -Wextra \
 	-g3 \
+	-O0 \
 	-nostdinc++ \
 	-fno-exceptions \
 	-fno-rtti \
 	-fuse-ld=lld \
 	-iquote ${root}/src/decl \
+	-iquote ${root}/src \
 	-I ${root}/../core/include \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \

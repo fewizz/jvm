@@ -1,15 +1,17 @@
 #pragma once
 
-#include "class/bootstrap_method_pool.hpp"
+#include "class/bootstrap_methods.hpp"
 
-static bootstrap_method_pool read_bootstap_methods(auto reader) {
+static bootstrap_methods read_bootstap_methods(auto reader) {
 	using namespace class_file::attribute::bootstrap::method;
 
 	auto [count, bootstrap_methods_reader] {
 		reader.read_count_and_get_methods_reader()
 	};
 
-	bootstrap_method_pool bootstrap_methods = bootstrap_method_pool{ count };
+	bootstrap_methods bootstrap_methods {
+		allocate_for<bootstrap_method>(count)
+	};
 
 	bootstrap_methods_reader.read(
 		count,
@@ -23,7 +25,9 @@ static bootstrap_method_pool read_bootstap_methods(auto reader) {
 			};
 
 			bootstrap_method_arguments_indices arguments_indices {
-				arguments_count
+				allocate_for<
+					class_file::attribute::bootstrap::method::argument_index
+				>(arguments_count)
 			};
 
 			arguments_reader.read(

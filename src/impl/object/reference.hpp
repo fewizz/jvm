@@ -1,10 +1,10 @@
 #include "decl/object/reference.hpp"
 
-#include "object.hpp"
-#include "alloc.hpp"
-#include "abort.hpp"
+#include "decl/object.hpp"
+#include "decl/alloc.hpp"
+#include "decl/abort.hpp"
 
-#include <core/exchange.hpp>
+#include <exchange.hpp>
 
 #include <stdio.h>
 
@@ -37,7 +37,10 @@ inline reference& reference::operator = (const reference& other) {
 }
 
 inline reference& reference::operator = (reference&& other) {
-	::object* prev = obj_; // in case if assigning to self
+	if(this == &other) {
+		return *this;
+	}
+	::object* prev = obj_; // in case if assigning same object
 	obj_ = exchange(other.obj_, nullptr);
 	if(prev != nullptr) {
 		prev->on_reference_removed();

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "stack_entry.hpp"
-#include "alloc.hpp"
+#include "./stack_entry.hpp"
 
-#include <core/limited_list.hpp>
+#include <memory_list.hpp>
 
-struct stack : limited_list<stack_entry, uint16, default_allocator> {
-	using base_type = limited_list<stack_entry, uint16, default_allocator>;
+struct stack : memory_list<stack_entry, uint16> {
+	using base_type = memory_list<stack_entry, uint16>;
 	using base_type::base_type;
 };

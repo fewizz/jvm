@@ -1,14 +1,34 @@
 #pragma once
 
+#include "./abort.hpp"
+
+#include <integer.hpp>
 #include <memory_span.hpp>
+#include <optional.hpp>
 
 extern "C" void* __cdecl malloc(nuint size);
 extern "C" void* __cdecl calloc(nuint num, nuint size);
 extern "C" void* __cdecl realloc(void *ptr, nuint new_size);
 extern "C" void  __cdecl free(void* ptr);
 
-inline memory_span allocate(auto size) {
-	return { malloc(size), size };
+inline optional<memory_span> try_allocate(nuint size) {
+	uint8* ptr = (uint8*) malloc(size);
+	if(ptr == nullptr) { return {}; }
+	return memory_span{ ptr, size };
+}
+
+template<typename Type>
+inline optional<memory_span> try_allocate_for(nuint count) {
+	return try_allocate(sizeof(Type) * count);
+}
+
+inline memory_span allocate(nuint size) {
+	return try_allocate(size).if_no_value(abort).value();
+}
+
+template<typename Type>
+inline memory_span allocate_for(nuint count) {
+	return allocate(sizeof(Type) * count);
 }
 
 inline memory_span allocate_zeroed(auto size) {

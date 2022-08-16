@@ -4,6 +4,7 @@
 #include "view_class_file.hpp"
 #include "class.hpp"
 #include "define/class.hpp"
+#include "define/array_class.hpp"
 
 #include <range.hpp>
 
@@ -19,7 +20,7 @@ inline _class& load_class(Name&& name) {
 	}
 
 	range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
-		fwrite(on_stack.data(), 1, on_stack.size(), stderr);
+		fwrite(on_stack.elements_ptr(), 1, on_stack.size(), stderr);
 		fputc('\n', stderr);
 	});
 
@@ -32,9 +33,9 @@ inline _class& load_class(Name&& name) {
 			fseek(f, 0, SEEK_END);
 			nuint size = ftell(f);
 			rewind(f);
-			uint8* data = (uint8*) malloc(size);
-			fread(data, 1, size, f);
-			return define_class(span{ data, size });
+			memory_span data = allocate(size);
+			fread(data.elements_ptr(), 1, size, f);
+			return define_class(data);
 		}
 	);
 }

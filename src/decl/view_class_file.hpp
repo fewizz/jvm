@@ -15,19 +15,19 @@
 template<basic_range Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	auto try_at = [&](auto path) -> decltype(auto) {
-		auto name0 = range{ name }.transform_view([&](auto ch) {
+		/*auto name0 = range{ name }.transform_view([&](auto ch) {
 			return (const char) ch;
-		});
+		});*/
 
 		auto null_terminated = ranges {
 			path, array{'/'},
-			name0, c_string{ ".class" }, array{ '\0' }
+			name, c_string{ ".class" }, array{ '\0' }
 		}.concat_view();
 
 		return range{ null_terminated }.view_copied_elements_on_stack(
 			[&](auto on_stack)
 			-> optional<decltype(handler(expression_of_type<FILE*>))> {
-				FILE* f = fopen(on_stack.data(), "rb");
+				FILE* f = fopen(on_stack.elements_ptr(), "rb");
 
 				if(f == nullptr) {
 					return {};
@@ -68,7 +68,9 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	if(!result) {
 		fputs("couldn't find class file ", stderr);
 		range{ name}.view_copied_elements_on_stack([&](auto name_on_stack) {
-			fwrite(name_on_stack.data(), 1, name_on_stack.size(), stderr);
+			fwrite(
+				name_on_stack.elements_ptr(), 1, name_on_stack.size(), stderr
+			);
 		});
 		abort();
 	}
