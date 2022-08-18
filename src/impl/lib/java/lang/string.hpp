@@ -1,6 +1,6 @@
 #include "lib/java/lang/string.hpp"
 
-#include "decl/class/load.hpp"
+#include "decl/classes.hpp"
 #include "decl/alloc.hpp"
 
 #include <range.hpp>
@@ -11,7 +11,7 @@ static inline reference create_string(span<uint16> data) {
 	reference data_ref = create_char_array(data.size());
 	array_data(data_ref.object(), data.elements_ptr());
 	reference string_ref = create_object(string_class.value());
-	string_ref.object().values()[string_value_index] = move(data_ref);
+	string_ref->values()[string_value_index] = move(data_ref);
 	return string_ref;
 }
 
@@ -58,7 +58,7 @@ static reference create_string_from_utf8(String&& str_utf8) {
 }
 
 static inline void init_java_lang_string() {
-	string_class = load_class(c_string{ "java/lang/String" });
+	string_class = classes.find_or_load(c_string{ "java/lang/String" });
 	string_value_index = string_class->instance_fields().find_index_of(
 		c_string{ "value_" }, c_string{ "[C" }
 	);

@@ -31,8 +31,10 @@ inline void invoke_special(
 
 	instance_method_index index =
 		c.get_resolved_instance_method_index(ref_index);
-
-	method& m = c.instance_methods()[index];
+	
+	_class& referenced_class =
+		c.get_class(c.method_ref_constant(ref_index).class_index);
+	method& m = referenced_class.instance_methods()[index];
 
 	auto args_count = m.parameters_count();
 	++args_count; // this

@@ -7,7 +7,7 @@ struct _class;
 
 struct reference {
 private:
-	object* obj_{ nullptr };
+	object* obj_ = nullptr;
 
 	friend reference create_object(_class& c);
 
@@ -15,7 +15,7 @@ public:
 
 	reference(object& obj);
 
-	reference() {};
+	reference() = default;
 
 	~reference();
 	object& unsafe_release_without_destroing();

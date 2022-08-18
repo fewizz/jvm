@@ -1,25 +1,29 @@
-#include "decl/native/functions.hpp"
+#include "decl/classes.hpp"
+#include "decl/native/interface/environment.hpp"
 
 extern "C" [[ noreturn ]] void exit(int exit_code);
 
 static inline void init_java_lang_runtime() {
-
-	native_functions.emplace_back(
-		(void*) (void(*)(jni_environment*, object*, int32))
-		[](jni_environment*, object*, int32 status) {
-			exit(status);
-		},
-		c_string{ "Java_java_lang_Runtime_exit" },
-		c_string{ "(I)" }
+	_class& runtime_class = classes.find_or_load(
+		c_string{ "java/lang/Runtime" }
 	);
 
-	native_functions.emplace_back(
-		(void*) (int32(*)(jni_environment*, object*))
-		[](jni_environment*, object*) {
+	runtime_class.declared_methods().find(
+		c_string{ "exit" }, c_string{ "(I)V" }
+	).native_function(
+		(void*) (void(*)(native_interface_environment*, object*, int32))
+		[](native_interface_environment*, object*, int32 status) {
+			exit(status);
+		}
+	);
+
+	runtime_class.declared_methods().find(
+		c_string{ "availableProcessors" }, c_string{ "()I" }
+	).native_function(
+		(void*) (int32(*)(native_interface_environment*, object*))
+		[](native_interface_environment*, object*) {
 			return 1; // TODO
-		},
-		c_string{ "Java_java_lang_Runtime_availableProcessors" },
-		c_string{ "()I" }
+		}
 	);
 
 }

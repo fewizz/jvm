@@ -31,8 +31,18 @@ inline memory_span allocate_for(nuint count) {
 	return allocate(sizeof(Type) * count);
 }
 
-inline memory_span allocate_zeroed(auto size) {
-	return { (uint8*) calloc(size, 1), size };
+template<typename Type>
+inline optional<memory_span> try_allocate_zeroed_for(nuint count) {
+	uint8* ptr = (uint8*) calloc(count, sizeof(Type));
+	if(ptr == nullptr) {
+		return {};
+	}
+	return memory_span{ ptr, /* not always true */ sizeof(Type) * count };
+}
+
+template<typename Type>
+inline memory_span allocate_zeroed_for(nuint count) {
+	return try_allocate_zeroed_for<Type>(count).if_no_value(abort).value();
 }
 
 inline void deallocate(memory_span memory_span) {

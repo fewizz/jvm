@@ -1,29 +1,34 @@
-#include "decl/native/functions.hpp"
+#include "decl/classes.hpp"
+#include "decl/native/interface/environment.hpp"
 
 #include <stdio.h>
 
 static void init_java_io_file_descriptor() {
-	native_functions.emplace_back(
-		(void*) (int64 (*)(jni_environment*)) [](jni_environment*) {
+	_class& file_descriptor_class = classes.find_or_load(
+		c_string{ "java/io/FileDescriptor" }
+	);
+
+	file_descriptor_class.declared_methods().find(
+		c_string{ "stderr_fd" }, c_string{ "()J" }
+	).native_function(
+		(void*) (int64 (*)(native_interface_environment*)) [](native_interface_environment*) {
 			return (int64) stderr;
-		},
-		c_string{ "Java_java_io_FileDescriptor_stderr_fd" },
-		c_string{ "()J" }
+		}
 	);
 
-	native_functions.emplace_back(
-		(void*) (int64 (*)(jni_environment*)) [](jni_environment*) {
+	file_descriptor_class.declared_methods().find(
+		c_string{ "stdin_fd" }, c_string{ "()J" }
+	).native_function(
+		(void*) (int64 (*)(native_interface_environment*)) [](native_interface_environment*) {
 			return (int64) stdin;
-		},
-		c_string{ "Java_java_io_FileDescriptor_stdin_fd" },
-		c_string{ "()J" }
+		}
 	);
 
-	native_functions.emplace_back(
-		(void*) (int64 (*)(jni_environment*)) [](jni_environment*) {
+	file_descriptor_class.declared_methods().find(
+		c_string{ "stdout_fd" }, c_string{ "()J" }
+	).native_function(
+		(void*) (int64 (*)(native_interface_environment*)) [](native_interface_environment*) {
 			return (int64) stdout;
-		},
-		c_string{ "Java_java_io_FileDescriptor_stdout_fd" },
-		c_string{ "()J" }
+		}
 	);
 }

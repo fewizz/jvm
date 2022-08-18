@@ -1,16 +1,17 @@
 #include "decl/lib/java/lang/throwable.hpp"
 
-#include "decl/native/functions.hpp"
+#include "decl/native/interface/environment.hpp"
 #include "decl/execution/latest_context.hpp"
 #include "decl/array.hpp"
 #include "decl/primitives.hpp"
 #include "decl/object/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
 #include "decl/class/load.hpp"
+#include "decl/classes.hpp"
 
 static inline void init_java_lang_throwable() {
 
-	throwable_class = load_class(c_string{ "java/lang/Throwable" });
+	throwable_class = classes.find_or_load(c_string{ "java/lang/Throwable" });
 
 	throwable_stack_trace_field_index =
 		throwable_class->instance_fields().find_index_of(
@@ -18,9 +19,13 @@ static inline void init_java_lang_throwable() {
 			c_string{ "[Ljava/lang/StackTraceElement;" }
 		);
 
-	native_functions.emplace_back(
-		(void*) (object* (*)(jni_environment*, object*))
-		[](jni_environment*, object* ths) {
+
+	throwable_class->declared_instance_methods()
+	.find(
+		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }
+	).native_function(
+		(void*) (object* (*)(native_interface_environment*, object*))
+		[](native_interface_environment*, object* ths) {
 			execution_context* ctx = latest_execution_context.ptr();
 			int32 frames_count = 0;
 
@@ -46,9 +51,7 @@ static inline void init_java_lang_throwable() {
 
 			ths->values()[throwable_stack_trace_field_index] = move(ste_array);
 			return ths;
-		},
-		c_string{ "Java_java_lang_Throwable_fillInStackTrace" },
-		c_string{ "()Ljava/lang/Throwable;" }
+		}
 	);
 
 }

@@ -38,7 +38,7 @@ inline void invoke_virtual(
 
 	reference& ref = stack[stack.size() - args_count].get<reference>();
 
-	method& m = ref.object()._class().instance_methods()[index];
+	method& m = ref->_class().instance_methods()[index];
 
 	stack_entry result = execute(
 		m,

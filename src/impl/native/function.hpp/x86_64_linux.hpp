@@ -1,6 +1,6 @@
 #ifdef __x86_64__
 
-#include "decl/native/function.hpp"
+#include "decl/native/interface/call.hpp"
 
 #include "decl/execution/stack_entry.hpp"
 #include "abort.hpp"
@@ -11,7 +11,10 @@
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-inline stack_entry native_function::call(span<stack_entry, uint16> args) {
+template<typename Descriptor>
+inline stack_entry native_interface_call(
+	void* ptr, arguments_span args, Descriptor&& descriptor
+) {
 	if(args.size() > 5) {
 		fputs("args.size() > 5", stderr);
 		abort();
@@ -20,7 +23,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	uint64 iorref_storage[6] { 0 }; {
 		nuint arg = 0;
 
-		iorref_storage[arg++] = (uint64) nullptr; // jni_environment*
+		iorref_storage[arg++] = (uint64) nullptr; // native_interface_environment*
 
 		for(stack_entry& se : args) {
 			se.view([&]<typename Type>(Type& value) {
@@ -77,7 +80,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 		register __m128 arg_f_6 asm("xmm6") = floating_storage[6];
 		register __m128 arg_f_7 asm("xmm7") = floating_storage[7];
 
-		register uint64 function_ptr asm("rbx")  = (uint64) ptr_;
+		register uint64 function_ptr asm("rbx")  = (uint64) ptr;
 
 		asm volatile(
 			"callq *%[function_ptr]\n"
@@ -96,7 +99,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	stack_entry se_result; {
 		using namespace class_file::descriptor;
 
-		method_reader params_reader{ desc_.elements_ptr() };
+		method_reader params_reader{ descriptor.elements_ptr() };
 		auto [return_type_reader, reading_result] =
 			params_reader.skip_parameters();
 		if(!reading_result) {

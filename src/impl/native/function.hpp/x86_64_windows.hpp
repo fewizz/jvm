@@ -25,7 +25,7 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 	} {
 		nuint arg = 0;
 
-		iorref_storage[arg++] = (uint64) nullptr; // jni_environment*
+		iorref_storage[arg++] = (uint64) nullptr; // native_interface_environment*
 
 		for(stack_entry& se : args) {
 			se.view([&]<typename Type>(Type& value) {

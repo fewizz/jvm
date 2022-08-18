@@ -63,7 +63,8 @@ inline reference::~reference() {
 			"reference destruction with object address = %p\n",
 			obj_
 		);*/
-		exchange(obj_, nullptr)->on_reference_removed();
+		obj_->on_reference_removed();
+		obj_ = nullptr;
 	}
 }
 

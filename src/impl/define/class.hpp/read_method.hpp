@@ -26,7 +26,7 @@ read_method_and_get_advaned_iterator(
 	};
 
 	code_or_native_function code_or_native_function {
-		optional<native_function&>()
+		optional<void*>()
 	};
 
 	exception_handlers exception_handlers;

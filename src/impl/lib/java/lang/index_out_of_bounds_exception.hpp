@@ -2,7 +2,7 @@
 
 #include "decl/execute.hpp"
 #include "decl/object/create.hpp"
-#include "decl/class/load.hpp"
+#include "decl/classes.hpp"
 
 inline reference create_index_of_of_bounds_exception() {
 	_class& c = index_of_of_bounds_exception_class.value();
@@ -18,8 +18,9 @@ inline reference create_index_of_of_bounds_exception() {
 }
 
 inline void init_java_lang_index_of_of_bounds_exception() {
-	index_of_of_bounds_exception_class =
-		load_class(c_string{ "java/lang/IndexOutOfBoundsException" });
+	index_of_of_bounds_exception_class = classes.find_or_load(
+		c_string{ "java/lang/IndexOutOfBoundsException" }
+	);
 
 	index_of_of_bounds_exception_constructor =
 		index_of_of_bounds_exception_class.value()

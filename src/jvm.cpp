@@ -51,11 +51,10 @@ int main (int argc, const char** argv) {
 		c_string{ "([Ljava/lang/String;)V" }
 	).if_no_value([]{ puts("main method is not found"); }).value();
 
-	reference args = create_array_of(string_class.value(), 0);
-	stack_entry arg0 = args;
+	stack_entry args_array = create_array_of(string_class.value(), 0);
 
 	stack_entry value = execute(
-		m, arguments_span{ &arg0, 1 }
+		m, arguments_span{ &args_array, 1 }
 	);
 
 	if(!thrown.is_null()) {
@@ -71,7 +70,7 @@ int main (int argc, const char** argv) {
 	}
 	else if(
 		value.is<reference>() &&
-		&value.get<reference>().object()._class() == &string_class.value()
+		&value.get<reference>()->_class() == &string_class.value()
 	) {
 		for_each_string_codepoint(
 			value.get<reference>().object(),

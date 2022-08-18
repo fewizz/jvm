@@ -18,7 +18,7 @@ struct _class;
 struct native_function;
 
 using code_or_native_function =
-	elements::one_of<code, optional<native_function&>>;
+	elements::one_of<code, optional<void*>>;
 
 using exception_handlers = memory_list<
 	class_file::attribute::code::exception_handler, uint16
@@ -72,15 +72,15 @@ public:
 	}
 
 	bool native_function_is_loaded() const {
-		return code_.get<optional<::native_function&>>().has_value();
+		return code_.get<optional<void*>>().has_value();
 	}
 
-	void native_function(::native_function& function) {
+	void native_function(void* function) {
 		code_ = function;
 	}
 
-	::native_function& native_function() {
-		return code_.get<optional<::native_function&>>().value();
+	void* native_function() {
+		return code_.get<optional<void*>>().value();
 	}
 
 };

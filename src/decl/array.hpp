@@ -31,8 +31,9 @@ static inline void array_length(object& o, int32 length) {
 	o.values()[1].get<jint>() = length;
 }
 
+template<typename Type>
 static inline reference create_array_by_class(
-	_class& array_class, nuint element_size, int32 length
+	_class& array_class, int32 length
 );
 
 
@@ -41,49 +42,33 @@ static inline reference create_array_of(
 );
 
 static inline reference create_bool_array(int32 length) {
-	return create_array_by_class(
-		bool_array_class.value(), sizeof(jbool), length
-	);
+	return create_array_by_class<jbool>(bool_array_class.value(), length);
 }
 
 static inline reference create_byte_array(int32 length) {
-	return create_array_by_class(
-		byte_array_class.value(), sizeof(jbyte), length
-	);
+	return create_array_by_class<jbyte>(byte_array_class.value(), length);
 }
 
 static inline reference create_short_array(int32 length) {
-	return create_array_by_class(
-		short_array_class.value(), sizeof(jshort), length
-	);
+	return create_array_by_class<jshort>(short_array_class.value(), length);
 }
 
 static inline reference create_char_array(int32 length) {
-	return create_array_by_class(
-		char_array_class.value(), sizeof(jchar), length
-	);
+	return create_array_by_class<jchar>(char_array_class.value(), length);
 }
 
 static inline reference create_int_array(int32 length) {
-	return create_array_by_class(
-		int_array_class.value(), sizeof(jint), length
-	);
+	return create_array_by_class<jint>(int_array_class.value(), length);
 }
 
 static inline reference create_float_array(int32 length) {
-	return create_array_by_class(
-		float_array_class.value(), sizeof(jfloat), length
-	);
+	return create_array_by_class<jfloat>(float_array_class.value(), length);
 }
 
 static inline reference create_long_array(int32 length) {
-	return create_array_by_class(
-		long_array_class.value(), sizeof(jlong), length
-	);
+	return create_array_by_class<jlong>(long_array_class.value(), length);
 }
 
 static inline reference create_double_array(int32 length) {
-	return create_array_by_class(
-		double_array_class.value(), sizeof(jdouble), length
-	);
+	return create_array_by_class<jdouble>(double_array_class.value(), length);
 }

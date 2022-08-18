@@ -13,7 +13,7 @@ fi
 if ! clang++ \
 	-std=c++20 \
 	-Wall -Wextra \
-	-g3 \
+	-glldb \
 	-O0 \
 	-nostdinc++ \
 	-fno-exceptions \

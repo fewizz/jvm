@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/negative_array_size_exception.hpp"
 
 #include "decl/execute.hpp"
-#include "decl/class/load.hpp"
+#include "decl/classes.hpp"
 #include "decl/object/create.hpp"
 
 static inline reference create_negative_array_size_exception() {
@@ -18,8 +18,9 @@ static inline reference create_negative_array_size_exception() {
 }
 
 inline void init_java_lang_negative_array_size_exception() {
-	negative_array_size_exception_class =
-		load_class(c_string{ "java/lang/NegativeArraySizeException" });
+	negative_array_size_exception_class = classes.find_or_load(
+		c_string{ "java/lang/NegativeArraySizeException" }
+	);
 
 	negative_array_size_exception_constructor =
 		negative_array_size_exception_class.value()

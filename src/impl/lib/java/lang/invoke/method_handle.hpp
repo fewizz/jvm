@@ -1,10 +1,9 @@
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 
-#include "decl/class/load.hpp"
-#include "decl/native/functions.hpp"
+#include "decl/classes.hpp"
 
 static void init_java_lang_invoke_method_handle() {
-	method_handle_class = load_class(
+	method_handle_class = classes.find_or_load(
 		c_string{ "java/lang/invoke/MethodHandle" }
 	);
 

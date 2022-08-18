@@ -20,7 +20,7 @@ inline object::object(::_class& c) :
 		tabs();
 		fprintf(
 			stderr,
-			"object constructed with address = %p, type = ", this
+			"constructing object @%p, ", this
 		);
 		auto name = _class().name();
 		fwrite(name.elements_ptr(), 1, name.size(), stderr);
@@ -44,8 +44,11 @@ inline object::~object() {
 		tabs();
 		fprintf(
 			stderr,
-			"object destructed with address = %p\n", this
+			"destructing object @%p, ", this
 		);
+		auto name = _class().name();
+		fwrite(name.elements_ptr(), 1, name.size(), stderr);
+		fputc('\n', stderr);
 	}
 }
 
@@ -53,7 +56,7 @@ inline void object::on_reference_added() {
 	tabs();
 		fprintf(
 		stderr,
-		"on reference added for object with address = %p\n", this
+		"added reference to object @%p\n", this
 	);
 	++references_;
 }
@@ -62,10 +65,10 @@ inline void object::on_reference_removed() {
 	tabs();
 		fprintf(
 		stderr,
-		"on reference removed for object with address = %p\n", this
+		"removed reference to object @%p\n", this
 	);
 	if(references_ == 0) {
-		fputs("'on_reference_removed' on object without references", stderr);
+		fputs("removing reference on object without references", stderr);
 		abort();
 	}
 	--references_;
