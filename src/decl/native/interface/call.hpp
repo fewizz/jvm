@@ -5,5 +5,5 @@
 
 template<typename Descriptor>
 static stack_entry native_interface_call(
-	void* ptr, arguments_span args, Descriptor&&
+	native_function_ptr ptr, arguments_span args, Descriptor&&
 );

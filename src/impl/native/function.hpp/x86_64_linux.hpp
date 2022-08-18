@@ -13,7 +13,7 @@ typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
 template<typename Descriptor>
 inline stack_entry native_interface_call(
-	void* ptr, arguments_span args, Descriptor&& descriptor
+	native_function_ptr ptr, arguments_span args, Descriptor&& descriptor
 ) {
 	if(args.size() > 5) {
 		fputs("args.size() > 5", stderr);
@@ -80,7 +80,7 @@ inline stack_entry native_interface_call(
 		register __m128 arg_f_6 asm("xmm6") = floating_storage[6];
 		register __m128 arg_f_7 asm("xmm7") = floating_storage[7];
 
-		register uint64 function_ptr asm("rbx")  = (uint64) ptr;
+		register uint64 function_ptr asm("rbx")  = (uint64)(void*) ptr;
 
 		asm volatile(
 			"callq *%[function_ptr]\n"

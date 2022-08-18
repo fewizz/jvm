@@ -9,7 +9,7 @@
 
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
-	parameters_count args_count, _class& c, stack& stack
+	_class& c, stack& stack
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;

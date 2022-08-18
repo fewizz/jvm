@@ -32,8 +32,15 @@ inline void invoke_virtual(
 
 	instance_method_index index =
 		c.get_resolved_instance_method_index(ref_index);
-	method& m0 = c.instance_methods()[index];
-	uint8 args_count = m0.parameters_count();
+	
+	uint8 args_count;
+	{
+		_class& referenced_class =
+			c.get_class(c.method_ref_constant(ref_index).class_index);
+		method& m0 = referenced_class.instance_methods()[index];
+		args_count = m0.parameters_count();
+	}
+
 	++args_count; // this
 
 	reference& ref = stack[stack.size() - args_count].get<reference>();

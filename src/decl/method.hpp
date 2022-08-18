@@ -1,11 +1,14 @@
 #pragma once
 
-#include "decl/method/code.hpp"
-#include "decl/parameters_count.hpp"
-#include "decl/class/member.hpp"
+#include "./method/code.hpp"
+#include "./parameters_count.hpp"
+#include "./class/member.hpp"
+#include "./alloc.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
+#include <class_file/descriptor/type.hpp>
+#include <class_file/descriptor/reader.hpp>
 #include <class_file/attribute/code/exception_handler.hpp>
 
 #include <span.hpp>
@@ -14,28 +17,52 @@
 #include <memory_list.hpp>
 #include <c_string.hpp>
 
-struct _class;
-struct native_function;
+struct native_function_ptr {
+private:
+	void* value_;
+public:
+	native_function_ptr(void* value) : value_{ value } {}
 
-using code_or_native_function =
-	elements::one_of<code, optional<void*>>;
+	operator void*& () & { return value_; }
+};
+
+using code_or_native_function_ptr =
+	elements::one_of<code, optional<native_function_ptr>>;
 
 using exception_handlers = memory_list<
 	class_file::attribute::code::exception_handler, uint16
 >;
 
-using parameters_type_names = memory_list<
-	c_string_of_known_size,
-	uint8
+using one_of_descriptor_types = elements::one_of<
+	class_file::descriptor::Z,
+	class_file::descriptor::B,
+	class_file::descriptor::C,
+	class_file::descriptor::S,
+	class_file::descriptor::I,
+	class_file::descriptor::F,
+	class_file::descriptor::J,
+	class_file::descriptor::D,
+	class_file::descriptor::array_type,
+	class_file::descriptor::object_type,
+	class_file::descriptor::V // TODO exclude
 >;
+
+struct _class;
+
+struct parameter_type : one_of_descriptor_types {
+private:
+	using base_type = one_of_descriptor_types;
+public:
+	using base_type::base_type;
+};
 
 struct method : class_member {
 private:
 	using base_type = class_member;
 
-	parameters_type_names   parameters_names_;
-	code_or_native_function code_;
-	exception_handlers      exception_handlers_;
+	memory_list<parameter_type, uint8> parameters_types;
+	code_or_native_function_ptr        code_;
+	exception_handlers                 exception_handlers_;
 
 public:
 
@@ -43,25 +70,35 @@ public:
 		class_file::access_flags               access_flags,
 		class_file::constant::utf8             name,
 		class_file::constant::utf8             descriptor,
-		parameters_type_names                  parameters_names,
-		code_or_native_function                code,
-		exception_handlers&&         exception_handlers
+		code_or_native_function_ptr            code,
+		exception_handlers&&                   exception_handlers
 	) :
 		base_type          { access_flags, name, descriptor },
-		parameters_names_  { move(parameters_names)         },
 		code_              { code                           },
 		exception_handlers_{ move(exception_handlers)       }
-	{}
+	{
+		class_file::descriptor::method_reader mr {
+			descriptor.iterator()
+		};
+
+		uint8 count = 0;
+		mr([&](auto) {
+			++count;
+			return true;
+		});
+		parameters_types = { allocate_for<parameter_type>(count) }; 
+
+		mr([&](auto parameter_type) {
+			parameters_types.emplace_back(parameter_type);
+			return true;
+		});
+	}
 
 	parameters_count parameters_count() {
-		return ::parameters_count{ parameters_names_.size() };
+		return ::parameters_count{ parameters_types.size() };
 	}
 
 	code code() const { return code_.get<::code>(); }
-
-	const parameters_type_names& parameters_names() {
-		return parameters_names_;
-	}
 
 	exception_handlers& exception_handlers() {
 		return exception_handlers_;
@@ -72,15 +109,15 @@ public:
 	}
 
 	bool native_function_is_loaded() const {
-		return code_.get<optional<void*>>().has_value();
+		return code_.get<optional<native_function_ptr>>().has_value();
 	}
 
-	void native_function(void* function) {
+	void native_function(native_function_ptr function) {
 		code_ = function;
 	}
 
-	void* native_function() {
-		return code_.get<optional<void*>>().value();
+	native_function_ptr native_function() {
+		return code_.get<optional<native_function_ptr>>().value();
 	}
 
 };

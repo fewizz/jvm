@@ -75,10 +75,8 @@ static stack_entry execute(
 			abort();
 			//m.native_function(native_functions.find(mwc));
 		}
-		void* native_function_ptr = m.native_function();
-		return native_interface_call(
-			native_function_ptr, args, m.descriptor()
-		);
+		native_function_ptr ptr = m.native_function();
+		return native_interface_call(ptr, args, m.descriptor());
 	}
 
 	if(m.code().elements_ptr() == nullptr) {
@@ -1003,7 +1001,7 @@ static stack_entry execute(
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
-			::invoke_interface(x.index, parameters_count{ x.count }, c, stack);
+			::invoke_interface(x.index, c, stack);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_dynamic>) {

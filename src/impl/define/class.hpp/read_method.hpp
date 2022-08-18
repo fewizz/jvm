@@ -3,7 +3,6 @@
 #include "class/constants.hpp"
 
 #include <class_file/method/reader.hpp>
-#include <class_file/descriptor/reader.hpp>
 
 #include <elements/of.hpp>
 #include <elements/one_of.hpp>
@@ -25,8 +24,8 @@ read_method_and_get_advaned_iterator(
 		descriptor_index_reader.read_and_get_attributes_reader()
 	};
 
-	code_or_native_function code_or_native_function {
-		optional<void*>()
+	code_or_native_function_ptr code_or_native_function {
+		optional<native_function_ptr>()
 	};
 
 	exception_handlers exception_handlers;
@@ -64,27 +63,6 @@ read_method_and_get_advaned_iterator(
 		}
 	);
 
-	auto descriptor_parameters_reader = class_file::descriptor::method_reader {
-		const_pool.utf8_constant(desc_index).iterator()
-	};
-
-	parameters_count params_count{0};
-	descriptor_parameters_reader([&](auto) {
-		++params_count;
-		return true;
-	});
-
-	parameters_type_names parameter_names {
-		allocate_for<c_string_of_known_size>(params_count)
-	};
-
-	descriptor_parameters_reader.parameters_names(
-		[&](c_string_of_known_size parameter_name) {
-			parameter_names.emplace_back(parameter_name);
-			return true;
-		}
-	);
-
 	class_file::constant::utf8 name = const_pool.utf8_constant(name_index);
 	class_file::constant::utf8 desc = const_pool.utf8_constant(desc_index);
 
@@ -93,7 +71,6 @@ read_method_and_get_advaned_iterator(
 			access_flags,
 			name,
 			desc,
-			move(parameter_names),
 			code_or_native_function,
 			move(exception_handlers)
 		},
