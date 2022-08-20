@@ -5,4 +5,4 @@
 
 using arguments_span = span<stack_entry, uint16>;
 
-static stack_entry execute(method& m, arguments_span args = {});
+static optional<stack_entry> execute(method& m, arguments_span args = {});

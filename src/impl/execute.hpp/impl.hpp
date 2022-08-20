@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <math.h>
 
-static stack_entry execute(
+static optional<stack_entry> execute(
 	method& m, arguments_span args
 ) {
 	namespace cf = class_file;
@@ -57,7 +57,7 @@ static stack_entry execute(
 		[] { if(info) { --tab; } }
 	};
 
-	stack_entry result;
+	optional<stack_entry> result;
 	uint32 pc = 0;
 
 	execution_context ctx {
@@ -112,11 +112,11 @@ static stack_entry execute(
 		for(stack_entry& se : args) {
 			stack_entry& l = locals.emplace_back(move(se));
 			if(l.is<jlong>() || l.is<jdouble>()) {
-				locals.emplace_back(jvoid{});
+				locals.emplace_back(jint{});
 			}
 		}
 	}
-	locals.fill(jvoid{});
+	locals.fill(jint{});
 
 	namespace attr = cf::attribute;
 	using namespace attr::code::instruction;

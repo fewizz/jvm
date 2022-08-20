@@ -12,7 +12,7 @@ typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
 template<typename Descriptor>
-inline stack_entry native_interface_call(
+inline optional<stack_entry> native_interface_call(
 	native_function_ptr ptr, arguments_span args, Descriptor&& descriptor
 ) {
 	if(args.size() > 5) {
@@ -96,7 +96,8 @@ inline stack_entry native_interface_call(
 		);
 	}
 
-	stack_entry se_result; {
+	optional<stack_entry> se_result;
+	{
 		using namespace class_file::descriptor;
 
 		method_reader params_reader{ descriptor.elements_ptr() };

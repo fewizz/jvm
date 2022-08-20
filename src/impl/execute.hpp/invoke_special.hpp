@@ -39,7 +39,7 @@ inline void invoke_special(
 	auto args_count = m.parameters_count();
 	++args_count; // this
 
-	stack_entry result = execute(
+	optional<stack_entry> result = execute(
 		m,
 		arguments_span {
 			stack.iterator() + stack.size() - args_count,
@@ -47,12 +47,9 @@ inline void invoke_special(
 		}
 	);
 
-	while(args_count > 0) {
-		--args_count;
-		stack.pop_back();
-	}
+	stack.pop_back(args_count);
 
-	if(!result.is<jvoid>()) {
-		stack.emplace_back(move(result));
-	}
+	result.if_has_value([&](stack_entry& value) {
+		stack.emplace_back(move(value));
+	});
 }

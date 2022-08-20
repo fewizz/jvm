@@ -53,31 +53,10 @@ int main (int argc, const char** argv) {
 
 	stack_entry args_array = create_array_of(string_class.value(), 0);
 
-	stack_entry value = execute(
-		m, arguments_span{ &args_array, 1 }
-	);
+	execute(m, arguments_span{ &args_array, 1 });
 
 	if(!thrown.is_null()) {
 		fputs("unhandled throwable", stdout);
 		return 1;
-	}
-
-	if(value.is<jint>()) {
-		printf("%" PRId32, (int32) value.get<jint>());
-	}
-	else if(value.is<jlong>()) {
-		printf("%" PRId64, (int64) value.get<jlong>());
-	}
-	else if(
-		value.is<reference>() &&
-		&value.get<reference>()->_class() == &string_class.value()
-	) {
-		for_each_string_codepoint(
-			value.get<reference>().object(),
-			[](unicode::code_point cp) {
-				fputc(cp, stderr);
-			}
-		);
-		fputc('\n', stderr);
 	}
 }

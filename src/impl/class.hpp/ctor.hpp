@@ -48,10 +48,10 @@ inline _class::_class(
 	}
 
 	declared_static_fields_ = {
-		allocate_for<field&>(declared_static_fields_count)
+		allocate_for<field*>(declared_static_fields_count)
 	};
 	declared_static_methods_ = {
-		allocate_for<method&>(declared_static_methods_count)
+		allocate_for<method*>(declared_static_methods_count)
 	};
 
 	// declared instance members
@@ -61,10 +61,10 @@ inline _class::_class(
 		this->declared_methods().size() - declared_static_methods_count;
 
 	declared_instance_fields_ = {
-		allocate_for<field&>(declared_instance_fields_count)
+		allocate_for<field*>(declared_instance_fields_count)
 	};
 	declared_instance_methods_ = {
-		allocate_for<method&>(declared_instance_methods_count)
+		allocate_for<method*>(declared_instance_methods_count)
 	};
 
 	// filling up declared static and instance members
@@ -100,10 +100,10 @@ inline _class::_class(
 	}
 
 	instance_fields_ = {
-		allocate_for<field&>(instance_fields_count)
+		allocate_for<field*>(instance_fields_count)
 	};
 	instance_methods_ = {
-		allocate_for<method&>(instance_methods_count)
+		allocate_for<method*>(instance_methods_count)
 	};
 
 	if(has_super()) {
