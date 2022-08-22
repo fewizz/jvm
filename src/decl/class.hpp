@@ -123,8 +123,12 @@ public:
 		class_file::constant::class_index string_index
 	);
 
-	instance_method_index get_resolved_instance_method_index(
-		class_file::constant::method_ref_index ref_index
+	method& resolve_method(
+		class_file::constant::method_ref ref
+	);
+
+	method& resolve_interface_method(
+		class_file::constant::interface_method_ref ref
 	);
 
 	instance_field_index get_resolved_instance_field_index(
@@ -140,7 +144,7 @@ public:
 	);
 
 	template<typename Name, typename Descriptor, typename Handler>
-	void for_each_maximally_specific_super_interface_instance_method(
+	inline void for_each_maximally_specific_super_interface_instance_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	);
 

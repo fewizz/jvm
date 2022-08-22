@@ -1,31 +1,27 @@
-#include "decl/parameters_count.hpp"
-#include "decl/execute.hpp"
-#include "decl/execution/info.hpp"
-#include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/object.hpp"
+#include "decl/execute.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/execution/info.hpp"
 
-#include <class_file/constant.hpp>
+#include "./select_method.hpp"
 
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
 	_class& c, stack& stack
 ) {
-	namespace cf = class_file;
-	namespace cc = cf::constant;
 
-	/*cc::interface_method_ref method_ref_info =
-		c.interface_method_ref_constant(ref_index);
-	cc::name_and_type name_and_type_info =
-		c.name_and_type_constant(method_ref_info.name_and_type_index);
+	namespace cc = class_file::constant;
+	cc::interface_method_ref method_ref_info
+		= c.interface_method_ref_constant(ref_index);
+	cc::name_and_type name_and_type_info
+		= c.name_and_type_constant(method_ref_info.name_and_type_index);
 
 	auto name = c.utf8_constant(name_and_type_info.name_index);
 	auto desc = c.utf8_constant(name_and_type_info.descriptor_index);
-
 	if(info) {
-		cc::_class class_info {
-			c.class_constant(method_ref_info.interface_index)
-		};
+		cc::_class class_info
+			= c.class_constant(method_ref_info.interface_index);
 		auto class_name = c.utf8_constant(class_info.name_index);
 		tabs(); fputs("invoke_interface ", stderr);
 		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
@@ -35,54 +31,27 @@ inline void invoke_interface(
 		fputc('\n', stderr);
 	}
 
-	optional<method&> m0{};
-	optional<_class&> c0 = stack[stack.size() - args_count]
-		.get<reference>().object()._class();
+	method& resolved_method = c.resolve_interface_method(method_ref_info);
 
-	while(true) {
-		if(m0 = c0->try_find_method(name, desc); m0.has_value()) {
-			break;
+	uint8 args_count = resolved_method.parameters_count();
+	++args_count; // this
+	reference& objectref = stack[stack.size() - args_count].get<reference>();
+
+	/* "Let C be the class of objectref. A method is selected with respect to C
+	and the resolved method (§5.4.6). This is the method to be invoked." */
+	method& m = select_method(objectref->_class(), resolved_method);
+	
+	optional<stack_entry> result = execute(
+		m, arguments_span {
+			stack.iterator() + stack.size() - args_count,
+			args_count
 		}
-		if(!c0->has_super_class()) {
-			break;
-		}
-		c0 = c0->super_class();
-	}
-
-	if(!m0.has_value()) {
-		nuint index = 0;
-		c.for_each_maximally_specific_super_interface_method(
-			name, desc,
-			[&](method& m) {
-				if(index++ == 0) {
-					m0 = m.method();
-					c0 = m._class();
-					return;
-				}
-				fputs(
-					"more than one maximally-specific interface method", stderr
-				);
-				abort();
-			}
-		);
-	}
-
-	if(!m0.has_value()) {
-		fputs("couldn't find method", stderr); abort();
-	}
-
-	stack_entry result = execute(
-		method_with_class{ m0.value(), c0.value() },
-		arguments_span{ stack.begin() + stack.size() - args_count, args_count }
 	);
 
-	while(args_count > 0) {
-		--args_count;
-		stack.pop_back();
-	}
+	stack.pop_back(args_count);
 
-	if(!result.is<jvoid>()) {
-		stack.emplace_back(move(result));
-	}*/
-	abort();
+	result.if_has_value([&](stack_entry& value) {
+		stack.emplace_back(move(value));
+	});
+	
 }

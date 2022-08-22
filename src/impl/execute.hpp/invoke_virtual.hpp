@@ -1,8 +1,10 @@
-#include "execute.hpp"
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
-#include "class.hpp"
-#include "object.hpp"
+#include "decl/execute.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/class.hpp"
+#include "decl/object.hpp"
+
+#include "./select_method.hpp"
 
 #include <class_file/constant.hpp>
 
@@ -30,22 +32,14 @@ inline void invoke_virtual(
 		fputc('\n', stderr);
 	}
 
-	instance_method_index index =
-		c.get_resolved_instance_method_index(ref_index);
-	
-	uint8 args_count;
-	{
-		_class& referenced_class =
-			c.get_class(c.method_ref_constant(ref_index).class_index);
-		method& m0 = referenced_class.instance_methods()[index];
-		args_count = m0.parameters_count();
-	}
-
+	method& resolved_method = c.resolve_method(method_ref);
+	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
+	reference& objectref = stack[stack.size() - args_count].get<reference>();
 
-	reference& ref = stack[stack.size() - args_count].get<reference>();
-
-	method& m = ref->_class().instance_methods()[index];
+	/* "Let C be the class of objectref. A method is selected with respect to C
+	and the resolved method (§5.4.6). This is the method to be invoked." */
+	method& m = select_method(objectref->_class(), resolved_method);
 
 	optional<stack_entry> result = execute(
 		m,
