@@ -12,3 +12,4 @@
 #include "./initialise_if_need.hpp"
 #include "./instance.hpp"
 #include "./resolve_interface_method.hpp"
+#include "./resolve_method.hpp"

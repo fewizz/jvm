@@ -44,7 +44,7 @@ using one_of_descriptor_types = elements::one_of<
 	class_file::descriptor::D,
 	class_file::descriptor::array_type,
 	class_file::descriptor::object_type,
-	class_file::descriptor::V // TODO exclude
+	class_file::descriptor::V
 >;
 
 struct _class;
@@ -56,11 +56,21 @@ public:
 	using base_type::base_type;
 };
 
+struct return_type : one_of_descriptor_types {
+private:
+	using base_type = one_of_descriptor_types;
+public:
+	using base_type::base_type;
+
+	return_type() : base_type{ class_file::descriptor::V{} } {}
+};
+
 struct method : class_member {
 private:
 	using base_type = class_member;
 
-	memory_list<parameter_type, uint8> parameters_types;
+	memory_list<parameter_type, uint8> parameters_types_;
+	return_type                        return_type_;
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
 
@@ -86,16 +96,21 @@ public:
 			++count;
 			return true;
 		});
-		parameters_types = { allocate_for<parameter_type>(count) }; 
+		parameters_types_ = { allocate_for<parameter_type>(count) }; 
 
-		mr([&](auto parameter_type) {
-			parameters_types.emplace_back(parameter_type);
+		auto [return_type_reader, res] = mr([&](auto parameter_type) {
+			parameters_types_.emplace_back(parameter_type);
+			return true;
+		});
+
+		return_type_reader([&](auto ret_type) {
+			return_type_ = ret_type;
 			return true;
 		});
 	}
 
 	parameters_count parameters_count() {
-		return ::parameters_count{ parameters_types.size() };
+		return ::parameters_count{ parameters_types_.size() };
 	}
 
 	code code() const { return code_.get<::code>(); }
@@ -119,5 +134,11 @@ public:
 	native_function_ptr native_function() {
 		return code_.get<optional<native_function_ptr>>().value();
 	}
+
+	bool is_void() const {
+		return return_type_.is<class_file::descriptor::V>();
+	}
+
+	bool is_instance_initialisation() const;
 
 };

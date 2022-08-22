@@ -14,14 +14,13 @@ inline void invoke_virtual(
 	namespace cf = class_file;
 	namespace cc = cf::constant;
 
-	cc::method_ref method_ref { c.method_ref_constant(ref_index) };
-	cc::name_and_type nat {
-		c.name_and_type_constant(method_ref.name_and_type_index)
-	};
-	cc::utf8 method_name = c.utf8_constant(nat.name_index);
-	cc::utf8 method_desc = c.utf8_constant(nat.descriptor_index);
-
 	if(info) {
+		cc::method_ref method_ref { c.method_ref_constant(ref_index) };
+		cc::name_and_type nat {
+			c.name_and_type_constant(method_ref.name_and_type_index)
+		};
+		cc::utf8 method_name = c.utf8_constant(nat.name_index);
+		cc::utf8 method_desc = c.utf8_constant(nat.descriptor_index);
 		cc::_class _c { c.class_constant(method_ref.class_index) };
 		cc::utf8 class_name = c.utf8_constant(_c.name_index);
 		tabs(); fputs("invoke_virtual ", stderr);
@@ -32,7 +31,7 @@ inline void invoke_virtual(
 		fputc('\n', stderr);
 	}
 
-	method& resolved_method = c.resolve_method(method_ref);
+	method& resolved_method = c.get_resolved_method(ref_index);
 	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
 	reference& objectref = stack[stack.size() - args_count].get<reference>();

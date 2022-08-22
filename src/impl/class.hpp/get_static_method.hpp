@@ -23,14 +23,11 @@ inline method& _class::get_static_method(
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
 	_class& c = get_class(method_ref.class_index);
+	method& m = c.declared_static_methods().find(name, desc);
+	/* "On successful resolution of the method, the class or interface that
+	    declared the resolved method is initialized (§5.5) if that class or
+	    interface has not already been initialized." */
 	c.initialise_if_need();
-	method& m =
-		c.declared_static_methods().try_find(name, desc)
-		.if_no_value([]{
-			fputs("could find static method", stderr);
-			abort();
-		}).value();
-
 	trampoline(ref_index) = m;
 	return m;
 }

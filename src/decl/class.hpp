@@ -81,6 +81,8 @@ public:
 	_class& operator = (_class&&) = delete;
 	_class& operator = (const _class&) = delete;
 
+	class_file::access_flags access_flags() const { return access_flags_; }
+
 	auto name() const { return this_name_; }
 	_class& super() { return super_.value(); }
 	bool has_super() const { return super_.has_value(); }
@@ -123,8 +125,12 @@ public:
 		class_file::constant::class_index string_index
 	);
 
+	method& get_resolved_method(
+		class_file::constant::method_ref_index ref_index
+	);
+
 	method& resolve_method(
-		class_file::constant::method_ref ref
+		class_file::constant::method_ref
 	);
 
 	method& resolve_interface_method(
