@@ -2,7 +2,7 @@
 #include "decl/class.hpp"
 
 /* "A method is an instance initialization method
-if all of the following are true:" */
+    if all of the following are true:" */
 inline bool method::is_instance_initialisation() const {
 	return
 		/* "It is defined in a class (not an interface)." */

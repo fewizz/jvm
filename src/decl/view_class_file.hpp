@@ -15,10 +15,6 @@
 template<basic_range Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	auto try_at = [&](auto path) -> decltype(auto) {
-		/*auto name0 = range{ name }.transform_view([&](auto ch) {
-			return (const char) ch;
-		});*/
-
 		auto null_terminated = ranges {
 			path, array{'/'},
 			name, c_string{ ".class" }, array{ '\0' }

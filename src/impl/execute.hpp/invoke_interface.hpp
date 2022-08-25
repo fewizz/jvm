@@ -38,7 +38,7 @@ inline void invoke_interface(
 	reference& objectref = stack[stack.size() - args_count].get<reference>();
 
 	/* "Let C be the class of objectref. A method is selected with respect to C
-	and the resolved method (§5.4.6). This is the method to be invoked." */
+	    and the resolved method (§5.4.6). This is the method to be invoked." */
 	method& m = select_method(objectref->_class(), resolved_method);
 	
 	optional<stack_entry> result = execute(
