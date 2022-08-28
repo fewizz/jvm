@@ -2,7 +2,7 @@
 #include "method.hpp"
 #include "class/constants.hpp"
 
-#include <class_file/method/reader.hpp>
+#include <class_file/method_reader.hpp>
 
 #include <elements/of.hpp>
 #include <elements/one_of.hpp>

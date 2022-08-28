@@ -4,6 +4,7 @@
 #include "./parameters_count.hpp"
 #include "./class/member.hpp"
 #include "./alloc.hpp"
+#include "./method_descriptor.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
@@ -33,44 +34,12 @@ using exception_handlers = memory_list<
 	class_file::attribute::code::exception_handler, uint16
 >;
 
-using one_of_descriptor_types = elements::one_of<
-	class_file::descriptor::Z,
-	class_file::descriptor::B,
-	class_file::descriptor::C,
-	class_file::descriptor::S,
-	class_file::descriptor::I,
-	class_file::descriptor::F,
-	class_file::descriptor::J,
-	class_file::descriptor::D,
-	class_file::descriptor::array_type,
-	class_file::descriptor::object_type,
-	class_file::descriptor::V
->;
-
-struct _class;
-
-struct parameter_type : one_of_descriptor_types {
+struct method : class_member<method_descriptor<class_file::constant::utf8>> {
 private:
-	using base_type = one_of_descriptor_types;
-public:
-	using base_type::base_type;
-};
+	using base_type = class_member<
+		method_descriptor<class_file::constant::utf8>
+	>;
 
-struct return_type : one_of_descriptor_types {
-private:
-	using base_type = one_of_descriptor_types;
-public:
-	using base_type::base_type;
-
-	return_type() : base_type{ class_file::descriptor::V{} } {}
-};
-
-struct method : class_member {
-private:
-	using base_type = class_member;
-
-	memory_list<parameter_type, uint8> parameters_types_;
-	return_type                        return_type_;
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
 
@@ -83,34 +52,15 @@ public:
 		code_or_native_function_ptr            code,
 		exception_handlers&&                   exception_handlers
 	) :
-		base_type          { access_flags, name, descriptor },
+		base_type          {
+			access_flags, name, method_descriptor{ move(descriptor) }
+		},
 		code_              { code                           },
 		exception_handlers_{ move(exception_handlers)       }
-	{
-		class_file::descriptor::method_reader mr {
-			descriptor.iterator()
-		};
-
-		uint8 count = 0;
-		mr([&](auto) {
-			++count;
-			return true;
-		});
-		parameters_types_ = { allocate_for<parameter_type>(count) }; 
-
-		auto [return_type_reader, res] = mr([&](auto parameter_type) {
-			parameters_types_.emplace_back(parameter_type);
-			return true;
-		});
-
-		return_type_reader([&](auto ret_type) {
-			return_type_ = ret_type;
-			return true;
-		});
-	}
+	{}
 
 	parameters_count parameters_count() {
-		return ::parameters_count{ parameters_types_.size() };
+		return ::parameters_count{ descriptor().parameters_types().size() };
 	}
 
 	code code() const { return code_.get<::code>(); }
@@ -136,7 +86,7 @@ public:
 	}
 
 	bool is_void() const {
-		return return_type_.is<class_file::descriptor::V>();
+		return descriptor().return_type().is<class_file::descriptor::V>();
 	}
 
 	bool is_instance_initialisation() const;

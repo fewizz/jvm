@@ -3,12 +3,18 @@ package java.lang.invoke;
 import java.util.List;
 
 public final class MethodType {
-	final Class<?> returnType_;
 	final Class<?>[] parameterTypes_;
+	final Class<?> returnType_;
+	final byte[] descriptorUTF8_;
+
+	private static native byte[] descriptorUTF8(
+		Class<?>[] parameterTypes, Class<?> returnType
+	);
 
 	private MethodType(Class<?> returnType, Class<?>[] parameterTypes) {
-		this.returnType_ = returnType;
 		this.parameterTypes_ = parameterTypes;
+		this.returnType_ = returnType;
+		this.descriptorUTF8_ = descriptorUTF8(parameterTypes, returnType);
 	}
 
 	public static MethodType methodType(Class<?> rtype, Class<?>[] ptypes) {

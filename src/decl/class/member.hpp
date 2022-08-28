@@ -7,24 +7,25 @@
 
 struct _class;
 
+template<basic_range DescriptorType>
 struct class_member {
 private:
-	optional<_class&>                              class_;
-	class_file::access_flags                       access_flags_;
-	class_file::constant::utf8                     name_;
-	class_file::constant::utf8                     desc_;
+	optional<_class&>          class_;
+	class_file::access_flags   access_flags_;
+	class_file::constant::utf8 name_;
+	DescriptorType             desc_;
 
 	friend _class;
 public:
 
 	class_member(
-		class_file::access_flags               access_flags,
-		class_file::constant::utf8             name,
-		class_file::constant::utf8             desc
+		class_file::access_flags   access_flags,
+		class_file::constant::utf8 name,
+		DescriptorType             desc
 	) :
 		access_flags_{ access_flags },
 		name_        { name   },
-		desc_        { desc   }
+		desc_        { move(desc)   }
 	{}
 
 	const ::_class& _class() const { return class_.value(); }
@@ -34,7 +35,7 @@ public:
 		return name_;
 	};
 
-	class_file::constant::utf8 descriptor() const {
+	const DescriptorType& descriptor() const {
 		return desc_;
 	}
 

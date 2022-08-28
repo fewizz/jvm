@@ -1,110 +1,127 @@
 #ifdef __x86_64__
 
-#include "native/function.hpp"
+#include "decl/execution/stack_entry.hpp"
+#include "decl/execute.hpp"
+#include "decl/method.hpp"
+#include "decl/abort.hpp"
 
-#include "execution/stack_entry.hpp"
-#include "abort.hpp"
+#include <max.hpp>
 
-#include <core/bit_cast.hpp>
-#include <core/max.hpp>
 #include <stdio.h>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-inline stack_entry native_function::call(span<stack_entry, uint16> args) {
-	if(args.size() > 3) {
-		fputs("args.size() > 3", stderr);
-		abort();
+template<typename Descriptor>
+inline optional<stack_entry> native_interface_call(
+	native_function_ptr ptr, arguments_span args, Descriptor&& descriptor
+) {
+	uint64 iorref_storage[4]   { 0 };
+	__m128 floating_storage[4] { 0 };
+	nuint stack_size = (max(4, args.size() + 1) - 4);
+	if(stack_size % 2 != 0) { // 8 byte element, size aligned to 16
+		++stack_size;
 	}
-
-	nuint iorref_storage_size = max(4, args.size() + 1);
-	uint64 iorref_storage[iorref_storage_size];
-	for(nuint x = 0; x < iorref_storage_size; ++x) {
-		iorref_storage[x] = 0; // TODO use algo
-	} {
+	uint64 stack_storage[stack_size];
+	
+	{
 		nuint arg = 0;
 
-		iorref_storage[arg++] = (uint64) nullptr; // native_interface_environment*
+		// native_interface_environment*
+		iorref_storage[arg++] = (uint64) nullptr;
 
 		for(stack_entry& se : args) {
 			se.view([&]<typename Type>(Type& value) {
 				if constexpr(same_as<Type, reference>) {
-					iorref_storage[arg++] =
+					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
 						bit_cast<uint64>(value.object_ptr());
 				}
-				else if constexpr(same_as<Type, jlong>) {
-					iorref_storage[arg++] =
+				if constexpr(same_as<Type, jlong>) {
+					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
 						bit_cast<uint64>(value);
 				}
-				else if constexpr(
-					same_as<Type, jbool> || same_as<Type, jbyte> ||
-					same_as<Type, jchar> || same_as<Type, jshort> ||
-					same_as<Type, jint>
-				) {
-					iorref_storage[arg++] = (int32) (int64) value;
+				if constexpr(same_as<Type, jint>) {
+					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
+						(int32) (int64) value;
 				}
-			});
-		}
-	}
-
-	__m128 floating_storage[4] { 0 }; {
-		nuint arg = 0;
-		for(stack_entry& se : args) {
-			se.view([&]<typename Type>(Type& value) {
 				if constexpr(same_as<Type, jfloat>) {
-					floating_storage[arg++] =
-						__extension__ (__m128){ value, 0, 0, 0 };
+					if(arg >= 4) {
+						stack_storage[arg - 4] = bit_cast<uint32>(value);
+					}
+					else {
+						floating_storage[arg++] =
+							__extension__ (__m128){ value, 0, 0, 0 };
+					}
 				}
 				if constexpr(same_as<Type, jdouble>) {
 					floating_storage[arg++] =
 						__extension__ (__m128d){ value, 0 };
 				}
 			});
+			++arg;
 		}
 	}
 
 	register uint64 result asm("rax");
-	register __m128 result_f asm("xmm0");
+	register __m128 arg_f_0 asm("xmm0") = floating_storage[0];
 	{
+		register uint64 stack_remaining asm("rbx") = stack_size;
+		register uint64 stack_beginning asm("rsi") = (uint64) stack_storage;
+
 		register uint64 arg_1 asm("rcx") = iorref_storage[0];
 		register uint64 arg_0 asm("rdx") = iorref_storage[1];
 		register uint64 arg_2 asm("r8")  = iorref_storage[2];
 		register uint64 arg_3 asm("r9")  = iorref_storage[3];
 
-		register __m128 arg_f_0 asm("xmm1") = floating_storage[0];
-		register __m128 arg_f_1 asm("xmm2") = floating_storage[1];
-		register __m128 arg_f_2 asm("xmm3") = floating_storage[2];
-		register __m128 arg_f_3 asm("xmm4") = floating_storage[3];
+		register __m128 arg_f_1 asm("xmm1") = floating_storage[1];
+		register __m128 arg_f_2 asm("xmm2") = floating_storage[2];
+		register __m128 arg_f_3 asm("xmm3") = floating_storage[3];
 
-		register uint64 function_ptr asm("rbx")  = (uint64) ptr_;
+		register uint64 function_ptr asm("rdi")  = (uint64) (void*) ptr;
 
 		asm volatile(
-			"sub $32, %%rsp\n"
-			"callq *%[function_ptr]\n"
-			"add $32, %%rsp\n"
+				"movq %[stack_remaining], %%r10\n" // save `stack_remaining`
+			"loop_begin:\n"
+				"cmpq $0, %[stack_remaining]\n"
+				"je loop_end\n"
+				"subq $1, %[stack_remaining]\n"
+				"movq 0(%[stack_beginning], %[stack_remaining], 8), %%rax\n"
+				"pushq %%rax\n"
+				"jmp loop_begin\n"
+			"loop_end:\n"
+				"sub $16, %%rsp\n"
+				"pushq %[stack_beginning]\n"
+				"pushq %%r10\n" // push `stack_remaining`
+				"callq *%[function_ptr]\n"
+				"popq %[stack_remaining]\n"
+				"popq %[stack_beginning]\n"
+				"addq $16, %%rsp\n"
+				"shlq $3, %[stack_remaining]\n"
+				"addq %[stack_remaining], %%rsp\n"
 			:
 				[function_ptr] "+r"(function_ptr),
 				"+r"(arg_0),   "+r"(arg_1),   "+r"(arg_2),   "+r"(arg_3),
 				"+r"(arg_f_0), "+r"(arg_f_1), "+r"(arg_f_2), "+r"(arg_f_3),
-				"=r"(result),  "=r"(result_f)
+				[stack_remaining]"+r"(stack_remaining),
+				[stack_beginning]"+r"(stack_beginning),
+				"+r"(result)
 			:
 			:
-				"rsi", "rdi", "r10", "r11", "r12", "r13", "r14", "r15",
+				"r10", "r11", "r12", "r13", "r14", "r15",
 				"cc", "memory"
 		);
 	}
 
-	stack_entry se_result; {
+	stack_entry se_result = reference{}; {
 		using namespace class_file::descriptor;
 
-		method_reader params_reader{ desc_.data() };
-		auto [return_type_reader, reading_result] =
-			params_reader.skip_parameters();
+		method_reader params_reader{ descriptor.elements_ptr() };
+		auto [return_type_reader, reading_result]
+			= params_reader.skip_parameters();
 		if(!reading_result) {
 			abort();
 		}
-		return_type_reader([&]<typename Type>(Type){
+		return_type_reader([&]<typename Type>(Type) {
 			if constexpr(
 				same_as<Type, Z> ||
 				same_as<Type, C> || same_as<Type, S> ||
@@ -122,13 +139,13 @@ inline stack_entry native_function::call(span<stack_entry, uint16> args) {
 			else if constexpr(
 				same_as<Type, F>
 			) {
-				se_result = jfloat{ result_f[0] };
+				se_result = jfloat{ arg_f_0[0] };
 				return true;
 			}
 			else if constexpr(
 				same_as<Type, D>
 			) {
-				se_result = jdouble{ ((__m128d) result_f)[0] };
+				se_result = jdouble{ ((__m128d) arg_f_0)[0] };
 				return true;
 			}
 			else if constexpr(

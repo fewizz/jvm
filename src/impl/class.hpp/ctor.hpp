@@ -1,17 +1,17 @@
 #include "class.hpp"
 
 inline _class::_class(
-	constants&&              constants,
-	bootstrap_methods&&      bootstrap_methods,
-	memory_span              bytes,
-	class_file::access_flags access_flags,
-	this_class_name          this_name,
-	optional<_class&>        super_class,
-	::declared_interfaces&&  declared_interfaces,
-	::declared_fields&&      declared_fields,
-	::declared_methods&&     declared_methods,
-	is_array_class           is_array,
-	is_primitive_class       is_primitive
+	constants&&                constants,
+	bootstrap_methods&&        bootstrap_methods,
+	memory_span                bytes,
+	class_file::access_flags   access_flags,
+	this_class_name            this_name,
+	optional<_class&>          super_class,
+	::declared_interfaces&&    declared_interfaces,
+	::declared_fields&&        declared_fields,
+	::declared_methods&&       declared_methods,
+	is_array_class             is_array,
+	is_primitive_class         is_primitive
 ) :
 	::constants          { move(constants)           },
 	::trampolines        { constants_count()         },

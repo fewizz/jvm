@@ -1,7 +1,22 @@
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/string.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
+#include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/interface/environment.hpp"
+
+static reference lookup_find_static(object& cls, object& name, object& mt) {
+	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
+		method& m =
+			class_from_class_instance(cls)
+			.declared_static_methods().find(
+				name_utf8,
+				method_type_descriptor(mt)
+			);
+		
+		return create_method_handle_invoke_static(m);
+	});
+}
 
 static void init_java_lang_invoke_method_handles_lookup() {
 	_class& method_handles_lookup_class = classes.find_or_load(
@@ -25,11 +40,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		))
 		[](
 			native_interface_environment*, object*,
-			object*, object*, object*
+			object* cls, object* name, object* mt
 		) -> object* {
-			//_class& c = class_from_class_instance(*refc);
-			// TODO
-			return nullptr;
+			return &
+				lookup_find_static(*cls, *name, *mt)
+				.unsafe_release_without_destroing();
 		}
 	);
 }

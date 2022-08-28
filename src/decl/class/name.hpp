@@ -1,6 +1,7 @@
 #pragma once
 
 #include <class_file/constant.hpp>
+#include <c_string.hpp>
 
 struct class_name : class_file::constant::utf8 {
 private:

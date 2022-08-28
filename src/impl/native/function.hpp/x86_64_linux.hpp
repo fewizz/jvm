@@ -101,12 +101,12 @@ inline optional<stack_entry> native_interface_call(
 		using namespace class_file::descriptor;
 
 		method_reader params_reader{ descriptor.elements_ptr() };
-		auto [return_type_reader, reading_result] =
-			params_reader.skip_parameters();
+		auto [return_type_reader, reading_result]
+			= params_reader.skip_parameters();
 		if(!reading_result) {
 			abort();
 		}
-		return_type_reader([&]<typename Type>(Type){
+		return_type_reader([&]<typename Type>(Type) {
 			if constexpr(
 				same_as<Type, Z> ||
 				same_as<Type, C> || same_as<Type, S> ||

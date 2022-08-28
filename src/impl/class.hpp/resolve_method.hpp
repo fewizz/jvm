@@ -2,6 +2,7 @@
 #include "decl/method.hpp"
 #include "decl/class/has_name_and_desriptor_equal_to.hpp"
 #include "decl/lib/java/lang/object.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 
 #include <loop_action.hpp>
 
@@ -25,7 +26,32 @@ method& _class::resolve_method(
 	/*    "If C declares exactly one method with the name specified by the
 	       method reference, and the declaration is a signature polymorphic
 	       method (§2.9.3), then method lookup succeeds. All the class names
-	       mentioned in the descriptor are resolved"*/ // TODO
+	       mentioned in the descriptor are resolved"*/
+	if(
+		&c == method_handle_class.ptr()
+	){
+		auto possible_poly_methods = range{ c.declared_methods() }.filter_view(
+			[&](method& m) {
+				return
+					m.access_flags().varargs() &&
+					m.access_flags().native() &&
+					range{ m.name() }.equals_to(name) &&
+					range{ m.descriptor() }.equals_to(
+						c_string{ "([Ljava/lang/Object;)Ljava/lang/Object;" }
+					);
+			}
+		);
+		optional<method&> first_poly_method;
+		nuint count = 0;
+		for(method& m : possible_poly_methods) {
+			if(count == 0) first_poly_method = m;
+			++count;
+		}
+		if(count == 1) {
+			return first_poly_method.value();
+		}
+	}
+
 	/*    "Otherwise, if C declares a method with the name and descriptor
 	       specified by the method reference, method lookup succeeds."*/
 	/*    "Otherwise, if C has a superclass, step 2 of method resolution is

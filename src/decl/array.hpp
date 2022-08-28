@@ -32,10 +32,14 @@ static inline void array_length(object& o, int32 length) {
 }
 
 template<typename Type>
+static inline span<Type> array_as_span(object& o) {
+	return { array_data<Type>(o), (nuint) array_length(o) };
+}
+
+template<typename Type>
 static inline reference create_array_by_class(
 	_class& array_class, int32 length
 );
-
 
 static inline reference create_array_of(
 	_class& element_class, int32 length

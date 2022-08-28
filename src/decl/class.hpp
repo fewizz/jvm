@@ -47,7 +47,7 @@ private:
 
 	::declared_methods           declared_methods_;
 	::declared_instance_methods  declared_instance_methods_;
-	::declared_static_methods     declared_static_methods_;
+	::declared_static_methods    declared_static_methods_;
 	::instance_methods           instance_methods_;
 
 	optional<_class&>            array_class_;
@@ -83,7 +83,7 @@ public:
 
 	class_file::access_flags access_flags() const { return access_flags_; }
 
-	auto name() const { return this_name_; }
+	this_class_name name() const { return this_name_; }
 	_class& super() { return super_.value(); }
 	bool has_super() const { return super_.has_value(); }
 
@@ -123,6 +123,14 @@ public:
 
 	_class& get_class(
 		class_file::constant::class_index string_index
+	);
+
+	reference get_method_handle(
+		class_file::constant::method_handle_index index
+	);
+
+	reference get_call_site(
+		class_file::constant::invoke_dynamic_index index
 	);
 
 	method& get_resolved_method(

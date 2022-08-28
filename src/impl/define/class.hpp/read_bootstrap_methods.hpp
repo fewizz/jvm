@@ -2,9 +2,9 @@
 
 #include "class/bootstrap_methods.hpp"
 
-static bootstrap_methods read_bootstap_methods(auto reader) {
-	using namespace class_file::attribute::bootstrap::method;
+#include <class_file/attribute/bootstrap_methods/reader.hpp>
 
+static bootstrap_methods read_bootstap_methods(auto reader) {
 	auto [count, bootstrap_methods_reader] {
 		reader.read_count_and_get_methods_reader()
 	};
@@ -25,14 +25,12 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 			};
 
 			bootstrap_method_arguments_indices arguments_indices {
-				allocate_for<
-					class_file::attribute::bootstrap::method::argument_index
-				>(arguments_count)
+				allocate_for<class_file::constant::index>(arguments_count)
 			};
 
 			arguments_reader.read(
 				arguments_count,
-				[&](argument_index index) {
+				[&](class_file::constant::index index) {
 					arguments_indices.emplace_back(index);
 				}
 			);

@@ -105,6 +105,12 @@ public:
 		return constant<class_file::constant::name_and_type>(index);
 	}
 
+	auto method_handle_constant(
+		class_file::constant::method_handle_index index
+	) const {
+		return constant<class_file::constant::method_handle>(index);
+	}
+
 	auto invoke_dynamic_constant(
 		class_file::constant::invoke_dynamic_index index
 	) const {

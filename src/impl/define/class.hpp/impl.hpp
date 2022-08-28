@@ -148,7 +148,8 @@ static inline _class& define_class(memory_span bytes) {
 	return classes.emplace_back(
 		move(const_pool), move(bootstrap_methods),
 		bytes, access_flags,
-		this_class_name{ class_name{ name } }, super,
+		this_class_name{ name },
+		super,
 		move(interfaces),
 		move(fields),
 		move(methods),

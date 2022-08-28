@@ -15,20 +15,12 @@ static inline reference create_string(span<uint16> data) {
 	return string_ref;
 }
 
-template<typename Handler>
-inline void for_each_string_codepoint(object& str, Handler&& handler) {
-	reference& value_ref = str.values()[string_value_index].get<reference>();
-	object& values = value_ref.object();
-
-	uint16* it = array_data<uint16>(values);
-	int32 len = array_length(values);
-	auto end = it + len;
-
-	while(it != end) {
-		auto cp = utf16::decoder<endianness::big>{}((uint16*) it);
-		// TODO unexpected
-		handler(cp.get_expected());
-	}
+inline nuint string_utf8_length(object& str) {
+	nuint utf8_length = 0;
+	for_each_string_codepoint(str, [&](unicode::code_point cp) {
+		utf8_length += utf8::encoder{}.units(cp);
+	});
+	return utf8_length;
 }
 
 template<basic_range String>
@@ -46,12 +38,12 @@ static reference create_string_from_utf8(String&& str_utf8) {
 	}
 
 	span<uint16> data = allocate_for<uint16>(units).cast<uint16>();
-	uint16* data_it = data.iterator();
+	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {
 		auto cp = utf8::decoder{}( it );
 		// TODO unexpected
-		utf16::encoder<endianness::big>{}(cp.get_expected(), (uint8*) data_it);
+		utf16::encoder<endianness::big>{}(cp.get_expected(), data_it);
 	}
 
 	return create_string(data);

@@ -1,12 +1,11 @@
 package java.lang.invoke;
 
-import java.lang.constant.Constable;
-
-public abstract class MethodHandle implements Constable {
-	private long class_;
+public class MethodHandle {
 	private long member_;
 	private byte kind_;
 
 	private MethodHandle() {}
+
+	public final native Object invokeExact(Object... args) throws Throwable;
 
 }
