@@ -50,8 +50,10 @@ inline optional<stack_entry> method_handle_invoke_exact(
 	switch (kind) {
 		case behavior_kind::invoke_virtual:
 		case behavior_kind::invoke_static:
-		case behavior_kind::invoke_special:
-			return execute(* (method*) member, args);
+			return execute(
+				* (method*) member,
+				args
+			);
 		default: abort();
 	}
 }
