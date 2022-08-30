@@ -33,7 +33,7 @@ inline reference _class::get_call_site(
 		= bm.arguments_indices.size() * sizeof(stack_entry);
 	alignas(stack_entry[]) uint8 args_storage[args_storage_size];
 	::memory_list<stack_entry> args {
-		memory_span{ args_storage, args_storage_size }
+		::memory_span{ args_storage, args_storage_size }
 	};
 
 	for(auto index : bm.arguments_indices) {

@@ -37,6 +37,11 @@ class method_descriptor {
 	return_type                        return_type_;
 
 public:
+	~method_descriptor() {
+		parameters_types_.clear();
+		deallocate(parameters_types_.memory_span());
+	}
+
 	method_descriptor(Range&& range) : range_{ forward<Range>(range) } {
 		parameters_types_ = {
 			allocate_for<parameter_type>(
@@ -56,6 +61,8 @@ public:
 			return true;
 		});
 	}
+
+	method_descriptor(method_descriptor&& that) = default;
 
 	auto iterator() const { return range_iterator(range_); }
 	auto iterator()       { return range_iterator(range_); }

@@ -1,4 +1,4 @@
-#include "decl/class.hpp"
+#include "decl/class/resolve_method.hpp"
 #include "decl/method.hpp"
 #include "decl/class/has_name_and_desriptor_equal_to.hpp"
 #include "decl/lib/java/lang/object.hpp"
@@ -6,7 +6,7 @@
 
 #include <loop_action.hpp>
 
-method& _class::resolve_method(
+inline method& _class::resolve_method(
 	class_file::constant::method_ref ref
 ) {
 	/* "To resolve an unresolved symbolic reference from D to a method in a
@@ -16,7 +16,12 @@ method& _class::resolve_method(
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
 	auto descriptor = utf8_constant(nat.descriptor_index);
+	return ::resolve_method(c, name, descriptor);
+}
 
+/* symbolic reference from D to a method in a class C is already resolved */
+template<basic_range Name, basic_range Descriptor>
+method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	/* "1. If C is an interface, method resolution throws an
 	    IncompatibleClassChangeError."*/ // TODO
 
@@ -67,7 +72,7 @@ method& _class::resolve_method(
 	       and descriptor specified by the method reference include exactly one
 	       method that does not have its ACC_ABSTRACT flag set, then this method
 	       is chosen and method lookup succeeds."*/
-	for_each_maximally_specific_super_interface_instance_method(
+	c.for_each_maximally_specific_super_interface_instance_method(
 		name, descriptor,
 		[&](method& m0) {
 			if(!m0.access_flags().abstract()) {
@@ -85,7 +90,7 @@ method& _class::resolve_method(
 	       and descriptor specified by the method reference that has neither
 	       its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	       arbitrarily chosen and method lookup succeeds."*/
-	for_each_super_interface([&](_class& i) {
+	c.for_each_super_interface([&](_class& i) {
 		for(method& m0 : i.declared_instance_methods()) {
 			if(
 				!m0.access_flags()._private() &&

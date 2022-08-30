@@ -14,6 +14,14 @@ public class MethodHandles {
 			Class<?> refc, String name, MethodType type
 		) throws NoSuchMethodException, IllegalAccessException;
 
+		public native MethodHandle findVirtual(
+			Class<?> refc, String name, MethodType type
+		) throws NoSuchMethodException, IllegalAccessException;
+
+		public native MethodHandle findSpecial(
+			Class<?> refc, String name, MethodType type, Class<?> specialCaller
+		) throws NoSuchMethodException, IllegalAccessException;
+
 	}
 
 }

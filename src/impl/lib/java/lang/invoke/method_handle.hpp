@@ -27,15 +27,27 @@ static void init_java_lang_invoke_method_handle() {
 	};
 }
 
-inline reference create_method_handle_invoke_static(method& m) {
+inline reference create_method_handle(
+	auto& member, class_file::constant::method_handle::behavior_kind kind
+) {
 	reference ref = create_object(method_handle_class.value());
 	ref->values()[method_handle_member_instance_field_index]
-		= jlong{ (int64) &m };
+		= jlong{ (int64) &member };
 	ref->values()[method_handle_kind_instance_field_index]
-		= jbyte{ (int8)
-		class_file::constant::method_handle::behavior_kind::invoke_static
-	};
+		= jbyte{ (int8) kind };
 	return ref;
+}
+
+inline reference create_method_handle_invoke_static(method& m) {
+	return create_method_handle(
+		m, class_file::constant::method_handle::behavior_kind::invoke_static
+	);
+}
+
+inline reference create_method_handle_invoke_virtual(method& m) {
+	return create_method_handle(
+		m, class_file::constant::method_handle::behavior_kind::invoke_virtual
+	);
 }
 
 inline optional<stack_entry> method_handle_invoke_exact(
@@ -48,12 +60,18 @@ inline optional<stack_entry> method_handle_invoke_exact(
 		ref->values() [method_handle_kind_instance_field_index].get<jint>();
 	
 	switch (kind) {
-		case behavior_kind::invoke_virtual:
-		case behavior_kind::invoke_static:
+		case behavior_kind::invoke_virtual: {
+			method& resolved_method = * (method*) member;
+			reference& objectref = args[0].get<reference>();
+			method& m = select_method(objectref->_class(), resolved_method);
+			return execute(m, args);
+		}
+		case behavior_kind::invoke_static: {
 			return execute(
 				* (method*) member,
 				args
 			);
+		}
 		default: abort();
 	}
 }

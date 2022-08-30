@@ -29,7 +29,7 @@
 
 struct _class : constants, trampolines, bootstrap_methods {
 private:
-	memory_span                  bytes_{};
+	::memory_span                bytes_{};
 	class_file::access_flags     access_flags_;
 	this_class_name              this_name_;
 	optional<_class&>            super_;
@@ -52,7 +52,7 @@ private:
 
 	optional<_class&>            array_class_;
 	optional<_class&>            component_class_;
-	reference                    instance_{};
+	reference                    instance_;
 
 	is_array_class               is_array_;
 	is_primitive_class           is_primitive_;
@@ -66,7 +66,7 @@ public:
 
 	_class(
 		constants&&, bootstrap_methods&&,
-		memory_span bytes, class_file::access_flags,
+		::memory_span bytes, class_file::access_flags,
 		this_class_name,
 		optional<_class&> super,
 		::declared_interfaces&&,

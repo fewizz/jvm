@@ -36,18 +36,22 @@ inline void invoke_special(
 
 	/* "If all of the following are true, let C be the direct superclass of
 	    the current class:" */
-	bool c_is_super_class =
+	bool c_is_direct_super_class =
 		/*    "The resolved method is not an instance initialization method
 		       (§2.9.1)." */
-		resolved_method.is_instance_initialisation() &&
+		!resolved_method.is_instance_initialisation() &&
 		/*    "The symbolic reference names a class (not an interface), and that
 		       class is a superclass of the current class." */
-		!referenced_class.is_interface() && on.is_sub_of(referenced_class) &&
+		!referenced_class.is_interface() && on.is_sub_of(on) &&
 		/*    "The ACC_SUPER flag is set for the class file (§4.1)." */
-		referenced_class.access_flags().super();
+		/*    always set: "In Java SE 8 and above, the Java Virtual Machine
+		      considers the ACC_SUPER flag to be set in every class file,
+		      regardless of the actual value of the flag in the class file and
+		      the version of the class file" */
+		on.access_flags().super();
 
 	_class& c =
-		c_is_super_class ? on.super() :
+		c_is_direct_super_class ? on.super() :
 		/* "Otherwise, let C be the class or interface named by the symbolic
 		    reference.s" */
 		referenced_class;

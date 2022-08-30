@@ -3,7 +3,7 @@
 inline _class::_class(
 	constants&&                constants,
 	bootstrap_methods&&        bootstrap_methods,
-	memory_span                bytes,
+	::memory_span              bytes,
 	class_file::access_flags   access_flags,
 	this_class_name            this_name,
 	optional<_class&>          super_class,
