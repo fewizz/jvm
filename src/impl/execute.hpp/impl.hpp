@@ -19,6 +19,8 @@
 #include "./invoke_static.hpp"
 #include "./invoke_interface.hpp"
 #include "./new_array.hpp"
+#include "./select_method.hpp"
+#include "./select_method_for_invoke_special.hpp"
 
 #include <class_file/reader.hpp>
 #include <class_file/descriptor/reader.hpp>

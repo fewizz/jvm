@@ -17,3 +17,4 @@ optional<stack_entry> method_handle_invoke_exact(
 
 reference create_method_handle_invoke_static(method&);
 reference create_method_handle_invoke_virtual(method&);
+reference create_method_handle_invoke_special(method&);

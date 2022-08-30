@@ -1,8 +1,8 @@
 #pragma once
 
-#include "class.hpp"
-#include "execution/stack.hpp"
-#include "execution/info.hpp"
+#include "decl/class.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/execution/info.hpp"
 
 #include <class_file/constant.hpp>
 

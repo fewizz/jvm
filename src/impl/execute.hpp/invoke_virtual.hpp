@@ -5,8 +5,6 @@
 #include "decl/object.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 
-#include "./select_method.hpp"
-
 #include <class_file/constant.hpp>
 
 inline void invoke_virtual(

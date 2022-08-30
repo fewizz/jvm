@@ -1,5 +1,3 @@
-#pragma once
-
 #include "decl/class.hpp"
 #include "decl/method.hpp"
 

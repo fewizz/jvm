@@ -50,6 +50,12 @@ inline reference create_method_handle_invoke_virtual(method& m) {
 	);
 }
 
+inline reference create_method_handle_invoke_special(method& m) {
+	return create_method_handle(
+		m, class_file::constant::method_handle::behavior_kind::invoke_special
+	);
+}
+
 inline optional<stack_entry> method_handle_invoke_exact(
 	reference ref, arguments_span args
 ) {
@@ -67,6 +73,12 @@ inline optional<stack_entry> method_handle_invoke_exact(
 			return execute(m, args);
 		}
 		case behavior_kind::invoke_static: {
+			return execute(
+				* (method*) member,
+				args
+			);
+		}
+		case behavior_kind::invoke_special: { // TODO exclude <init>
 			return execute(
 				* (method*) member,
 				args

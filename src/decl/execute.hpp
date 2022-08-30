@@ -22,6 +22,10 @@ inline void invoke_static(
     the stack, and (ii) a method that was previously resolved by the
     instruction. The rules to select a method with respect to a class or
     interface C and a method mR are as follows:" */
-inline method& select_method(
+method& select_method(
 	_class& c, method& mr
+);
+
+method& select_method_for_invoke_special(
+	_class& current, _class& referenced_class, method& resolved_method
 );

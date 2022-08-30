@@ -4,8 +4,6 @@
 #include "decl/execution/stack.hpp"
 #include "decl/execution/info.hpp"
 
-#include "./select_method.hpp"
-
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
 	_class& c, stack& stack

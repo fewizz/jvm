@@ -42,6 +42,18 @@ class T08_MethodHandle {
 			System.exit(2);
 		}
 
+		// special
+		MethodHandle mh_special = l.findSpecial(
+			A.class,
+			"a",
+			MethodType.methodType(int.class),
+			B.class
+		);
+		result = (int) mh_special.invokeExact(new B());
+		if(result != 0) {
+			System.exit(2);
+		}
+
 	}
 
 }

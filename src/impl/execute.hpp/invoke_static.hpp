@@ -1,8 +1,8 @@
-#include "execute.hpp"
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
-#include "class.hpp"
-#include "method.hpp"
+#include "decl/execute.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/class.hpp"
+#include "decl/method.hpp"
 
 inline void invoke_static(
 	class_file::constant::method_ref_index ref_index, _class& c, stack& stack
