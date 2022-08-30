@@ -1,6 +1,7 @@
 #include "decl/class/resolve_method.hpp"
 #include "decl/method.hpp"
-#include "decl/class/has_name_and_desriptor_equal_to.hpp"
+#include "decl/class.hpp"
+#include "decl/class/has_name_and_descriptor_equal_to.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 
@@ -19,15 +20,12 @@ inline method& _class::resolve_method(
 	return ::resolve_method(c, name, descriptor);
 }
 
-/* symbolic reference from D to a method in a class C is already resolved */
+/* 2. Otherwise, method resolution attempts to locate the referenced method in C
+      and its superclasses: */
 template<basic_range Name, basic_range Descriptor>
-method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
-	/* "1. If C is an interface, method resolution throws an
-	    IncompatibleClassChangeError."*/ // TODO
-
-	/* "2. Otherwise, method resolution attempts to locate the referenced method
-	    in C and its superclasses:" */
-
+inline optional<method&> try_method_resolution_step_2(
+	_class& c, Name&& name, Descriptor&& descriptor
+) {
 	/*    "If C declares exactly one method with the name specified by the
 	       method reference, and the declaration is a signature polymorphic
 	       method (§2.9.3), then method lookup succeeds. All the class names
@@ -59,9 +57,30 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 
 	/*    "Otherwise, if C declares a method with the name and descriptor
 	       specified by the method reference, method lookup succeeds."*/
+	if(
+		optional<method&> m = c.declared_methods().try_find(name, descriptor);
+		m.has_value()
+	) {
+		return m;
+	}
+
 	/*    "Otherwise, if C has a superclass, step 2 of method resolution is
 	       recursively invoked on the direct superclass of C." */
-	optional<method&> m = c.instance_methods().try_find(name, descriptor);
+	if(c.has_super()) {
+		return try_method_resolution_step_2(c.super(), name, descriptor);
+	}
+	return {};
+}
+
+/* symbolic reference from D to a method in a class C is already resolved */
+template<basic_range Name, basic_range Descriptor>
+method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
+	/* "1. If C is an interface, method resolution throws an
+	    IncompatibleClassChangeError."*/ // TODO
+
+	/*    "Otherwise, if C has a superclass, step 2 of method resolution is
+	       recursively invoked on the direct superclass of C." */
+	optional<method&> m = try_method_resolution_step_2(c, name, descriptor);
 	if(m.has_value()) {
 		return m.value();
 	}
@@ -94,7 +113,8 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 		for(method& m0 : i.declared_instance_methods()) {
 			if(
 				!m0.access_flags()._private() &&
-				has_name_and_desriptor_equal_to{ name, descriptor}(m0)
+				!m0.access_flags().abstract() &&
+				has_name_and_descriptor_equal_to{ name, descriptor }(m0)
 			) {
 				m = m0;
 				return loop_action::stop;

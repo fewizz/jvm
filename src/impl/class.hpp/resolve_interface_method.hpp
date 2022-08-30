@@ -1,6 +1,6 @@
 #include "decl/class.hpp"
 #include "decl/method.hpp"
-#include "decl/class/has_name_and_desriptor_equal_to.hpp"
+#include "decl/class/has_name_and_descriptor_equal_to.hpp"
 #include "decl/lib/java/lang/object.hpp"
 
 #include <loop_action.hpp>
@@ -37,7 +37,7 @@ method& _class::resolve_interface_method(
 			return
 				m.access_flags()._public() &&
 				!m.access_flags()._static() &&
-				has_name_and_desriptor_equal_to{name, descriptor}(m);
+				has_name_and_descriptor_equal_to{name, descriptor}(m);
 		}
 	);
 	if(m.has_value()) {
@@ -70,7 +70,7 @@ method& _class::resolve_interface_method(
 		for(method& m0 : i.declared_instance_methods()) {
 			if(
 				!m0.access_flags()._private() &&
-				has_name_and_desriptor_equal_to{ name, descriptor}(m0)
+				has_name_and_descriptor_equal_to{ name, descriptor}(m0)
 			) {
 				m = m0;
 				return loop_action::stop;

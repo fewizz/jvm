@@ -158,7 +158,7 @@ public:
 	);
 
 	template<typename Name, typename Descriptor, typename Handler>
-	inline void for_each_maximally_specific_super_interface_instance_method(
+	void for_each_maximally_specific_super_interface_instance_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	);
 

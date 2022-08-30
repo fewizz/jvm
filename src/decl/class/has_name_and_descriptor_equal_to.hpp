@@ -3,7 +3,7 @@
 #include <range.hpp>
 
 template<basic_range Name, basic_range Descritptor>
-struct has_name_and_desriptor_equal_to {
+struct has_name_and_descriptor_equal_to {
 	Name name; Descritptor descriptor;
 
 	bool operator () (auto& e) const {
@@ -15,5 +15,5 @@ struct has_name_and_desriptor_equal_to {
 };
 
 template<basic_range Name, basic_range Descritptor>
-has_name_and_desriptor_equal_to(Name&&, Descritptor&&)
-	-> has_name_and_desriptor_equal_to<Name, Descritptor>;
+has_name_and_descriptor_equal_to(Name&&, Descritptor&&)
+	-> has_name_and_descriptor_equal_to<Name, Descritptor>;

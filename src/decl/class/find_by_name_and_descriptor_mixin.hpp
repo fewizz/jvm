@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./has_name_and_desriptor_equal_to.hpp"
+#include "./has_name_and_descriptor_equal_to.hpp"
 #include "abort.hpp"
 
 template<typename Type>
@@ -9,14 +9,14 @@ struct find_by_name_and_descriptor_mixin {
 	template<basic_range Name, basic_range Descriptor>
 	auto try_find(Name&& name, Descriptor&& descriptor) {
 		return range{ (Type&) *this }.try_find_last_satisfying(
-			has_name_and_desriptor_equal_to{ name, descriptor }
+			has_name_and_descriptor_equal_to{ name, descriptor }
 		);
 	}
 
 	template<basic_range Name, basic_range Descriptor>
 	auto try_find_index_of(Name&& name, Descriptor&& descriptor) {
 		return range{ (Type&) *this }.try_find_index_of_last_satisfying(
-			has_name_and_desriptor_equal_to{ name, descriptor }
+			has_name_and_descriptor_equal_to{ name, descriptor }
 		);
 	}
 
