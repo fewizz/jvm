@@ -20,6 +20,10 @@ inline method& select_method(
 	    lookup procedure: " */
 	/*    "If C contains a declaration of an instance method m that can override
 	       mR (§5.4.5), then m is the selected method" */
+	// shouldn't it be
+	/*         "If C contains a declaration of an instance method m that IS mR,
+	            OR can override mR (§5.4.5), then m is the selected method" */
+	// ?
 	/*    "Otherwise, if C has a superclass, a search for a declaration of an
 	       instance method that can override mR is performed, starting with the
 	       direct superclass of C and continuing with the direct superclass of

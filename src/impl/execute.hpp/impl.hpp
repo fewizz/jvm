@@ -912,10 +912,14 @@ static optional<stack_entry> execute(
 			if(info) {
 				tabs(); fputs("get_static ", stderr);
 				cc::field_ref field_ref = c.field_ref_constant(x.index);
+				cc::_class _class = c.class_constant(field_ref.class_index);
+				cc::utf8 class_name = c.utf8_constant(_class.name_index);
 				cc::name_and_type nat {
 					c.name_and_type_constant(field_ref.name_and_type_index)
 				};
 				cc::utf8 name = c.utf8_constant(nat.name_index);
+				fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
+				fputc('.', stderr);
 				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}

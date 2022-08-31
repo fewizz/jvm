@@ -42,6 +42,16 @@ class T08_MethodHandle {
 			System.exit(2);
 		}
 
+		// constructor
+		MethodHandle mh_constructor = l.findConstructor(
+			B.class,
+			MethodType.methodType(void.class)
+		);
+		result = ((B) mh_constructor.invokeExact()).a();
+		if(result != 1) {
+			System.exit(2);
+		}
+
 		// special
 		MethodHandle mh_special = l.findSpecial(
 			A.class,

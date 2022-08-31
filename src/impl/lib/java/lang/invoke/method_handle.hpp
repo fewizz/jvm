@@ -50,6 +50,13 @@ inline reference create_method_handle_invoke_virtual(method& m) {
 	);
 }
 
+inline reference create_method_handle_new_invoke_special(method& m) {
+	return create_method_handle(
+		m,
+		class_file::constant::method_handle::behavior_kind::new_invoke_special
+	);
+}
+
 inline reference create_method_handle_invoke_special(method& m) {
 	return create_method_handle(
 		m, class_file::constant::method_handle::behavior_kind::invoke_special
@@ -78,11 +85,28 @@ inline optional<stack_entry> method_handle_invoke_exact(
 				args
 			);
 		}
-		case behavior_kind::invoke_special: { // TODO exclude <init>
+		case behavior_kind::invoke_special: {
 			return execute(
 				* (method*) member,
 				args
 			);
+		}
+		case behavior_kind::new_invoke_special: {
+			method& init = * (method*) member;
+			_class& c = init._class();
+			reference ref = create_object(c);
+			// copy args
+			nuint args_storage_size = (args.size() + 1) * sizeof(stack_entry);
+			alignas(stack_entry[]) uint8 args_storage[args_storage_size];
+			memory_list<stack_entry> real_args {
+				memory_span{args_storage, args_storage_size}
+			};
+			// add ref to c to begining.
+			real_args.emplace_back(ref);
+			// remaining args
+			for(auto& arg : args) { real_args.emplace_back(arg); }
+			execute(init, real_args);
+			return stack_entry{ ref };
 		}
 		default: abort();
 	}

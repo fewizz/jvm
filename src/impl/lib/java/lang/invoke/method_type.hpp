@@ -18,6 +18,7 @@ static reference method_type_method_descriptor(
 
 	auto desc_class_name = [](_class& c) {
 		if(c.is_primitive()) {
+			if(&c == void_class.ptr())   { return span{ c_string{ "V" } }; }
 			if(&c == bool_class.ptr())   { return span{ c_string{ "Z" } }; }
 			if(&c == byte_class.ptr())   { return span{ c_string{ "B" } }; }
 			if(&c == short_class.ptr())  { return span{ c_string{ "S" } }; }
