@@ -5,7 +5,7 @@
 
 #include "abort.hpp"
 
-#include <class_file/descriptor/reader.hpp>
+#include <class_file/descriptor/method_reader.hpp>
 
 #include <elements/one_of.hpp>
 #include <range.hpp>
@@ -33,49 +33,47 @@ private:
 
 		optional<one_of_jtpyes> jtype;
 
-		bool result = class_file::descriptor::read_field(
+		class_file::descriptor::read_type(
 			descriptor.iterator(),
 			[&]<typename DescriptorType>(DescriptorType) {
 				using namespace class_file::descriptor;
-				if constexpr(same_as<DescriptorType, B>) {
+				if constexpr(same_as<DescriptorType, b>) {
 					jtype = jbyte{};
 				}
-				else if constexpr(same_as<DescriptorType, C>) {
+				else if constexpr(same_as<DescriptorType, c>) {
 					jtype = jchar{};
 				}
-				else if constexpr(same_as<DescriptorType, D>) {
+				else if constexpr(same_as<DescriptorType, d>) {
 					jtype = jdouble{};
 				}
-				else if constexpr(same_as<DescriptorType, F>) {
+				else if constexpr(same_as<DescriptorType, f>) {
 					jtype = jfloat{};
 				}
-				else if constexpr(same_as<DescriptorType, I>) {
+				else if constexpr(same_as<DescriptorType, i>) {
 					jtype = jint{};
 				}
-				else if constexpr(same_as<DescriptorType, J>) {
+				else if constexpr(same_as<DescriptorType, j>) {
 					jtype = jlong{};
 				}
-				else if constexpr(same_as<DescriptorType, S>) {
+				else if constexpr(same_as<DescriptorType, s>) {
 					jtype = jshort{};
 				}
-				else if constexpr(same_as<DescriptorType, Z>) {
+				else if constexpr(same_as<DescriptorType, z>) {
 					jtype = jbool{};
 				}
-				else if constexpr(same_as<DescriptorType, object_type>) {
+				else if constexpr(
+					same_as<DescriptorType, class_file::descriptor::object>
+				) {
 					jtype = reference{};
 				}
-				else if constexpr(same_as<DescriptorType, array_type>) {
+				else if constexpr(
+					same_as<DescriptorType, class_file::descriptor::array>
+				) {
 					jtype = reference{};
 				}
-				else {
-					return false;
-				}
-				return true;
-			}
+			},
+			[](auto){ abort(); }
 		);
-		if(!result) {
-			fputs("couldn't read field descriptor", stderr); abort();
-		}
 		return jtype.value();
 	}
 };

@@ -19,3 +19,4 @@ reference create_method_handle_invoke_static(method&);
 reference create_method_handle_invoke_virtual(method&);
 reference create_method_handle_invoke_special(method&);
 reference create_method_handle_new_invoke_special(method&);
+reference create_method_handle_new_invoke_interface(method&);

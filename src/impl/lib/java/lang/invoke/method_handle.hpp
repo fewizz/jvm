@@ -63,6 +63,12 @@ inline reference create_method_handle_invoke_special(method& m) {
 	);
 }
 
+inline reference create_method_handle_invoke_interface(method& m) {
+	return create_method_handle(
+		m, class_file::constant::method_handle::behavior_kind::invoke_interface
+	);
+}
+
 inline optional<stack_entry> method_handle_invoke_exact(
 	reference ref, arguments_span args
 ) {
@@ -86,10 +92,7 @@ inline optional<stack_entry> method_handle_invoke_exact(
 			);
 		}
 		case behavior_kind::invoke_special: {
-			return execute(
-				* (method*) member,
-				args
-			);
+			return execute(* (method*) member, args);
 		}
 		case behavior_kind::new_invoke_special: {
 			method& init = * (method*) member;
@@ -107,6 +110,9 @@ inline optional<stack_entry> method_handle_invoke_exact(
 			for(auto& arg : args) { real_args.emplace_back(arg); }
 			execute(init, real_args);
 			return stack_entry{ ref };
+		}
+		case behavior_kind::invoke_interface: {
+			return execute(* (method*) member, args);
 		}
 		default: abort();
 	}

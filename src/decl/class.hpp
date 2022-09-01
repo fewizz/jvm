@@ -121,7 +121,7 @@ public:
 		class_file::constant::string_index string_index
 	);
 
-	_class& get_class(
+	_class& get_resolved_class(
 		class_file::constant::class_index string_index
 	);
 

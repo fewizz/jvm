@@ -23,7 +23,7 @@ inline field_value& _class::get_static_field_value(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_class(field_ref.class_index);
+	_class& c = get_resolved_class(field_ref.class_index);
 	c.initialise_if_need();
 
 	declared_static_field_index index =

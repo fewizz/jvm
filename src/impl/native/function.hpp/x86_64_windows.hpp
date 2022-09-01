@@ -113,49 +113,55 @@ inline optional<stack_entry> native_interface_call(
 	}
 
 	stack_entry se_result = reference{}; {
-		using namespace class_file::descriptor;
+		using namespace class_file;
 
-		method_reader params_reader{ descriptor.elements_ptr() };
-		auto [return_type_reader, reading_result]
-			= params_reader.skip_parameters();
-		if(!reading_result) {
-			abort();
-		}
-		return_type_reader([&]<typename Type>(Type) {
-			if constexpr(
-				same_as<Type, Z> ||
-				same_as<Type, C> || same_as<Type, S> ||
-				same_as<Type, I>
-			) {
-				se_result = jint{ (int32) result };
-				return true;
-			}
-			else if constexpr(
-				same_as<Type, J>
-			) {
-				se_result = jlong{ (int64) result };
-				return true;
-			}
-			else if constexpr(
-				same_as<Type, F>
-			) {
-				se_result = jfloat{ arg_f_0[0] };
-				return true;
-			}
-			else if constexpr(
-				same_as<Type, D>
-			) {
-				se_result = jdouble{ ((__m128d) arg_f_0)[0] };
-				return true;
-			}
-			else if constexpr(
-				same_as<Type, object_type> || same_as<Type, array_type>
-			) {
-				se_result = reference{ * (object*) result };
-				return true;
-			}
-			return false;
-		});
+		descriptor::method::reader reader {
+			range_iterator(descriptor)
+		};
+		auto return_type_reader =
+			reader.try_skip_parameters_and_get_return_type_reader(
+				[](auto){ abort(); }
+			).value();
+		return_type_reader.try_read_and_get_advanced_iterator(
+			[&]<typename Type>(Type) {
+				if constexpr(
+					same_as<Type, descriptor::z> ||
+					same_as<Type, descriptor::c> ||
+					same_as<Type, descriptor::s> ||
+					same_as<Type, descriptor::i>
+				) {
+					se_result = jint{ (int32) result };
+					return true;
+				}
+				else if constexpr(
+					same_as<Type, descriptor::j>
+				) {
+					se_result = jlong{ (int64) result };
+					return true;
+				}
+				else if constexpr(
+					same_as<Type, descriptor::f>
+				) {
+					se_result = jfloat{ arg_f_0[0] };
+					return true;
+				}
+				else if constexpr(
+					same_as<Type, descriptor::d>
+				) {
+					se_result = jdouble{ ((__m128d) arg_f_0)[0] };
+					return true;
+				}
+				else if constexpr(
+					same_as<Type, descriptor::object> ||
+					same_as<Type, descriptor::array>
+				) {
+					se_result = reference{ * (object*) result };
+					return true;
+				}
+				return false;
+			},
+			[](auto){ abort(); }
+		);
 	}
 
 	return se_result;

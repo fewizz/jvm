@@ -9,7 +9,7 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 #include <class_file/descriptor/type.hpp>
-#include <class_file/descriptor/reader.hpp>
+#include <class_file/descriptor/method_reader.hpp>
 #include <class_file/attribute/code/exception_handler.hpp>
 
 #include <span.hpp>
@@ -78,6 +78,9 @@ public:
 	}
 
 	void native_function(native_function_ptr function) {
+		if(!code_.is<optional<native_function_ptr>>()) {
+			abort();
+		}
 		code_ = function;
 	}
 
@@ -86,7 +89,7 @@ public:
 	}
 
 	bool is_void() const {
-		return descriptor().return_type().is<class_file::descriptor::V>();
+		return descriptor().return_type().is<class_file::descriptor::v>();
 	}
 
 	bool is_instance_initialisation() const;

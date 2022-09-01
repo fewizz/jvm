@@ -12,10 +12,17 @@ inline _class& _class::get_component_class() {
 			abort();
 		}
 		auto n = name();
-		// skip [L and ;
-		auto component_name = iterator_and_sentinel {
-			n.iterator() + 2, n.iterator() + n.size() - 1
-		}.to_range();
+		bool component_is_reference = n[1] == 'L';
+		auto component_name =
+			component_is_reference ?
+			// skip [L and ;
+			iterator_and_sentinel {
+				n.iterator() + 2, n.iterator() + n.size() - 1
+			}.to_range() :
+			// skip [
+			iterator_and_sentinel {
+				n.iterator() + 1, n.sentinel()
+			}.to_range();
 		component_class_ = classes.find_or_load(component_name);
 		component_class_->array_class_ = *this;
 	}

@@ -33,7 +33,8 @@ inline void invoke_special(
 	}
 
 	method& resolved_method = current.get_resolved_method(ref_index);
-	_class& referenced_class = current.get_class(method_ref.class_index);
+	_class& referenced_class
+		= current.get_resolved_class(method_ref.class_index);
 
 	method& m = select_method_for_invoke_special(
 		current, referenced_class, resolved_method

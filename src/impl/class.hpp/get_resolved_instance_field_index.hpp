@@ -23,7 +23,7 @@ inline instance_field_index _class::get_resolved_instance_field_index(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_class(field_ref.class_index);
+	_class& c = get_resolved_class(field_ref.class_index);
 
 	instance_field_index index =
 		c.instance_fields().try_find_index_of(name, desc)

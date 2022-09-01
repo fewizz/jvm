@@ -23,7 +23,7 @@ inline reference _class::get_method_handle(
 			class_file::constant::method_ref ref = method_ref_constant(
 				(class_file::constant::method_ref_index) mh.reference_index
 			);
-			_class& c = get_class(ref.class_index);
+			_class& c = get_resolved_class(ref.class_index);
 			auto nat = name_and_type_constant(ref.name_and_type_index);
 			auto name = utf8_constant(nat.name_index);
 			auto desc = utf8_constant(nat.descriptor_index);

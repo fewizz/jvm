@@ -28,7 +28,7 @@ inline void ldc(
 		));
 	} else
 	if(constant.is<class_file::constant::_class>()) {
-		stack.emplace_back(c.get_class(
+		stack.emplace_back(c.get_resolved_class(
 			class_file::constant::class_index{ const_index }
 		).instance());
 	}

@@ -5,15 +5,15 @@
 #include <range.hpp>
 #include <memory_list.hpp>
 
-#include <class_file/descriptor/reader.hpp>
+#include <class_file/descriptor/method_reader.hpp>
 
 using one_of_descriptor_types = elements::one_of<
-	class_file::descriptor::Z, class_file::descriptor::B,
-	class_file::descriptor::C, class_file::descriptor::S,
-	class_file::descriptor::I, class_file::descriptor::F,
-	class_file::descriptor::J, class_file::descriptor::D,
-	class_file::descriptor::V,
-	class_file::descriptor::array_type, class_file::descriptor::object_type
+	class_file::descriptor::z, class_file::descriptor::b,
+	class_file::descriptor::c, class_file::descriptor::s,
+	class_file::descriptor::i, class_file::descriptor::f,
+	class_file::descriptor::j, class_file::descriptor::d,
+	class_file::descriptor::v,
+	class_file::descriptor::array, class_file::descriptor::object
 >;
 
 struct _class;
@@ -27,7 +27,7 @@ class return_type : public one_of_descriptor_types {
 public:
 	using base_type::base_type;
 
-	return_type() : base_type{ class_file::descriptor::V{} } {}
+	return_type() : base_type{ class_file::descriptor::v{} } {}
 };
 
 template<sized_range Range>
@@ -43,23 +43,29 @@ public:
 	}
 
 	method_descriptor(Range&& range) : range_{ forward<Range>(range) } {
+		class_file::descriptor::method::reader reader {
+			range_iterator(range_)
+		};
+
 		parameters_types_ = {
 			allocate_for<parameter_type>(
 				method_descriptor_parameters_count(range_)
 			)
 		};
 
-		class_file::descriptor::method_reader mr {
-			range.iterator()
-		};
-		auto [return_type_reader, res] = mr([&](auto parameter_type) {
-			parameters_types_.emplace_back(parameter_type);
-			return true;
-		});
-		return_type_reader([&](auto ret_type) {
-			return_type_ = ret_type;
-			return true;
-		});
+		auto return_type_reader
+		= reader.try_read_parameter_types_and_get_return_type_reader(
+			[&](auto parameter_type) {
+				parameters_types_.emplace_back(parameter_type);
+			},
+			[](auto) { abort(); }
+		).value();
+		return_type_reader.try_read_and_get_advanced_iterator(
+			[&](auto ret_type) {
+				return_type_ = ret_type;
+			},
+			[](auto) { abort(); }
+		);
 	}
 
 	method_descriptor(method_descriptor&& that) = default;
@@ -83,8 +89,8 @@ method_descriptor(Range&&) -> method_descriptor<Range>;
 
 template<basic_range Descriptor>
 static uint8 method_descriptor_parameters_count(Descriptor&& descriptor) {
-	class_file::descriptor::method_reader mr { descriptor.iterator() };
-	uint8 count = 0;
-	mr([&](auto) { ++count; return true; });
-	return count;
+	class_file::descriptor::method::reader reader {
+		range_iterator(descriptor)
+	};
+	return reader.try_read_parameters_count([](auto){ abort(); }).value();
 }

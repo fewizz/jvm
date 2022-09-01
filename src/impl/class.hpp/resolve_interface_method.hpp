@@ -11,7 +11,7 @@ method& _class::resolve_interface_method(
 	/* "To resolve an unresolved symbolic reference from D to an interface
 	    method in an interface C, the symbolic reference to C given by the
 	    interface method reference is first resolved (§5.4.3.1)." */
-	_class& c = get_class(ref.interface_index);
+	_class& c = get_resolved_class(ref.interface_index);
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
 	auto descriptor = utf8_constant(nat.descriptor_index);

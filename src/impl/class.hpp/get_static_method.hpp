@@ -22,7 +22,7 @@ inline method& _class::get_static_method(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_class(method_ref.class_index);
+	_class& c = get_resolved_class(method_ref.class_index);
 	method& m = c.declared_static_methods().find(name, desc);
 	/* "On successful resolution of the method, the class or interface that
 	    declared the resolved method is initialized (§5.5) if that class or

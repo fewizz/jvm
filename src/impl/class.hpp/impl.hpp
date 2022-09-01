@@ -3,7 +3,7 @@
 #include "./for_each_super_interface.hpp"
 #include "./get_array_class.hpp"
 #include "./get_call_site.hpp"
-#include "./get_class.hpp"
+#include "./get_resolved_class.hpp"
 #include "./get_component_class.hpp"
 #include "./get_method_handle.hpp"
 #include "./get_resolved_instance_field_index.hpp"

@@ -23,7 +23,7 @@
 #include "./select_method_for_invoke_special.hpp"
 
 #include <class_file/reader.hpp>
-#include <class_file/descriptor/reader.hpp>
+#include <class_file/descriptor/method_reader.hpp>
 #include <class_file/attribute/code/reader.hpp>
 
 #include <number.hpp>
@@ -154,7 +154,7 @@ static optional<stack_entry> execute(
 					continue;
 				}
 
-				_class& catch_class = c.get_class(handler.catch_type);
+				_class& catch_class = c.get_resolved_class(handler.catch_type);
 
 				bool same = &thrown_class == &catch_class;
 				bool subclass = thrown_class.is_sub_of(catch_class);
@@ -1023,14 +1023,14 @@ static optional<stack_entry> execute(
 				fwrite(name.elements_ptr(), 1, name.size(), stderr);
 				fputc('\n', stderr);
 			}
-			_class& c0 = c.get_class(x.index);
+			_class& c0 = c.get_resolved_class(x.index);
 			stack.emplace_back(create_object(c0));
 		}
 		else if constexpr (same_as<Type, instr::new_array>) {
 			::new_array(/* c, */ x.type, stack);
 		}
 		else if constexpr (same_as<Type, a_new_array>) {
-			_class& element_class = c.get_class(x.index);
+			_class& element_class = c.get_resolved_class(x.index);
 
 			if(info) {
 				tabs(); fputs("a_new_array ", stderr);
@@ -1068,7 +1068,7 @@ static optional<stack_entry> execute(
 				tabs(); fputs("check_cast ", stderr);
 				fprintf(stderr, "%hu\n", (uint16) x.index);
 			}
-			//_class& type = c.get_class(x.index);
+			//_class& type = c.get_resolved_class(x.index);
 			//reference objectref = stack[stack_size - 1].get<reference>();
 			// TODO
 		}
@@ -1086,7 +1086,7 @@ static optional<stack_entry> execute(
 
 			int32 result = 0;
 			if(!objectref.is_null()) {
-				_class& t = c.get_class(x.index);
+				_class& t = c.get_resolved_class(x.index);
 
 				if(!s.is_interface()) {
 					if(!t.is_interface()) {
