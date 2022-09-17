@@ -10,37 +10,37 @@
 template<basic_range Descriptor>
 inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 	auto get_class = [&]<typename Type>(Type t) -> _class& {
-		if constexpr(same_as<Type, class_file::descriptor::V>) {
+		if constexpr(same_as<Type, class_file::v>) {
 			return void_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::B>) {
+		if constexpr(same_as<Type, class_file::b>) {
 			return byte_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::C>) {
+		if constexpr(same_as<Type, class_file::c>) {
 			return char_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::D>) {
+		if constexpr(same_as<Type, class_file::d>) {
 			return double_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::F>) {
+		if constexpr(same_as<Type, class_file::f>) {
 			return float_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::I>) {
+		if constexpr(same_as<Type, class_file::i>) {
 			return int_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::J>) {
+		if constexpr(same_as<Type, class_file::j>) {
 			return long_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::S>) {
+		if constexpr(same_as<Type, class_file::s>) {
 			return short_class.value();
 		}
-		if constexpr(same_as<Type, class_file::descriptor::Z>) {
+		if constexpr(same_as<Type, class_file::z>) {
 			return bool_class.value();
 		}
-		else if constexpr(same_as<Type, class_file::descriptor::object_type>) {
+		else if constexpr(same_as<Type, class_file::object>) {
 			return resolve_class(d, t);
 		}
-		else if constexpr(same_as<Type, class_file::descriptor::array_type>) {
+		else if constexpr(same_as<Type, class_file::array>) {
 			return resolve_class(d, t);
 		}
 	};

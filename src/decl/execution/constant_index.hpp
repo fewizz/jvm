@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include <integer.hpp>
 
 template<unsigned_integer Type = uint8>
 class constant_index_of {

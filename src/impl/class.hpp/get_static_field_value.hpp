@@ -6,9 +6,9 @@
 inline field_value& _class::get_static_field_value(
 	class_file::constant::field_ref_index ref_index
 ) {
-	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
+	if(auto& t = trampoline(ref_index); t.has_no_value()) {
 		if(!t.is<field_value>()) {
-			fputs("invalid const pool entry", stderr);
+			//fputs("invalid const pool entry", stderr);
 			abort();
 		}
 		return t.get<field_value>();
@@ -28,7 +28,7 @@ inline field_value& _class::get_static_field_value(
 
 	declared_static_field_index index =
 		c.declared_static_fields().try_find_index_of(name, desc)
-		.if_no_value([]{ abort(); })
+		.if_has_no_value(abort)
 		.value();
 
 	field_value& value = c.declared_static_fields_values()[index];

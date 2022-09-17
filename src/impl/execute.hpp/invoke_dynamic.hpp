@@ -3,12 +3,14 @@
 #include "decl/class.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/execution/info.hpp"
+#include "decl/print.hpp"
 
 #include <class_file/constant.hpp>
 
+template<basic_range StackType>
 inline void invoke_dynamic(
 	class_file::constant::invoke_dynamic_index ref_index,
-	_class& c, stack& stack
+	_class& c, [[maybe_unused]] StackType& stack
 ) {
 	namespace cc = class_file::constant;
 
@@ -20,15 +22,16 @@ inline void invoke_dynamic(
 		};
 		cc::utf8 name = c.utf8_constant(nat.name_index);
 		cc::utf8 desc = c.utf8_constant(nat.descriptor_index);
-		tabs(); fputs("invoke_dynamic #", stderr);
-		fprintf(stderr, "%hu", ref.bootstrap_method_attr_index);
-		fputc(' ', stderr);
-		fwrite(name.elements_ptr(), 1, name.size(), stderr);
-		fwrite(desc.elements_ptr(), 1, desc.size(), stderr);
-		fputc('\n', stderr);
+		tabs(); print("invoke_dynamic #");
+		print(ref.bootstrap_method_attr_index);
+		print(" ");
+		print(name);
+		print(desc);
+		print("\n");
 	}
 
 	reference call_site = c.get_call_site(ref_index);
 
-	fputs("unimplemented", stderr); abort();
+	posix::std_err().write_from(c_string{ "unimplemented" });
+	abort();
 }

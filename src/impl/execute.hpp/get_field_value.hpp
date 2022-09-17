@@ -1,9 +1,8 @@
 #include "execution/stack_entry.hpp"
 
 #include "field/value.hpp"
-#include "abort.hpp"
 
-#include <stdio.h>
+#include <posix/io.hpp>
 
 inline stack_entry get_field_value(
 	field_value& value
@@ -33,6 +32,7 @@ inline stack_entry get_field_value(
 			return value;
 		}
 
-		fputs("couldn't get field value", stderr); abort();
+		posix::std_err().write_from(c_string{ "couldn't get field value" });
+		abort();
 	});
 };

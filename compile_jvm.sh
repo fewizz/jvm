@@ -24,6 +24,7 @@ if ! clang++ \
 	-I ${root}/../core/include \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \
+	-I ${root}/../posix-wrapper/include \
 	-o ${root}/build/jvm \
 	${additional_args[@]} \
 	${root}/src/jvm.cpp

@@ -1,20 +1,25 @@
 #pragma once
 
 #include "./has_name_equal_to.hpp"
+#include <posix/abort.hpp>
 
 template<typename Type>
-struct find_by_name_mixin {
+struct find_by_name_extension {
+private:
+	const Type& derived() const { return (const Type&) *this; }
+	      Type& derived()       { return (      Type&) *this; }
+public:
 
 	template<basic_range Name>
 	auto try_find(Name&& name) {
-		return range{ (Type&) *this }.try_find_last_satisfying(
+		return derived().try_find_last_satisfying(
 			has_name_equal_to{ name }
 		);
 	}
 
 	template<basic_range Name>
 	auto try_find_index_of(Name&& name) {
-		return range{ (Type&) *this }.try_find_index_of_last_satisfying(
+		return derived().try_find_index_of_last_satisfying(
 			has_name_equal_to{ name }
 		);
 	}

@@ -3,10 +3,12 @@
 #include "decl/execute.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/execution/info.hpp"
+#include "decl/print.hpp"
 
+template<basic_range StackType>
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index,
-	_class& c, stack& stack
+	_class& c, StackType& stack
 ) {
 
 	namespace cc = class_file::constant;
@@ -21,19 +23,20 @@ inline void invoke_interface(
 		cc::_class class_info
 			= c.class_constant(method_ref_info.interface_index);
 		auto class_name = c.utf8_constant(class_info.name_index);
-		tabs(); fputs("invoke_interface ", stderr);
-		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
-		fputc('.', stderr);
-		fwrite(name.elements_ptr(), 1, name.size(), stderr);
-		fwrite(desc.elements_ptr(), 1, desc.size(), stderr);
-		fputc('\n', stderr);
+		tabs(); print("invoke_interface ");
+		print(class_name);
+		print(".");
+		print(name);
+		print(desc);
+		print("\n");
 	}
 
 	method& resolved_method = c.resolve_interface_method(method_ref_info);
 
 	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
-	reference& objectref = stack[stack.size() - args_count].get<reference>();
+	reference& objectref =
+		stack[stack.size() - args_count].template get<reference>();
 
 	/* "Let C be the class of objectref. A method is selected with respect to C
 	    and the resolved method (§5.4.6). This is the method to be invoked." */
@@ -41,7 +44,7 @@ inline void invoke_interface(
 	
 	optional<stack_entry> result = execute(
 		m, arguments_span {
-			stack.iterator() + stack.size() - args_count,
+			&*stack.iterator() + stack.size() - args_count,
 			args_count
 		}
 	);

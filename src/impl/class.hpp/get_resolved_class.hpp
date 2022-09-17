@@ -4,7 +4,7 @@
 inline _class& _class::get_resolved_class(
 	class_file::constant::class_index class_index
 ) {
-	if(auto& t = trampoline(class_index); !t.is<elements::none>()) {
+	if(auto& t = trampoline(class_index); t.has_no_value()) {
 		if(!t.is<_class&>()) {
 			abort();
 		}

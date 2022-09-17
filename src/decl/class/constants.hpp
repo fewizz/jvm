@@ -1,13 +1,13 @@
 #pragma once
 
-#include "alloc.hpp"
-
 #include <class_file/constant.hpp>
 
-#include <memory_list.hpp>
-#include <elements/one_of.hpp>
+#include <variant.hpp>
+#include <list.hpp>
 
-using constant = elements::one_of<
+#include <posix/memory.hpp>
+
+using constant = variant<
 	class_file::constant::utf8,
 	class_file::constant::_int,
 	class_file::constant::_float,
@@ -29,9 +29,9 @@ using constant = elements::one_of<
 >;
 
 struct constants :
-	private memory_list<constant, uint16>
+	private list<posix::memory_for_range_of<constant>>
 {
-	using base_type = memory_list<constant, uint16>;
+	using base_type = list<posix::memory_for_range_of<constant>>;
 	using base_type::base_type;
 
 public:

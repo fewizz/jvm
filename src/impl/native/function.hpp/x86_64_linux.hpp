@@ -6,7 +6,6 @@
 #include "abort.hpp"
 
 #include <bit_cast.hpp>
-#include <stdio.h>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));

@@ -8,14 +8,14 @@
 
 template<basic_range Name>
 static inline _class& define_primitive_class(Name&& name) {
-	memory_span data { allocate(name.size()) };
+	auto data = posix::allocate_memory_for<uint8>(name.size());
 	range{ name }.copy_to(data);
 
 	return classes.emplace_back(
 		constants{}, bootstrap_methods{},
 		data,
 		class_file::access_flags{ class_file::access_flag::_public },
-		this_class_name{ data.cast<const char>() }, object_class,
+		this_class_name{ move(data) }, object_class,
 		declared_interfaces{},
 		declared_fields{},
 		declared_methods{},

@@ -1,12 +1,10 @@
 #include "decl/object/reference.hpp"
 
 #include "decl/object.hpp"
-#include "decl/alloc.hpp"
-#include "decl/abort.hpp"
 
 #include <exchange.hpp>
 
-#include <stdio.h>
+#include <posix/io.hpp>
 
 inline reference::reference(::object& obj) : obj_{ &obj } {
 	obj.on_reference_added();
@@ -50,7 +48,7 @@ inline reference& reference::operator = (reference&& other) {
 
 inline object& reference::object() {
 	if(obj_ == nullptr) {
-		fprintf(stderr, "obj_ is nullptr");
+		posix::std_err().write_from(c_string{ "obj_ is nullptr" });
 		abort();
 	}
 	return *obj_;

@@ -8,8 +8,8 @@ struct has_name_and_descriptor_equal_to {
 
 	bool operator () (auto& e) const {
 		return
-			range{ e.name() }.equals_to(name) &&
-			range{ e.descriptor() }.equals_to(descriptor);
+			range{ e.name() }.have_elements_equal_to(name) &&
+			range{ e.descriptor() }.have_elements_equal_to(descriptor);
 	}
 
 };

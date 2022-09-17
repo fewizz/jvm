@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/integer.hpp>
+#include <integer.hpp>
 
 class method_ref_index {
 	uint16 value_;

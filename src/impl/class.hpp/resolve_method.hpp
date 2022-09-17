@@ -33,13 +33,13 @@ inline optional<method&> try_method_resolution_step_2(
 	if(
 		&c == method_handle_class.ptr()
 	){
-		auto possible_poly_methods = range{ c.declared_methods() }.filter_view(
+		auto possible_poly_methods = c.declared_methods().filter_view(
 			[&](method& m) {
 				return
-					m.access_flags().varargs() &&
-					m.access_flags().native() &&
-					range{ m.name() }.equals_to(name) &&
-					range{ m.descriptor() }.equals_to(
+					m.access_flags().varargs &&
+					m.access_flags().native &&
+					m.name().have_elements_equal_to(name) &&
+					m.descriptor().have_elements_equal_to(
 						c_string{ "([Ljava/lang/Object;)Ljava/lang/Object;" }
 					);
 			}
@@ -94,7 +94,7 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	c.for_each_maximally_specific_super_interface_instance_method(
 		name, descriptor,
 		[&](method& m0) {
-			if(!m0.access_flags().abstract()) {
+			if(!m0.access_flags().abstract) {
 				m = m0;
 				return loop_action::stop;
 			}
@@ -110,12 +110,12 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	       its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	       arbitrarily chosen and method lookup succeeds."*/
 	c.for_each_super_interface([&](_class& i) {
-		for(method& m0 : i.declared_instance_methods()) {
+		for(method* m0 : i.declared_instance_methods()) {
 			if(
-				!m0.access_flags()._private() &&
+				!m0->access_flags()._private &&
 				has_name_and_descriptor_equal_to{ name, descriptor }(m0)
 			) {
-				m = m0;
+				m = *m0;
 				return loop_action::stop;
 			}
 		}

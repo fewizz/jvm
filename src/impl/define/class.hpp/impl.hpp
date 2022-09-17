@@ -9,14 +9,14 @@
 
 #include <class_file/reader.hpp>
 
-static inline _class& define_class(memory_span bytes) {
-	class_file::reader reader{ bytes.elements_ptr() };
+static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
+	class_file::reader reader{ (uint8*) bytes.iterator() };
 
 	auto [magic_exists, version_reader] =
 		reader.check_for_magic_and_get_version_reader();
 
 	if(!magic_exists) {
-		fprintf(stderr, "magic doesn't exist");
+		//fprintf(stderr, "magic doesn't exist");
 		abort();
 	}
 
@@ -24,13 +24,15 @@ static inline _class& define_class(memory_span bytes) {
 		version_reader.read_and_get_constant_pool_reader();
 
 	uint16 constants_count = constant_pool_reader.entries_count();
-	constants const_pool { allocate_for<constant>(constants_count) };
+	constants const_pool { 
+		posix::allocate_memory_for<constant>(constants_count)
+	};
 
 	auto access_flags_reader {
 		constant_pool_reader.read_and_get_access_flags_reader(
 			[&]<typename Type>(Type x) {
 				if constexpr(same_as<class_file::constant::unknown, Type>) {
-					fprintf(stderr, "unknown constant with tag %hhu", x.tag);
+					//fprintf(stderr, "unknown constant with tag %hhu", x.tag);
 					abort();
 				}
 				else {
@@ -51,7 +53,7 @@ static inline _class& define_class(memory_span bytes) {
 	};
 
 	declared_interfaces interfaces {
-		allocate_for<_class&>(interfaces_reader.count())
+		posix::allocate_memory_for<_class*>(interfaces_reader.count())
 	};
 
 	auto fields_reader =
@@ -68,7 +70,7 @@ static inline _class& define_class(memory_span bytes) {
 
 	uint16 fields_count = fields_reader.count();
 
-	declared_fields fields { allocate_for<field>(fields_count) };
+	declared_fields fields { posix::allocate_memory_for<field>(fields_count) };
 
 	auto methods_reader = fields_reader.read_and_get_methods_reader(
 		[&](auto field_reader) {
@@ -97,7 +99,9 @@ static inline _class& define_class(memory_span bytes) {
 		}
 	);
 
-	declared_methods methods{ allocate_for<method>(methods_reader.count()) };
+	declared_methods methods {
+		posix::allocate_memory_for<method>(methods_reader.count())
+	};
 
 	auto attributes_reader = methods_reader.read_and_get_attributes_reader(
 		[&](auto method_reader) {
@@ -147,7 +151,7 @@ static inline _class& define_class(memory_span bytes) {
 
 	return classes.emplace_back(
 		move(const_pool), move(bootstrap_methods),
-		bytes, access_flags,
+		move(bytes), access_flags,
 		this_class_name{ name },
 		super,
 		move(interfaces),

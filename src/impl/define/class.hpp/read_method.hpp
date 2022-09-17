@@ -4,11 +4,10 @@
 
 #include <class_file/method_reader.hpp>
 
-#include <elements/of.hpp>
-#include <elements/one_of.hpp>
+#include <variant.hpp>
 
 template<typename Iterator>
-static inline elements::of<
+static inline variant<
 	method, Iterator
 >
 read_method_and_get_advaned_iterator(

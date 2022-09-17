@@ -12,6 +12,7 @@
 -I../core/include
 -I../class-file/include
 -I../encoding/include
+-I../posix-wrapper/include
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build

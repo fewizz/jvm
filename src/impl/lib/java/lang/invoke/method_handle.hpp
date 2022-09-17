@@ -15,13 +15,13 @@ static void init_java_lang_invoke_method_handle() {
 	);
 
 	method_handle_member_instance_field_index = {
-		method_handle_class->instance_fields().find_index_of(
+		(uint16) method_handle_class->instance_fields().find_index_of(
 			c_string{ "member_" }, c_string{ "J" }
 		)
 	};
 
 	method_handle_kind_instance_field_index = {
-		method_handle_class->instance_fields().find_index_of(
+		(uint16) method_handle_class->instance_fields().find_index_of(
 			c_string{ "kind_" }, c_string{ "B" }
 		)
 	};
@@ -99,16 +99,19 @@ inline optional<stack_entry> method_handle_invoke_exact(
 			_class& c = init._class();
 			reference ref = create_object(c);
 			// copy args
-			nuint args_storage_size = (args.size() + 1) * sizeof(stack_entry);
-			alignas(stack_entry[]) uint8 args_storage[args_storage_size];
-			memory_list<stack_entry> real_args {
-				memory_span{args_storage, args_storage_size}
+			uint16 args_storage_size = (args.size() + 1);
+			storage<stack_entry> args_storage[args_storage_size];
+			list<span<storage<stack_entry>>> real_args {
+				span{ args_storage, args_storage_size }
 			};
 			// add ref to c to begining.
 			real_args.emplace_back(ref);
 			// remaining args
 			for(auto& arg : args) { real_args.emplace_back(arg); }
-			execute(init, real_args);
+			execute(
+				init,
+				arguments_span{ (stack_entry*) args_storage, args_storage_size }
+			);
 			return stack_entry{ ref };
 		}
 		case behavior_kind::invoke_interface: {

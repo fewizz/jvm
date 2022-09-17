@@ -25,11 +25,10 @@
 #include "./object/reference.hpp"
 
 #include <class_file/access_flag.hpp>
-#include <memory_list.hpp>
 
 struct _class : constants, trampolines, bootstrap_methods {
 private:
-	::memory_span                bytes_{};
+	posix::memory_for_range_of<uint8> bytes_;
 	class_file::access_flags     access_flags_;
 	this_class_name              this_name_;
 	optional<_class&>            super_;
@@ -41,9 +40,9 @@ private:
 	::declared_static_fields     declared_static_fields_;
 	::instance_fields            instance_fields_;
 
-	memory_list<
-		field_value, uint16
-	>                            declared_static_fields_values_;
+	list<posix::memory_for_range_of<
+		field_value
+	>>                           declared_static_fields_values_;
 
 	::declared_methods           declared_methods_;
 	::declared_instance_methods  declared_instance_methods_;
@@ -66,7 +65,7 @@ public:
 
 	_class(
 		constants&&, bootstrap_methods&&,
-		::memory_span bytes, class_file::access_flags,
+		posix::memory_for_range_of<uint8> bytes, class_file::access_flags,
 		this_class_name,
 		optional<_class&> super,
 		::declared_interfaces&&,
@@ -87,7 +86,7 @@ public:
 	_class& super() { return super_.value(); }
 	bool has_super() const { return super_.has_value(); }
 
-	bool is_interface() const { return access_flags_.interface(); }
+	bool is_interface() const { return access_flags_.interface; }
 
 	bool is_array() const { return is_array_; }
 	bool is_primitive() const { return is_primitive_; }
@@ -177,11 +176,11 @@ public:
 	}
 
 	bool is_implementing(_class& other) {
-		for(_class& i : declared_interfaces()) {
-			if(&i == &other) {
+		for(_class* i : declared_interfaces()) {
+			if(i == &other) {
 				return true;
 			}
-			if(i.is_implementing(other)) {
+			if(i->is_implementing(other)) {
 				return true;
 			}
 		}

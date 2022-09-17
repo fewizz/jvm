@@ -32,11 +32,11 @@ method& _class::resolve_interface_method(
 	    and descriptor specified by the interface method reference, which has
 	    its ACC_PUBLIC flag set and does not have its ACC_STATIC flag set,
 	    method lookup succeeds." */
-	m = range{ object_class->declared_methods() }.try_find_first_satisfying(
+	m = object_class->declared_methods().try_find_first_satisfying(
 		[&](method& m) {
 			return
-				m.access_flags()._public() &&
-				!m.access_flags()._static() &&
+				m.access_flags()._public &&
+				!m.access_flags()._static &&
 				has_name_and_descriptor_equal_to{name, descriptor}(m);
 		}
 	);
@@ -51,7 +51,7 @@ method& _class::resolve_interface_method(
 	c.for_each_maximally_specific_super_interface_instance_method(
 		name, descriptor,
 		[&](method& m0) {
-			if(!m0.access_flags().abstract()) {
+			if(!m0.access_flags().abstract) {
 				m = m0;
 				return loop_action::stop;
 			}
@@ -67,12 +67,12 @@ method& _class::resolve_interface_method(
 	    ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is arbitrarily
 	    chosen and method lookup succeeds. */
 	c.for_each_super_interface([&](_class& i) {
-		for(method& m0 : i.declared_instance_methods()) {
+		for(method* m0 : i.declared_instance_methods()) {
 			if(
-				!m0.access_flags()._private() &&
+				!m0->access_flags()._private &&
 				has_name_and_descriptor_equal_to{ name, descriptor}(m0)
 			) {
-				m = m0;
+				m = *m0;
 				return loop_action::stop;
 			}
 		}

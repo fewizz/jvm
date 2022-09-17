@@ -1,12 +1,13 @@
 #pragma once
 
 #include "field/value.hpp"
-#include "alloc.hpp"
 #include "class/field_index.hpp"
 
 #include <optional.hpp>
-#include <memory_list.hpp>
 #include <integer.hpp>
+#include <list.hpp>
+
+#include <posix/memory.hpp>
 
 struct _class;
 struct reference;
@@ -16,8 +17,7 @@ struct object {
 private:
 	uint32 references_ = 0;
 	optional<_class&> class_;
-	using values_type = memory_list<field_value, uint16>;
-	values_type values_;
+	list<posix::memory_for_range_of<field_value>> values_;
 
 	void on_reference_added();
 

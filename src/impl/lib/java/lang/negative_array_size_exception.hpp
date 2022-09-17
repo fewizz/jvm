@@ -22,7 +22,7 @@ inline void init_java_lang_negative_array_size_exception() {
 		c_string{ "java/lang/NegativeArraySizeException" }
 	);
 
-	negative_array_size_exception_constructor =
+	negative_array_size_exception_constructor = *
 		negative_array_size_exception_class.value()
 		.instance_methods().find(c_string{ "<init>" }, c_string{ "()V" });
 }

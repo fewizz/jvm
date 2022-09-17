@@ -6,9 +6,9 @@
 inline instance_field_index _class::get_resolved_instance_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
-	if(auto& t = trampoline(ref_index); !t.is<elements::none>()) {
+	if(auto& t = trampoline(ref_index); t.has_no_value()) {
 		if(!t.is<instance_field_index>()) {
-			fputs("invalid const pool entry", stderr);
+			//fputs("invalid const pool entry", stderr);
 			abort();
 		}
 		return t.get<instance_field_index>();
@@ -27,7 +27,7 @@ inline instance_field_index _class::get_resolved_instance_field_index(
 
 	instance_field_index index =
 		c.instance_fields().try_find_index_of(name, desc)
-		.if_no_value([]{ abort(); })
+		.if_has_no_value([]{ abort(); })
 		.value();
 	
 	trampoline(ref_index) = index;

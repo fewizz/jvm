@@ -21,7 +21,7 @@ inline method& select_method_for_invoke_special(
 		      considers the ACC_SUPER flag to be set in every class file,
 		      regardless of the actual value of the flag in the class file and
 		      the version of the class file" */
-		current.access_flags().super();
+		current.access_flags().super;
 
 	_class& c =
 		c_is_direct_super_class ? current.super() :
@@ -63,7 +63,7 @@ inline method& select_method_for_invoke_special(
 		c.for_each_maximally_specific_super_interface_instance_method(
 			resolved_method.name(), resolved_method.descriptor(),
 			[&](method& m0) {
-				if(!m0.access_flags().abstract()) {
+				if(!m0.access_flags().abstract) {
 					m = m0;
 					return loop_action::stop;
 				}

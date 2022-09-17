@@ -3,11 +3,11 @@
 #include "decl/execution/stack_entry.hpp"
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
-#include "decl/abort.hpp"
 
 #include <max.hpp>
+#include <class_file/descriptor/method_reader.hpp>
 
-#include <stdio.h>
+#include <posix/abort.hpp>
 
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
@@ -115,7 +115,7 @@ inline optional<stack_entry> native_interface_call(
 	stack_entry se_result = reference{}; {
 		using namespace class_file;
 
-		descriptor::method::reader reader {
+		class_file::method_descriptor::reader reader {
 			range_iterator(descriptor)
 		};
 		auto return_type_reader =
@@ -125,37 +125,31 @@ inline optional<stack_entry> native_interface_call(
 		return_type_reader.try_read_and_get_advanced_iterator(
 			[&]<typename Type>(Type) {
 				if constexpr(
-					same_as<Type, descriptor::z> ||
-					same_as<Type, descriptor::c> ||
-					same_as<Type, descriptor::s> ||
-					same_as<Type, descriptor::i>
+					same_as<Type, z> ||
+					same_as<Type, c> ||
+					same_as<Type, s> ||
+					same_as<Type, i>
 				) {
 					se_result = jint{ (int32) result };
 					return true;
 				}
-				else if constexpr(
-					same_as<Type, descriptor::j>
-				) {
+				else if constexpr(same_as<Type, j>) {
 					se_result = jlong{ (int64) result };
 					return true;
 				}
-				else if constexpr(
-					same_as<Type, descriptor::f>
-				) {
+				else if constexpr(same_as<Type, f>) {
 					se_result = jfloat{ arg_f_0[0] };
 					return true;
 				}
-				else if constexpr(
-					same_as<Type, descriptor::d>
-				) {
+				else if constexpr(same_as<Type, d>) {
 					se_result = jdouble{ ((__m128d) arg_f_0)[0] };
 					return true;
 				}
 				else if constexpr(
-					same_as<Type, descriptor::object> ||
-					same_as<Type, descriptor::array>
+					same_as<Type, class_file::object> ||
+					same_as<Type, class_file::array>
 				) {
-					se_result = reference{ * (object*) result };
+					se_result = reference{ * (::object*) result };
 					return true;
 				}
 				return false;

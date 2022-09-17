@@ -8,7 +8,7 @@ inline _class& _class::get_component_class() {
 	// no special handling needed
 	if(!component_class_.has_value()) {
 		if(!is_array()) {
-			fputs("asking component class of non-array class", stderr);
+			//fputs("asking component class of non-array class", stderr);
 			abort();
 		}
 		auto n = name();
@@ -18,11 +18,11 @@ inline _class& _class::get_component_class() {
 			// skip [L and ;
 			iterator_and_sentinel {
 				n.iterator() + 2, n.iterator() + n.size() - 1
-			}.to_range() :
+			}.as_range() :
 			// skip [
 			iterator_and_sentinel {
 				n.iterator() + 1, n.sentinel()
-			}.to_range();
+			}.as_range();
 		component_class_ = classes.find_or_load(component_name);
 		component_class_->array_class_ = *this;
 	}

@@ -23,7 +23,7 @@ inline void init_java_lang_null_pointer_exception() {
 		c_string{ "java/lang/NullPointerException" }
 	);
 
-	null_pointer_exception_constructor =
+	null_pointer_exception_constructor = *
 		null_pointer_exception_class.value()
 		.instance_methods().find(c_string{ "<init>" }, c_string{ "()V" });
 }

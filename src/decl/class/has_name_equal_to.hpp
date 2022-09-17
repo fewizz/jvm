@@ -8,7 +8,7 @@ struct has_name_equal_to {
 
 	bool operator () (auto& e) const {
 		return
-			range{ e.name() }.equals_to(name);
+			range{ e.name() }.have_elements_equal_to(name);
 	}
 
 };

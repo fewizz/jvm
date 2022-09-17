@@ -10,7 +10,7 @@ static inline void init_java_lang_object() {
 
 	object_class->declared_methods()
 	.find(c_string{ "hashCode" }, c_string{ "()I" })
-	.native_function(
+	->native_function(
 		(void*) (int32(*)(native_interface_environment*, object*))
 		[](native_interface_environment*, object* o) {
 			return (int32) (nuint) o;
@@ -19,7 +19,7 @@ static inline void init_java_lang_object() {
 
 	object_class->declared_methods()
 	.find(c_string{ "getClass" }, c_string{ "()Ljava/lang/Class;" })
-	.native_function(
+	->native_function(
 		(void*) (object*(*)(native_interface_environment*, object*))
 		[](native_interface_environment*, object* o) -> object* {
 			return o->_class().instance().object_ptr();

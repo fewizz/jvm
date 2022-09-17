@@ -9,12 +9,12 @@ inline void _class::for_each_maximally_specific_super_interface_instance_method(
 	Name&& name, Descriptor&& descriptor, Handler&& handler
 ) {
 	auto search_for_method = [&](_class& c) -> optional<method&> {
-		for(method& m : c.declared_instance_methods()) {
+		for(method* m : c.declared_instance_methods()) {
 			if(
 				has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
-				!m.access_flags()._private()
+				!m->access_flags()._private
 			) {
-				return m;
+				return *m;
 			}
 		}
 		return {};
@@ -23,10 +23,10 @@ inline void _class::for_each_maximally_specific_super_interface_instance_method(
 		loop_action operator()(
 			Handler&& handler, decltype(search_for_method) search, _class& c
 		) {
-			for(_class& i : c.declared_interfaces()) {
+			for(_class* i : c.declared_interfaces()) {
 				loop_action action;
 
-				optional<method&> m = search(i);
+				optional<method&> m = search(*i);
 
 				// "..., there exists no other maximally-specific superinterface
 				// method of C with the specified name and descriptor that is

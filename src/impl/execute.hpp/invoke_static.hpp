@@ -4,8 +4,10 @@
 #include "decl/class.hpp"
 #include "decl/method.hpp"
 
+template<basic_range StackType>
 inline void invoke_static(
-	class_file::constant::method_ref_index ref_index, _class& c, stack& stack
+	class_file::constant::method_ref_index ref_index,
+	_class& c, StackType& stack
 ) {
 	namespace cc = class_file::constant;
 
@@ -16,15 +18,15 @@ inline void invoke_static(
 	cc::utf8 method_desc = c.utf8_constant(nat.descriptor_index);
 
 	if(info) {
-		tabs(); fputs("invoke_static ", stderr);
+		tabs(); print("invoke_static ");
 		cc::_class _c = c.class_constant(method_ref.class_index);
 		cc::utf8 class_name = c.utf8_constant(_c.name_index);
-		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
-		fputc('.', stderr);
+		print(class_name);
+		print(".");
 		auto method_name = c.utf8_constant(nat.name_index);
-		fwrite(method_name.elements_ptr(), 1, method_name.size(), stderr);
-		fwrite(method_desc.elements_ptr(), 1, method_desc.size(), stderr);
-		fputc('\n', stderr);
+		print(method_name);
+		print(method_desc);
+		print("\n");
 	}
 
 	method& m = c.get_static_method(ref_index);
@@ -34,7 +36,7 @@ inline void invoke_static(
 	optional<stack_entry> result = execute(
 		m,
 		arguments_span {
-			stack.iterator() + stack.size() - args_count,
+			&*stack.iterator() + stack.size() - args_count,
 			args_count
 		}
 	);

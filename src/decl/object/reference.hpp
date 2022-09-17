@@ -1,6 +1,7 @@
 #pragma once
 
 #include <integer.hpp>
+#include <posix/memory.hpp>
 
 struct object;
 struct _class;
@@ -32,4 +33,7 @@ public:
 	::object* operator -> () { return obj_; }
 
 	bool is_null() const;
+
+	operator const ::object& () const { return *obj_; }
+	operator       ::object& ()       { return *obj_; }
 };

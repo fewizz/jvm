@@ -20,7 +20,7 @@ static inline void init_java_lang_class() {
 
 	class_class->declared_methods().find(
 		c_string{ "getComponentType" }, c_string{ "()Ljava/lang/Class;" }
-	).native_function(
+	)->native_function(
 		(void*) (object*(*)(native_interface_environment*, object*))
 		[](native_interface_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);

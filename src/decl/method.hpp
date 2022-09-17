@@ -3,7 +3,6 @@
 #include "./method/code.hpp"
 #include "./parameters_count.hpp"
 #include "./class/member.hpp"
-#include "./alloc.hpp"
 #include "./method_descriptor.hpp"
 
 #include <class_file/access_flag.hpp>
@@ -13,10 +12,12 @@
 #include <class_file/attribute/code/exception_handler.hpp>
 
 #include <span.hpp>
-#include <elements/one_of.hpp>
+#include <variant.hpp>
 #include <optional.hpp>
-#include <memory_list.hpp>
+#include <list.hpp>
 #include <c_string.hpp>
+
+#include <posix/memory.hpp>
 
 struct native_function_ptr {
 private:
@@ -28,10 +29,10 @@ public:
 };
 
 using code_or_native_function_ptr =
-	elements::one_of<code, optional<native_function_ptr>>;
+	variant<code, optional<native_function_ptr>>;
 
-using exception_handlers = memory_list<
-	class_file::attribute::code::exception_handler, uint16
+using exception_handlers = list<
+	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
 >;
 
 struct method : class_member<method_descriptor<class_file::constant::utf8>> {
@@ -60,7 +61,8 @@ public:
 	{}
 
 	parameters_count parameters_count() {
-		return ::parameters_count{ descriptor().parameters_types().size() };
+		auto count = descriptor().parameters_types().size();
+		return ::parameters_count{ (uint8) count };
 	}
 
 	code code() const { return code_.get<::code>(); }
@@ -70,7 +72,7 @@ public:
 	}
 
 	bool is_native() const {
-		return access_flags().native();
+		return access_flags().native;
 	}
 
 	bool native_function_is_loaded() const {
@@ -89,7 +91,7 @@ public:
 	}
 
 	bool is_void() const {
-		return descriptor().return_type().is<class_file::descriptor::v>();
+		return descriptor().return_type().is<class_file::v>();
 	}
 
 	bool is_instance_initialisation() const;

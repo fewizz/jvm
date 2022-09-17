@@ -1,15 +1,18 @@
 #include "lib/java/lang/string.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/alloc.hpp"
 
 #include <range.hpp>
+
+#include <posix/io.hpp>
+#include <posix/memory.hpp>
+
 #include <unicode/utf16.hpp>
 #include <unicode/utf8.hpp>
 
 static inline reference create_string(span<uint16> data) {
 	reference data_ref = create_char_array(data.size());
-	array_data(data_ref.object(), data.elements_ptr());
+	array_data(data_ref.object(), data.iterator());
 	reference string_ref = create_object(string_class.value());
 	string_ref->values()[string_value_index] = move(data_ref);
 	return string_ref;
@@ -31,13 +34,14 @@ static reference create_string_from_utf8(String&& str_utf8) {
 	while(it != end) {
 		auto result = utf8::decoder{}(it);
 		if(result.is_unexpected()) {
-			fputs("invalid sequence", stderr); abort();
+			posix::std_err().write_from(c_string{ "invalid sequence" });
 		}
 		auto cp = result.get_expected();
 		units += utf16::encoder<endianness::big>{}.units(cp);
 	}
 
-	span<uint16> data = allocate_for<uint16>(units).cast<uint16>();
+	span<uint16> data =
+		posix::allocate_non_owning_memory_of<uint16>(units).cast<uint16>();
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {

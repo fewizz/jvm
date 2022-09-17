@@ -2,16 +2,15 @@
 #include "decl/class.hpp"
 #include "decl/object/create.hpp"
 #include "decl/lib/java/lang/string.hpp"
-#include "decl/abort.hpp"
 
 #include <class_file/constant.hpp>
 
-#include <stdio.h>
+#include <posix/abort.hpp>
 
 inline reference _class::get_string(
 	class_file::constant::string_index string_index
 ) {
-	if(auto& t = trampoline(string_index); !t.is<elements::none>()) {
+	if(auto& t = trampoline(string_index); t.has_no_value()) {
 		if(!t.is<::reference>()) {
 			abort();
 		}

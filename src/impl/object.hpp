@@ -3,20 +3,23 @@
 #include "class.hpp"
 #include "field.hpp"
 #include "array.hpp"
-#include "abort.hpp"
-#include "range.hpp"
 
 #include "execution/info.hpp"
 
+#include <posix/memory.hpp>
+#include <posix/io.hpp>
+
 inline object::object(::_class& c) :
 	class_{ c },
-	values_{ allocate_for<field_value>(c.instance_fields().size()) }
+	values_ {
+		posix::allocate_memory_for<field_value>(c.instance_fields().size())
+	}
 {
-	for(field& instance_field : c.instance_fields()) {
-		values_.emplace_back(instance_field.descriptor());
+	for(field* instance_field : c.instance_fields()) {
+		values_.emplace_back(instance_field->descriptor());
 	}
 
-	if(info) {
+	/*if(info) {
 		tabs();
 		fprintf(
 			stderr,
@@ -25,7 +28,7 @@ inline object::object(::_class& c) :
 		auto name = _class().name();
 		fwrite(name.elements_ptr(), 1, name.size(), stderr);
 		fputc('\n', stderr);
-	}
+	}*/
 }
 
 inline object::~object() {
@@ -38,9 +41,9 @@ inline object::~object() {
 			}
 		}
 		// TODO compute actual size, uses free so its safe
-		deallocate(memory_span{ data, 0 });
+		posix::free_non_owning_memory(data);
 	}
-	if(info) {
+	/*if(info) {
 		tabs();
 		fprintf(
 			stderr,
@@ -49,44 +52,45 @@ inline object::~object() {
 		auto name = _class().name();
 		fwrite(name.elements_ptr(), 1, name.size(), stderr);
 		fputc('\n', stderr);
-	}
+	}*/
 }
 
 inline void object::on_reference_added() {
-	tabs();
+	/*tabs();
 		fprintf(
 		stderr,
 		"added reference to object @%p\n", this
-	);
+	);*/
 	++references_;
 }
 
 inline void object::on_reference_removed() {
-	tabs();
+	/*tabs();
 		fprintf(
 		stderr,
 		"removed reference to object @%p\n", this
-	);
+	);*/
 	if(references_ == 0) {
-		fputs("removing reference on object without references", stderr);
-		abort();
+		posix::std_err().write_from(
+			c_string{"removing reference on object without references"}
+		);
+		posix::abort();
 	}
 	--references_;
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 		this->~object();
-		deallocate(memory_span{ ptr_to_this, sizeof(object) });
+		posix::free_non_owning_memory(ptr_to_this);
 	}
 }
 
 inline void object::unsafe_decrease_reference_count_without_destroing() {
 	if(references_ == 0) {
-		fputs(
+		posix::std_err().write_from(c_string{
 			"'unsafe_decrease_reference_count_without_destroing'"
-			" on object without references",
-			stderr
-		);
-		abort();
+			" on object without references"
+		});
+		posix::abort();
 	}
 	--references_;
 }

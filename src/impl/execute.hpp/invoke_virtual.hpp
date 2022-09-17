@@ -7,8 +7,10 @@
 
 #include <class_file/constant.hpp>
 
+template<basic_range StackType>
 inline void invoke_virtual(
-	class_file::constant::method_ref_index ref_index, _class& c, stack& stack
+	class_file::constant::method_ref_index ref_index,
+	_class& c, StackType& stack
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
@@ -23,12 +25,12 @@ inline void invoke_virtual(
 	if(info) {
 		cc::_class _c { c.class_constant(method_ref.class_index) };
 		cc::utf8 class_name = c.utf8_constant(_c.name_index);
-		tabs(); fputs("invoke_virtual ", stderr);
-		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
-		fputc('.', stderr);
-		fwrite(name.elements_ptr(), 1, name.size(), stderr);
-		fwrite(desc.elements_ptr(), 1, desc.size(), stderr);
-		fputc('\n', stderr);
+		tabs(); print("invoke_virtual ");
+		print(class_name);
+		print(".");
+		print(name);
+		print(desc);
+		print("\n");
 	}
 
 	method& resolved_method = c.get_resolved_method(ref_index);
@@ -36,14 +38,15 @@ inline void invoke_virtual(
 	optional<stack_entry> result;
 	uint8 args_count = method_descriptor_parameters_count(desc);
 	++args_count; // this
-	reference& objectref = stack[stack.size() - args_count].get<reference>();
+	reference& objectref =
+		stack[stack.size() - args_count].template get<reference>();
 
 	if(&resolved_method._class() == method_handle_class.ptr()) {
-		if(range{ name }.equals_to(c_string{ "invokeExact" })) {
+		if(name.have_elements_equal_to(c_string{ "invokeExact" })) {
 			result = method_handle_invoke_exact(
 				objectref, // method handle
 				arguments_span {
-					stack.iterator() + stack.size() - (args_count - 1),
+					&*stack.iterator() + stack.size() - (args_count - 1),
 					uint16(args_count - 1)
 				}
 			);
@@ -58,7 +61,7 @@ inline void invoke_virtual(
 		result = execute(
 			m,
 			arguments_span {
-				stack.iterator() + stack.size() - args_count, args_count
+				&*stack.iterator() + stack.size() - args_count, args_count
 			}
 		);
 	}

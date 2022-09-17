@@ -10,7 +10,7 @@
 
 static reference lookup_find_static(object& cls, object& name, object& mt) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		method& m =
+		method& m = *
 			class_from_class_instance(cls)
 			.declared_static_methods().find(
 				name_utf8,
@@ -33,7 +33,7 @@ static reference lookup_find_special(
 	object& refc, object& name, object& mt, object& special_caller
 ) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		if(range{ name_utf8 }.equals_to(c_string{ "<init>" })) {
+		if(range{ name_utf8 }.have_elements_equal_to(c_string{ "<init>" })) {
 			abort(); // TODO throw NoSuchElementException
 		}
 		_class& receiver = class_from_class_instance(refc);
@@ -51,7 +51,7 @@ static reference lookup_find_constructor(
 	object& refc, object& mt
 ) {
 	_class& c = class_from_class_instance(refc);
-	method& init = c.declared_instance_methods().find(
+	method& init = *c.declared_instance_methods().find(
 		c_string{ "<init>" }, method_type_descriptor(mt)
 	);
 	return create_method_handle_new_invoke_special(init);
@@ -72,7 +72,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			")"
 			"Ljava/lang/invoke/MethodHandle;"
 		}
-	).native_function(
+	)->native_function(
 		(void*)
 		(object*(*)(
 			native_interface_environment*, object*, object*, object*, object*
@@ -97,7 +97,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			")"
 			"Ljava/lang/invoke/MethodHandle;"
 		}
-	).native_function(
+	)->native_function(
 		(void*)
 		(object*(*)(
 			native_interface_environment*,
@@ -122,7 +122,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			")"
 			"Ljava/lang/invoke/MethodHandle;"
 		}
-	).native_function(
+	)->native_function(
 		(void*)
 		(object*(*)(
 			native_interface_environment*,
@@ -149,7 +149,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			")"
 			"Ljava/lang/invoke/MethodHandle;"
 		}
-	).native_function(
+	)->native_function(
 		(void*)
 		(object*(*)(
 			native_interface_environment*,

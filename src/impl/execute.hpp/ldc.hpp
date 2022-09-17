@@ -4,12 +4,15 @@
 
 #include <class_file/constant.hpp>
 
+template<basic_range StackType>
 inline void ldc(
-	class_file::constant::index const_index, _class& c, stack& stack
+	class_file::constant::index const_index, _class& c, StackType& stack
 ) {
 	if(info) {
-		tabs(); fputs("ldc ", stderr);
-		fprintf(stderr, "%hhd\n", (uint8) const_index);
+		tabs();
+		print("ldc ");
+		print((uint8) const_index);
+		print("\n");
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is<class_file::constant::_int>()) {
@@ -33,16 +36,20 @@ inline void ldc(
 		).instance());
 	}
 	else {
-		fputs("unknown constant", stderr); abort();
+		posix::std_err().write_from(c_string{ "unknown constant" });
+		abort();
 	}
 }
 
+template<basic_range StackType>
 inline void ldc_2_w(
-	class_file::constant::index const_index, _class& c, stack& stack
+	class_file::constant::index const_index, _class& c, StackType& stack
 ) {
 	if(info) {
-		tabs(); fputs("ldc_2_w ", stderr);
-		fprintf(stderr, "%hd\n", (uint16) const_index);
+		tabs();
+		print("ldc_2_w ");
+		print((uint16) const_index);
+		print("\n");
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is<class_file::constant::_long>()) {
@@ -56,6 +63,7 @@ inline void ldc_2_w(
 		});
 	}
 	else {
-		fputs("unknown constant", stderr); abort();
+		posix::std_err().write_from(c_string{ "unknown constant" });
+		abort();
 	}
 }

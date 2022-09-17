@@ -1,15 +1,15 @@
 #pragma once
 
-#include "alloc.hpp"
-
 #include <class_file/constant.hpp>
 
-#include <memory_list.hpp>
+#include <list.hpp>
+
+#include <posix/memory.hpp>
 
 struct bootstrap_method_arguments_indices :
-	memory_list<class_file::constant::index, uint16>
+	list<posix::memory_for_range_of<class_file::constant::index>>
 {
-	using base_type = memory_list<class_file::constant::index, uint16>;
+	using base_type = list<posix::memory_for_range_of<class_file::constant::index>>;
 	using base_type::base_type;
 };
 
@@ -19,8 +19,8 @@ struct bootstrap_method {
 };
 
 struct bootstrap_methods :
-	memory_list<bootstrap_method, uint16>
+	list<posix::memory_for_range_of<bootstrap_method>>
 {
-	using base_type = memory_list<bootstrap_method, uint16>;
+	using base_type = list<posix::memory_for_range_of<bootstrap_method>>;
 	using base_type::base_type;
 };

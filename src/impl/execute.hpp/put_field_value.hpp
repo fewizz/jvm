@@ -1,10 +1,9 @@
 #include "decl/execution/stack_entry.hpp"
 #include "decl/field/value.hpp"
-#include "decl/abort.hpp"
 
 #include <integer.hpp>
 
-#include <stdio.h>
+#include <posix/io.hpp>
 
 inline void put_field_value(
 	field_value& to, stack_entry from
@@ -38,7 +37,7 @@ inline void put_field_value(
 			value = from.get<jdouble>();
 		}
 		else {
-			fputs("couldn't put field value", stderr);
+			posix::std_err().write_from(c_string{ "couldn't put field value" });
 			abort();
 		}
 	});

@@ -5,27 +5,28 @@
 #include "field/value.hpp"
 #include "class/instance_methods.hpp"
 #include "class/instance_fields.hpp"
-#include "alloc.hpp"
 
-#include <elements/one_of.hpp>
-#include <elements/none.hpp>
+#include <optional.hpp>
+#include <list.hpp>
 
-#include <memory_list.hpp>
+#include <posix/memory.hpp>
 
 struct static_field;
 
-using trampoline = elements::one_of<
-	elements::none, reference, _class&, method&, field_value,
+using trampoline = optional<
+	reference, _class&, method&, field_value,
 	instance_method_index, instance_field_index
 >;
 
 struct trampolines :
-	protected memory_list<trampoline, uint16>
+	protected list<posix::memory_for_range_of<trampoline>>
 {
-	using base_type = memory_list<trampoline, uint16>;
+	using base_type = list<posix::memory_for_range_of<trampoline>>;
 
-	trampolines(uint16 count) : base_type{ allocate_for<::trampoline>(count) } {
-		base_type::fill(elements::none{});
+	trampolines(uint16 count) :
+		base_type{ posix::allocate_memory_for<::trampoline>(count) }
+	{
+		base_type::fill_with(::trampoline{});
 	}
 
 	using base_type::emplace_back;

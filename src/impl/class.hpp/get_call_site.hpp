@@ -7,12 +7,13 @@
 
 #include <class_file/constant.hpp>
 
-#include <memory_list.hpp>
+#include <list.hpp>
+#include <storage.hpp>
 
 inline reference _class::get_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
-	if(auto e = trampoline(index); !e.is<elements::none>()) {
+	if(auto e = trampoline(index); e.has_no_value()) {
 		if(!e.is<reference>()) {
 			abort();
 		}
@@ -30,10 +31,10 @@ inline reference _class::get_call_site(
 	reference mh = get_method_handle(bm.method_handle_index);
 
 	uint16 args_storage_size
-		= bm.arguments_indices.size() * sizeof(stack_entry);
-	alignas(stack_entry[]) uint8 args_storage[args_storage_size];
-	::memory_list<stack_entry> args {
-		::memory_span{ args_storage, args_storage_size }
+		= bm.arguments_indices.size();
+	storage<stack_entry> args_storage[args_storage_size];
+	list<span<storage<stack_entry>>> args {
+		span{ args_storage, args_storage_size}
 	};
 
 	for(auto index : bm.arguments_indices) {
@@ -53,7 +54,10 @@ inline reference _class::get_call_site(
 	}
 
 	optional<stack_entry> result
-		= method_handle_invoke_exact(mh, arguments_span{ args });
+		= method_handle_invoke_exact(
+			mh,
+			arguments_span{ (stack_entry*) args_storage, args_storage_size }
+		);
 	
 	if(!result.has_value() || result->is<reference>()) {
 		abort();

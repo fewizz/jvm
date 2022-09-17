@@ -2,9 +2,12 @@
 
 #include "./stack_entry.hpp"
 
-#include <memory_list.hpp>
+#include <list.hpp>
 
-struct stack : memory_list<stack_entry, uint16> {
-	using base_type = memory_list<stack_entry, uint16>;
+#include <posix/memory.hpp>
+
+/*template<template<typename> typename StorageRange>
+struct stack : list<StorageRange<storage<stack_entry>>> {
+	using base_type = list<StorageRange<stack_entry>>;
 	using base_type::base_type;
-};
+};*/

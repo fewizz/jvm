@@ -1,12 +1,11 @@
 #include "impl/impl.hpp"
 
 #include "define/primitive_class.hpp"
-
-#include <inttypes.h>
+#include "executable_path.hpp"
 
 int main (int argc, const char** argv) {
 	if(argc != 2) {
-		fputs("usage: 'class name'", stderr);
+		posix::std_err().write_from(c_string{ "usage: 'class name'" });
 		return 1;
 	}
 
@@ -46,17 +45,20 @@ int main (int argc, const char** argv) {
 	init_lib();
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
-	method& m = c.declared_static_methods().try_find(
+	method& m = *c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }
-	).if_no_value([]{ puts("main method is not found"); }).value();
+	).if_has_no_value([] {
+		posix::std_err().write_from(c_string{ "main method is not found" });
+		abort();
+	}).value();
 
 	stack_entry args_array = create_array_of(string_class.value(), 0);
 
 	execute(m, arguments_span{ &args_array, 1 });
 
 	if(!thrown.is_null()) {
-		fputs("unhandled throwable", stdout);
+		posix::std_err().write_from(c_string{ "unhandled throwable" });
 		return 1;
 	}
 }

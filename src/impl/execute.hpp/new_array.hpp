@@ -2,16 +2,16 @@
 #include "execution/info.hpp"
 #include "execution/stack.hpp"
 
-#include "abort.hpp"
-
 #include <class_file/constant.hpp>
 #include <class_file/attribute/code/instruction.hpp>
 
+template<basic_range StackType>
 inline void new_array(
 	//_class& c, TODO use trampoline
-	class_file::attribute::code::instruction::new_array_type type, stack& stack
+	class_file::attribute::code::instruction::new_array_type type,
+	StackType& stack
 ) {
-	int32 count = stack.pop_back().get<jint>();
+	int32 count = stack.pop_back().template get<jint>();
 	reference ref;
 
 	using namespace class_file::attribute::code::instruction;
@@ -26,7 +26,7 @@ inline void new_array(
 		case new_array_type::_int:     ref = create_int_array(count);    break;
 		case new_array_type::_long:    ref = create_long_array(count);   break;
 		default:
-			fputs("unknown type of array", stderr);
+			posix::std_err().write_from(c_string{ "unknown type of array" });
 			abort();
 	}
 
@@ -43,9 +43,10 @@ inline void new_array(
 			case new_array_type::_int:     type_ch = 'I'; break;
 			case new_array_type::_long:    type_ch = 'J'; break;
 		}
-		tabs(); fputs("new_array ", stderr);
-		fputc((uint8) type_ch, stderr);
-		fputc('\n', stderr);
+		tabs();
+		print("new_array ");
+		print((uint8) type_ch);
+		print("\n");
 	}
 
 	stack.emplace_back(move(ref));

@@ -3,16 +3,14 @@
 #include "primitives.hpp"
 #include "object/reference.hpp"
 
-#include "abort.hpp"
-
 #include <class_file/descriptor/method_reader.hpp>
 
-#include <elements/one_of.hpp>
+#include <variant.hpp>
 #include <range.hpp>
 
-#include <stdio.h>
+#include <posix/abort.hpp>
 
-using one_of_jtpyes = elements::one_of<
+using one_of_jtpyes = variant<
 	reference, jbool, jbyte, jchar, jshort, jint,
 	jlong, jfloat, jdouble
 >;
@@ -33,10 +31,10 @@ private:
 
 		optional<one_of_jtpyes> jtype;
 
-		class_file::descriptor::read_type(
+		class_file::read_type_descriptor(
 			descriptor.iterator(),
 			[&]<typename DescriptorType>(DescriptorType) {
-				using namespace class_file::descriptor;
+				using namespace class_file;
 				if constexpr(same_as<DescriptorType, b>) {
 					jtype = jbyte{};
 				}
@@ -62,17 +60,17 @@ private:
 					jtype = jbool{};
 				}
 				else if constexpr(
-					same_as<DescriptorType, class_file::descriptor::object>
+					same_as<DescriptorType, class_file::object>
 				) {
 					jtype = reference{};
 				}
 				else if constexpr(
-					same_as<DescriptorType, class_file::descriptor::array>
+					same_as<DescriptorType, class_file::array>
 				) {
 					jtype = reference{};
 				}
 			},
-			[](auto){ abort(); }
+			[](auto){ posix::abort(); }
 		);
 		return jtype.value();
 	}

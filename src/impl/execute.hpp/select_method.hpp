@@ -13,7 +13,7 @@ inline method& select_method(
 	_class& c, method& mr
 ) {
 	// "1. If mR is marked ACC_PRIVATE, then it is the selected method."
-	if(mr.access_flags()._private()) {
+	if(mr.access_flags()._private) {
 		return mr;
 	}
 	/* "2. Otherwise, the selected method is determined by the following
@@ -42,7 +42,7 @@ inline method& select_method(
 	c.for_each_maximally_specific_super_interface_instance_method(
 		mr.name(), mr.descriptor(),
 		[&](method& m0) {
-			if(!m0.access_flags().abstract()) {
+			if(!m0.access_flags().abstract) {
 				m = m0;
 				return loop_action::stop;
 			}

@@ -15,7 +15,7 @@ static inline void init_java_lang_system() {
 	system_class->declared_methods().find(
 		c_string{ "arraycopy" },
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
-	).native_function(
+	)->native_function(
 		(void*) (void(*)(
 			native_interface_environment*, object*, int32, object*, int32, int32
 		))
@@ -26,19 +26,21 @@ static inline void init_java_lang_system() {
 			int32 len
 		) {
 			if(src == nullptr) {
-				fputs("src is nullptr", stderr); abort();
+				posix::std_err().write_from(c_string{ "src is nullptr" });
+				abort();
 			}
 			if(dst == nullptr) {
-				fputs("dst is nullptr", stderr); abort();
+				posix::std_err().write_from(c_string{ "dst is nullptr" });
+				abort();
 			}
 			if(&src->_class() != &dst->_class()) {
-				fputs("different classes", stderr); abort();
+				abort();
 			}
 			if(!src->_class().is_array()) {
-				fputs("src is not array", stderr); abort();
+				abort();
 			}
 			if(!dst->_class().is_array()) {
-				fputs("dst is not array", stderr); abort();
+				abort();
 			}
 			
 			if(&src->_class() == &byte_array_class.value()) {
@@ -56,20 +58,19 @@ static inline void init_java_lang_system() {
 				}.copy_to(span{ dst_data + dst_pos, (nuint) len });
 			}
 			else {
-				fputs("unknown array element type", stderr); abort();
+				abort();
 			}
 		}
 	);
 
 	system_class->declared_methods().find(
 		c_string{ "nanoTime" }, c_string{ "()J" }
-	).native_function(
+	)->native_function(
 		(void*) (int64(*)(native_interface_environment*))
 		[](native_interface_environment*) {
 			timespec tp;
 			int result = clock_gettime(CLOCK_MONOTONIC, &tp);
 			if(result != 0) {
-				fputs("clock_gettime", stderr);
 				abort();
 			}
 			return int64{ tp.tv_sec * 1000000000ll + tp.tv_nsec };

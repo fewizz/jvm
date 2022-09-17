@@ -35,7 +35,7 @@ static reference method_type_method_descriptor(
 	auto descriptor = ranges {
 		array{ '(' },
 		range {
-			range{ params }.transform_view([&](reference& param_ref) {
+			params.transform_view([&](reference& param_ref) {
 				_class& c = class_from_class_instance(param_ref.object());
 				return desc_class_name(c);
 			})
@@ -44,9 +44,9 @@ static reference method_type_method_descriptor(
 		desc_class_name(class_from_class_instance(ret))
 	}.concat_view();
 
-	nuint size = iterator_and_sentinel{
+	nuint size = iterator_and_sentinel {
 		range_iterator(descriptor), range_sentinel(descriptor)
-	}.distance();
+	}.get_or_compute_distance();
 
 	reference array = create_byte_array(size);
 	range{ descriptor }.copy_to(array_as_span<uint8>(array.object()));
@@ -60,21 +60,21 @@ static void init_java_lang_invoke_method_type() {
 	);
 
 	method_type_parameter_types_instance_field_index = {
-		method_type_class->instance_fields().find_index_of(
+		(uint16) method_type_class->instance_fields().find_index_of(
 			c_string{ "parameterTypes_" },
 			c_string{ "[Ljava/lang/Class;" }
 		)
 	};
 
 	method_type_return_type_instance_field_index = {
-		method_type_class->instance_fields().find_index_of(
+		(uint16) method_type_class->instance_fields().find_index_of(
 			c_string{ "returnType_" },
 			c_string{ "Ljava/lang/Class;" }
 		)
 	};
 
 	method_type_descriptor_instance_field_index = {
-		method_type_class->instance_fields().find_index_of(
+		(uint16) method_type_class->instance_fields().find_index_of(
 			c_string{ "descriptorUTF8_" },
 			c_string{ "[B" }
 		)
@@ -83,7 +83,7 @@ static void init_java_lang_invoke_method_type() {
 	method_type_class->declared_methods().find(
 		c_string{ "descriptorUTF8" },
 		c_string{ "([Ljava/lang/Class;Ljava/lang/Class;)[B" }
-	).native_function(
+	)->native_function(
 		(void*) (object*(*)(native_interface_environment*, object*, object*))
 		[](native_interface_environment*, object* params_array, object* ret) {
 			return &

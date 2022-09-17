@@ -7,9 +7,10 @@
 
 #include <loop_action.hpp>
 
+template<basic_range StackType>
 inline void invoke_special(
 	class_file::constant::method_ref_index ref_index,
-	_class& current, stack& stack
+	_class& current, StackType& stack
 ) {
 	namespace cc = class_file::constant;
 
@@ -21,15 +22,15 @@ inline void invoke_special(
 	cc::utf8 method_desc = current.utf8_constant(nat.descriptor_index);
 
 	if(info) {
-		tabs(); fputs("invoke_special ", stderr);
+		tabs(); print("invoke_special ");
 		cc::_class _c = current.class_constant(method_ref.class_index);
 		cc::utf8 class_name = current.utf8_constant(_c.name_index);
-		fwrite(class_name.elements_ptr(), 1, class_name.size(), stderr);
-		fputc('.', stderr);
+		print(class_name);
+		print(".");
 		cc::utf8 method_name = current.utf8_constant(nat.name_index);
-		fwrite(method_name.elements_ptr(), 1, method_name.size(), stderr);
-		fwrite(method_desc.elements_ptr(), 1, method_desc.size(), stderr);
-		fputc('\n', stderr);
+		print(method_name);
+		print(method_desc);
+		print("\n");
 	}
 
 	method& resolved_method = current.get_resolved_method(ref_index);
@@ -45,7 +46,7 @@ inline void invoke_special(
 	optional<stack_entry> result = execute(
 		m,
 		arguments_span {
-			stack.iterator() + stack.size() - args_count, args_count
+			&*stack.iterator() + stack.size() - args_count, args_count
 		}
 	);
 

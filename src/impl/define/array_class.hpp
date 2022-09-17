@@ -8,10 +8,12 @@
 
 template<basic_range Name>
 inline _class& define_array_class(Name&& name) {
-	memory_span data = allocate(name.size());
+	auto data = posix::allocate_memory_for<uint8>(name.size());
 	range{ name }.copy_to(data);
 
-	declared_fields declared_fields { allocate_for<field>(2) };
+	declared_fields declared_fields {
+		posix::allocate_memory_for<field>(2)
+	};
 
 	// ptr to data
 	declared_fields.emplace_back(
@@ -30,7 +32,7 @@ inline _class& define_array_class(Name&& name) {
 		constants{}, bootstrap_methods{},
 		data,
 		class_file::access_flags{ class_file::access_flag::_public },
-		this_class_name { data.cast<const char>() },
+		this_class_name { move(data) },
 		object_class.value(),
 		declared_interfaces{},
 		move(declared_fields),

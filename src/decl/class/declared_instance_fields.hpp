@@ -1,15 +1,13 @@
 #pragma once
 
-#include "./find_by_name_and_descriptor_mixin.hpp"
 #include "./field_index.hpp"
 #include "field.hpp"
 
-#include <memory_list.hpp>
+#include <list.hpp>
 
-struct declared_instance_fields :
-	memory_list<field&, declared_field_index>,
-	find_by_name_and_descriptor_mixin<::declared_instance_fields>
-{
-	using base_type = memory_list<field&, declared_field_index>;
+#include <posix/memory.hpp>
+
+struct declared_instance_fields : list<posix::memory_for_range_of<field*>> {
+	using base_type = list<posix::memory_for_range_of<field*>>;
 	using base_type::base_type;
 };

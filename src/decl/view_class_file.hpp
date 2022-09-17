@@ -1,8 +1,8 @@
 #pragma once
 
 #include "executable_path.hpp"
-#include "abort.hpp"
 
+#include <array.hpp>
 #include <range.hpp>
 #include <ranges.hpp>
 #include <c_string.hpp>
@@ -10,7 +10,7 @@
 #include <on_scope_exit.hpp>
 #include <expression_of_type.hpp>
 
-#include <stdio.h>
+#include <posix/io.hpp>
 
 template<basic_range Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
@@ -21,17 +21,12 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		}.concat_view();
 
 		return range{ null_terminated }.view_copied_elements_on_stack(
-			[&](auto on_stack)
-			-> optional<decltype(handler(expression_of_type<FILE*>))> {
-				FILE* f = fopen(on_stack.elements_ptr(), "rb");
-
-				if(f == nullptr) {
-					return {};
-				}
-
-				on_scope_exit close_file{[&]{ fclose(f); }};
-
-				return handler(f);
+			[&](auto on_stack) {
+				posix::own_file f = posix::open_file(
+					c_string{ on_stack },
+					posix::file_access_modes{ posix::file_access_mode::read }
+				);
+				return handler(move(f));
 			}
 		);
 	};
@@ -48,25 +43,22 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		--last_slash;
 	}
 
-	auto result = range {
+	auto result =
 		ranges {
-			c_string{ exe.elements_ptr(), last_slash },
+			c_string{ exe.iterator(), last_slash },
 			c_string{ "/java.base"}
-		}.concat_view()
-	}.view_copied_elements_on_stack([&](auto on_stack) {
-		return try_at(on_stack);
-	});
+		}.concat_view().view_copied_elements_on_stack([&](auto on_stack) {
+			return try_at(on_stack);
+		});
 
 	if(!result.has_value()) {
 		result = try_at(c_string{ "." });
 	}
 
 	if(!result) {
-		fputs("couldn't find class file ", stderr);
-		range{ name}.view_copied_elements_on_stack([&](auto name_on_stack) {
-			fwrite(
-				name_on_stack.elements_ptr(), 1, name_on_stack.size(), stderr
-			);
+		posix::std_err().write_from(c_string{"couldn't find class file "});
+		range{ name }.view_copied_elements_on_stack([&](auto name_on_stack) {
+			posix::std_err().write_from(name_on_stack);
 		});
 		abort();
 	}

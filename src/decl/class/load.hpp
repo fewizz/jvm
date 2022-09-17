@@ -8,7 +8,7 @@
 
 #include <range.hpp>
 
-#include <stdio.h>
+#include <posix/io.hpp>
 
 // only for loading NON-LOADED classes.
 // otherwise, use find_or_load_class(name)
@@ -16,12 +16,12 @@ template<basic_range Name>
 inline _class& load_class(Name&& name) {
 	if(info) {
 		tabs();
-		fputs("loading class ", stderr);
+		print("loading class ");
 	}
 
 	range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
-		fwrite(on_stack.elements_ptr(), 1, on_stack.size(), stderr);
-		fputc('\n', stderr);
+		print(on_stack);
+		print("\n");
 	});
 
 	if(range{ name }.starts_with('[')) {
@@ -29,13 +29,12 @@ inline _class& load_class(Name&& name) {
 	}
 
 	return view_class_file(name,
-		[&](auto f) -> decltype(auto) {
-			fseek(f, 0, SEEK_END);
-			nuint size = ftell(f);
-			rewind(f);
-			memory_span data = allocate(size);
-			fread(data.elements_ptr(), 1, size, f);
-			return define_class(data);
+		[&](posix::own_file f) -> decltype(auto) {
+			nuint size = f->set_offset_to_end();
+			f->set_offset(0);
+			auto data = posix::allocate_memory_for<uint8>(size);
+			f->read_to(data);
+			return define_class(move(data));
 		}
 	);
 }
