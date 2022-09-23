@@ -16,6 +16,14 @@ struct bootstrap_method_arguments_indices :
 struct bootstrap_method {
 	class_file::constant::method_handle_index method_handle_index;
 	bootstrap_method_arguments_indices        arguments_indices;
+
+	bootstrap_method(
+		class_file::constant::method_handle_index method_handle_index,
+		bootstrap_method_arguments_indices        arguments_indices
+	) :
+		method_handle_index{ method_handle_index },
+		arguments_indices{ move(arguments_indices) }
+	{}
 };
 
 struct bootstrap_methods :

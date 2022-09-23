@@ -29,7 +29,7 @@ inline _class& load_class(Name&& name) {
 	}
 
 	return view_class_file(name,
-		[&](posix::own_file f) -> _class& {
+		[&](posix::own_file& f) -> _class& {
 			nuint size = f->set_offset_to_end();
 			f->set_offset(0);
 			auto data = posix::allocate_memory_for<uint8>(size);

@@ -8,7 +8,7 @@
 inline method& _class::get_resolved_method(
 	class_file::constant::method_ref_index ref_index
 ) {
-	if(auto& t = trampoline(ref_index); t.has_no_value()) {
+	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is<method&>()) {
 			abort();
 		}

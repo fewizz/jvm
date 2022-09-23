@@ -34,7 +34,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				if(error) {
 					return {};
 				}
-				return handler(move(f));
+				return handler(f);
 			}
 		);
 	};

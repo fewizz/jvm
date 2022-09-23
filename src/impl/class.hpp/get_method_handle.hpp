@@ -7,7 +7,7 @@
 inline reference _class::get_method_handle(
 	class_file::constant::method_handle_index index
 ) {
-	if(auto e = trampoline(index); e.has_no_value()) {
+	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is<reference>()) {
 			abort();
 		}

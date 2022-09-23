@@ -6,7 +6,7 @@
 inline field_value& _class::get_static_field_value(
 	class_file::constant::field_ref_index ref_index
 ) {
-	if(auto& t = trampoline(ref_index); t.has_no_value()) {
+	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is<field_value&>()) {
 			abort();
 		}

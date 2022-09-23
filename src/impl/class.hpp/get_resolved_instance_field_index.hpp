@@ -6,7 +6,7 @@
 inline instance_field_index _class::get_resolved_instance_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
-	if(auto& t = trampoline(ref_index); t.has_no_value()) {
+	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is<instance_field_index>()) {
 			//fputs("invalid const pool entry", stderr);
 			abort();

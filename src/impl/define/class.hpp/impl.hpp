@@ -64,7 +64,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 				class_file::constant::utf8 name =
 					const_pool.utf8_constant(c.name_index);
 				_class& interface = classes.find_or_load(name);
-				interfaces.emplace_back(interface);
+				interfaces.emplace_back(&interface);
 			}
 		);
 

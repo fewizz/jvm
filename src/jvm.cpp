@@ -3,6 +3,8 @@
 #include "define/primitive_class.hpp"
 #include "executable_path.hpp"
 
+#include <posix/default_error_handler.cpp>
+
 int main (int argc, const char** argv) {
 	if(argc != 2) {
 		posix::std_err().write_from(c_string{ "usage: 'class name'" });

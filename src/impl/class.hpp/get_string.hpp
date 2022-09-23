@@ -10,7 +10,7 @@
 inline reference _class::get_string(
 	class_file::constant::string_index string_index
 ) {
-	if(auto& t = trampoline(string_index); t.has_no_value()) {
+	if(auto& t = trampoline(string_index); t.has_value()) {
 		if(!t.is<::reference>()) {
 			abort();
 		}
