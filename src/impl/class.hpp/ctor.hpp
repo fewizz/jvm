@@ -70,18 +70,18 @@ inline _class::_class(
 	// filling up declared static and instance members
 	for(field& f : this->declared_fields()) {
 		if(f.access_flags()._static) {
-			declared_static_fields_.emplace_back(f);
+			declared_static_fields_.emplace_back(&f);
 		}
 		else {
-			declared_instance_fields_.emplace_back(f);
+			declared_instance_fields_.emplace_back(&f);
 		}
 	}
 	for(method& m : this->declared_methods()) {
 		if(m.access_flags()._static) {
-			declared_static_methods_.emplace_back(m);
+			declared_static_methods_.emplace_back(&m);
 		}
 		else {
-			declared_instance_methods_.emplace_back(m);
+			declared_instance_methods_.emplace_back(&m);
 		}
 	}
 

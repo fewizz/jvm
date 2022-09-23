@@ -9,7 +9,8 @@
 template<basic_range Name>
 inline _class& define_array_class(Name&& name) {
 	auto data = posix::allocate_memory_for<uint8>(name.size());
-	range{ name }.copy_to(data);
+	span<char> data_as_span{ (char*) data.iterator(), data.size() };
+	range{ name }.copy_to(data_as_span);
 
 	declared_fields declared_fields {
 		posix::allocate_memory_for<field>(2)
@@ -30,9 +31,9 @@ inline _class& define_array_class(Name&& name) {
 
 	return classes.emplace_back(
 		constants{}, bootstrap_methods{},
-		data,
+		move(data),
 		class_file::access_flags{ class_file::access_flag::_public },
-		this_class_name { move(data) },
+		this_class_name { data_as_span },
 		object_class.value(),
 		declared_interfaces{},
 		move(declared_fields),

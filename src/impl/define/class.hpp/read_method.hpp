@@ -7,7 +7,7 @@
 #include <variant.hpp>
 
 template<typename Iterator>
-static inline variant<
+static inline tuple<
 	method, Iterator
 >
 read_method_and_get_advaned_iterator(
@@ -49,7 +49,7 @@ read_method_and_get_advaned_iterator(
 				};
 
 				exception_handlers = {
-					allocate_for<
+					posix::allocate_memory_for<
 						class_file::attribute::code::exception_handler
 					>(read_exception_table.count())
 				};

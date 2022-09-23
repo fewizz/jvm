@@ -22,7 +22,7 @@ inline void init_java_lang_index_of_of_bounds_exception() {
 		c_string{ "java/lang/IndexOutOfBoundsException" }
 	);
 
-	index_of_of_bounds_exception_constructor = *
+	index_of_of_bounds_exception_constructor =
 		index_of_of_bounds_exception_class.value()
 		.instance_methods().find(
 			c_string{ "<init>" }, c_string{ "()V" }

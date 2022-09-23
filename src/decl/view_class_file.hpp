@@ -20,12 +20,20 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 			name, c_string{ ".class" }, array{ '\0' }
 		}.concat_view();
 
-		return range{ null_terminated }.view_copied_elements_on_stack(
-			[&](auto on_stack) {
-				posix::own_file f = posix::open_file(
-					c_string{ on_stack },
-					posix::file_access_modes{ posix::file_access_mode::read }
+		return null_terminated.view_copied_elements_on_stack(
+			[&](span<const char> on_stack)
+			-> optional<decltype(
+				expression_of_type<Handler>(expression_of_type<posix::own_file>)
+			)> {
+				bool error = false;
+				posix::own_file f = posix::try_open_file(
+					c_string{ on_stack.iterator() },
+					posix::file_access_modes{ posix::file_access_mode::read },
+					[&](auto) { error = true; }
 				);
+				if(error) {
+					return {};
+				}
 				return handler(move(f));
 			}
 		);
@@ -47,7 +55,10 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		ranges {
 			c_string{ exe.iterator(), last_slash },
 			c_string{ "/java.base"}
-		}.concat_view().view_copied_elements_on_stack([&](auto on_stack) {
+		}
+		.concat_view()
+		.sized_view()
+		.view_copied_elements_on_stack([&](auto on_stack) {
 			return try_at(on_stack);
 		});
 

@@ -23,7 +23,7 @@ static inline void init_java_lang_throwable() {
 	throwable_class->declared_instance_methods()
 	.find(
 		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }
-	)->native_function(
+	).native_function(
 		(void*) (object* (*)(native_interface_environment*, object*))
 		[](native_interface_environment*, object* ths) {
 			execution_context* ctx = latest_execution_context.ptr();

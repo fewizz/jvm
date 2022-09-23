@@ -11,6 +11,7 @@ if [[ $OS != Windows_NT ]]; then
 fi
 
 if ! clang++ \
+	-ferror-limit=64 \
 	-std=c++20 \
 	-Wall -Wextra \
 	-glldb \

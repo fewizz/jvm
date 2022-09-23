@@ -15,7 +15,7 @@ static inline void init_java_lang_system() {
 	system_class->declared_methods().find(
 		c_string{ "arraycopy" },
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
-	)->native_function(
+	).native_function(
 		(void*) (void(*)(
 			native_interface_environment*, object*, int32, object*, int32, int32
 		))
@@ -65,7 +65,7 @@ static inline void init_java_lang_system() {
 
 	system_class->declared_methods().find(
 		c_string{ "nanoTime" }, c_string{ "()J" }
-	)->native_function(
+	).native_function(
 		(void*) (int64(*)(native_interface_environment*))
 		[](native_interface_environment*) {
 			timespec tp;

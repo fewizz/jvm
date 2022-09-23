@@ -29,7 +29,7 @@ static inline void init_java_lang_stack_trace_element() {
 		c_string{ "java/lang/StackTraceElement" }
 	);
 
-	stack_trace_element_constructor = *
+	stack_trace_element_constructor =
 		stack_trace_element_class->instance_methods().find(
 			c_string{ "<init>" },
 			c_string {

@@ -27,7 +27,7 @@ inline reference _class::get_method_handle(
 			auto nat = name_and_type_constant(ref.name_and_type_index);
 			auto name = utf8_constant(nat.name_index);
 			auto desc = utf8_constant(nat.descriptor_index);
-			method& m = *c.declared_methods().find(name, desc);
+			method& m = c.declared_methods().find(name, desc);
 			return create_method_handle_invoke_static(m);
 		}
 		default: abort();

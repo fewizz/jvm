@@ -9,7 +9,7 @@ static void init_java_lang_reflect_array() {
 	.declared_methods().find(
 		c_string{ "newInstance" },
 		c_string{ "(Ljava/lang/Class;I)Ljava/lang/Object;" }
-	)->native_function(
+	).native_function(
 		(void*) (object*(*)(native_interface_environment*, object*, int32))
 		[](
 			native_interface_environment*, object* component_type, int32 len

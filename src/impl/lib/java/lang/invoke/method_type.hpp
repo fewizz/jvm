@@ -16,7 +16,7 @@ static reference method_type_method_descriptor(
 ) {
 	span<reference> params = array_as_span<reference>(params_array);
 
-	auto desc_class_name = [](_class& c) {
+	auto desc_class_name = [](_class& c) -> span<const char> {
 		if(c.is_primitive()) {
 			if(&c == void_class.ptr())   { return span{ c_string{ "V" } }; }
 			if(&c == bool_class.ptr())   { return span{ c_string{ "Z" } }; }
@@ -32,26 +32,32 @@ static reference method_type_method_descriptor(
 		return span{ c.name() };
 	};
 
-	auto descriptor = ranges {
-		array{ '(' },
-		range {
-			params.transform_view([&](reference& param_ref) {
-				_class& c = class_from_class_instance(param_ref.object());
-				return desc_class_name(c);
-			})
-		}.flat_view(),
-		array{ ')' },
-		desc_class_name(class_from_class_instance(ret))
-	}.concat_view();
+	
+	return params.transform_view(
+		[&](reference& param_ref) -> span<const char> {
+			_class& c = class_from_class_instance(param_ref.object());
+			return desc_class_name(c);
+		})
+		.flat_view()
+		.sized_view()
+		.view_copied_elements_on_stack(
+	[&](span<const char> params) {
+		auto descriptor = ranges {
+			array{ '(' },
+			params,
+			array{ ')' },
+			desc_class_name(class_from_class_instance(ret))
+		}.concat_view();
 
-	nuint size = iterator_and_sentinel {
-		range_iterator(descriptor), range_sentinel(descriptor)
-	}.get_or_compute_distance();
+		nuint size = iterator_and_sentinel {
+			range_iterator(descriptor), range_sentinel(descriptor)
+		}.get_or_compute_distance();
 
-	reference array = create_byte_array(size);
-	range{ descriptor }.copy_to(array_as_span<uint8>(array.object()));
+		reference array = create_byte_array(size);
+		range{ descriptor }.copy_to(array_as_span<uint8>(array.object()));
 
-	return array;
+		return array;
+	});
 }
 
 static void init_java_lang_invoke_method_type() {
@@ -83,7 +89,7 @@ static void init_java_lang_invoke_method_type() {
 	method_type_class->declared_methods().find(
 		c_string{ "descriptorUTF8" },
 		c_string{ "([Ljava/lang/Class;Ljava/lang/Class;)[B" }
-	)->native_function(
+	).native_function(
 		(void*) (object*(*)(native_interface_environment*, object*, object*))
 		[](native_interface_environment*, object* params_array, object* ret) {
 			return &

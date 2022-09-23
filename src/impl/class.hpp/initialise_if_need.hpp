@@ -25,7 +25,7 @@ inline void _class::initialise_if_need() {
 	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
 	declared_methods_
 		.try_find(c_string{ "<clinit>" }, c_string{ "()V" })
-		.if_has_no_value([](method& clinit) {
+		.if_has_value([](method& clinit) {
 			execute(clinit);
 		});
 

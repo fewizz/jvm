@@ -70,7 +70,7 @@ method& _class::resolve_interface_method(
 		for(method* m0 : i.declared_instance_methods()) {
 			if(
 				!m0->access_flags()._private &&
-				has_name_and_descriptor_equal_to{ name, descriptor}(m0)
+				has_name_and_descriptor_equal_to{ name, descriptor}(*m0)
 			) {
 				m = *m0;
 				return loop_action::stop;

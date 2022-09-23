@@ -676,7 +676,12 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, i_inc>) {
 			if(info) {
-				tabs(); print("i_inc %hhu %hhd\n", x.index, x.value);
+				tabs();
+				print("i_inc ");
+				print(x.index);
+				print(" ");
+				print(x.value);
+				print("\n");
 			}
 			locals[x.index].template get<jint>() += x.value;
 		}
@@ -757,8 +762,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_eq>) {
 			if(info) {
-				tabs(); print("if_eq ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_eq ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value == 0) {
@@ -767,8 +774,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_ne>) {
 			if(info) {
-				tabs(); print("if_ne ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_ne ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value != 0) {
@@ -777,8 +786,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_lt>) {
 			if(info) {
-				tabs(); print("if_lt ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_lt ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value < 0) {
@@ -787,8 +798,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_ge>) {
 			if(info) {
-				tabs(); print("if_ge ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_ge ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value >= 0) {
@@ -797,8 +810,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_gt>) {
 			if(info) {
-				tabs(); print("if_gt ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_gt ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value > 0) {
@@ -807,8 +822,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_le>) {
 			if(info) {
-				tabs(); print("if_le ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_le ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value = stack.pop_back().get<jint>();
 			if(value <= 0) {
@@ -817,8 +834,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_eq>) {
 			if(info) {
-				tabs(); print("if_i_cmp_eq ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_eq ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -828,8 +847,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ne>) {
 			if(info) {
-				tabs(); print("if_i_cmp_ne ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_ne ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -839,8 +860,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_lt>) {
 			if(info) {
-				tabs(); print("if_i_cmp_lt ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_lt ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -850,8 +873,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_ge>) {
 			if(info) {
-				tabs(); print("if_i_cmp_ge ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_ge ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -861,8 +886,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_gt>) {
 			if(info) {
-				tabs(); print("if_i_cmp_gt ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_gt ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -872,8 +899,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_i_cmp_le>) {
 			if(info) {
-				tabs(); print("if_i_cmp_le ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_i_cmp_le ");
+				print(x.branch);
+				print("\n");
 			}
 			int32 value2 = stack.pop_back().get<jint>();
 			int32 value1 = stack.pop_back().get<jint>();
@@ -883,8 +912,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_a_cmp_eq>) {
 			if(info) {
-				tabs(); print("if_a_cmp_eq ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_a_cmp_eq ");
+				print(x.branch);
+				print("\n");
 			}
 			reference value2 = stack.pop_back().get<reference>();
 			reference value1 = stack.pop_back().get<reference>();
@@ -894,8 +925,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_a_cmp_ne>) {
 			if(info) {
-				tabs(); print("if_a_cmp_ne ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_a_cmp_ne ");
+				print(x.branch);
+				print("\n");
 			}
 			reference value2 = stack.pop_back().get<reference>();
 			reference value1 = stack.pop_back().get<reference>();
@@ -905,8 +938,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, go_to>) {
 			if(info) {
-				tabs(); print("go_to ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("go_to ");
+				print(x.branch);
+				print("\n");
 			}
 			it = m.code().iterator() + pc + x.branch;
 		}
@@ -1093,7 +1128,7 @@ static optional<stack_entry> execute(
 			if(info) {
 				tabs();
 				print("check_cast ");
-				print(x.index);
+				print((uint16) x.index);
 				print("\n");
 			}
 			//_class& type = c.get_resolved_class(x.index);
@@ -1133,8 +1168,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_null>) {
 			if(info) {
-				tabs(); print("if_null ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_null ");
+				print(x.branch);
+				print("\n");
 			}
 			reference ref = stack.pop_back().get<reference>();
 			if(ref.is_null()) {
@@ -1143,8 +1180,10 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, if_non_null>) {
 			if(info) {
-				tabs(); print("if_non_null ");
-				print("%hd\n", x.branch);
+				tabs();
+				print("if_non_null ");
+				print(x.branch);
+				print("\n");
 			}
 			reference ref = stack.pop_back().get<reference>();
 			if(!ref.is_null()) {
@@ -1154,10 +1193,7 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, uint8>) {
 			if(info) tabs();
 			print("unknown instruction ");
-			for_each_digit_in_number(
-				x, number_base{ 10 },
-				[](auto digit) { fputc('0' + digit); }
-			);
+			print(x);
 			abort();
 		}
 		else {

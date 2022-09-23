@@ -7,11 +7,10 @@ inline field_value& _class::get_static_field_value(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_no_value()) {
-		if(!t.is<field_value>()) {
-			//fputs("invalid const pool entry", stderr);
+		if(!t.is<field_value&>()) {
 			abort();
 		}
-		return t.get<field_value>();
+		return t.get<field_value&>();
 	}
 
 	namespace cc = class_file::constant;

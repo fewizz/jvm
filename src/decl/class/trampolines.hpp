@@ -14,7 +14,7 @@
 struct static_field;
 
 using trampoline = optional<
-	reference, _class&, method&, field_value,
+	reference, _class&, method&, field_value&,
 	instance_method_index, instance_field_index
 >;
 

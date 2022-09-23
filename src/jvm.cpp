@@ -45,7 +45,7 @@ int main (int argc, const char** argv) {
 	init_lib();
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
-	method& m = *c.declared_static_methods().try_find(
+	method& m = c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }
 	).if_has_no_value([] {

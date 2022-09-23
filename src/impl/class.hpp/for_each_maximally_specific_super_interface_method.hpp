@@ -11,7 +11,7 @@ inline void _class::for_each_maximally_specific_super_interface_instance_method(
 	auto search_for_method = [&](_class& c) -> optional<method&> {
 		for(method* m : c.declared_instance_methods()) {
 			if(
-				has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
+				has_name_and_descriptor_equal_to{ name, descriptor }(*m) &&
 				!m->access_flags()._private
 			) {
 				return *m;
@@ -37,7 +37,7 @@ inline void _class::for_each_maximally_specific_super_interface_instance_method(
 				}
 				// search in superinterfaces
 				else {
-					action = recursive{}(forward<Handler>(handler), search, i);
+					action = recursive{}(forward<Handler>(handler), search, *i);
 				}
 
 				switch (action) {

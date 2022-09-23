@@ -10,7 +10,7 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 	};
 
 	bootstrap_methods bootstrap_methods {
-		allocate_for<bootstrap_method>(count)
+		posix::allocate_memory_for<bootstrap_method>(count)
 	};
 
 	bootstrap_methods_reader.read(
@@ -25,7 +25,9 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 			};
 
 			bootstrap_method_arguments_indices arguments_indices {
-				allocate_for<class_file::constant::index>(arguments_count)
+				posix::allocate_memory_for<
+					class_file::constant::index
+				>(arguments_count)
 			};
 
 			arguments_reader.read(
