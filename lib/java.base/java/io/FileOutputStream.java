@@ -2,44 +2,22 @@ package java.io;
 
 public class FileOutputStream {
 
-	private final FileDescriptor fd_;
+	private final int fd_value_;
 
 	public FileOutputStream(FileDescriptor fdObj) {
-		this.fd_ = fdObj;
+		this.fd_value_ = fdObj.value_;
 	}
 
-	private static native boolean write(long fd, int b);
+	native public void write(int b) throws IOException;
 
-	public void write(int b) throws IOException {
-		if(!write(fd_.value_, b)) {
-			throw new IOException();
-		}
-	}
+	native public void write(byte[] b) throws IOException;
 
-	public void write(byte[] b) throws IOException {
-		write(b, 0, b.length);
-	}
+	native public void write(byte[] b, int off, int len) throws IOException;
 
-	public static native boolean write_buffer(
-		long fd, byte[] b, int off, int len
-	);
-
-	public void write(byte[] b, int off, int len) throws IOException {
-		if(!write_buffer(fd_.value_, b, off, len)) {
-			throw new IOException();
-		}
-	}
-
-	private static native boolean close(long fd);
-
-	public void close() throws IOException {
-		if(!close(fd_.value_)) {
-			throw new IOException();
-		}
-	}
+	native public void close() throws IOException;
 
 	public final FileDescriptor getFD() throws IOException {
-		return fd_;
+		return new FileDescriptor(fd_value_);
 	}
 
 }

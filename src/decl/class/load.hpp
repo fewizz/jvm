@@ -17,12 +17,12 @@ inline _class& load_class(Name&& name) {
 	if(info) {
 		tabs();
 		print("loading class ");
-	}
 
-	range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
-		print(on_stack);
-		print("\n");
-	});
+		range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
+			print(on_stack);
+			print("\n");
+		});
+	}
 
 	if(range{ name }.starts_with('[')) {
 		return define_array_class(name);

@@ -4,7 +4,11 @@
 
 #include <integer.hpp>
 
-inline static constexpr bool info = true;
+#ifndef PRINT_EXECUTION_INFO
+#define PRINT_EXECUTION_INFO false
+#endif
+
+inline static constexpr bool info = PRINT_EXECUTION_INFO;
 inline static nuint tab = 0;
 
 inline void tabs() {

@@ -2,13 +2,13 @@ package java.io;
 
 public final class FileDescriptor {
 
-	final long value_;
+	final int value_;
 
 	public FileDescriptor() { // Why??
-		this.value_ = (long) -1;
+		this.value_ = -1;
 	}
 
-	FileDescriptor(long fd) {
+	FileDescriptor(int fd) {
 		this.value_ = fd;
 	}
 
@@ -16,7 +16,7 @@ public final class FileDescriptor {
 		return this.value_ != -1;
 	}
 
-	public static native long sync(long fd);
+	public static native long sync(int fd);
 
 	public void sync() throws SyncFailedException {
 		if(sync(this.value_) == -1) {
@@ -24,9 +24,9 @@ public final class FileDescriptor {
 		}
 	}
 
-	private static native long stderr_fd();
-	private static native long stdin_fd();
-	private static native long stdout_fd();
+	private static native int stderr_fd();
+	private static native int stdin_fd();
+	private static native int stdout_fd();
 
 	static final FileDescriptor
 		err = new FileDescriptor(stderr_fd()),

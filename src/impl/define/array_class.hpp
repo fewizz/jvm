@@ -29,11 +29,15 @@ inline _class& define_array_class(Name&& name) {
 		class_file::constant::utf8{ c_string{ "I" } }
 	);
 
+	auto descriptor = posix::allocate_memory_for<uint8>(range_size(name));
+	name.copy_to(span{ (char*) descriptor.iterator(), range_size(descriptor) });
+
 	return classes.emplace_back(
 		constants{}, bootstrap_methods{},
 		move(data),
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_name { data_as_span },
+		move(descriptor),
 		object_class.value(),
 		declared_interfaces{},
 		move(declared_fields),

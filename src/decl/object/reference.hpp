@@ -5,6 +5,7 @@
 
 struct object;
 struct _class;
+struct field_value;
 
 struct reference {
 private:
@@ -31,6 +32,9 @@ public:
 	::object* object_ptr() { return obj_; }
 
 	::object* operator -> () { return obj_; }
+
+	field_value& operator [] (uint16 index) const;
+	field_value& operator [] (uint16 index);
 
 	bool is_null() const;
 

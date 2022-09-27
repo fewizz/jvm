@@ -2,6 +2,7 @@
 
 #include "./java/io/file_descriptor.hpp"
 #include "./java/io/file_output_stream.hpp"
+#include "./java/lang/invoke/lambda_meta_factory.hpp"
 #include "./java/lang/invoke/method_handle.hpp"
 #include "./java/lang/invoke/method_handles_lookup.hpp"
 #include "./java/lang/invoke/method_type.hpp"
@@ -28,6 +29,7 @@
 static inline void init_lib() {
 	init_java_io_file_descriptor();
 	init_java_io_file_output_stream();
+	init_java_lang_invoke_lambda_meta_factory();
 	init_java_lang_invoke_method_handle();
 	init_java_lang_invoke_method_handles_lookup();
 	init_java_lang_invoke_method_type();

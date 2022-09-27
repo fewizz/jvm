@@ -7,16 +7,21 @@
 #include <array.hpp>
 
 template<basic_range Name>
-static inline _class& define_primitive_class(Name&& name) {
+static inline _class& define_primitive_class(Name&& name, char ch) {
 	auto data = posix::allocate_memory_for<uint8>(name.size());
 	span<char> data_span{ (char*) data.iterator(), data.size() };
 	range{ name }.copy_to(data_span);
+
+	auto descriptor = posix::allocate_memory_for<uint8>(1);
+	descriptor[0].construct((uint8)ch);
 
 	return classes.emplace_back(
 		constants{}, bootstrap_methods{},
 		move(data),
 		class_file::access_flags{ class_file::access_flag::_public },
-		this_class_name{ data_span }, object_class,
+		this_class_name{ data_span },
+		move(descriptor),
+		object_class,
 		declared_interfaces{},
 		declared_fields{},
 		declared_methods{},
@@ -29,7 +34,7 @@ template<basic_range Name>
 static inline _class& define_primitive_and_its_array_classes(
 	Name&& name, char ch
 ) {
-	_class& component_class = define_primitive_class(name);
+	_class& component_class = define_primitive_class(name, ch);
 
 	array<char, 2> array_class_name{ '[', ch };
 	_class& array_class = define_array_class(array_class_name);

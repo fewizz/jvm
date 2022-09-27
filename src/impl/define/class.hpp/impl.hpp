@@ -16,7 +16,6 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		reader.check_for_magic_and_get_version_reader();
 
 	if(!magic_exists) {
-		//fprintf(stderr, "magic doesn't exist");
 		abort();
 	}
 
@@ -149,10 +148,18 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		super = super_class;
 	}
 
+	auto descriptor = posix::allocate_memory_for<uint8>(name.size() + 2);
+	name.copy_to(
+		span{ (char*) descriptor.iterator() + 1, descriptor.size() - 2 }
+	);
+	descriptor[0].construct((uint8)'L');
+	descriptor[descriptor.size() - 1].construct((uint8)';');
+
 	return classes.emplace_back(
 		move(const_pool), move(bootstrap_methods),
 		move(bytes), access_flags,
 		this_class_name{ name },
+		move(descriptor),
 		super,
 		move(interfaces),
 		move(fields),

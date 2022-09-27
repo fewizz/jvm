@@ -16,7 +16,7 @@ int main (int argc, const char** argv) {
 
 	init_java_lang_object();
 
-	void_class = define_primitive_class(c_string{ "void"    });
+	void_class = define_primitive_class(c_string{ "void"    }, 'V');
 	bool_class =
 		define_primitive_and_its_array_classes(c_string{ "boolean" }, 'Z');
 	byte_class =

@@ -54,6 +54,13 @@ inline object& reference::object() {
 	return *obj_;
 }
 
+inline field_value& reference::operator [] (uint16 index) const {
+	return obj_->operator [] (index);
+}
+inline field_value& reference::operator [] (uint16 index)       {
+	return obj_->operator [] (index);
+}
+
 inline reference::~reference() {
 	if(obj_ != nullptr) {
 		/*fprintf(

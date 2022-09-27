@@ -12,11 +12,10 @@ inline instance_field_index string_value_index{};
 
 template<typename Handler>
 inline void for_each_string_codepoint(object& str, Handler&& handler) {
-	reference& value_ref = str.values()[string_value_index].get<reference>();
-	object& values = value_ref.object();
+	reference& value = str.values()[string_value_index].get<reference>();
 
-	uint8* it = array_data<uint8>(values);
-	int32 len = array_length(values);
+	uint8* it = array_data<uint8>(value);
+	int32 len = array_length(value);
 	auto end = it + len * sizeof(uint16);
 
 	while(it != end) {

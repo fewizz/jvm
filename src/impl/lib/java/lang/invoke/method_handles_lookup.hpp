@@ -1,3 +1,5 @@
+#include "decl/lib/java/lang/invoke/method_handles_lookup.hpp"
+
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
@@ -33,7 +35,7 @@ static reference lookup_find_special(
 	object& refc, object& name, object& mt, object& special_caller
 ) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		if(range{ name_utf8 }.have_elements_equal_to(c_string{ "<init>" })) {
+		if(name_utf8.have_elements_equal_to(c_string{ "<init>" })) {
 			abort(); // TODO throw NoSuchElementException
 		}
 		_class& receiver = class_from_class_instance(refc);
@@ -58,11 +60,11 @@ static reference lookup_find_constructor(
 }
 
 static void init_java_lang_invoke_method_handles_lookup() {
-	_class& method_handles_lookup_class = classes.find_or_load(
+	method_handles_lookup_class = classes.find_or_load(
 		c_string{ "java/lang/invoke/MethodHandles$Lookup" }
 	);
 
-	method_handles_lookup_class.declared_methods().find(
+	method_handles_lookup_class->declared_methods().find(
 		c_string{ "findStatic" },
 		c_string {
 			"("
@@ -87,7 +89,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class.declared_methods().find(
+	method_handles_lookup_class->declared_methods().find(
 		c_string{ "findVirtual" },
 		c_string {
 			"("
@@ -113,7 +115,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class.declared_methods().find(
+	method_handles_lookup_class->declared_methods().find(
 		c_string{ "findConstructor" },
 		c_string {
 			"("
@@ -138,7 +140,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class.declared_methods().find(
+	method_handles_lookup_class->declared_methods().find(
 		c_string{ "findSpecial" },
 		c_string {
 			"("

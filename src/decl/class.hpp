@@ -31,6 +31,7 @@ private:
 	posix::memory_for_range_of<uint8> bytes_;
 	class_file::access_flags     access_flags_;
 	this_class_name              this_name_;
+	posix::memory_for_range_of<uint8> descriptor_;
 	optional<_class&>            super_;
 
 	::declared_interfaces        declared_interfaces_;
@@ -67,6 +68,7 @@ public:
 		constants&&, bootstrap_methods&&,
 		posix::memory_for_range_of<uint8> bytes, class_file::access_flags,
 		this_class_name,
+		posix::memory_for_range_of<uint8> descriptor,
 		optional<_class&> super,
 		::declared_interfaces&&,
 		::declared_fields&&,
@@ -83,6 +85,9 @@ public:
 	class_file::access_flags access_flags() const { return access_flags_; }
 
 	this_class_name name() const { return this_name_; }
+	span<char> descriptor() const {
+		return span{ (char*) descriptor_.iterator(), descriptor_.size() };
+	}
 	_class& super() { return super_.value(); }
 	bool has_super() const { return super_.has_value(); }
 

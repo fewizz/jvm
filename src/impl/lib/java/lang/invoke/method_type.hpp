@@ -11,33 +11,39 @@
 #include <range.hpp>
 #include <span.hpp>
 
-static reference method_type_method_descriptor(
-	object& params_array, object& ret
+template<range_of_decayed<_class*> ParamClasses, range_of_decayed<char> Descriptor>
+static reference create_method_type(
+	ParamClasses&& params_classes,
+	_class& ret_class,
+	Descriptor&& descriptor
 ) {
-	span<reference> params = array_as_span<reference>(params_array);
+	reference params_array = create_array_of(
+		class_class->get_array_class(),
+		range_size(params_classes)
+	);
+	params_classes
+		.transform_view([](_class* c) { return c->instance(); })
+		.copy_to(array_as_span<reference>(params_array));
 
-	auto desc_class_name = [](_class& c) -> span<const char> {
-		if(c.is_primitive()) {
-			if(&c == void_class.ptr())   { return span{ c_string{ "V" } }; }
-			if(&c == bool_class.ptr())   { return span{ c_string{ "Z" } }; }
-			if(&c == byte_class.ptr())   { return span{ c_string{ "B" } }; }
-			if(&c == short_class.ptr())  { return span{ c_string{ "S" } }; }
-			if(&c == char_class.ptr())   { return span{ c_string{ "C" } }; }
-			if(&c == int_class.ptr())    { return span{ c_string{ "I" } }; }
-			if(&c == float_class.ptr())  { return span{ c_string{ "F" } }; }
-			if(&c == long_class.ptr())   { return span{ c_string{ "J" } }; }
-			if(&c == double_class.ptr()) { return span{ c_string{ "D" } }; }
-			abort();
+	reference descriptor0 = create_byte_array(range_size(descriptor));
+	descriptor.copy_to(array_as_span<uint8>(descriptor0));
+
+	reference o = create_object(method_type_class.value());
+	o[method_type_parameter_types_instance_field_index] = params_array;
+	o[method_type_return_type_instance_field_index] = ret_class.instance();
+	o[method_type_descriptor_instance_field_index] = descriptor0;
+	return o;
+}
+
+template<range_of<_class&> ParamsClasses>
+static reference method_type_create_method_descriptor_utf8(
+	ParamsClasses&& params_classes, _class& ret
+) {
+	return range{ params_classes }.transform_view(
+		[&](_class& c) -> span<const char> {
+			return c.descriptor();
 		}
-		return span{ c.name() };
-	};
-
-	
-	return params.transform_view(
-		[&](reference& param_ref) -> span<const char> {
-			_class& c = class_from_class_instance(param_ref.object());
-			return desc_class_name(c);
-		})
+	)
 		.flat_view()
 		.sized_view()
 		.view_copied_elements_on_stack(
@@ -46,18 +52,27 @@ static reference method_type_method_descriptor(
 			array{ '(' },
 			params,
 			array{ ')' },
-			desc_class_name(class_from_class_instance(ret))
-		}.concat_view();
+			ret.descriptor()
+		}.concat_view().sized_view();
 
-		nuint size = iterator_and_sentinel {
-			range_iterator(descriptor), range_sentinel(descriptor)
-		}.get_or_compute_distance();
-
-		reference array = create_byte_array(size);
-		range{ descriptor }.copy_to(array_as_span<uint8>(array.object()));
+		reference array = create_byte_array(descriptor.size());
+		descriptor.copy_to(array_as_span<uint8>(array));
 
 		return array;
 	});
+}
+
+static reference method_type_create_method_descriptor_utf8(
+	object& params_array, object& ret
+) {
+	return method_type_create_method_descriptor_utf8(
+		array_as_span<reference>(params_array).transform_view(
+			[](reference ref) -> _class& {
+				return class_from_class_instance(ref);
+			}
+		),
+		class_from_class_instance(ret)
+	);
 }
 
 static void init_java_lang_invoke_method_type() {
@@ -93,15 +108,15 @@ static void init_java_lang_invoke_method_type() {
 		(void*) (object*(*)(native_interface_environment*, object*, object*))
 		[](native_interface_environment*, object* params_array, object* ret) {
 			return &
-				method_type_method_descriptor(*params_array, *ret)
+				method_type_create_method_descriptor_utf8(*params_array, *ret)
 				.unsafe_release_without_destroing();
 		}
 	);
 }
 
 static span<const char> method_type_descriptor(object& mt) {
-	reference& utf8_desc = mt.values()[
+	reference& utf8_desc = mt[
 		method_type_descriptor_instance_field_index
 	].get<reference>();
-	return array_as_span<const char>(utf8_desc.object());
+	return array_as_span<const char>(utf8_desc);
 }

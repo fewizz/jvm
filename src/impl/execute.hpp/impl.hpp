@@ -186,12 +186,12 @@ static optional<stack_entry> execute(
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
-			int32 len = ::array_length(array_ref.object());
+			int32 len = ::array_length(array_ref);
 			if(element_index < 0 || element_index >= len) {
 				thrown = create_index_of_of_bounds_exception();
 				return handle_thrown();
 			}
-			E* ptr = array_data<E>(array_ref.object());
+			E* ptr = array_data<E>(array_ref);
 			handler(ptr[element_index]);
 			return loop_action::next;
 		};
@@ -1023,7 +1023,7 @@ static optional<stack_entry> execute(
 			};
 
 			reference ref = stack.pop_back().get<reference>();
-			field_value& value = ref.object()[index];
+			field_value& value = ref[index];
 			stack.emplace_back(get_field_value(value));
 		}
 		else if constexpr (same_as<Type, put_field>) {
@@ -1052,7 +1052,7 @@ static optional<stack_entry> execute(
 				print("object containing field is null");
 				abort();
 			}
-			field_value& to = ref.object()[index];
+			field_value& to = ref[index];
 			put_field_value(to, move(value));
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
@@ -1112,7 +1112,7 @@ static optional<stack_entry> execute(
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
-			stack.emplace_back(jint{ ::array_length(ref.object()) });
+			stack.emplace_back(jint{ ::array_length(ref) });
 		}
 		else if constexpr (same_as<Type, a_throw>) {
 			if(info) { tabs(); print("a_throw\n"); }

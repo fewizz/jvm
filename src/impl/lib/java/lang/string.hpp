@@ -12,7 +12,7 @@
 
 static inline reference create_string(span<uint16> data) {
 	reference data_ref = create_char_array(data.size());
-	array_data(data_ref.object(), data.iterator());
+	array_data(data_ref, data.iterator());
 	reference string_ref = create_object(string_class.value());
 	string_ref->values()[string_value_index] = move(data_ref);
 	return string_ref;

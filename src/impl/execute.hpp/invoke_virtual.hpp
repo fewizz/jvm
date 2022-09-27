@@ -16,9 +16,8 @@ inline void invoke_virtual(
 	namespace cc = cf::constant;
 
 	cc::method_ref method_ref { c.method_ref_constant(ref_index) };
-	cc::name_and_type nat {
-			c.name_and_type_constant(method_ref.name_and_type_index)
-		};
+	cc::name_and_type nat =
+			c.name_and_type_constant(method_ref.name_and_type_index);
 	cc::utf8 desc = c.utf8_constant(nat.descriptor_index);
 	cc::utf8 name = c.utf8_constant(nat.name_index);
 

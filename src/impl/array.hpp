@@ -9,11 +9,11 @@ static inline reference create_array_by_class(
 	_class& array_class, int32 length
 ) {
 	reference ref = create_object(array_class);
-	array_length(ref.object(), length);
+	array_length(ref, length);
 	Type* data = (Type*) posix::allocate_non_owning_zeroed_memory_of<Type>(
 		length
 	).iterator();
-	array_data(ref.object(), data);
+	array_data(ref, data);
 	return ref;
 }
 
