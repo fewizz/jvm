@@ -3,7 +3,7 @@
 
 #include <bit_cast.hpp>
 
-#include <math.h>
+#include <posix/math.hpp>
 
 static inline void init_java_lang_double() {
 	_class& double_class = classes.find_or_load(c_string{ "java/lang/Double" });
@@ -23,7 +23,7 @@ static inline void init_java_lang_double() {
 		(void*) (double(*)(native_interface_environment*, int64))
 		[](native_interface_environment*, int64 value) {
 			double result = bit_cast<double>(value);
-			if(isnan(result)) {
+			if(posix::is_nan(result)) {
 				result = __builtin_nan("");
 			}
 			return result;

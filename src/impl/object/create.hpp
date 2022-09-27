@@ -6,7 +6,7 @@
 
 inline reference create_object(_class& c) {
 	c.initialise_if_need();
-	object* ptr = posix::allocate_non_owning_memory_of<object>(1).iterator();
+	object* ptr = posix::allocate_raw_memory_of<object>(1).iterator();
 	new(ptr) object(c);
 	return { *ptr };
 }

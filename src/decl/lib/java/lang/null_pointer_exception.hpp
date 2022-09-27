@@ -7,4 +7,4 @@
 static optional<_class&> null_pointer_exception_class;
 static optional<method&> null_pointer_exception_constructor;
 
-inline reference create_null_pointer_exception();
+static reference create_null_pointer_exception();

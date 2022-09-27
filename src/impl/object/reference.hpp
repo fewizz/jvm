@@ -81,3 +81,6 @@ inline ::object& reference::unsafe_release_without_destroing() {
 inline bool reference::is_null() const {
 	return obj_ == nullptr;
 }
+
+inline const _class& reference::_class() const { return obj_->_class(); }
+inline       _class& reference::_class()       { return obj_->_class(); }

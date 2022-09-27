@@ -6,6 +6,7 @@
 -Wno-unused-function
 -fno-exceptions
 -nostdinc++
+-nostdinc
 -fuse-ld=lld
 -iquote./src/decl
 -iquote./src

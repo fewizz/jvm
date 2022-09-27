@@ -10,7 +10,7 @@ static inline reference create_array_by_class(
 ) {
 	reference ref = create_object(array_class);
 	array_length(ref, length);
-	Type* data = (Type*) posix::allocate_non_owning_zeroed_memory_of<Type>(
+	Type* data = (Type*) posix::allocate_raw_zeroed_memory_of<Type>(
 		length
 	).iterator();
 	array_data(ref, data);

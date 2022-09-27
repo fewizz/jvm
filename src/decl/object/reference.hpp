@@ -38,6 +38,9 @@ public:
 
 	bool is_null() const;
 
+	const ::_class& _class() const;
+	      ::_class& _class()      ;
+
 	operator const ::object& () const { return *obj_; }
 	operator       ::object& ()       { return *obj_; }
 };

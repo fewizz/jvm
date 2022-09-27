@@ -41,7 +41,7 @@ static reference create_string_from_utf8(String&& str_utf8) {
 	}
 
 	span<uint16> data =
-		posix::allocate_non_owning_memory_of<uint16>(units).cast<uint16>();
+		posix::allocate_raw_memory_of<uint16>(units).cast<uint16>();
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {

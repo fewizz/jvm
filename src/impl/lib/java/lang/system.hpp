@@ -5,8 +5,12 @@
 #include "decl/class/load.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/interface/environment.hpp"
+#include "decl/thrown.hpp"
+#include "decl/lib/java/lang/null_pointer_exception.hpp"
+#include "decl/lib/java/lang/array_store_exception.hpp"
+#include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
 
-#include <time.h>
+#include <posix/time.hpp>
 
 static inline void init_java_lang_system() {
 
@@ -17,7 +21,8 @@ static inline void init_java_lang_system() {
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
 	).native_function(
 		(void*) (void(*)(
-			native_interface_environment*, object*, int32, object*, int32, int32
+			native_interface_environment*,
+			object*, int32, object*, int32, int32
 		))
 		[](
 			native_interface_environment*,
@@ -25,40 +30,137 @@ static inline void init_java_lang_system() {
 			object* dst, int32 dst_pos,
 			int32 len
 		) {
-			if(src == nullptr) {
-				posix::std_err().write_from(c_string{ "src is nullptr" });
+			if(src == nullptr || dst == nullptr) {
+				thrown = create_null_pointer_exception();
+				return;
+			}
+			// TODO case when src == dst
+			if(src == dst) {
 				abort();
 			}
-			if(dst == nullptr) {
-				posix::std_err().write_from(c_string{ "dst is nullptr" });
-				abort();
+			/* Otherwise, if any of the following is true, an
+			   ArrayStoreException is thrown and the destination is not
+			   modified: */
+			if(
+				// The src argument refers to an object that is not an array.
+				!src->_class().is_array() ||
+				// The dest argument refers to an object that is not an array.
+				!dst->_class().is_array()
+			) {
+				thrown = create_array_store_exception();
+				return;
 			}
-			if(&src->_class() != &dst->_class()) {
-				abort();
+
+			_class& src_component_class = src->_class().get_component_class();
+			_class& dst_component_class = dst->_class().get_component_class();
+			bool src_is_primitive = src_component_class.is_primitive();
+			bool dst_is_primitive = dst_component_class.is_primitive();
+			bool both_are_primitive = src_is_primitive && dst_is_primitive;
+
+			if(
+				/* The src argument and dest argument refer to arrays whose
+				   component types are different primitive types. */
+				(
+					both_are_primitive &&
+					&src_component_class != &dst_component_class
+				) ||
+				/* The src argument refers to an array with a primitive
+				   component type and the dest argument refers to an array with
+				   a reference component type. */
+				/* The src argument refers to an array with a reference
+				   component type and the dest argument refers to an array with
+				   a primitive component type. */
+				src_is_primitive != dst_is_primitive
+			) {
+				thrown = create_array_store_exception();
+				return;
 			}
-			if(!src->_class().is_array()) {
-				abort();
+
+			/* Otherwise, if any of the following is true, an
+			   IndexOutOfBoundsException is thrown and the destination is not
+			   modified: */
+			if(
+				// The srcPos argument is negative.
+				src_pos < 0 ||
+				// The destPos argument is negative.
+				dst_pos < 0 ||
+				// The length argument is negative.
+				len < 0 ||
+				// srcPos+length is greater than src.length, the length of the
+				// source array.
+				src_pos + len > array_length(*src) ||
+				// destPos+length is greater than dest.length, the length of the
+				// destination array.
+				dst_pos + len > array_length(*dst)
+			) {
+				thrown = create_index_of_of_bounds_exception();
+				return;
 			}
-			if(!dst->_class().is_array()) {
-				abort();
+
+			if(both_are_primitive) {
+				auto copy_primitive_array = [&]<typename Type>() {
+					Type* src_data = array_data<Type>(*src);
+					Type* dst_data = array_data<Type>(*dst);
+					range {
+						span{ src_data + src_pos, (nuint) len }
+					}.copy_to(span{ dst_data + dst_pos, (nuint) len });
+				};
+				_class* src_ptr = &src->_class();
+				if(
+					src_ptr == byte_array_class.ptr() ||
+					src_ptr == bool_array_class.ptr()
+				) { copy_primitive_array.operator () <uint8>(); }
+				else if(
+					src_ptr == short_array_class.ptr() ||
+					src_ptr == char_array_class.ptr()
+				) { copy_primitive_array.operator () <uint16>(); }
+				else if(
+					src_ptr == int_array_class.ptr() ||
+					src_ptr == float_array_class.ptr()
+				) { copy_primitive_array.operator () <uint32>(); }
+				else if(
+					src_ptr == long_array_class.ptr() ||
+					src_ptr == double_array_class.ptr()
+				) { copy_primitive_array.operator () <uint64>(); }
+				else {
+					posix::std_err().write_from(
+						c_string{ "unknown primitive type?" }
+					);
+					abort();
+				}
+				return;
 			}
-			
-			if(&src->_class() == &byte_array_class.value()) {
-				uint8* src_data = array_data<uint8>(*src);
-				uint8* dst_data = array_data<uint8>(*dst);
-				range {
-					span{ src_data + src_pos, (nuint) len }
-				}.copy_to(span{ dst_data + dst_pos, (nuint) len });
-			}
-			else if(!src->_class().is_primitive()) {
-				reference* src_data = array_data<reference>(*src);
-				reference* dst_data = array_data<reference>(*dst);
-				range {
-					span{ src_data + src_pos, (nuint) len }
-				}.copy_to(span{ dst_data + dst_pos, (nuint) len });
+			/* Otherwise, if any actual component of the source array from
+			   position srcPos through srcPos+length-1 cannot be converted to
+			   the component type of the destination array by assignment
+			   conversion, an ArrayStoreException is thrown. In this case, let
+			   k be the smallest nonnegative integer less than length such that
+			   src[srcPos+k] cannot be converted to the component type of the
+			   destination array; when the exception is thrown, source array
+			   components from positions srcPos through srcPos+k-1 will already
+			   have been copied to destination array positions destPos through
+			   destPos+k-1 and no other positions of the destination array will
+			   have been modified. (Because of the restrictions already
+			   itemized, this paragraph effectively applies only to the
+			   situation where both arrays have component types that are
+			   reference types.) */
+			reference* src_data = array_data<reference>(*src);
+			reference* dst_data = array_data<reference>(*dst);
+			span src_span{ src_data + src_pos, (nuint) len };
+			span dst_span{ dst_data + dst_pos, (nuint) len };
+			if(src_component_class.is_sub_of(dst_component_class)) {
+				src_span.copy_to(dst_span);
 			}
 			else {
-				abort();
+				for(nuint x = 0; x < (nuint) len; ++x) {
+					reference& s = src_span[x];
+					reference& d = dst_span[x];
+					if(!s._class().is_sub_of(d._class())) {
+						thrown = create_array_store_exception();
+						return;
+					}
+					d = s;
+				}
 			}
 		}
 	);
@@ -68,12 +170,9 @@ static inline void init_java_lang_system() {
 	).native_function(
 		(void*) (int64(*)(native_interface_environment*))
 		[](native_interface_environment*) {
-			timespec tp;
-			int result = clock_gettime(CLOCK_MONOTONIC, &tp);
-			if(result != 0) {
-				abort();
-			}
-			return int64{ tp.tv_sec * 1000000000ll + tp.tv_nsec };
+			auto [seconds, nanoseconds]
+				= posix::monolitic_clock.secods_and_nanoseconds();
+			return (int64) (seconds * 1'000'000'000ll + nanoseconds);
 		}
 	);
 }

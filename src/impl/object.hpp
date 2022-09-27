@@ -41,7 +41,7 @@ inline object::~object() {
 			}
 		}
 		// TODO compute actual size, uses free so its safe
-		posix::free_non_owning_memory(data);
+		posix::free_raw_memory(data);
 	}
 	/*if(info) {
 		tabs();
@@ -80,7 +80,7 @@ inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 		this->~object();
-		posix::free_non_owning_memory(ptr_to_this);
+		posix::free_raw_memory(ptr_to_this);
 	}
 }
 

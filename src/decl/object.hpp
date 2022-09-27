@@ -36,9 +36,8 @@ public:
 
 	field_value& operator [] (instance_field_index index);
 
-	_class& _class() {
-		return class_.value();
-	}
+	const ::_class& _class() const { return class_.value(); }
+	      ::_class& _class()       { return class_.value(); }
 
 	auto& values() { return values_; }
 

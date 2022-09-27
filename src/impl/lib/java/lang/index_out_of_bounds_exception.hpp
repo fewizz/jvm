@@ -7,14 +7,10 @@
 inline reference create_index_of_of_bounds_exception() {
 	_class& c = index_of_of_bounds_exception_class.value();
 	method& m = index_of_of_bounds_exception_constructor.value();
-
-	reference ref = create_object(c);
-	stack_entry se{ ref };
-	span<stack_entry, uint16> args{ &se, 1 };
-
-	execute(m, args);
-
-	return move(ref);
+	reference o = create_object(c);
+	stack_entry se{ o };
+	execute(m, arguments_span{ &se, 1 });
+	return move(o);
 }
 
 inline void init_java_lang_index_of_of_bounds_exception() {

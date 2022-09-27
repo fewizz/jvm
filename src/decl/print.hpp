@@ -67,7 +67,7 @@ void print(unsigned_integer auto number) {
 void print(signed_integer auto number) {
 	if(number < 0) {
 		buffered_print("-");
-		print((nuint)number);
+		print((nuint)-number);
 	}
 	else {
 		print((nuint)number);

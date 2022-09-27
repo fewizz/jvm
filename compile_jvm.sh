@@ -23,6 +23,7 @@ if ! clang++ \
 	-glldb \
 	-O0 \
 	-nostdinc++ \
+	-nostdinc \
 	-fno-exceptions \
 	-fno-rtti \
 	-fuse-ld=lld \
