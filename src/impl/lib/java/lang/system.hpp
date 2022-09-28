@@ -123,8 +123,8 @@ static inline void init_java_lang_system() {
 					src_ptr == double_array_class.ptr()
 				) { copy_primitive_array.operator () <uint64>(); }
 				else {
-					posix::std_err().write_from(
-						c_string{ "unknown primitive type?" }
+					posix::std_err.write_from(
+						c_string{ "unknown primitive type?\n" }
 					);
 					abort();
 				}

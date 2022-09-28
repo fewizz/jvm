@@ -7,7 +7,7 @@
 
 int main (int argc, const char** argv) {
 	if(argc != 2) {
-		posix::std_err().write_from(c_string{ "usage: 'class name'" });
+		posix::std_err.write_from(c_string{ "usage: 'class name'\n" });
 		return 1;
 	}
 
@@ -51,7 +51,7 @@ int main (int argc, const char** argv) {
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }
 	).if_has_no_value([] {
-		posix::std_err().write_from(c_string{ "main method is not found" });
+		posix::std_err.write_from(c_string{ "main method is not found\n" });
 		abort();
 	}).value();
 
@@ -60,7 +60,7 @@ int main (int argc, const char** argv) {
 	execute(m, arguments_span{ &args_array, 1 });
 
 	if(!thrown.is_null()) {
-		posix::std_err().write_from(c_string{ "unhandled throwable" });
+		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
 		return 1;
 	}
 }

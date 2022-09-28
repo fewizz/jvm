@@ -48,7 +48,7 @@ inline reference& reference::operator = (reference&& other) {
 
 inline object& reference::object() {
 	if(obj_ == nullptr) {
-		posix::std_err().write_from(c_string{ "obj_ is nullptr" });
+		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
 		abort();
 	}
 	return *obj_;

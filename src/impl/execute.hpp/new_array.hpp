@@ -26,7 +26,7 @@ inline void new_array(
 		case new_array_type::_int:     ref = create_int_array(count);    break;
 		case new_array_type::_long:    ref = create_long_array(count);   break;
 		default:
-			posix::std_err().write_from(c_string{ "unknown type of array" });
+			posix::std_err.write_from(c_string{ "unknown type of array\n" });
 			abort();
 	}
 

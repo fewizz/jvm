@@ -1,21 +1,16 @@
 package java.nio;
 
-public abstract class ByteBuffer
-extends Buffer implements Comparable<ByteBuffer>
+public abstract class ByteBuffer extends Buffer
 {
 
 	private final boolean readOnly_;
-	private final byte[] backingArray_;
-	private final int offset_;
 	protected ByteOrder endianness_ = ByteOrder.BIG_ENDIAN;
 
 	protected ByteBuffer(
-		int capacity, boolean readOnly, byte[] backingArray, int offset
+		int capacity, boolean readOnly, int offset
 	) {
 		super(capacity);
 		this.readOnly_ = readOnly;
-		this.backingArray_ = backingArray;
-		this.offset_ = offset;
 	}
 
 	public static native ByteBuffer allocateDirect(int capacity);
@@ -26,17 +21,6 @@ extends Buffer implements Comparable<ByteBuffer>
 
 	public static native ByteBuffer wrap(byte[] array);
 
-	@Override
-	public abstract ByteBuffer slice();
-
-	@Override
-	public abstract ByteBuffer slice(int index, int length);
-
-	@Override
-	public abstract ByteBuffer duplicate();
-
-	public abstract ByteBuffer asReadOnlyBuffer();
-
 	public abstract byte get();
 
 	public abstract ByteBuffer put(byte b);
@@ -44,30 +28,6 @@ extends Buffer implements Comparable<ByteBuffer>
 	public abstract byte get(int index);
 
 	public abstract ByteBuffer put(int index, byte b);
-
-	public final boolean hasArray() {
-		return this.backingArray_ != null && !this.readOnly_;
-	}
-
-	public final byte[] array() {
-		if(this.backingArray_ == null) {
-			throw new UnsupportedOperationException();
-		}
-		if(this.readOnly_) {
-			throw new ReadOnlyBufferException();
-		}
-		return this.backingArray_;
-	}
-
-	public final int arrayOffset() {
-		if(this.backingArray_ == null) {
-			throw new UnsupportedOperationException();
-		}
-		if(this.readOnly_) {
-			throw new ReadOnlyBufferException();
-		}
-		return this.offset_;
-	}
 
 	@Override
 	public ByteBuffer position(int newPosition) {
@@ -108,8 +68,6 @@ extends Buffer implements Comparable<ByteBuffer>
 		super.rewind();
 		return this;
 	}
-
-	public abstract ByteBuffer compact();
 
 	@Override
 	public abstract boolean isDirect();

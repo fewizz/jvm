@@ -71,8 +71,8 @@ inline void object::on_reference_removed() {
 		"removed reference to object @%p\n", this
 	);*/
 	if(references_ == 0) {
-		posix::std_err().write_from(
-			c_string{"removing reference on object without references"}
+		posix::std_err.write_from(
+			c_string{"removing reference on object without references\n"}
 		);
 		posix::abort();
 	}
@@ -86,9 +86,9 @@ inline void object::on_reference_removed() {
 
 inline void object::unsafe_decrease_reference_count_without_destroing() {
 	if(references_ == 0) {
-		posix::std_err().write_from(c_string{
+		posix::std_err.write_from(c_string{
 			"'unsafe_decrease_reference_count_without_destroing'"
-			" on object without references"
+			" on object without references\n"
 		});
 		posix::abort();
 	}

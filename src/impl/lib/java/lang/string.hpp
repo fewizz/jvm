@@ -34,7 +34,7 @@ static reference create_string_from_utf8(String&& str_utf8) {
 	while(it != end) {
 		auto result = utf8::decoder{}(it);
 		if(result.is_unexpected()) {
-			posix::std_err().write_from(c_string{ "invalid sequence" });
+			posix::std_err.write_from(c_string{ "invalid sequence\n" });
 		}
 		auto cp = result.get_expected();
 		units += utf16::encoder<endianness::big>{}.units(cp);

@@ -32,6 +32,6 @@ inline void invoke_dynamic(
 
 	reference call_site = c.get_call_site(ref_index);
 
-	posix::std_err().write_from(c_string{ "unimplemented" });
+	posix::std_err.write_from(c_string{ "unimplemented\n" });
 	abort();
 }

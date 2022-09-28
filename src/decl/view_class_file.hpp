@@ -67,10 +67,11 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	}
 
 	if(!result) {
-		posix::std_err().write_from(c_string{"couldn't find class file "});
+		posix::std_err.write_from(c_string{"couldn't find class file "});
 		range{ name }.view_copied_elements_on_stack([&](auto name_on_stack) {
-			posix::std_err().write_from(name_on_stack);
+			posix::std_err.write_from(name_on_stack);
 		});
+		posix::std_err.write_from(c_string{ "\n" });
 		abort();
 	}
 

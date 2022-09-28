@@ -32,7 +32,7 @@ inline stack_entry get_field_value(
 			return value;
 		}
 
-		posix::std_err().write_from(c_string{ "couldn't get field value" });
+		posix::std_err.write_from(c_string{ "couldn't get field value\n" });
 		abort();
 	});
 };

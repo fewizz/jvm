@@ -2,19 +2,15 @@ package java.nio;
 
 public abstract class Buffer {
 
-	private final int capacity_;
-	private int limit_;
-	private int position_ = 0;
-	private int mark_ = -1;
+	protected int limit_;
+	protected int position_ = 0;
+	protected int mark_ = -1;
 
 	protected Buffer(int capacity) {
-		this.capacity_ = capacity;
-		this.limit_ = this.capacity_;
+		this.limit_ = capacity;
 	}
 
-	public final int capacity() {
-		return capacity_;
-	}
+	public abstract int capacity();
 
 	public final int position() {
 		return position_;
@@ -36,7 +32,7 @@ public abstract class Buffer {
 
 	public Buffer limit(int newLimit) {
 		if(!(
-			newLimit >= 0 && newLimit <= capacity_
+			newLimit >= 0 && newLimit <= capacity()
 		)) {
 			throw new IllegalArgumentException();
 		}
@@ -69,7 +65,7 @@ public abstract class Buffer {
 
 	public Buffer clear() {
 		this.position_ = 0;
-		this.limit_ = this.capacity_;
+		this.limit_ = this.capacity();
 		this.mark_ = -1;
 		return this;
 	}
@@ -96,18 +92,6 @@ public abstract class Buffer {
 
 	public abstract boolean isReadOnly();
 
-	public abstract boolean hasArray();
-
-	public abstract Object array();
-
-	public abstract int arrayOffset();
-
 	public abstract boolean isDirect();
-
-	public abstract Buffer slice();
-
-	public abstract Buffer slice(int index, int length);
-
-	public abstract Buffer duplicate();
 
 }

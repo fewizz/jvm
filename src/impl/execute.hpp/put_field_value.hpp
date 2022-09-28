@@ -37,7 +37,9 @@ inline void put_field_value(
 			value = from.get<jdouble>();
 		}
 		else {
-			posix::std_err().write_from(c_string{ "couldn't put field value" });
+			posix::std_err.write_from(
+				c_string{ "couldn't put field value\n" }
+			);
 			abort();
 		}
 	});

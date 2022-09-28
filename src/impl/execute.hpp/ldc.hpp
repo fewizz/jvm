@@ -36,7 +36,7 @@ inline void ldc(
 		).instance());
 	}
 	else {
-		posix::std_err().write_from(c_string{ "unknown constant" });
+		posix::std_err.write_from(c_string{ "unknown constant\n" });
 		abort();
 	}
 }
@@ -63,7 +63,7 @@ inline void ldc_2_w(
 		});
 	}
 	else {
-		posix::std_err().write_from(c_string{ "unknown constant" });
+		posix::std_err.write_from(c_string{ "unknown constant\n" });
 		abort();
 	}
 }

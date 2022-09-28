@@ -22,7 +22,6 @@ public final class String {
 		// TODO throws IndexOutOfBoundsException
 	}
 
-	
 	public boolean startsWith(String prefix) {
 		int prefix_len = prefix.length();
 

@@ -79,7 +79,7 @@ static optional<stack_entry> execute(
 	}
 
 	if(m.code().iterator() == nullptr) {
-		posix::std_err().write_from(c_string{ "no code" });
+		posix::std_err.write_from(c_string{ "no code\n" });
 		abort();
 	}
 
@@ -129,13 +129,14 @@ static optional<stack_entry> execute(
 
 	auto on_unimplemented_instruction = [] (uint8 code) {
 		if(info) tabs();
-		posix::std_err().write_from(c_string{ "unimplemented instruction " });
+		posix::std_err.write_from(c_string{ "unimplemented instruction " });
 		for_each_digit_in_number(
 			code, number_base{ 10 },
 			[](auto digit) {
-				posix::std_err().write_from(array{ '0' + digit });
+				posix::std_err.write_from(array{ '0' + digit });
 			}
 		);
+		posix::std_err.write_from(c_string{ "\n" });
 		abort();
 	};
 
