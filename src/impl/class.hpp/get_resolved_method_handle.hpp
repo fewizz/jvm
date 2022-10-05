@@ -4,7 +4,7 @@
 
 #include <class_file/constant.hpp>
 
-inline reference _class::get_method_handle(
+inline reference _class::get_resolved_method_handle(
 	class_file::constant::method_handle_index index
 ) {
 	if(auto e = trampoline(index); e.has_value()) {

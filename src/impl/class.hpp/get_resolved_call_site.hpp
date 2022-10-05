@@ -14,7 +14,7 @@
 #include <list.hpp>
 #include <storage.hpp>
 
-inline reference _class::get_call_site(
+inline reference _class::get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
 	if(auto e = trampoline(index); e.has_value()) {
@@ -34,7 +34,7 @@ inline reference _class::get_call_site(
 		);
 	/* The bootstrap method handle is resolved (§5.4.3.5) to obtain a reference
 	   to an instance of java.lang.invoke.MethodHandle. */
-	reference mh = get_method_handle(bm.method_handle_index);
+	reference mh = get_resolved_method_handle(bm.method_handle_index);
 
 	/* If R is a symbolic reference to a dynamically-computed call site, then it
 	   gives a method descriptor. */
@@ -51,8 +51,9 @@ inline reference _class::get_call_site(
 	   descriptor. */
 	reference mt = resolve_method_type(*this, descriptor);
 
-	uint16 args_count
-		= bm.arguments_indices.size() + 3;
+	/* An array is allocated with component type Object and length n+3, where n
+	is the number of static arguments given by R (n ≥ 0). */
+	uint16 args_count = bm.arguments_indices.size() + 3;
 
 	storage<stack_entry> args_storage[args_count];
 	list<span<storage<stack_entry>>> args {
@@ -71,6 +72,7 @@ inline reference _class::get_call_site(
 	/* The second component of the array is set to the reference to an instance
 	   of Class or java.lang.invoke.MethodType that was obtained earlier for the
 	   field descriptor or method descriptor given by R. */
+	// TODO "to an instance of Class" ???
 	args.emplace_back(mt);
 
 	/* Subsequent components of the array are set to the references that were
@@ -106,7 +108,7 @@ inline reference _class::get_call_site(
 				same_as<Type, class_file::constant::method_handle>
 			) {
 				args.emplace_back(
-					get_method_handle(
+					get_resolved_method_handle(
 						class_file::constant::method_handle_index{ index }
 					)
 				);

@@ -1,33 +1,33 @@
 package java.nio;
 
-public abstract class ByteBuffer extends Buffer
-{
-
-	private final boolean readOnly_;
+public abstract class ByteBuffer extends Buffer {
 	protected ByteOrder endianness_ = ByteOrder.BIG_ENDIAN;
 
-	protected ByteBuffer(
-		int capacity, boolean readOnly, int offset
-	) {
+	protected ByteBuffer(int capacity) {
 		super(capacity);
-		this.readOnly_ = readOnly;
 	}
 
 	public static native ByteBuffer allocateDirect(int capacity);
 
-	public static native ByteBuffer allocate(int capacity);
-
-	public static native ByteBuffer wrap(byte[] array, int offset, int length);
-
-	public static native ByteBuffer wrap(byte[] array);
+	public static ByteBuffer allocate(int capacity) {
+		return new ByteBufferArrayBacked(capacity);
+	}
 
 	public abstract byte get();
-
 	public abstract ByteBuffer put(byte b);
 
 	public abstract byte get(int index);
-
 	public abstract ByteBuffer put(int index, byte b);
+
+	public ByteBuffer get(int index, byte[] dst) {
+		if((limit() - index) < dst.length) {
+			throw new BufferUnderflowException();
+		}
+		for(int i = 0; i < dst.length; ++i) {
+			dst[i] = get(index + i);
+		}
+		return this;
+	}
 
 	@Override
 	public ByteBuffer position(int newPosition) {

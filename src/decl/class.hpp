@@ -129,11 +129,11 @@ public:
 		class_file::constant::class_index string_index
 	);
 
-	reference get_method_handle(
+	reference get_resolved_method_handle(
 		class_file::constant::method_handle_index index
 	);
 
-	reference get_call_site(
+	reference get_resolved_call_site(
 		class_file::constant::invoke_dynamic_index index
 	);
 

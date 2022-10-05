@@ -33,7 +33,14 @@ inline _class& load_class(Name&& name) {
 			nuint size = f->set_offset_to_end();
 			f->set_offset(0);
 			auto data = posix::allocate_memory_for<uint8>(size);
-			f->read_to(data);
+			nuint read_total = 0;
+			while(read_total < size) {
+				nuint read = f->read_to(
+					span{data.iterator() + read_total, size - read_total}
+				);
+				if(read == 0) break;
+				read_total += read;
+			}
 			return define_class(move(data));
 		}
 	);

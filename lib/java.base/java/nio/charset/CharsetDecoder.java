@@ -40,9 +40,7 @@ public abstract class CharsetDecoder {
 		}
 
 		this.replacement_ = newReplacement;
-
 		implReplaceWith(newReplacement);
-
 		return this;
 	}
 
@@ -58,9 +56,7 @@ public abstract class CharsetDecoder {
 		}
 
 		this.malformedInputAction_ = newAction;
-
 		implOnMalformedInput(newAction);
-
 		return this;
 	}
 
@@ -78,9 +74,7 @@ public abstract class CharsetDecoder {
 		}
 
 		this.unmappableAction_ = newAction;
-
 		implOnUnmappableCharacter(newAction);
-
 		return this;
 	}
 
@@ -92,6 +86,19 @@ public abstract class CharsetDecoder {
 
 	public final float maxCharsPerByte() {
 		return this.maxCharsPerByte_;
+	}
+
+	public final CoderResult decode(
+		ByteBuffer in, CharBuffer out, boolean endOfInput
+	) {
+		CoderResult res = decodeLoop(in, out);
+		if(res != CoderResult.UNDERFLOW) {
+			return res;
+		}
+		if(endOfInput && in.remaining() > 0) {
+			return new CoderResult.MalformedOfLength(in.remaining());
+		}
+		return res;
 	}
 
 	protected abstract CoderResult decodeLoop(ByteBuffer in, CharBuffer out);

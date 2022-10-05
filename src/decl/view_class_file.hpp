@@ -28,7 +28,10 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				bool error = false;
 				posix::own_file f = posix::try_open_file(
 					c_string{ on_stack.iterator() },
-					posix::file_access_modes{ posix::file_access_mode::read },
+					posix::file_access_modes {
+						posix::file_access_mode::read,
+						posix::file_access_mode::binary
+					},
 					[&](auto) { error = true; }
 				);
 				if(error) {

@@ -345,6 +345,22 @@ static optional<stack_entry> execute(
 			if(info) { tabs(); print("l_load_3\n"); }
 			stack.emplace_back(locals[3].get<jlong>());
 		}
+		else if constexpr (same_as<Type, f_load_0>) {
+			if(info) { tabs(); print("f_load_0\n"); }
+			stack.emplace_back(locals[0].get<jfloat>());
+		}
+		else if constexpr (same_as<Type, f_load_1>) {
+			if(info) { tabs(); print("f_load_1\n"); }
+			stack.emplace_back(locals[1].get<jfloat>());
+		}
+		else if constexpr (same_as<Type, f_load_2>) {
+			if(info) { tabs(); print("f_load_2\n"); }
+			stack.emplace_back(locals[2].get<jfloat>());
+		}
+		else if constexpr (same_as<Type, f_load_3>) {
+			if(info) { tabs(); print("f_load_3\n"); }
+			stack.emplace_back(locals[3].get<jfloat>());
+		}
 		else if constexpr (same_as<Type, a_load_0>) {
 			if(info) { tabs(); print("a_load_0\n"); }
 			reference ref = locals[0].get<reference>();
@@ -380,7 +396,13 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, b_a_load>) {
 			if(info) { tabs(); print("b_a_load\n"); }
 			return view_array.template operator()<int8>([&](int8& v) {
-				stack.emplace_back(jint{ v });
+				stack.emplace_back(jint{ uint8(v) });
+			});
+		}
+		else if constexpr (same_as<Type, c_a_load>) {
+			if(info) { tabs(); print("c_a_load\n"); }
+			return view_array.template operator()<int16>([&](int16& v) {
+				stack.emplace_back(jint{ uint16(v) });
 			});
 		}
 		else if constexpr (same_as<Type, i_store>) {
@@ -488,8 +510,8 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, b_a_store>) {
 			if(info) { tabs(); print("b_a_store\n"); }
 			int32 value = stack.pop_back().get<jint>();
-			return view_array.template operator()<int8>([&](int8& v) {
-				v = (int8) value;
+			return view_array.template operator()<uint8>([&](uint8& v) {
+				v = (uint8) uint32(value);
 			});
 		}
 		else if constexpr (same_as<Type, c_a_store>) {

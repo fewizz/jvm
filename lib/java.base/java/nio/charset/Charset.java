@@ -10,6 +10,10 @@ public abstract class Charset implements Comparable<Charset> {
 		this.aliases_ = aliases;
 	}
 
+	public static Charset defaultCharset() {
+		return jvm.internal.UTF8Charset.INSTANCE;
+	}
+
 	public final String name() {
 		return name_;
 	}

@@ -6,6 +6,8 @@ public class MethodHandle {
 
 	private MethodHandle() {}
 
+	native public MethodType type();
+
 	public final native Object invokeExact(Object... args) throws Throwable;
 
 }

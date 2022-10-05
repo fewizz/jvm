@@ -5,7 +5,7 @@ public class ByteBufferArrayBacked extends ByteBuffer {
 	private final byte[] data_;
 
 	ByteBufferArrayBacked(int capacity) {
-		super(capacity, false, 0);
+		super(capacity);
 		data_ = new byte[capacity];
 	}
 
@@ -16,6 +16,9 @@ public class ByteBufferArrayBacked extends ByteBuffer {
 
 	@Override
 	public byte get() {
+		if(!(this.position_ < this.limit_)) {
+			throw new BufferUnderflowException();
+		}
 		byte r = data_[position_];
 		position_++;
 		return r;
@@ -23,6 +26,9 @@ public class ByteBufferArrayBacked extends ByteBuffer {
 
 	@Override
 	public ByteBuffer put(byte b) {
+		if(!(this.position_ < this.limit_)) {
+			throw new BufferUnderflowException();
+		}
 		data_[position_] = b;
 		++position_;
 		return this;
@@ -30,11 +36,17 @@ public class ByteBufferArrayBacked extends ByteBuffer {
 
 	@Override
 	public byte get(int index) {
+		if(index < 0 || !(index < this.limit_)) {
+			throw new IndexOutOfBoundsException();
+		}
 		return data_[index];
 	}
 
 	@Override
 	public ByteBuffer put(int index, byte b) {
+		if(index < 0 || !(index < this.limit_)) {
+			throw new IndexOutOfBoundsException();
+		}
 		data_[index] = b;
 		return this;
 	}
