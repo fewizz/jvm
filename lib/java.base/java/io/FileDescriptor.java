@@ -28,7 +28,7 @@ public final class FileDescriptor {
 	private static native int stdin_fd();
 	private static native int stdout_fd();
 
-	static final FileDescriptor
+	public static final FileDescriptor
 		err = new FileDescriptor(stderr_fd()),
 		in  = new FileDescriptor(stdin_fd()),
 		out = new FileDescriptor(stdout_fd());

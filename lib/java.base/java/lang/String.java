@@ -19,7 +19,6 @@ public final class String {
 
 	public char charAt(int index) {
 		return value_[index];
-		// TODO throws IndexOutOfBoundsException
 	}
 
 	public boolean startsWith(String prefix) {

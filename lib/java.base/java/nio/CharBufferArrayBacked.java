@@ -9,6 +9,21 @@ public class CharBufferArrayBacked extends CharBuffer {
 		this.data_ = new char[capacity];
 	}
 
+	CharBufferArrayBacked(char[] data) {
+		super(data.length);
+		this.data_ = data;
+	}
+
+	@Override
+	public char[] array() {
+		return this.data_;
+	}
+
+	@Override
+	public int arrayOffset() {
+		return 0;
+	}
+
 	@Override
 	public boolean isDirect() {
 		return false;

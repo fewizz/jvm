@@ -13,6 +13,10 @@ public abstract class ByteBuffer extends Buffer {
 		return new ByteBufferArrayBacked(capacity);
 	}
 
+	public static ByteBuffer wrap(byte[] array) {
+		return new ByteBufferArrayBacked(array);
+	}
+
 	public abstract byte get();
 	public abstract ByteBuffer put(byte b);
 
@@ -28,6 +32,12 @@ public abstract class ByteBuffer extends Buffer {
 		}
 		return this;
 	}
+
+	@Override
+	public abstract byte[] array();
+
+	@Override
+	public abstract int arrayOffset();
 
 	@Override
 	public ByteBuffer position(int newPosition) {

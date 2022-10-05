@@ -31,6 +31,8 @@
 #include <max.hpp>
 #include <range.hpp>
 
+#include <posix/math.hpp>
+
 static optional<stack_entry> execute(
 	method& m, arguments_span args
 ) {
@@ -510,7 +512,7 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, b_a_store>) {
 			if(info) { tabs(); print("b_a_store\n"); }
 			int32 value = stack.pop_back().get<jint>();
-			return view_array.template operator()<uint8>([&](uint8& v) {
+			return view_array.template operator()<int8>([&](int8& v) {
 				v = (uint8) uint32(value);
 			});
 		}
@@ -518,7 +520,7 @@ static optional<stack_entry> execute(
 			if(info) { tabs(); print("c_a_store\n"); }
 			int32 value = stack.pop_back().get<jint>();
 			return view_array.template operator() <int16>([&](int16& v) {
-				v = (int16) value;
+				v = (uint16) uint32(value);
 			});
 		}
 
@@ -724,17 +726,16 @@ static optional<stack_entry> execute(
 			stack.back() = jint{ (int32) (value & 0xFFFFFFFF) };
 		}
 		else if constexpr (same_as<Type, f_to_i>) {
-			abort();
-			/*if(info) { tabs(); print("f_to_i\n"); }
+			if(info) { tabs(); print("f_to_i\n"); }
 			float value = stack.back().get<jfloat>();
 			int32 result;
-			if(isnan(value)) { TODO
+			if(posix::is_nan(value)) {
 				result = 0;
 			}
 			else {
 				result = (int32) value;
 			}
-			stack.back() = jint{ result };*/
+			stack.back() = jint{ result };
 		}
 		else if constexpr (same_as<Type, i_to_b>) {
 			if(info) { tabs(); print("i_to_b\n"); }
@@ -976,6 +977,11 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, l_return>) {
 			if(info) { tabs(); print("l_return\n"); }
 			result = stack.pop_back().get<jlong>();
+			return loop_action::stop;
+		}
+		else if constexpr (same_as<Type, f_return>) {
+			if(info) { tabs(); print("f_return\n"); }
+			result = stack.pop_back().get<jfloat>();
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, d_return>) {

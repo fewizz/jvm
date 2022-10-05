@@ -6,7 +6,22 @@ public class ByteBufferArrayBacked extends ByteBuffer {
 
 	ByteBufferArrayBacked(int capacity) {
 		super(capacity);
-		data_ = new byte[capacity];
+		this.data_ = new byte[capacity];
+	}
+
+	ByteBufferArrayBacked(byte[] data) {
+		super(data.length);
+		this.data_ = data;
+	}
+
+	@Override
+	public byte[] array() {
+		return this.data_;
+	}
+
+	@Override
+	public int arrayOffset() {
+		return 0;
 	}
 
 	@Override

@@ -68,11 +68,8 @@ public abstract class CharsetEncoder {
 		)) {
 			throw new IllegalArgumentException();
 		}
-
 		this.replacement_ = newReplacement;
-
 		implReplaceWith(replacement_);
-
 		return this;
 	}
 
@@ -91,11 +88,8 @@ public abstract class CharsetEncoder {
 		if(newAction == null) {
 			throw new IllegalArgumentException();
 		}
-
 		this.malformedInputAction_ = newAction;
-
 		implOnMalformedInput(newAction);
-
 		return this;
 	}
 
@@ -111,11 +105,8 @@ public abstract class CharsetEncoder {
 		if(newAction == null) {
 			throw new IllegalArgumentException();
 		}
-
 		this.unmappableAction_ = newAction;
-
 		implOnUnmappableCharacter(newAction);
-
 		return this;
 	}
 
@@ -127,6 +118,19 @@ public abstract class CharsetEncoder {
 
 	public final float maxBytesPerChar() {
 		return this.maxBytesPerChar_;
+	}
+
+	public final CoderResult encode(
+		CharBuffer in, ByteBuffer out, boolean endOfInput
+	) {
+		CoderResult res = encodeLoop(in, out);
+		if(res != CoderResult.UNDERFLOW) {
+			return res;
+		}
+		if(endOfInput && in.remaining() > 0) {
+			return new CoderResult.MalformedOfLength(in.remaining());
+		}
+		return res;
 	}
 
 	protected abstract CoderResult encodeLoop(CharBuffer in, ByteBuffer out);

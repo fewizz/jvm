@@ -92,6 +92,10 @@ public abstract class Buffer {
 
 	public abstract boolean isReadOnly();
 
+	public abstract Object array();
+
+	public abstract int arrayOffset();
+
 	public abstract boolean isDirect();
 
 }

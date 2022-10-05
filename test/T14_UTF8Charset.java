@@ -2,13 +2,19 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 
 public class T14_UTF8Charset {
 
 	public static void main(String... args) {
+		if("Hello".length() != 5) {
+			System.exit(64);
+		}
+
 		Charset utf8 = Charset.defaultCharset();
 		CharsetDecoder d = utf8.newDecoder();
+		CharsetEncoder e = utf8.newEncoder();
 
 		{
 			ByteBuffer bb = ByteBuffer.allocate(1);
@@ -59,6 +65,32 @@ public class T14_UTF8Charset {
 			}
 			if(!((int)out.get(0) == 0xD83E && (int)out.get(1) == 0xDD14)) {
 				System.exit(9);
+			}
+		}
+		{
+			CharBuffer in = CharBuffer.allocate(1);
+			in.put(0, 'H');
+			ByteBuffer out = ByteBuffer.allocate(1);
+			CoderResult res = e.encode(in, out, true);
+			if(res != CoderResult.UNDERFLOW) {
+				System.exit(61);
+			}
+			if(out.position() != 1) {
+				System.exit(62);
+			}
+			if(out.get(0) != 'H') {
+				System.exit(63);
+			}
+		}
+		{
+			CharBuffer in = CharBuffer.wrap("Hello world!".toCharArray());
+			ByteBuffer out = ByteBuffer.allocate(100);
+			CoderResult res = e.encode(in, out, true);
+			if(res != CoderResult.UNDERFLOW) {
+				System.exit(71);
+			}
+			if(out.position() != 12) {
+				System.exit(72);
 			}
 		}
 	}
