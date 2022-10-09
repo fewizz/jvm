@@ -8,8 +8,8 @@ inline reference create_index_of_of_bounds_exception() {
 	_class& c = index_of_of_bounds_exception_class.value();
 	method& m = index_of_of_bounds_exception_constructor.value();
 	reference o = create_object(c);
-	stack_entry se{ o };
-	execute(m, arguments_span{ &se, 1 });
+	stack.emplace_back(o);
+	execute(m);
 	return move(o);
 }
 

@@ -9,7 +9,7 @@ struct field_value;
 
 struct reference {
 private:
-	object* obj_ = nullptr;
+	uint32 obj_ptr_raw_ = 0;
 
 	friend reference create_object(_class& c);
 
@@ -28,19 +28,22 @@ public:
 	reference& operator = (const reference&);
 	reference& operator = (reference&&);
 
-	::object& object();
-	::object* object_ptr() { return obj_; }
+	const ::object& object() const;
+	      ::object& object();
 
-	::object* operator -> () { return obj_; }
+	const ::object* object_ptr() const;
+	      ::object* object_ptr();
 
-	field_value& operator [] (uint16 index) const;
-	field_value& operator [] (uint16 index);
+	::object* operator -> () { return object_ptr(); }
+
+	const field_value& operator [] (uint16 index) const;
+	      field_value& operator [] (uint16 index);
 
 	bool is_null() const;
 
 	const ::_class& _class() const;
 	      ::_class& _class()      ;
 
-	operator const ::object& () const { return *obj_; }
-	operator       ::object& ()       { return *obj_; }
+	operator const ::object& () const { return *object_ptr(); }
+	operator       ::object& ()       { return *object_ptr(); }
 };

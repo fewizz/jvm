@@ -7,10 +7,8 @@
 
 #include <loop_action.hpp>
 
-template<basic_range StackType>
 inline void invoke_special(
-	class_file::constant::method_ref_index ref_index,
-	_class& current, StackType& stack
+	class_file::constant::method_ref_index ref_index, _class& current
 ) {
 	namespace cc = class_file::constant;
 
@@ -40,20 +38,5 @@ inline void invoke_special(
 	method& m = select_method_for_invoke_special(
 		current, referenced_class, resolved_method
 	);
-
-	uint8 args_count = resolved_method.parameters_count();
-	++args_count; // this
-	optional<stack_entry> result = execute(
-		m,
-		arguments_span {
-			&*stack.iterator() + stack.size() - args_count, args_count
-		}
-	);
-
-	stack.pop_back(args_count);
-
-	result.if_has_value([&](stack_entry& value) {
-		stack.emplace_back(move(value));
-	});
-
+	execute(m);
 }

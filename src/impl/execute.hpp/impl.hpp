@@ -33,9 +33,7 @@
 
 #include <posix/math.hpp>
 
-static optional<stack_entry> execute(
-	method& m, arguments_span args
-) {
+static void execute(method& m) {
 	namespace cf = class_file;
 	namespace instr = cf::attribute::code::instruction;
 
@@ -58,11 +56,11 @@ static optional<stack_entry> execute(
 		[] { if(info) { --tab; } }
 	};
 
-	optional<stack_entry> result;
 	uint32 pc = 0;
 
 	execution_context ctx {
-		c, m, latest_execution_context
+		m,
+		latest_execution_context
 	};
 
 	latest_execution_context = ctx;
@@ -77,7 +75,8 @@ static optional<stack_entry> execute(
 			//m.native_function(native_functions.find(mwc));
 		}
 		native_function_ptr ptr = m.native_function();
-		return native_interface_call(ptr, args, m.descriptor());
+		native_interface_call(ptr, m);
+		return;
 	}
 
 	if(m.code().iterator() == nullptr) {
@@ -85,12 +84,7 @@ static optional<stack_entry> execute(
 		abort();
 	}
 
-	cf::attribute::code::reader<
-		uint8*,
-		cf::attribute::code::reader_stage::code
-	> reader{ m.code().iterator() };
-
-	nuint stack_size = (nuint) max(m.code().max_stack, 1);
+	/*nuint stack_size = (nuint) max(m.code().max_stack, 1);
 	storage<stack_entry> stack_storage[stack_size];
 
 	list<span<storage<stack_entry>>> stack {
@@ -102,7 +96,7 @@ static optional<stack_entry> execute(
 	storage<stack_entry> locals_storage[locals_size];
 	list<span<storage<stack_entry>>> locals {
 		span{ locals_storage, locals_size }
-	};
+	};*/
 
 	/*if(info) {
 		tabs();
@@ -115,15 +109,29 @@ static optional<stack_entry> execute(
 		);
 	}*/
 
-	{
+	/*{
 		for(stack_entry& se : args) {
 			stack_entry& l = locals.emplace_back(move(se));
 			if(l.is<jlong>() || l.is<jdouble>()) {
 				locals.emplace_back(jint{});
 			}
 		}
+	}*/
+	nuint locals_begin = stack.size() - m.parameters_stack_size();
+	nuint locals_end = locals_begin + m.code().max_locals;
+	nuint stack_begin = locals_end;
+
+	{
+		nuint locals_pushed = m.parameters_stack_size();
+		while(locals_pushed < m.code().max_locals) {
+			stack.emplace_back(int32{ -1 });
+			++locals_pushed;
+		}
 	}
-	locals.fill_with(jint{});
+	// stack is popped by `ret` instructions
+	//on_scope_exit pop_locals { [&] {
+	//	stack.pop_back(m.code().max_locals);
+	//}};
 
 	namespace attr = cf::attribute;
 	using namespace attr::code::instruction;
@@ -141,6 +149,11 @@ static optional<stack_entry> execute(
 		posix::std_err.write_from(c_string{ "\n" });
 		abort();
 	};
+
+	cf::attribute::code::reader<
+		uint8*,
+		cf::attribute::code::reader_stage::code
+	> reader{ m.code().iterator() };
 
 	reader([&]<typename Type>(Type x, uint8*& it) {
 		on_scope_exit update_pc{[&](){
@@ -172,7 +185,8 @@ static optional<stack_entry> execute(
 				}
 
 				it = m.code().iterator() + handler.handler_pc;
-				stack.clear();
+
+				stack.pop_back_until(stack_begin);
 				stack.emplace_back(move(thrown));
 				return loop_action::next;
 			}
@@ -183,8 +197,8 @@ static optional<stack_entry> execute(
 		auto view_array = [&]<typename E, typename Handler>(
 			Handler&& handler
 		) {
-			int32 element_index = stack.pop_back().get<jint>();
-			reference array_ref = stack.pop_back().get<reference>();
+			int32 element_index = stack.pop_back<int32>();
+			reference array_ref = stack.pop_back<reference>();
 			if(array_ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
@@ -206,51 +220,51 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, i_const_m1>) {
 			if(info) { tabs(); print("i_const_m1\n"); }
-			stack.emplace_back(jint{ -1 });
+			stack.emplace_back(int32{ -1 });
 		}
 		else if constexpr (same_as<Type, i_const_0>) {
 			if(info) { tabs(); print("i_const_0\n"); }
-			stack.emplace_back(jint{ 0 });
+			stack.emplace_back(int32{ 0 });
 		}
 		else if constexpr (same_as<Type, i_const_1>) {
 			if(info) { tabs(); print("i_const_1\n"); }
-			stack.emplace_back(jint{ 1 });
+			stack.emplace_back(int32{ 1 });
 		}
 		else if constexpr (same_as<Type, i_const_2>) {
 			if(info) { tabs(); print("i_const_2\n"); }
-			stack.emplace_back(jint{ 2 });
+			stack.emplace_back(int32{ 2 });
 		}
 		else if constexpr (same_as<Type, i_const_3>) {
 			if(info) { tabs(); print("i_const_3\n"); }
-			stack.emplace_back(jint{ 3 });
+			stack.emplace_back(int32{ 3 });
 		}
 		else if constexpr (same_as<Type, i_const_4>) {
 			if(info) { tabs(); print("i_const_4\n"); }
-			stack.emplace_back(jint{ 4 });
+			stack.emplace_back(int32{ 4 });
 		}
 		else if constexpr (same_as<Type, i_const_5>) {
 			if(info) { tabs(); print("i_const_5\n"); }
-			stack.emplace_back(jint{ 5 });
+			stack.emplace_back(int32{ 5 });
 		}
 		else if constexpr (same_as<Type, l_const_0>) {
 			if(info) { tabs(); print("l_const_0\n"); }
-			stack.emplace_back(jlong{ 0 });
+			stack.emplace_back(int64{ 0 });
 		}
 		else if constexpr (same_as<Type, l_const_1>) {
 			if(info) { tabs(); print("l_const_1\n"); }
-			stack.emplace_back(jlong{ 1 });
+			stack.emplace_back(int64{ 1 });
 		}
 		else if constexpr (same_as<Type, f_const_0>) {
 			if(info) { tabs(); print("f_const_0\n"); }
-			stack.emplace_back(jfloat{ 0.0F });
+			stack.emplace_back(float{ 0.0F });
 		}
 		else if constexpr (same_as<Type, f_const_1>) {
 			if(info) { tabs(); print("f_const_1\n"); }
-			stack.emplace_back(jfloat{ 1.0F });
+			stack.emplace_back(float{ 1.0F });
 		}
 		else if constexpr (same_as<Type, f_const_2>) {
 			if(info) { tabs(); print("f_const_2\n"); }
-			stack.emplace_back(jfloat{ 2.0F });
+			stack.emplace_back(float{ 2.0F });
 		}
 		else if constexpr (same_as<Type, bi_push>) {
 			if(info) {
@@ -259,7 +273,7 @@ static optional<stack_entry> execute(
 				print(x.value);
 				print("\n");
 			}
-			stack.emplace_back(jint{ x.value });
+			stack.emplace_back(int32{ x.value });
 		}
 		else if constexpr (same_as<Type, si_push>) {
 			if(info) {
@@ -268,15 +282,15 @@ static optional<stack_entry> execute(
 				print(x.value);
 				print("\n");
 			}
-			stack.emplace_back(jint{ x.value });
+			stack.emplace_back(int32{ x.value });
 		}
 		else if constexpr (
 			same_as<Type, instr::ldc> || same_as<Type, instr::ldc_w>
 		) {
-			::ldc(x.index, c, stack);
+			::ldc(x.index, c);
 		}
 		else if constexpr (same_as<Type, instr::ldc_2_w>) {
-			::ldc_2_w(x.index, c, stack);
+			::ldc_2_w(x.index, c);
 		}
 
 		else if constexpr (same_as<Type, i_load>) {
@@ -286,7 +300,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(locals[x.index].template get<jint>());
+			stack.emplace_back(stack.at<int32>(locals_begin + x.index));
 		}
 		else if constexpr (same_as<Type, l_load>) {
 			if(info) {
@@ -295,7 +309,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(locals[x.index].template get<jlong>());
+			stack.emplace_back(stack.at<int64>(locals_begin + x.index));
 		}
 		else if constexpr (same_as<Type, f_load>) {
 			if(info) {
@@ -304,7 +318,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(locals[x.index].template get<jfloat>());
+			stack.emplace_back(stack.at<float>(locals_begin + x.index));
 		}
 		else if constexpr (same_as<Type, a_load>) {
 			if(info) {
@@ -313,80 +327,80 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(locals[x.index].template get<reference>());
+			stack.emplace_back(stack.at<reference>(locals_begin + x.index));
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
 			if(info) { tabs(); print("i_load_0\n"); }
-			stack.emplace_back(locals[0].get<jint>());
+			stack.emplace_back(stack.at<int32>(locals_begin + 0));
 		}
 		else if constexpr (same_as<Type, i_load_1>) {
 			if(info) { tabs(); print("i_load_1\n"); }
-			stack.emplace_back(locals[1].get<jint>());
+			stack.emplace_back(stack.at<int32>(locals_begin + 1));
 		}
 		else if constexpr (same_as<Type, i_load_2>) {
 			if(info) { tabs(); print("i_load_2\n"); }
-			stack.emplace_back(locals[2].get<jint>());
+			stack.emplace_back(stack.at<int32>(locals_begin + 2));
 		}
 		else if constexpr (same_as<Type, i_load_3>) {
 			if(info) { tabs(); print("i_load_3\n"); }
-			stack.emplace_back(locals[3].get<jint>());
+			stack.emplace_back(stack.at<int32>(locals_begin + 3));
 		}
 		else if constexpr (same_as<Type, l_load_0>) {
 			if(info) { tabs(); print("l_load_0\n"); }
-			stack.emplace_back(locals[0].get<jlong>());
+			stack.emplace_back(stack.at<int64>(locals_begin + 0));
 		}
 		else if constexpr (same_as<Type, l_load_1>) {
 			if(info) { tabs(); print("l_load_1\n"); }
-			stack.emplace_back(locals[1].get<jlong>());
+			stack.emplace_back(stack.at<int64>(locals_begin + 1));
 		}
 		else if constexpr (same_as<Type, l_load_2>) {
 			if(info) { tabs(); print("l_load_2\n"); }
-			stack.emplace_back(locals[2].get<jlong>());
+			stack.emplace_back(stack.at<int64>(locals_begin + 2));
 		}
 		else if constexpr (same_as<Type, l_load_3>) {
 			if(info) { tabs(); print("l_load_3\n"); }
-			stack.emplace_back(locals[3].get<jlong>());
+			stack.emplace_back(stack.at<int64>(locals_begin + 3));
 		}
 		else if constexpr (same_as<Type, f_load_0>) {
 			if(info) { tabs(); print("f_load_0\n"); }
-			stack.emplace_back(locals[0].get<jfloat>());
+			stack.emplace_back(stack.at<float>(locals_begin + 0));
 		}
 		else if constexpr (same_as<Type, f_load_1>) {
 			if(info) { tabs(); print("f_load_1\n"); }
-			stack.emplace_back(locals[1].get<jfloat>());
+			stack.emplace_back(stack.at<float>(locals_begin + 1));
 		}
 		else if constexpr (same_as<Type, f_load_2>) {
 			if(info) { tabs(); print("f_load_2\n"); }
-			stack.emplace_back(locals[2].get<jfloat>());
+			stack.emplace_back(stack.at<float>(locals_begin + 2));
 		}
 		else if constexpr (same_as<Type, f_load_3>) {
 			if(info) { tabs(); print("f_load_3\n"); }
-			stack.emplace_back(locals[3].get<jfloat>());
+			stack.emplace_back(stack.at<float>(locals_begin + 3));
 		}
 		else if constexpr (same_as<Type, a_load_0>) {
 			if(info) { tabs(); print("a_load_0\n"); }
-			reference ref = locals[0].get<reference>();
+			reference ref = stack.at<reference>(locals_begin + 0);
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_1>) {
 			if(info) { tabs(); print("a_load_1\n"); }
-			reference ref = locals[1].get<reference>();
+			reference ref = stack.at<reference>(locals_begin + 1);
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_2>) {
 			if(info) { tabs(); print("a_load_2\n"); }
-			reference ref = locals[2].get<reference>();
+			reference ref = stack.at<reference>(locals_begin + 2);
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_3>) {
 			if(info) { tabs(); print("a_load_3\n"); }
-			reference ref = locals[3].get<reference>();
+			reference ref = stack.at<reference>(locals_begin + 3);
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, i_a_load>) {
 			if(info) { tabs(); print("i_a_load\n"); }
 			return view_array.template operator()<int32>([&](int32& v) {
-				stack.emplace_back(jint{ v });
+				stack.emplace_back(int32{ v });
 			});
 		}
 		else if constexpr (same_as<Type, a_a_load>) {
@@ -398,13 +412,13 @@ static optional<stack_entry> execute(
 		else if constexpr (same_as<Type, b_a_load>) {
 			if(info) { tabs(); print("b_a_load\n"); }
 			return view_array.template operator()<int8>([&](int8& v) {
-				stack.emplace_back(jint{ uint8(v) });
+				stack.emplace_back(int32{ uint8(v) });
 			});
 		}
 		else if constexpr (same_as<Type, c_a_load>) {
 			if(info) { tabs(); print("c_a_load\n"); }
 			return view_array.template operator()<int16>([&](int16& v) {
-				stack.emplace_back(jint{ uint16(v) });
+				stack.emplace_back(int32{ uint16(v) });
 			});
 		}
 		else if constexpr (same_as<Type, i_store>) {
@@ -414,7 +428,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			locals[x.index] = stack.pop_back().get<jint>();
+			stack.at(locals_begin + x.index, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, l_store>) {
 			if(info) {
@@ -423,7 +437,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			locals[x.index] = stack.pop_back().get<jlong>();
+			stack.at(locals_begin + x.index, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, f_store>) {
 			if(info) {
@@ -432,7 +446,7 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			locals[x.index] = stack.pop_back().get<jfloat>();
+			stack.at(locals_begin + x.index, stack.pop_back<float>());
 		}
 		else if constexpr (same_as<Type, a_store>) {
 			if(info) {
@@ -441,84 +455,80 @@ static optional<stack_entry> execute(
 				print(x.index);
 				print("\n");
 			}
-			locals[x.index] = move(stack.pop_back().get<reference>());
+			stack.at(locals_begin + x.index, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
 			if(info) { tabs(); print("i_store_0\n"); }
-			locals[0] = stack.pop_back().get<jint>();
+			stack.at(locals_begin + 0, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_1>) {
 			if(info) { tabs(); print("i_store_1\n"); }
-			locals[1] = stack.pop_back().get<jint>();
+			stack.at(locals_begin + 1, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_2>) {
 			if(info) { tabs(); print("i_store_2\n"); }
-			locals[2] = stack.pop_back().get<jint>();
+			stack.at(locals_begin + 2, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_3>) {
 			if(info) { tabs(); print("i_store_3\n"); }
-			locals[3] = stack.pop_back().get<jint>();
+			stack.at(locals_begin + 3, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, l_store_0>) {
 			if(info) { tabs(); print("l_store_0\n"); }
-			locals[0] = stack.pop_back().get<jlong>();
+			stack.at(locals_begin + 0, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_1>) {
 			if(info) { tabs(); print("l_store_1\n"); }
-			locals[1] = stack.pop_back().get<jlong>();
+			stack.at(locals_begin + 1, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_2>) {
 			if(info) { tabs(); print("l_store_2\n"); }
-			locals[2] = stack.pop_back().get<jlong>();
+			stack.at(locals_begin + 2, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_3>) {
 			if(info) { tabs(); print("l_store_3\n"); }
-			locals[3] = stack.pop_back().get<jlong>();
+			stack.at(locals_begin + 3, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, a_store_0>) {
 			if(info) { tabs(); print("a_store_0\n"); }
-			reference ref = stack.pop_back().get<reference>();
-			locals[0] = move(ref);
+			stack.at(locals_begin + 0, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_1>) {
 			if(info) { tabs(); print("a_store_1\n"); }
-			reference ref = stack.pop_back().get<reference>();
-			locals[1] = move(ref);
+			stack.at(locals_begin + 1, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_2>) {
 			if(info) { tabs(); print("a_store_2\n"); }
-			reference ref = stack.pop_back().get<reference>();
-			locals[2] = move(ref);
+			stack.at(locals_begin + 2, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_3>) {
 			if(info) { tabs(); print("a_store_3\n"); }
-			reference ref = stack.pop_back().get<reference>();
-			locals[3] = move(ref);
+			stack.at(locals_begin + 3, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, i_a_store>) {
 			if(info) { tabs(); print("i_a_store\n"); }
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			return view_array.template operator()<int32>([&](int32& v) {
 				v = value;
 			});
 		}
 		else if constexpr (same_as<Type, a_a_store>) {
 			if(info) { tabs(); print("a_a_store\n"); }
-			reference value = stack.pop_back().get<reference>();
+			reference value = stack.pop_back<reference>();
 			return view_array.template operator()<reference>([&](reference& v) {
 				v = value;
 			});
 		}
 		else if constexpr (same_as<Type, b_a_store>) {
 			if(info) { tabs(); print("b_a_store\n"); }
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			return view_array.template operator()<int8>([&](int8& v) {
 				v = (uint8) uint32(value);
 			});
 		}
 		else if constexpr (same_as<Type, c_a_store>) {
 			if(info) { tabs(); print("c_a_store\n"); }
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			return view_array.template operator() <int16>([&](int16& v) {
 				v = (uint16) uint32(value);
 			});
@@ -530,174 +540,157 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, dup>) {
 			if(info) { tabs(); print("dup\n"); }
-			auto& value = stack.back();
-			stack.emplace_back(value);
+			stack.dup_cat_1();
 		}
 		else if constexpr (same_as<Type, dup_x1>) {
 			if(info) { tabs(); print("dup_x1\n"); }
-			stack_entry value1 = stack.pop_back();
-			stack_entry value2 = stack.pop_back();
-			stack.emplace_back(value1);
-			stack.emplace_back(move(value2));
-			stack.emplace_back(move(value1));
+			stack.dup_x1_cat_1();
 		}
 		else if constexpr (same_as<Type, dup_2>) {
 			if(info) { tabs(); print("dup_2\n"); }
-			if(
-				stack.back().is<jlong>() ||
-				stack.back().is<jdouble>()
-			) {
-				auto& value = stack.back();
-				stack.emplace_back(value);
-			}
-			else {
-				auto& value_2 = stack[stack.size() - 2];
-				auto& value_1 = stack[stack.size() - 1];
-				stack.emplace_back(value_2);
-				stack.emplace_back(value_1);
-			}
+			stack.dup2();
 		}
 
 		else if constexpr (same_as<Type, i_add>) {
 			if(info) { tabs(); print("i_add\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 + value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 + value2 });
 		}
 		else if constexpr (same_as<Type, l_add>) {
 			if(info) { tabs(); print("l_add\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 + value2 });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 + value2 });
 		}
 		else if constexpr (same_as<Type, f_add>) {
 			if(info) { tabs(); print("f_add\n"); }
-			float value2 = stack.pop_back().get<jfloat>();
-			float value1 = stack.pop_back().get<jfloat>();
-			stack.emplace_back(jfloat{ value1 + value2 });
+			float value2 = stack.pop_back<float>();
+			float value1 = stack.pop_back<float>();
+			stack.emplace_back(float{ value1 + value2 });
 		}
 		else if constexpr (same_as<Type, i_sub>) {
 			if(info) { tabs(); print("i_sub\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 - value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int64{ value1 - value2 });
 		}
 		else if constexpr (same_as<Type, l_sub>) {
 			if(info) { tabs(); print("l_sub\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 - value2 });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 - value2 });
 		}
 		else if constexpr (same_as<Type, i_mul>) {
 			if(info) { tabs(); print("i_mul\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 * value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 * value2 });
 		}
 		else if constexpr (same_as<Type, l_mul>) {
 			if(info) { tabs(); print("l_mul\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 * value2 });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 * value2 });
 		}
 		else if constexpr (same_as<Type, f_mul>) {
 			if(info) { tabs(); print("f_mul\n"); }
-			float value2 = stack.pop_back().get<jfloat>();
-			float value1 = stack.pop_back().get<jfloat>();
-			stack.emplace_back(jfloat{ value1 * value2 });
+			float value2 = stack.pop_back<float>();
+			float value1 = stack.pop_back<float>();
+			stack.emplace_back(float{ value1 * value2 });
 		}
 		else if constexpr (same_as<Type, i_div>) {
 			if(info) { tabs(); print("i_div\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 / value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 / value2 });
 		}
 		else if constexpr (same_as<Type, f_div>) {
 			if(info) { tabs(); print("f_div\n"); }
-			float value2 = stack.pop_back().get<jfloat>();
-			float value1 = stack.pop_back().get<jfloat>();
-			stack.emplace_back(jfloat{ value1 / value2 });
+			float value2 = stack.pop_back<float>();
+			float value1 = stack.pop_back<float>();
+			stack.emplace_back(float{ value1 / value2 });
 		}
 		else if constexpr (same_as<Type, i_rem>) {
 			if(info) { tabs(); print("i_rem\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 - (value1 / value2) * value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 - (value1 / value2) * value2 });
 		}
 		else if constexpr (same_as<Type, i_neg>) {
 			if(info) { tabs(); print("i_neg\n"); }
-			int32 value = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ -value });
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back(int32{ -value });
 		}
 		else if constexpr (same_as<Type, i_sh_l>) {
 			if(info) { tabs(); print("i_sh_l\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 << (value2 & 0x1F) });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 << (value2 & 0x1F) });
 		}
 		else if constexpr (same_as<Type, l_sh_l>) {
 			if(info) { tabs(); print("l_sh_l\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 << (value2 & 0x3F) });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 << (value2 & 0x3F) });
 		}
 		else if constexpr (same_as<Type, i_sh_r>) {
 			if(info) { tabs(); print("i_sh_r\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 >> (value2 & 0x1F) });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 >> (value2 & 0x1F) });
 		}
 		else if constexpr (same_as<Type, l_sh_r>) {
 			if(info) { tabs(); print("l_sh_r\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 >> (value2 & 0x3F) });
+			int32 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 >> (value2 & 0x3F) });
 		}
 		else if constexpr (same_as<Type, i_u_sh_r>) {
 			if(info) { tabs(); print("i_u_sh_r\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint {
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32 {
 				int32(uint32(value1) >> (value2 & 0x1F))
 			});
 		}
 		else if constexpr (same_as<Type, l_u_sh_r>) {
 			if(info) { tabs(); print("l_ush_r\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong {
+			int32 value2 = stack.pop_back<int32>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64 {
 				int64(uint64(value1) >> (value2 & 0x3F))
 			});
 		}
 		else if constexpr (same_as<Type, i_and>) {
 			if(info) { tabs(); print("i_and\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 & value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 & value2 });
 		}
 		else if constexpr (same_as<Type, l_and>) {
 			if(info) { tabs(); print("l_and\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 & value2 });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 & value2 });
 		}
 		else if constexpr (same_as<Type, i_or>) {
 			if(info) { tabs(); print("i_or\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 | value2 });
+			int32 value2 = stack.pop_back<int64>();
+			int32 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 | value2 });
 		}
 		else if constexpr (same_as<Type, l_or>) {
 			if(info) { tabs(); print("l_or\n"); }
-			int64 value2 = stack.pop_back().get<jlong>();
-			int64 value1 = stack.pop_back().get<jlong>();
-			stack.emplace_back(jlong{ value1 | value2 });
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 | value2 });
 		}
 		else if constexpr (same_as<Type, i_xor>) {
 			if(info) { tabs(); print("i_xor\n"); }
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
-			stack.emplace_back(jint{ value1 ^ value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			stack.emplace_back(int32{ value1 ^ value2 });
 		}
 		else if constexpr (same_as<Type, i_inc>) {
 			if(info) {
@@ -708,26 +701,26 @@ static optional<stack_entry> execute(
 				print(x.value);
 				print("\n");
 			}
-			locals[x.index].template get<jint>() += x.value;
+			stack.at<int32>(locals_begin + x.index) += x.value;
 		}
 		else if constexpr (same_as<Type, i_to_l>) {
 			if(info) { tabs(); print("i_to_l\n"); }
-			int32 value = stack.back().get<jint>();
-			stack.back() = jlong{ value };
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((int64) value);
 		}
 		else if constexpr (same_as<Type, i_to_f>) {
 			if(info) { tabs(); print("i_to_f\n"); }
-			int32 value = stack.back().get<jint>();
-			stack.back() = jfloat{ (float) value };
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((float) value);
 		}
 		else if constexpr (same_as<Type, l_to_i>) {
 			if(info) { tabs(); print("l_to_i\n"); }
-			int64 value = stack.back().get<jlong>();
-			stack.back() = jint{ (int32) (value & 0xFFFFFFFF) };
+			int64 value = stack.pop_back<int64>();
+			stack.emplace_back((int32) (value & 0xFFFFFFFF));
 		}
 		else if constexpr (same_as<Type, f_to_i>) {
 			if(info) { tabs(); print("f_to_i\n"); }
-			float value = stack.back().get<jfloat>();
+			float value = stack.pop_back<float>();
 			int32 result;
 			if(posix::is_nan(value)) {
 				result = 0;
@@ -735,33 +728,33 @@ static optional<stack_entry> execute(
 			else {
 				result = (int32) value;
 			}
-			stack.back() = jint{ result };
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, i_to_b>) {
 			if(info) { tabs(); print("i_to_b\n"); }
-			int32 value = stack.back().get<jint>();
-			stack.back() = jint{ (int8) value };
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((int32) (int8) value);
 		}
 		else if constexpr (same_as<Type, i_to_c>) {
 			if(info) { tabs(); print("i_to_c\n"); }
-			int32 value = stack.back().get<jint>();
-			stack.back() = jint{ (int16) value };
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((int32) (int16) value);
 		}
 
 		else if constexpr (same_as<Type, l_cmp>) {
 			if(info) { tabs(); print("l_cmp\n"); }
-			int64 value_2 = stack.pop_back().get<jlong>();
-			int64 value_1 = stack.pop_back().get<jlong>();
+			int64 value_2 = stack.pop_back<int64>();
+			int64 value_1 = stack.pop_back<int64>();
 			int32 result;
 			if(value_1 >  value_2) result =  1;
 			if(value_1 == value_2) result =  0;
 			if(value_1 <  value_2) result = -1;
-			stack.emplace_back(jint{ result });
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, f_cmp_l>) {
 			if(info) { tabs(); print("f_cmp_l\n"); }
-			float value_2 = stack.pop_back().get<jfloat>();
-			float value_1 = stack.pop_back().get<jfloat>();
+			float value_2 = stack.pop_back<float>();
+			float value_1 = stack.pop_back<float>();
 			int32 result;
 			if(value_1 >  value_2) result =  1;
 			else if(value_1 == value_2) result =  0;
@@ -769,12 +762,12 @@ static optional<stack_entry> execute(
 			else { // NaN
 				result = -1;
 			}
-			stack.emplace_back(jint{ result });
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, f_cmp_g>) {
 			if(info) { tabs(); print("f_cmp_g\n"); }
-			float value_2 = stack.pop_back().get<jfloat>();
-			float value_1 = stack.pop_back().get<jfloat>();
+			float value_2 = stack.pop_back<float>();
+			float value_1 = stack.pop_back<float>();
 			int32 result;
 			if(value_1 >  value_2) result =  1;
 			else if(value_1 == value_2) result =  0;
@@ -782,7 +775,7 @@ static optional<stack_entry> execute(
 			else { // NaN
 				result = 1;
 			}
-			stack.emplace_back(jint{ result });
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, if_eq>) {
 			if(info) {
@@ -791,7 +784,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value == 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -803,7 +796,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value != 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -815,7 +808,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value < 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -827,7 +820,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value >= 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -839,7 +832,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value > 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -851,7 +844,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value = stack.pop_back().get<jint>();
+			int32 value = stack.pop_back<int32>();
 			if(value <= 0) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -863,8 +856,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 == value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -876,8 +869,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 != value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -889,8 +882,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 < value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -902,8 +895,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 >= value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -915,8 +908,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 > value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -928,8 +921,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			int32 value2 = stack.pop_back().get<jint>();
-			int32 value1 = stack.pop_back().get<jint>();
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
 			if(value1 <= value2) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -941,8 +934,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			reference value2 = stack.pop_back().get<reference>();
-			reference value1 = stack.pop_back().get<reference>();
+			reference value2 = stack.pop_back<reference>();
+			reference value1 = stack.pop_back<reference>();
 			if(value1.object_ptr() == value2.object_ptr()) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -954,8 +947,8 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			reference value2 = stack.pop_back().get<reference>();
-			reference value1 = stack.pop_back().get<reference>();
+			reference value2 = stack.pop_back<reference>();
+			reference value1 = stack.pop_back<reference>();
 			if(value1.object_ptr() != value2.object_ptr()) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -971,31 +964,56 @@ static optional<stack_entry> execute(
 		}
 		else if constexpr (same_as<Type, i_return>) {
 			if(info) { tabs(); print("i_return\n"); }
-			result = stack.pop_back().get<jint>();
+			int32 result = stack.back<int32>();
+			m.descriptor().return_type().view([&]<typename RetType>(RetType) {
+				if constexpr(same_as<RetType, class_file::b>) {
+					result = result & 1;
+				}
+				if constexpr(same_as<RetType, class_file::b>) {
+					result = (int8) result;
+				}
+				if constexpr(same_as<RetType, class_file::c>) {
+					result = (uint16) result;
+				}
+				if constexpr(same_as<RetType, class_file::s>) {
+					result = ( int16) result;
+				}
+			});
+			stack.pop_back_until(locals_begin);
+			stack.emplace_back(result);
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, l_return>) {
 			if(info) { tabs(); print("l_return\n"); }
-			result = stack.pop_back().get<jlong>();
+			int64 result = stack.pop_back<int64>();
+			stack.pop_back_until(locals_begin);
+			stack.emplace_back(result);
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, f_return>) {
 			if(info) { tabs(); print("f_return\n"); }
-			result = stack.pop_back().get<jfloat>();
+			float result = stack.pop_back<float>();
+			stack.pop_back_until(locals_begin);
+			stack.emplace_back(result);
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, d_return>) {
 			if(info) { tabs(); print("d_return\n"); }
-			result = stack.pop_back().get<jdouble>();
+			double result = stack.pop_back<double>();
+			stack.pop_back_until(locals_begin);
+			stack.emplace_back(result);
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, a_return>) {
 			if(info) { tabs(); print("a_return\n"); }
-			result = move(stack.pop_back().get<reference>());
+			reference result = stack.pop_back<reference>();
+			stack.pop_back_until(locals_begin);
+			stack.emplace_back(move(result));
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, _return>) {
 			if(info) { tabs(); print("return\n"); }
+			stack.pop_back_until(locals_begin);
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, get_static>) {
@@ -1014,7 +1032,7 @@ static optional<stack_entry> execute(
 				print("\n");
 			}
 			field_value& value = c.get_static_field_value(x.index);
-			stack.emplace_back(get_field_value(value));
+			get_field_value(value);
 		}
 		else if constexpr (same_as<Type, put_static>) {
 			if(info) {
@@ -1028,8 +1046,7 @@ static optional<stack_entry> execute(
 				print("\n");
 			}
 			field_value& field_value = c.get_static_field_value(x.index);
-			stack_entry stack_value = stack.pop_back();
-			put_field_value(field_value, move(stack_value));
+			put_field_value(field_value);
 		}
 		else if constexpr (same_as<Type, get_field>) {
 			if(info) {
@@ -1051,12 +1068,13 @@ static optional<stack_entry> execute(
 				c.get_resolved_instance_field_index(x.index)
 			};
 
-			reference ref = stack.pop_back().get<reference>();
+			reference ref = stack.pop_back<reference>();
 			field_value& value = ref[index];
-			stack.emplace_back(get_field_value(value));
+			get_field_value(value);
 		}
 		else if constexpr (same_as<Type, put_field>) {
-			if(info) {
+			abort();
+			/*if(info) { // TODO
 				tabs(); print("put_field ");
 				cc::field_ref field_ref = c.field_ref_constant(x.index);
 				cc::name_and_type nat = c.name_and_type_constant(
@@ -1082,26 +1100,26 @@ static optional<stack_entry> execute(
 				abort();
 			}
 			field_value& to = ref[index];
-			put_field_value(to, move(value));
+			put_field_value(to, move(value));*/
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
-			::invoke_virtual(x.index, c, stack);
+			::invoke_virtual(x.index, c);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_special>) {
-			::invoke_special(x.index, c, stack);
+			::invoke_special(x.index, c);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_static>) {
-			::invoke_static(x.index, c, stack);
+			::invoke_static(x.index, c);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_interface>) {
-			::invoke_interface(x.index, c, stack);
+			::invoke_interface(x.index, c);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, instr::invoke_dynamic>) {
-			::invoke_dynamic(x.index, c, stack);
+			::invoke_dynamic(x.index, c);
 			return handle_thrown();
 		}
 		else if constexpr (same_as<Type, _new>) {
@@ -1117,7 +1135,7 @@ static optional<stack_entry> execute(
 			stack.emplace_back(create_object(c0));
 		}
 		else if constexpr (same_as<Type, instr::new_array>) {
-			::new_array(/* c, */ x.type, stack);
+			::new_array(/* c, */ x.type);
 		}
 		else if constexpr (same_as<Type, a_new_array>) {
 			_class& element_class = c.get_resolved_class(x.index);
@@ -1129,24 +1147,23 @@ static optional<stack_entry> execute(
 				print("\n");
 			}
 
-			int32 count = stack.pop_back().get<jint>();
-
+			int32 count = stack.pop_back<int32>();
 			auto ref = create_array_of(element_class, count);
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, instr::array_length>) {
 			if(info) { tabs(); print("array_length\n"); }
-			reference ref = stack.pop_back().get<reference>();
+			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
-			stack.emplace_back(jint{ ::array_length(ref) });
+			stack.emplace_back(int32{ ::array_length(ref) });
 		}
 		else if constexpr (same_as<Type, a_throw>) {
 			if(info) { tabs(); print("a_throw\n"); }
 
-			reference ref = move(stack.pop_back().get<reference>());
+			reference ref = move(stack.pop_back<reference>());
 			if(ref.is_null()) {
 				ref = create_null_pointer_exception();
 			}
@@ -1160,6 +1177,7 @@ static optional<stack_entry> execute(
 				print((uint16) x.index);
 				print("\n");
 			}
+			abort();
 			//_class& type = c.get_resolved_class(x.index);
 			//reference objectref = stack[stack_size - 1].get<reference>();
 			// TODO
@@ -1174,7 +1192,7 @@ static optional<stack_entry> execute(
 				print("\n");
 			}
 
-			reference objectref = stack.pop_back().get<reference>();
+			reference objectref = stack.pop_back<reference>();
 			_class& s = objectref->_class();
 
 			int32 result = 0;
@@ -1193,7 +1211,7 @@ static optional<stack_entry> execute(
 					abort();//TODO
 				}
 			}
-			stack.emplace_back(jint{ result });
+			stack.emplace_back(int32{ result });
 		}
 		else if constexpr (same_as<Type, if_null>) {
 			if(info) {
@@ -1202,7 +1220,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			reference ref = stack.pop_back().get<reference>();
+			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -1214,7 +1232,7 @@ static optional<stack_entry> execute(
 				print(x.branch);
 				print("\n");
 			}
-			reference ref = stack.pop_back().get<reference>();
+			reference ref = stack.pop_back<reference>();
 			if(!ref.is_null()) {
 				it = m.code().iterator() + pc + x.branch;
 			}
@@ -1232,6 +1250,4 @@ static optional<stack_entry> execute(
 		return loop_action::next;
 
 	}, m.code().size());
-
-	return result;
 }

@@ -5,10 +5,8 @@
 #include "decl/execution/info.hpp"
 #include "decl/print.hpp"
 
-template<basic_range StackType>
 inline void invoke_interface(
-	class_file::constant::interface_method_ref_index ref_index,
-	_class& c, StackType& stack
+	class_file::constant::interface_method_ref_index ref_index, _class& c
 ) {
 
 	namespace cc = class_file::constant;
@@ -35,24 +33,10 @@ inline void invoke_interface(
 
 	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
-	reference& objectref =
-		stack[stack.size() - args_count].template get<reference>();
+	reference& objectref = stack.at<reference>(stack.size() - args_count);
 
 	/* "Let C be the class of objectref. A method is selected with respect to C
 	    and the resolved method (§5.4.6). This is the method to be invoked." */
 	method& m = select_method(objectref->_class(), resolved_method);
-	
-	optional<stack_entry> result = execute(
-		m, arguments_span {
-			&*stack.iterator() + stack.size() - args_count,
-			args_count
-		}
-	);
-
-	stack.pop_back(args_count);
-
-	result.if_has_value([&](stack_entry& value) {
-		stack.emplace_back(move(value));
-	});
-	
+	execute(m);
 }

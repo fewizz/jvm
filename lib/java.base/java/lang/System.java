@@ -11,6 +11,10 @@ public final class System {
 		new FileOutputStream(FileDescriptor.out), Charset.defaultCharset()
 	);
 
+	public static final PrintStream err = new PrintStream(
+		new FileOutputStream(FileDescriptor.err), Charset.defaultCharset()
+	);
+
 	public static native long nanoTime();
 
 	public static native void arraycopy(

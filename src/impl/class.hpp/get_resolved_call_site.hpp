@@ -53,7 +53,7 @@ inline reference _class::get_resolved_call_site(
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
-	uint16 args_count = bm.arguments_indices.size() + 3;
+	uint8 args_count = bm.arguments_indices.size() + 3;
 
 	storage<stack_entry> args_storage[args_count];
 	list<span<storage<stack_entry>>> args {
@@ -119,11 +119,9 @@ inline reference _class::get_resolved_call_site(
 		});
 	}
 
-	optional<stack_entry> result
-		= method_handle_invoke_exact(
-			mh,
-			arguments_span{ (stack_entry*) args_storage, args_count }
-		);
+	optional<stack_entry> result = method_handle_invoke_exact(
+		mh, parameters_count{ args_count }
+	);
 	
 	if(!result.has_value() || !result->is<reference>()) {
 		abort();

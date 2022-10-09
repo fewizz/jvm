@@ -43,7 +43,7 @@ static inline void init_java_lang_throwable() {
 
 			for(int32 x = 0; x < frames_count; ++x) {
 				data[x] = create_stack_trace_element(
-					ctx->_class.name(),
+					ctx->method._class().name(),
 					ctx->method.name()
 				);
 				ctx = ctx->previous.ptr();

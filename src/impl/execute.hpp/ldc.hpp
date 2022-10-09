@@ -4,9 +4,8 @@
 
 #include <class_file/constant.hpp>
 
-template<basic_range StackType>
 inline void ldc(
-	class_file::constant::index const_index, _class& c, StackType& stack
+	class_file::constant::index const_index, _class& c
 ) {
 	if(info) {
 		tabs();
@@ -16,12 +15,12 @@ inline void ldc(
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is<class_file::constant::_int>()) {
-		stack.emplace_back(jint {
+		stack.emplace_back(int32 {
 			constant.get<class_file::constant::_int>().value
 		});
 	} else
 	if(constant.is<class_file::constant::_float>()) {
-		stack.emplace_back(jfloat {
+		stack.emplace_back(float {
 			constant.get<class_file::constant::_float>().value
 		});
 	} else
@@ -41,9 +40,8 @@ inline void ldc(
 	}
 }
 
-template<basic_range StackType>
 inline void ldc_2_w(
-	class_file::constant::index const_index, _class& c, StackType& stack
+	class_file::constant::index const_index, _class& c
 ) {
 	if(info) {
 		tabs();
@@ -53,12 +51,12 @@ inline void ldc_2_w(
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is<class_file::constant::_long>()) {
-		stack.emplace_back(jlong {
+		stack.emplace_back(int64 {
 			constant.get<class_file::constant::_long>().value
 		});
 	} else
 	if(constant.is<class_file::constant::_double>()) {
-		stack.emplace_back(jdouble {
+		stack.emplace_back(double {
 			constant.get<class_file::constant::_double>().value
 		});
 	}

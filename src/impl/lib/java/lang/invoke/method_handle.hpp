@@ -70,53 +70,76 @@ inline reference create_method_handle_invoke_interface(method& m) {
 }
 
 inline optional<stack_entry> method_handle_invoke_exact(
-	reference ref, arguments_span args
+	[[maybe_unused]] reference ref, [[maybe_unused]] parameters_count count
 ) {
-	using behavior_kind = class_file::constant::method_handle::behavior_kind;
+	abort(); // TODO
+	/*using behavior_kind = class_file::constant::method_handle::behavior_kind;
+	span<stack_entry> args {
+		&stack.back() - count, count
+	};
+
 	void* member = (void*) (uint64)
-		ref->values() [method_handle_member_instance_field_index].get<jlong>();
+		ref[method_handle_member_instance_field_index].get<jlong>();
 	behavior_kind kind = (behavior_kind) (uint8)
-		ref->values() [method_handle_kind_instance_field_index].get<jint>();
+		ref[method_handle_kind_instance_field_index].get<jint>();
 	
 	switch (kind) {
 		case behavior_kind::invoke_virtual: {
 			method& resolved_method = * (method*) member;
 			reference& objectref = args[0].get<reference>();
 			method& m = select_method(objectref->_class(), resolved_method);
-			return execute(m, args);
+			return execute(m, count);
 		}
 		case behavior_kind::invoke_static: {
-			return execute(
-				* (method*) member,
-				args
-			);
+			return execute(* (method*) member, count);
 		}
 		case behavior_kind::invoke_special: {
-			return execute(* (method*) member, args);
+			return execute(* (method*) member, count);
 		}
 		case behavior_kind::new_invoke_special: {
 			method& init = * (method*) member;
 			_class& c = init._class();
 			reference ref = create_object(c);
-			// copy args
-			uint16 args_storage_size = (args.size() + 1);
-			storage<stack_entry> args_storage[args_storage_size];
-			list<span<storage<stack_entry>>> real_args {
-				span{ args_storage, args_storage_size }
-			};
-			// add ref to c to begining.
-			real_args.emplace_back(ref);
-			// remaining args
-			for(auto& arg : args) { real_args.emplace_back(arg); }
-			execute(
-				init,
-				arguments_span{ (stack_entry*) args_storage, args_storage_size }
-			);
+
+			// moving args to add instance ref at begining
+			stack.emplace_back(jint{});
+
+			for(int i = 0; i < count; ++i) {
+				stack[stack.size() - i - 1] = move(stack[stack.size() - i - 2]);
+			}
+			// adding instance ref
+			stack[stack.size() - count - 1] = ref;
+			++count;
+
+			execute(init, count);
 			return stack_entry{ ref };
 		}
 		case behavior_kind::invoke_interface: {
-			return execute(* (method*) member, args);
+			return execute(* (method*) member, count);
 		}
 		default: abort();
-	}
+	}*/
 }
+
+/*inline optional<stack_entry> method_handle_invoke(
+	reference ref, parameters_count count
+) {
+	abort();
+	/using behavior_kind = class_file::constant::method_handle::behavior_kind;
+	void* member = (void*) (uint64)
+		ref[method_handle_member_instance_field_index].get<jlong>();
+	behavior_kind kind = (behavior_kind) (uint8)
+		ref[method_handle_kind_instance_field_index].get<jint>();
+	if(
+		kind == behavior_kind::invoke_interface ||
+		kind == behavior_kind::invoke_special ||
+		kind == behavior_kind::invoke_static ||
+		kind == behavior_kind::invoke_virtual
+	) {
+		//method& m = * (method*) member;
+		//m.descriptor().
+	}
+	else {
+		abort();
+	}
+}*/

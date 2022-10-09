@@ -12,18 +12,22 @@
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-template<typename Descriptor>
 inline optional<stack_entry> native_interface_call(
-	native_function_ptr ptr, arguments_span args, Descriptor&& descriptor
+	[[maybe_unused]] native_function_ptr ptr, [[maybe_unused]] method& m
 ) {
-	uint64 iorref_storage[4]   { 0 };
+	abort(); // TODO
+	/*uint64 iorref_storage[4]   { 0 };
 	__m128 floating_storage[4] { 0 };
-	nuint stack_size = (max(4, args.size() + 1) - 4);
+	nuint stack_size = (max(4, count + 1) - 4);
 	if(stack_size % 2 != 0) { // 8 byte element, size aligned to 16
 		++stack_size;
 	}
 	uint64 stack_storage[stack_size];
 	
+	span<stack_entry> args {
+		&stack.back() - count, count
+	};
+
 	{
 		nuint arg = 0;
 
@@ -158,7 +162,7 @@ inline optional<stack_entry> native_interface_call(
 		);
 	}
 
-	return se_result;
+	return se_result;*/
 }
 
 #endif

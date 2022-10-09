@@ -3,20 +3,18 @@
 #include "execution/stack.hpp"
 #include "method.hpp"
 
-using arguments_span = span<stack_entry, uint16>;
+//using arguments_span = span<stack_entry, uint16>;
 
-static optional<stack_entry> execute(method& m, arguments_span args = {});
+static void execute(method& m);
 
 template<basic_range StackType>
 inline void invoke_dynamic(
-	class_file::constant::invoke_dynamic_index ref_index,
-	_class& c, StackType& stack
+	class_file::constant::invoke_dynamic_index ref_index, _class& c
 );
 
 template<basic_range StackType>
 inline void invoke_static(
-	class_file::constant::method_ref_index ref_index,
-	_class& c, StackType& stack
+	class_file::constant::method_ref_index ref_index, _class& c
 );
 
 // 5.4.6. Method Selection

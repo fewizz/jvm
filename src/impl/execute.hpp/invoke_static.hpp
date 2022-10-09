@@ -4,10 +4,8 @@
 #include "decl/class.hpp"
 #include "decl/method.hpp"
 
-template<basic_range StackType>
 inline void invoke_static(
-	class_file::constant::method_ref_index ref_index,
-	_class& c, StackType& stack
+	class_file::constant::method_ref_index ref_index, _class& c
 ) {
 	namespace cc = class_file::constant;
 
@@ -30,20 +28,5 @@ inline void invoke_static(
 	}
 
 	method& m = c.get_static_method(ref_index);
-
-	auto args_count = m.parameters_count();
-
-	optional<stack_entry> result = execute(
-		m,
-		arguments_span {
-			&*stack.iterator() + stack.size() - args_count,
-			args_count
-		}
-	);
-
-	stack.pop_back(args_count);
-
-	result.if_has_value([&](stack_entry& value) {
-		stack.emplace_back(move(value));
-	});
+	execute(m);
 }

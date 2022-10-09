@@ -34,7 +34,8 @@ public:
 	object(_class& c);
 	~object();
 
-	field_value& operator [] (instance_field_index index);
+	const field_value& operator [] (instance_field_index index) const;
+	      field_value& operator [] (instance_field_index index);
 
 	const ::_class& _class() const { return class_.value(); }
 	      ::_class& _class()       { return class_.value(); }

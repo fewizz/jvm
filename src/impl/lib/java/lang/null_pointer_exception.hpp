@@ -10,10 +10,8 @@ inline reference create_null_pointer_exception() {
 	method& m = null_pointer_exception_constructor.value();
 
 	reference ref = create_object(c);
-	stack_entry se{ ref };
-	span<stack_entry, uint16> args{ &se, 1 };
-
-	execute(m, args);
+	stack.emplace_back(ref);
+	execute(m);
 
 	return move(ref);
 }

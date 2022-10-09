@@ -6,29 +6,66 @@
 
 #include <posix/io.hpp>
 
-inline reference::reference(::object& obj) : obj_{ &obj } {
+static uint64 min_address = -1;
+
+[[gnu::constructor]] static void guess_min_address() {
+	auto allocated_int = posix::allocate_memory_for<int>(1);
+	min_address = (uint64) &allocated_int[0].get();
+	const uint64 tt_gb = 4 * (1ull << 30);
+	if(
+		min_address < tt_gb ||
+		(min_address & 0b111) != 0
+	) {
+		abort();
+	}
+	min_address -= tt_gb;
+}
+
+inline reference::reference(::object& obj) {
+	uint64 ptr_as_uint64 = (uint64) &obj;
+	if(ptr_as_uint64 < min_address) {
+		abort();
+	}
+
+	uint64 shorted_ptr_as_uint64 =
+		(ptr_as_uint64 - min_address) >> 3;
+	uint32 shorted_ptr_as_uint32 = (uint32) shorted_ptr_as_uint64;
+	if(shorted_ptr_as_uint64 != shorted_ptr_as_uint32) {
+		abort();
+	}
+	obj_ptr_raw_ = shorted_ptr_as_uint32;
 	obj.on_reference_added();
 }
 
+inline const ::object* reference::object_ptr() const {
+	return (::object*)
+		((((uint64) obj_ptr_raw_) << 3) + min_address);
+}
+inline       ::object* reference::object_ptr()       {
+	return (::object*)
+		((((uint64) obj_ptr_raw_) << 3) + min_address);
+}
+
 inline reference::reference(const reference& other) :
-	obj_{ other.obj_ }
+	obj_ptr_raw_{ other.obj_ptr_raw_ }
 {
-	if(obj_ != nullptr) {
-		obj_->on_reference_added();
+	if(obj_ptr_raw_ != 0) {
+		object_ptr()->on_reference_added();
 	}
 }
 
 inline reference::reference(reference&& other) :
-	obj_{ exchange(other.obj_, nullptr) }
+	obj_ptr_raw_{ exchange(other.obj_ptr_raw_, 0) }
 {}
 
 inline reference& reference::operator = (const reference& other) {
-	::object* prev = obj_; // in case if assigning to self
-	obj_ = other.obj_;
-	if(obj_ != nullptr) {
-		obj_->on_reference_added();
+	::object* prev = object_ptr(); // in case if assigning to self
+	uint32 obj_ptr_raw_prev = obj_ptr_raw_;
+	obj_ptr_raw_ = other.obj_ptr_raw_;
+	if(obj_ptr_raw_ != 0) {
+		object_ptr()->on_reference_added();
 	}
-	if(prev != nullptr) {
+	if(obj_ptr_raw_prev != 0) {
 		prev->on_reference_removed();
 	}
 	return *this;
@@ -38,49 +75,60 @@ inline reference& reference::operator = (reference&& other) {
 	if(this == &other) {
 		return *this;
 	}
-	::object* prev = obj_; // in case if assigning same object
-	obj_ = exchange(other.obj_, nullptr);
-	if(prev != nullptr) {
+	::object* prev = object_ptr(); // in case if assigning same object
+	uint32 obj_ptr_raw_prev = obj_ptr_raw_;
+	obj_ptr_raw_ = exchange(other.obj_ptr_raw_, 0);
+	if(obj_ptr_raw_prev != 0) {
 		prev->on_reference_removed();
 	}
 	return *this;
 }
 
-inline object& reference::object() {
-	if(obj_ == nullptr) {
+inline const object& reference::object() const {
+	if(obj_ptr_raw_ == 0) {
 		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
 		abort();
 	}
-	return *obj_;
+	return *object_ptr();
 }
 
-inline field_value& reference::operator [] (uint16 index) const {
-	return obj_->operator [] (index);
+inline object& reference::object() {
+	if(obj_ptr_raw_ == 0) {
+		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
+		abort();
+	}
+	return *object_ptr();
 }
-inline field_value& reference::operator [] (uint16 index)       {
-	return obj_->operator [] (index);
+
+inline const field_value& reference::operator [] (uint16 index) const {
+	return object()[index];
+}
+inline       field_value& reference::operator [] (uint16 index)       {
+	return object()[index];
 }
 
 inline reference::~reference() {
-	if(obj_ != nullptr) {
+	if(obj_ptr_raw_ != 0) {
 		/*fprintf(
 			stderr,
 			"reference destruction with object address = %p\n",
 			obj_
 		);*/
-		obj_->on_reference_removed();
-		obj_ = nullptr;
+		object().on_reference_removed();
+		obj_ptr_raw_ = 0;
 	}
 }
 
 inline ::object& reference::unsafe_release_without_destroing() {
-	obj_->unsafe_decrease_reference_count_without_destroing();
-	return *exchange(obj_, nullptr);
+	object().unsafe_decrease_reference_count_without_destroing();
+	::object& o = object();
+	exchange(obj_ptr_raw_, 0);
+	return o;
 }
 
 inline bool reference::is_null() const {
-	return obj_ == nullptr;
+	return obj_ptr_raw_ == 0;
 }
 
-inline const _class& reference::_class() const { return obj_->_class(); }
-inline       _class& reference::_class()       { return obj_->_class(); }
+inline const _class& reference::_class() const { return object()._class(); }
+inline       _class& reference::_class()       { return object()._class(); }

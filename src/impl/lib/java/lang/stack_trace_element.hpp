@@ -14,12 +14,13 @@ static inline reference create_stack_trace_element(
 
 	reference result = create_object(stack_trace_element_class.value());
 
-	stack_entry args[] {
-		result, move(class_name_str), move(method_name_str),
-		reference{}, jint{ -1 }
-	};
+	stack.emplace_back(result);
+	stack.emplace_back(move(class_name_str));
+	stack.emplace_back(move(method_name_str));
+	stack.emplace_back(reference{});
+	stack.emplace_back(int32{ -1 });
 
-	execute(stack_trace_element_constructor.value(), arguments_span{ args });
+	execute(stack_trace_element_constructor.value());
 
 	return result;
 }

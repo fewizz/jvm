@@ -5,13 +5,11 @@
 #include <class_file/constant.hpp>
 #include <class_file/attribute/code/instruction.hpp>
 
-template<basic_range StackType>
 inline void new_array(
 	//_class& c, TODO use trampoline
-	class_file::attribute::code::instruction::new_array_type type,
-	StackType& stack
+	class_file::attribute::code::instruction::new_array_type type
 ) {
-	int32 count = stack.pop_back().template get<jint>();
+	int32 count = stack.pop_back<int32>();
 	reference ref;
 
 	using namespace class_file::attribute::code::instruction;

@@ -43,6 +43,7 @@ private:
 
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
+	uint8                              parameters_stack_size_;
 
 public:
 
@@ -58,7 +59,26 @@ public:
 		},
 		code_              { code                           },
 		exception_handlers_{ move(exception_handlers)       }
-	{}
+	{
+		if(!access_flags._static) {
+			++parameters_stack_size_; // this
+		}
+		for(auto t : base_type::descriptor().parameters_types()) {
+			t.view([&]<typename Type>(Type) {
+				if constexpr(
+					same_as<Type, class_file::j> ||
+					same_as<Type, class_file::d>
+				) {
+					parameters_stack_size_ += 2;
+				}
+				else {
+					parameters_stack_size_ += 1;
+				}
+			});
+		}
+	}
+
+	uint8 parameters_stack_size() const { return parameters_stack_size_; }
 
 	parameters_count parameters_count() {
 		auto count = descriptor().parameters_types().size();

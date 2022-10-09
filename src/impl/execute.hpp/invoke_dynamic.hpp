@@ -7,10 +7,8 @@
 
 #include <class_file/constant.hpp>
 
-template<basic_range StackType>
 inline void invoke_dynamic(
-	class_file::constant::invoke_dynamic_index ref_index,
-	_class& c, [[maybe_unused]] StackType& stack
+	class_file::constant::invoke_dynamic_index ref_index, _class& c
 ) {
 	namespace cc = class_file::constant;
 

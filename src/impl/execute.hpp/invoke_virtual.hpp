@@ -7,10 +7,8 @@
 
 #include <class_file/constant.hpp>
 
-template<basic_range StackType>
 inline void invoke_virtual(
-	class_file::constant::method_ref_index ref_index,
-	_class& c, StackType& stack
+	class_file::constant::method_ref_index ref_index, _class& c
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;
@@ -37,17 +35,13 @@ inline void invoke_virtual(
 	optional<stack_entry> result;
 	uint8 args_count = method_descriptor_parameters_count(desc);
 	++args_count; // this
-	reference& objectref =
-		stack[stack.size() - args_count].template get<reference>();
+	reference& objectref = stack.at<reference>(stack.size() - args_count);
 
 	if(&resolved_method._class() == method_handle_class.ptr()) {
 		if(name.have_elements_equal_to(c_string{ "invokeExact" })) {
 			result = method_handle_invoke_exact(
 				objectref, // method handle
-				arguments_span {
-					&*stack.iterator() + stack.size() - (args_count - 1),
-					uint16(args_count - 1)
-				}
+				parameters_count{ (uint8)(args_count - 1) }
 			);
 		} else {
 			abort();
@@ -57,17 +51,6 @@ inline void invoke_virtual(
 	and the resolved method (§5.4.6). This is the method to be invoked." */
 	else {
 		method& m = select_method(objectref->_class(), resolved_method);
-		result = execute(
-			m,
-			arguments_span {
-				&*stack.iterator() + stack.size() - args_count, args_count
-			}
-		);
+		execute(m);
 	}
-
-	stack.pop_back(args_count);
-
-	result.if_has_value([&](stack_entry& value) {
-		stack.emplace_back(move(value));
-	});
 }
