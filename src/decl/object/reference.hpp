@@ -9,7 +9,7 @@ struct field_value;
 
 struct reference {
 private:
-	uint32 obj_ptr_raw_ = 0;
+	object* obj_ptr_ = 0;
 
 	friend reference create_object(_class& c);
 

@@ -84,39 +84,6 @@ static void execute(method& m) {
 		abort();
 	}
 
-	/*nuint stack_size = (nuint) max(m.code().max_stack, 1);
-	storage<stack_entry> stack_storage[stack_size];
-
-	list<span<storage<stack_entry>>> stack {
-		span{ stack_storage, stack_size }
-	};
-
-	nuint locals_size =
-		(nuint) max(m.code().max_locals * 2, 1) * sizeof(stack_entry);
-	storage<stack_entry> locals_storage[locals_size];
-	list<span<storage<stack_entry>>> locals {
-		span{ locals_storage, locals_size }
-	};*/
-
-	/*if(info) {
-		tabs();
-		print(
-			stderr,
-			"stack @%p, stack storage @%p - @%p, "
-			"locals @%p, locals storage @%p - @%p\n",
-			&stack, stack_storage, stack_storage + stack_size,
-			&locals, locals_storage, locals_storage + locals_size
-		);
-	}*/
-
-	/*{
-		for(stack_entry& se : args) {
-			stack_entry& l = locals.emplace_back(move(se));
-			if(l.is<jlong>() || l.is<jdouble>()) {
-				locals.emplace_back(jint{});
-			}
-		}
-	}*/
 	nuint locals_begin = stack.size() - m.parameters_stack_size();
 	nuint locals_end = locals_begin + m.code().max_locals;
 	nuint stack_begin = locals_end;
@@ -128,10 +95,6 @@ static void execute(method& m) {
 			++locals_pushed;
 		}
 	}
-	// stack is popped by `ret` instructions
-	//on_scope_exit pop_locals { [&] {
-	//	stack.pop_back(m.code().max_locals);
-	//}};
 
 	namespace attr = cf::attribute;
 	using namespace attr::code::instruction;

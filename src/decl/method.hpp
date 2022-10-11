@@ -43,7 +43,7 @@ private:
 
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
-	uint8                              parameters_stack_size_;
+	uint8                              parameters_stack_size_ = 0;
 
 public:
 

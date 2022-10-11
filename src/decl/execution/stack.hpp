@@ -8,17 +8,18 @@
 #include <posix/memory.hpp>
 
 static_assert(
-	sizeof(int32) == 4 && sizeof(float) == 4 && sizeof(reference) == 4 &&
+	sizeof(int32) == 4 && sizeof(float) == 4 && sizeof(reference) == 8 &&
 	sizeof(int64) == 8 && sizeof(double) == 8
 );
 
+// inefficient for now..
 template<typename Type>
 concept stack_primitive_element =
 	same_as<Type, int32> || same_as<Type, int64> ||
 	same_as<Type, float> || same_as<Type, double>;
 
-thread_local static class stack : list<posix::memory_for_range_of<uint32>> {
-	using base_type = list<posix::memory_for_range_of<uint32>>;
+thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
+	using base_type = list<posix::memory_for_range_of<uint64>>;
 	using base_type::base_type;
 
 	posix::memory_for_range_of<uint64> reference_bits_;
@@ -43,7 +44,7 @@ thread_local static class stack : list<posix::memory_for_range_of<uint32>> {
 
 public:
 
-	stack(posix::memory_for_range_of<uint32> storage) :
+	stack(posix::memory_for_range_of<uint64> storage) :
 		base_type{ move(storage) },
 		reference_bits_ {
 			posix::allocate_zeroed_memory_for<uint64>(
@@ -85,17 +86,16 @@ public:
 	template<stack_primitive_element Type>
 	void emplace_back(Type v) {
 		if constexpr(sizeof(Type) == 4) {
-			base_type::emplace_back(bit_cast<uint32>(v));
+			base_type::emplace_back((uint64) bit_cast<uint32>(v));
 		}
 		else {
-			uint64 v0 = bit_cast<uint64>(v);
-			base_type::emplace_back(v0 >> 32);
-			base_type::emplace_back(v0 & 0xFFFFFFFF);
+			base_type::emplace_back(bit_cast<uint64>(v));
+			base_type::emplace_back(uint64(-1));
 		}
 	}
 	void emplace_back(reference ref) {
-		emplace_back(int32{ 0 });
-		new ((char*) &back<int32>()) reference(move(ref));
+		base_type::emplace_back();
+		new ((char*) &base_type::back()) reference(move(ref));
 		nuint index = size() - 1;
 		nuint bitmap_index = index >> 8;
 		nuint bit_index = index & 63;
@@ -103,32 +103,17 @@ public:
 	}
 
 	template<stack_primitive_element Type>
-	requires(sizeof(Type) == 4)
 	Type& at(nuint index) {
 		return * (Type*) &base_type::operator[](index);
 	}
-	template<stack_primitive_element Type>
-	requires(sizeof(Type) == 8)
-	Type at(nuint index) {
-		uint32 low = base_type::operator[](index);
-		uint32 high = base_type::operator[](index + 1);
-		return bit_cast<Type>(((uint64)high << 32) | low);
-	}
 	template<same_as<reference>>
 	reference& at(nuint i) {
-		return *(reference*) (uint64) &base_type::operator[](i);
+		return *(reference*) &base_type::operator[](i);
 	}
 
 	template<stack_primitive_element Type>
-	decltype(auto) at(nuint index, Type v) {
-		if constexpr(sizeof(Type) == 4) {
-			return at<Type>(index) = v;
-		}
-		else {
-			uint64 v0 = bit_cast<uint64>(v);
-			base_type::operator[](index) = v0 >> 32;
-			base_type::operator[](index) = v0 & 0xFFFFFFFF;
-		}
+	Type& at(nuint index, Type v) {
+		return at<Type>(index) = v;
 	}
 	reference& at(nuint i, reference ref) {
 		return at<reference>(i) = move(ref);
@@ -139,7 +124,7 @@ public:
 		return at<Type>(size() - 1);
 	}
 	template<stack_primitive_element Type> requires(sizeof(Type) == 8)
-	Type back() {
+	Type& back() {
 		return at<Type>(size() - 2);
 	}
 	template<same_as<reference>>
@@ -202,7 +187,7 @@ public:
 
 	using base_type::size;
 
-} stack{ posix::allocate_memory_for<uint32>(4096) };
+} stack{ posix::allocate_memory_for<uint64>(4096) };
 
 struct frame : span<stack_entry> {
 	using base_type = span<stack_entry>;
