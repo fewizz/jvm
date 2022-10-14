@@ -7,13 +7,12 @@
 
 struct _class;
 
-template<basic_range DescriptorType>
 struct class_member {
 private:
 	optional<_class&>          class_;
 	class_file::access_flags   access_flags_;
 	class_file::constant::utf8 name_;
-	DescriptorType             desc_;
+	class_file::constant::utf8 desc_;
 
 	friend _class;
 public:
@@ -21,11 +20,11 @@ public:
 	class_member(
 		class_file::access_flags   access_flags,
 		class_file::constant::utf8 name,
-		DescriptorType             desc
+		class_file::constant::utf8 desc
 	) :
 		access_flags_{ access_flags },
-		name_        { name   },
-		desc_        { move(desc)   }
+		name_        { name         },
+		desc_        { desc         }
 	{}
 
 	const ::_class& _class() const { return class_.value(); }
@@ -35,7 +34,7 @@ public:
 		return name_;
 	};
 
-	const DescriptorType& descriptor() const {
+	class_file::constant::utf8 descriptor() const {
 		return desc_;
 	}
 
@@ -44,7 +43,7 @@ public:
 	}
 
 	bool is_static() const {
-		return access_flags()._static();
+		return access_flags()._static;
 	}
 
 };

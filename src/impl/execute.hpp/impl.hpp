@@ -72,7 +72,6 @@ static void execute(method& m) {
 	if(m.is_native()) {
 		if(!m.native_function_is_loaded()) {
 			abort();
-			//m.native_function(native_functions.find(mwc));
 		}
 		native_function_ptr ptr = m.native_function();
 		native_interface_call(ptr, m);
@@ -293,20 +292,44 @@ static void execute(method& m) {
 			stack.emplace_back(stack.at<reference>(locals_begin + x.index));
 		}
 		else if constexpr (same_as<Type, i_load_0>) {
-			if(info) { tabs(); print("i_load_0\n"); }
-			stack.emplace_back(stack.at<int32>(locals_begin + 0));
+			int32 value = stack.at<int32>(locals_begin + 0);
+			if(info) {
+				tabs();
+				print("i_load_0 ");
+				print(value);
+				print("\n");
+			}
+			stack.emplace_back(value);
 		}
 		else if constexpr (same_as<Type, i_load_1>) {
-			if(info) { tabs(); print("i_load_1\n"); }
-			stack.emplace_back(stack.at<int32>(locals_begin + 1));
+			int32 value = stack.at<int32>(locals_begin + 1);
+			if(info) {
+				tabs();
+				print("i_load_1 ");
+				print(value);
+				print("\n");
+			}
+			stack.emplace_back(value);
 		}
 		else if constexpr (same_as<Type, i_load_2>) {
-			if(info) { tabs(); print("i_load_2\n"); }
-			stack.emplace_back(stack.at<int32>(locals_begin + 2));
+			int32 value = stack.at<int32>(locals_begin + 2);
+			if(info) {
+				tabs();
+				print("i_load_2 ");
+				print(value);
+				print("\n");
+			}
+			stack.emplace_back(value);
 		}
 		else if constexpr (same_as<Type, i_load_3>) {
-			if(info) { tabs(); print("i_load_3\n"); }
-			stack.emplace_back(stack.at<int32>(locals_begin + 3));
+			int32 value = stack.at<int32>(locals_begin + 3);
+			if(info) {
+				tabs();
+				print("i_load_3 ");
+				print(value);
+				print("\n");
+			}
+			stack.emplace_back(value);
 		}
 		else if constexpr (same_as<Type, l_load_0>) {
 			if(info) { tabs(); print("l_load_0\n"); }
@@ -341,8 +364,16 @@ static void execute(method& m) {
 			stack.emplace_back(stack.at<float>(locals_begin + 3));
 		}
 		else if constexpr (same_as<Type, a_load_0>) {
-			if(info) { tabs(); print("a_load_0\n"); }
 			reference ref = stack.at<reference>(locals_begin + 0);
+			if(info) {
+				tabs(); print("a_load_0 ");
+				if(!ref.is_null()) {
+					print(ref._class().name());
+				}
+				print(c_string{" @ "});
+				print((uint64) ref.object_ptr());
+				print(c_string{ "\n" });
+			}
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_1>) {
@@ -351,8 +382,16 @@ static void execute(method& m) {
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_2>) {
-			if(info) { tabs(); print("a_load_2\n"); }
 			reference ref = stack.at<reference>(locals_begin + 2);
+			if(info) {
+				tabs(); print("a_load_2 ");
+				if(!ref.is_null()) {
+					print(ref._class().name());
+				}
+				print(c_string{" @ "});
+				print((uint64) ref.object_ptr());
+				print(c_string{ "\n" });
+			}
 			stack.emplace_back(move(ref));
 		}
 		else if constexpr (same_as<Type, a_load_3>) {
@@ -418,7 +457,9 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.at(locals_begin + x.index, stack.pop_back<reference>());
+			stack.emplace_at(
+				locals_begin + x.index, stack.pop_back<reference>()
+			);
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
 			if(info) { tabs(); print("i_store_0\n"); }
@@ -454,19 +495,19 @@ static void execute(method& m) {
 		}
 		else if constexpr (same_as<Type, a_store_0>) {
 			if(info) { tabs(); print("a_store_0\n"); }
-			stack.at(locals_begin + 0, stack.pop_back<reference>());
+			stack.emplace_at(locals_begin + 0, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_1>) {
 			if(info) { tabs(); print("a_store_1\n"); }
-			stack.at(locals_begin + 1, stack.pop_back<reference>());
+			stack.emplace_at(locals_begin + 1, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_2>) {
 			if(info) { tabs(); print("a_store_2\n"); }
-			stack.at(locals_begin + 2, stack.pop_back<reference>());
+			stack.emplace_at(locals_begin + 2, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, a_store_3>) {
 			if(info) { tabs(); print("a_store_3\n"); }
-			stack.at(locals_begin + 3, stack.pop_back<reference>());
+			stack.emplace_at(locals_begin + 3, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, i_a_store>) {
 			if(info) { tabs(); print("i_a_store\n"); }
@@ -536,7 +577,7 @@ static void execute(method& m) {
 			if(info) { tabs(); print("i_sub\n"); }
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
-			stack.emplace_back(int64{ value1 - value2 });
+			stack.emplace_back(int32{ value1 - value2 });
 		}
 		else if constexpr (same_as<Type, l_sub>) {
 			if(info) { tabs(); print("l_sub\n"); }
@@ -928,18 +969,18 @@ static void execute(method& m) {
 		else if constexpr (same_as<Type, i_return>) {
 			if(info) { tabs(); print("i_return\n"); }
 			int32 result = stack.back<int32>();
-			m.descriptor().return_type().view([&]<typename RetType>(RetType) {
-				if constexpr(same_as<RetType, class_file::b>) {
-					result = result & 1;
+			m.return_type().view([&]<typename RetType>(RetType) {
+				if constexpr(same_as<RetType, class_file::z>) {
+					result = result == 1;
 				}
 				if constexpr(same_as<RetType, class_file::b>) {
-					result = (int8) result;
+					result = (uint32) (int8) result;
 				}
 				if constexpr(same_as<RetType, class_file::c>) {
-					result = (uint16) result;
+					result = (uint32) (uint16) result;
 				}
 				if constexpr(same_as<RetType, class_file::s>) {
-					result = ( int16) result;
+					result = (uint32) ( int16) result;
 				}
 			});
 			stack.pop_back_until(locals_begin);
@@ -1027,17 +1068,22 @@ static void execute(method& m) {
 				print("\n");
 			}
 
-			instance_field_index index {
-				c.get_resolved_instance_field_index(x.index)
+			tuple<instance_field_index, _class&> index_and_class {
+				c.get_resolved_instance_field_index_and_class(x.index)
 			};
 
 			reference ref = stack.pop_back<reference>();
-			field_value& value = ref[index];
+			if(ref.is_null()) {
+				thrown = create_null_pointer_exception();
+				return handle_thrown();
+			}
+			field_value& value = ref[
+				index_and_class.get<instance_field_index>()
+			];
 			get_field_value(value);
 		}
 		else if constexpr (same_as<Type, put_field>) {
-			abort();
-			/*if(info) { // TODO
+			if(info) {
 				tabs(); print("put_field ");
 				cc::field_ref field_ref = c.field_ref_constant(x.index);
 				cc::name_and_type nat = c.name_and_type_constant(
@@ -1052,18 +1098,24 @@ static void execute(method& m) {
 				print("\n");
 			}
 
-			instance_field_index index {
-				c.get_resolved_instance_field_index(x.index)
+			tuple<instance_field_index, _class&> index_and_class {
+				c.get_resolved_instance_field_index_and_class(x.index)
 			};
-
-			stack_entry value = stack.pop_back();
-			reference ref = stack.pop_back().get<reference>();
+			instance_field_index index =
+				index_and_class.get<instance_field_index>();
+			_class& base_c = index_and_class.get<_class&>();
+			field* base_field = base_c.instance_fields()[index];
+			reference ref = stack.at<reference>(
+				stack.size() - base_field->stack_size - 1
+			);
 			if(ref.is_null()) {
-				print("object containing field is null");
-				abort();
+				thrown = create_null_pointer_exception();
+				return handle_thrown();
 			}
+
 			field_value& to = ref[index];
-			put_field_value(to, move(value));*/
+			put_field_value(to);
+			stack.pop_back(); // pop reference to this
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
 			::invoke_virtual(x.index, c);
@@ -1140,7 +1192,48 @@ static void execute(method& m) {
 				print((uint16) x.index);
 				print("\n");
 			}
-			abort();
+			reference& ref = stack.back<reference>();
+			if(ref.is_null()) {
+				return loop_action::next;
+			}
+
+			_class& s = ref._class();
+			_class& t = c.get_resolved_class(x.index);
+			
+			bool result;
+
+			if(!s.is_array()) {
+				if(!t.is_interface()) {
+					result = &s == &t || s.is_sub_of(t);
+				} else {
+					result = s.is_implementing(t);
+				}
+			} else {
+				if(!t.is_interface() && !t.is_array()) {
+					result = &t == object_class.ptr();
+				}
+				else if(t.is_interface()) {
+					abort(); // unimplemented
+				}
+				else {
+					_class& sc = s.get_component_class();
+					_class& tc = t.get_component_class();
+					if(sc.is_primitive() && tc.is_primitive()) {
+						result = &sc == &tc;
+					}
+					else if(!sc.is_primitive() && !tc.is_primitive()) {
+						abort(); // unimplemented
+					}
+					else {
+						result = false;
+					}
+				}
+				
+			}
+
+			if(!result) {
+				abort(); // TODO throw ClassCastException
+			}
 			//_class& type = c.get_resolved_class(x.index);
 			//reference objectref = stack[stack_size - 1].get<reference>();
 			// TODO

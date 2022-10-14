@@ -17,6 +17,7 @@
 inline reference _class::get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
+	abort(); // TODO
 	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is<reference>()) {
 			abort();
@@ -42,7 +43,7 @@ inline reference _class::get_resolved_call_site(
 		= name_and_type_constant(invoke_dynamic.name_and_type_index);
 	class_file::constant::utf8 descriptor
 		= utf8_constant(nat.descriptor_index);
-	class_file::constant::utf8 name
+	[[maybe_unused]] class_file::constant::utf8 name
 		= utf8_constant(nat.name_index);
 
 	/* A reference to an instance of java.lang.invoke.MethodType is obtained, as
@@ -53,27 +54,28 @@ inline reference _class::get_resolved_call_site(
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
-	uint8 args_count = bm.arguments_indices.size() + 3;
+	[[maybe_unused]] uint8 args_count = bm.arguments_indices.size() + 3;
 
-	storage<stack_entry> args_storage[args_count];
+	// TODO
+	/*storage<stack_entry> args_storage[args_count];
 	list<span<storage<stack_entry>>> args {
 		span{ args_storage, args_count}
-	};
+	};*/
 	/* The zeroth component of the array is set to a reference to an instance of
 	   java.lang.invoke.MethodHandles.Lookup for the class in which R occurs,
 	   produced as if by invocation of the lookup method of
 	   java.lang.invoke.MethodHandles. */
-	args.emplace_back(create_object(method_handles_lookup_class.value()));
+	//args.emplace_back(create_object(method_handles_lookup_class.value()));
 
 	/* The first component of the array is set to a reference to an instance of
 	   String that denotes N, the unqualified name given by R. */
-	args.emplace_back(create_string_from_utf8(name));
+	//args.emplace_back(create_string_from_utf8(name));
 
 	/* The second component of the array is set to the reference to an instance
 	   of Class or java.lang.invoke.MethodType that was obtained earlier for the
 	   field descriptor or method descriptor given by R. */
 	// TODO "to an instance of Class" ???
-	args.emplace_back(mt);
+	//args.emplace_back(mt);
 
 	/* Subsequent components of the array are set to the references that were
 	   obtained earlier from resolving R's static arguments, if any.
@@ -83,20 +85,20 @@ inline reference _class::get_resolved_call_site(
 	/* R gives zero or more static arguments, which communicate
 	   application-specific metadata to the bootstrap method. Each static
 	   argument A is resolved, in the order given by R, as follows: */
-	for(auto index : bm.arguments_indices) {
-		constant(index).view([&]<typename Type>(Type v) {
+	/*for(auto index : bm.arguments_indices) {
+		constant(index).view([&]<typename Type>(Type v) {*/
 			/* If A is a string constant, then a reference to its instance of
 			   class String is obtained. */
-			if constexpr(same_as<Type, class_file::constant::string>) {
+			/*if constexpr(same_as<Type, class_file::constant::string>) {
 				args.emplace_back(
 					get_string((class_file::constant::string_index) index)
 				);
-			}
+			}*/
 			/* If A is a numeric constant, then a reference to an instance of
 			   java.lang.invoke.MethodHandle is obtained by the following
 			   procedure: */
 			// else if() TODO
-			else if constexpr(same_as<Type, class_file::constant::method_type>)
+			/*else if constexpr(same_as<Type, class_file::constant::method_type>)
 			{
 				class_file::constant::utf8 descriptor
 					= utf8_constant(v.descriptor_index);
@@ -119,15 +121,12 @@ inline reference _class::get_resolved_call_site(
 		});
 	}
 
-	optional<stack_entry> result = method_handle_invoke_exact(
+	method_handle_invoke_exact(
 		mh, parameters_count{ args_count }
 	);
 	
-	if(!result.has_value() || !result->is<reference>()) {
-		abort();
-	}
+	reference result = stack.pop_back<reference>();
 
-	reference ref = move(result->get<reference>());
-	trampoline(index) = ref;
-	return ref;
+	trampoline(index) = result;
+	return move(result);*/
 }

@@ -9,7 +9,7 @@ struct field_value;
 
 struct reference {
 private:
-	object* obj_ptr_ = 0;
+	object* obj_ptr_ = nullptr;
 
 	friend reference create_object(_class& c);
 
@@ -22,11 +22,11 @@ public:
 	~reference();
 	object& unsafe_release_without_destroing();
 
-	reference(const reference&);
-	reference(reference&&);
+	reference(const reference& );
+	reference(      reference&&);
 
-	reference& operator = (const reference&);
-	reference& operator = (reference&&);
+	reference& operator = (const reference& );
+	reference& operator = (      reference&&);
 
 	const ::object& object() const;
 	      ::object& object();

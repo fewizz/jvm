@@ -69,7 +69,7 @@ inline reference create_method_handle_invoke_interface(method& m) {
 	);
 }
 
-inline optional<stack_entry> method_handle_invoke_exact(
+inline void method_handle_invoke_exact(
 	[[maybe_unused]] reference ref, [[maybe_unused]] parameters_count count
 ) {
 	abort(); // TODO

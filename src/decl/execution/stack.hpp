@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./stack_entry.hpp"
+#include "decl/object/reference.hpp"
 
 #include <list.hpp>
 #include <bit_cast.hpp>
@@ -25,8 +25,8 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	posix::memory_for_range_of<uint64> reference_bits_;
 
 	bool is_reference_at(nuint index) const {
-		nuint bitmap_index = index >> 8;
-		nuint bit_index = index & 63;
+		nuint bitmap_index = index / 64;
+		nuint bit_index = index % 64;
 		return ((reference_bits_[bitmap_index].get()) >> bit_index) & 1;
 	}
 
@@ -42,13 +42,20 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 		else { handler(pop_back<int32>()); }
 	}
 
+	void emplace_reference_at_unsafe(nuint index, reference ref) {
+		new ((char*) & base_type::operator [] (index)) reference(move(ref));
+		nuint bitmap_index = index / 64;
+		nuint bit_index = index % 64;
+		reference_bits_[bitmap_index].get() |= (1ull << bit_index);
+	}
+
 public:
 
 	stack(posix::memory_for_range_of<uint64> storage) :
 		base_type{ move(storage) },
 		reference_bits_ {
 			posix::allocate_zeroed_memory_for<uint64>(
-				base_type::capacity() >> 8
+				base_type::capacity() / 64
 			)
 		}
 	{}
@@ -80,7 +87,7 @@ public:
 	}
 
 	~stack() {
-		pop_back_until(0);
+		//pop_back_until(0); don't do anything...
 	}
 
 	template<stack_primitive_element Type>
@@ -97,9 +104,17 @@ public:
 		base_type::emplace_back();
 		new ((char*) &base_type::back()) reference(move(ref));
 		nuint index = size() - 1;
-		nuint bitmap_index = index >> 8;
-		nuint bit_index = index & 63;
+		nuint bitmap_index = index / 64;
+		nuint bit_index = index % 64;
 		reference_bits_[bitmap_index].get() |= (1ull << bit_index);
+	}
+
+	void emplace_at(nuint index, reference ref) {
+		if(is_reference_at(index)) {
+			at<reference>(index) = move(ref);
+		} else {
+			emplace_reference_at_unsafe(index, move(ref));
+		}
 	}
 
 	template<stack_primitive_element Type>
@@ -143,8 +158,8 @@ public:
 		ref_at_back.~reference();
 
 		nuint index = size() - 1;
-		nuint bitmap_index = index >> 8;
-		nuint bit_index = index & 63;
+		nuint bitmap_index = index / 64;
+		nuint bit_index = index % 64;
 		reference_bits_[bitmap_index].get() &= ~(1 << bit_index);
 
 		base_type::pop_back();
@@ -188,8 +203,3 @@ public:
 	using base_type::size;
 
 } stack{ posix::allocate_memory_for<uint64>(4096) };
-
-struct frame : span<stack_entry> {
-	using base_type = span<stack_entry>;
-	using base_type::base_type;
-};

@@ -149,7 +149,8 @@ public:
 		class_file::constant::interface_method_ref ref
 	);
 
-	instance_field_index get_resolved_instance_field_index(
+	tuple<instance_field_index, _class&>
+	get_resolved_instance_field_index_and_class(
 		class_file::constant::field_ref_index ref_index
 	);
 

@@ -12,21 +12,18 @@
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-inline optional<stack_entry> native_interface_call(
+inline void native_interface_call(
 	[[maybe_unused]] native_function_ptr ptr, [[maybe_unused]] method& m
 ) {
-	abort(); // TODO
-	/*uint64 iorref_storage[4]   { 0 };
+	uint64 iorref_storage[4]   { 0 };
 	__m128 floating_storage[4] { 0 };
-	nuint stack_size = (max(4, count + 1) - 4);
+	nuint stack_size = (max(4, m.parameters_count() + 1) - 4);
 	if(stack_size % 2 != 0) { // 8 byte element, size aligned to 16
 		++stack_size;
 	}
 	uint64 stack_storage[stack_size];
-	
-	span<stack_entry> args {
-		&stack.back() - count, count
-	};
+
+	nuint stack_begin = stack.size() - m.parameters_stack_size();
 
 	{
 		nuint arg = 0;
@@ -34,21 +31,23 @@ inline optional<stack_entry> native_interface_call(
 		// native_interface_environment*
 		iorref_storage[arg++] = (uint64) nullptr;
 
-		for(stack_entry& se : args) {
-			se.view([&]<typename Type>(Type& value) {
+		nuint stack_at = stack_begin;
+
+		auto put = [&](variant<reference, jint, jlong, jfloat, jdouble> pt) {
+			pt.view([&]<typename Type>(Type& value) {
 				if constexpr(same_as<Type, reference>) {
 					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
-						bit_cast<uint64>(value.object_ptr());
+						(uint64) value.object_ptr();
 				}
-				if constexpr(same_as<Type, jlong>) {
+				else if constexpr(same_as<Type, jlong>) {
 					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
-						bit_cast<uint64>(value);
+						(uint64) (int64) value;
 				}
-				if constexpr(same_as<Type, jint>) {
+				else if constexpr(same_as<Type, jint>) {
 					(arg >= 4 ? stack_storage[arg - 4] : iorref_storage[arg]) =
-						(int32) (int64) value;
+						(uint64) (int32) value;
 				}
-				if constexpr(same_as<Type, jfloat>) {
+				else if constexpr(same_as<Type, jfloat>) {
 					if(arg >= 4) {
 						stack_storage[arg - 4] = bit_cast<uint32>(value);
 					}
@@ -57,12 +56,61 @@ inline optional<stack_entry> native_interface_call(
 							__extension__ (__m128){ value, 0, 0, 0 };
 					}
 				}
-				if constexpr(same_as<Type, jdouble>) {
+				else if constexpr(same_as<Type, jdouble>) {
 					floating_storage[arg++] =
 						__extension__ (__m128d){ value, 0 };
+				} else {
+					abort();
 				}
 			});
 			++arg;
+		};
+
+		if(!m.is_static()) { // this
+			reference& r = stack.at<reference>(stack_at);
+			put(r);
+			stack_at += 1;
+		}
+
+		for(one_of_non_void_descriptor_types pt : m.parameter_types()) {
+			pt.view([&]<typename Type>(Type) {
+				if constexpr(
+					same_as<Type, class_file::object> ||
+					same_as<Type, class_file::array>
+				) {
+					reference& r = stack.at<reference>(stack_at);
+					put(r);
+					stack_at += 1;
+				}
+				else if constexpr(same_as<Type, class_file::j>) {
+					int64 v = stack.at<int64>(stack_at);
+					put(jlong{ v });
+					stack_at += 2;
+				}
+				else if constexpr(
+					same_as<Type, class_file::z> ||
+					same_as<Type, class_file::b> ||
+					same_as<Type, class_file::c> ||
+					same_as<Type, class_file::s> ||
+					same_as<Type, class_file::i>
+				) {
+					int32 v = stack.at<int32>(stack_at);
+					put(jint{ v });
+					stack_at += 1;
+				}
+				else if constexpr(same_as<Type, class_file::f>) {
+					float v = stack.at<float>(stack_at);
+					put(jfloat{ v });
+					stack_at += 1;
+				}
+				else if constexpr(same_as<Type, class_file::d>) {
+					double v = stack.at<double>(stack_at);
+					put(jdouble{ v });
+					stack_at += 2;
+				} else {
+					abort();
+				}
+			});
 		}
 	}
 
@@ -116,53 +164,41 @@ inline optional<stack_entry> native_interface_call(
 		);
 	}
 
-	stack_entry se_result = reference{}; {
-		using namespace class_file;
-
-		class_file::method_descriptor::reader reader {
-			range_iterator(descriptor)
-		};
-		auto return_type_reader =
-			reader.try_skip_parameters_and_get_return_type_reader(
-				[](auto){ abort(); }
-			).value();
-		return_type_reader.try_read_and_get_advanced_iterator(
-			[&]<typename Type>(Type) {
-				if constexpr(
-					same_as<Type, z> ||
-					same_as<Type, c> ||
-					same_as<Type, s> ||
-					same_as<Type, i>
-				) {
-					se_result = jint{ (int32) result };
-					return true;
-				}
-				else if constexpr(same_as<Type, j>) {
-					se_result = jlong{ (int64) result };
-					return true;
-				}
-				else if constexpr(same_as<Type, f>) {
-					se_result = jfloat{ arg_f_0[0] };
-					return true;
-				}
-				else if constexpr(same_as<Type, d>) {
-					se_result = jdouble{ ((__m128d) arg_f_0)[0] };
-					return true;
-				}
-				else if constexpr(
-					same_as<Type, class_file::object> ||
-					same_as<Type, class_file::array>
-				) {
-					se_result = reference{ * (::object*) result };
-					return true;
-				}
-				return false;
-			},
-			[](auto){ abort(); }
-		);
-	}
-
-	return se_result;*/
+	m.return_type().view(
+		[&]<typename Type>(Type) {
+			if constexpr(
+				same_as<Type, class_file::z> ||
+				same_as<Type, class_file::c> ||
+				same_as<Type, class_file::s> ||
+				same_as<Type, class_file::i>
+			) {
+				stack.pop_back_until(stack_begin);
+				stack.emplace_back<int32>((int32)(uint32) result);
+			}
+			else if constexpr(same_as<Type, class_file::j>) {
+				stack.pop_back_until(stack_begin);
+				stack.emplace_back<int64>((int64) result);
+			}
+			else if constexpr(same_as<Type, class_file::f>) {
+				stack.pop_back_until(stack_begin);
+				stack.emplace_back<float>(arg_f_0[0]);
+			}
+			else if constexpr(same_as<Type, class_file::d>) {
+				stack.pop_back_until(stack_begin);
+				stack.emplace_back<double>(((__m128d) arg_f_0)[0]);
+			}
+			else if constexpr(
+				same_as<Type, class_file::object> ||
+				same_as<Type, class_file::array>
+			) {
+				reference ref{ * (::object*) result };
+				stack.pop_back_until(stack_begin);
+				stack.emplace_back(move(ref));
+			} else {
+				abort();
+			}
+		}
+	);
 }
 
 #endif

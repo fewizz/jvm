@@ -32,14 +32,13 @@ inline void invoke_virtual(
 
 	method& resolved_method = c.get_resolved_method(ref_index);
 
-	optional<stack_entry> result;
-	uint8 args_count = method_descriptor_parameters_count(desc);
+	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
 	reference& objectref = stack.at<reference>(stack.size() - args_count);
 
 	if(&resolved_method._class() == method_handle_class.ptr()) {
 		if(name.have_elements_equal_to(c_string{ "invokeExact" })) {
-			result = method_handle_invoke_exact(
+			method_handle_invoke_exact(
 				objectref, // method handle
 				parameters_count{ (uint8)(args_count - 1) }
 			);

@@ -49,19 +49,20 @@ inline reference& reference::operator = (reference&& other) {
 	return *this;
 }
 
-inline const object& reference::object() const {
-	if(obj_ptr_ == nullptr) {
+inline void abort_if_null(const object* obj_ptr) {
+	if(obj_ptr == nullptr) {
 		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
 		abort();
 	}
+}
+
+inline const object& reference::object() const {
+	abort_if_null(object_ptr());
 	return *object_ptr();
 }
 
 inline object& reference::object() {
-	if(obj_ptr_ == nullptr) {
-		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
-		abort();
-	}
+	abort_if_null(object_ptr());
 	return *object_ptr();
 }
 

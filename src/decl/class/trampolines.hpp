@@ -15,7 +15,8 @@ struct static_field;
 
 using trampoline = optional<
 	reference, _class&, method&, field_value&,
-	instance_method_index, instance_field_index
+	instance_method_index, instance_field_index,
+	tuple<instance_field_index, _class&>
 >;
 
 struct trampolines :

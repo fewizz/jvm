@@ -3,15 +3,17 @@
 
 #include <class_file/constant.hpp>
 
-inline instance_field_index _class::get_resolved_instance_field_index(
+#include <tuple.hpp>
+
+inline tuple<instance_field_index, _class&>
+_class::get_resolved_instance_field_index_and_class(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is<instance_field_index>()) {
-			//fputs("invalid const pool entry", stderr);
+		if(!t.is<tuple<instance_field_index, _class&>>()) {
 			abort();
 		}
-		return t.get<instance_field_index>();
+		return t.get<tuple<instance_field_index, _class&>>();
 	}
 
 	namespace cc = class_file::constant;
@@ -30,6 +32,8 @@ inline instance_field_index _class::get_resolved_instance_field_index(
 		.if_has_no_value([]{ abort(); })
 		.value();
 	
-	trampoline(ref_index) = index;
-	return index;
+	tuple<instance_field_index, _class&> result{ index, c };
+	
+	trampoline(ref_index) = result;
+	return result;
 }

@@ -3,7 +3,7 @@
 #include "./method/code.hpp"
 #include "./parameters_count.hpp"
 #include "./class/member.hpp"
-#include "./method_descriptor.hpp"
+#include "./descriptor_types.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
@@ -35,15 +35,15 @@ using exception_handlers = list<
 	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
 >;
 
-struct method : class_member<method_descriptor<class_file::constant::utf8>> {
+struct method : class_member {
 private:
-	using base_type = class_member<
-		method_descriptor<class_file::constant::utf8>
-	>;
 
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
 	uint8                              parameters_stack_size_ = 0;
+	list<posix::memory_for_range_of<one_of_non_void_descriptor_types>>
+	                                   parameter_types_;
+	one_of_descriptor_types            return_type_{ class_file::v{} };
 
 public:
 
@@ -54,16 +54,45 @@ public:
 		code_or_native_function_ptr            code,
 		exception_handlers&&                   exception_handlers
 	) :
-		base_type          {
-			access_flags, name, method_descriptor{ move(descriptor) }
-		},
+		class_member       { access_flags, name, descriptor },
 		code_              { code                           },
 		exception_handlers_{ move(exception_handlers)       }
 	{
+		class_file::method_descriptor::reader reader{ descriptor.iterator() };
+		uint8 parameter_count = reader.try_read_parameters_count(
+			[]([[maybe_unused]] auto err) { abort(); }
+		).value();
+
+		parameter_types_ = {
+			posix::allocate_memory_for<one_of_non_void_descriptor_types>(
+				parameter_count
+			)
+		};
+
+		auto return_type_reader
+			= reader.try_read_parameter_types_and_get_return_type_reader(
+				[&]<typename ParamType>(ParamType parameter_type) {
+					if constexpr(same_as<ParamType, class_file::v>) {
+						__builtin_unreachable();
+					}
+					else {
+						parameter_types_.emplace_back(parameter_type);
+					}
+				},
+				[](auto) { abort(); }
+			).value();
+
+		return_type_reader.try_read_and_get_advanced_iterator(
+			[&](auto ret_type) {
+				return_type_ = ret_type;
+			},
+			[](auto) { abort(); }
+		);
+
 		if(!access_flags._static) {
 			++parameters_stack_size_; // this
 		}
-		for(auto t : base_type::descriptor().parameters_types()) {
+		for(auto t : parameter_types_) {
 			t.view([&]<typename Type>(Type) {
 				if constexpr(
 					same_as<Type, class_file::j> ||
@@ -80,8 +109,12 @@ public:
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }
 
+	const auto& parameter_types() const {
+		return parameter_types_;
+	}
+
 	parameters_count parameters_count() {
-		auto count = descriptor().parameters_types().size();
+		auto count = parameter_types_.size();
 		return ::parameters_count{ (uint8) count };
 	}
 
@@ -110,8 +143,12 @@ public:
 		return code_.get<optional<native_function_ptr>>().value();
 	}
 
+	one_of_descriptor_types return_type() const {
+		return return_type_;
+	}
+
 	bool is_void() const {
-		return descriptor().return_type().is<class_file::v>();
+		return return_type_.is<class_file::v>();
 	}
 
 	bool is_instance_initialisation() const;
