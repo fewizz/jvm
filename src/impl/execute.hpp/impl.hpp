@@ -8,6 +8,7 @@
 #include "decl/native/interface/call.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
+#include "decl/lib/java/lang/class_cast_exception.hpp"
 
 #include "./get_field_value.hpp"
 #include "./put_field_value.hpp"
@@ -152,7 +153,7 @@ static void execute(method& m) {
 				stack.emplace_back(move(thrown));
 				return loop_action::next;
 			}
-
+			stack.pop_back_until(locals_begin);
 			return loop_action::stop;
 		};
 
@@ -256,13 +257,16 @@ static void execute(method& m) {
 		}
 
 		else if constexpr (same_as<Type, i_load>) {
+			int32 value = stack.at<int32>(locals_begin + x.index);
 			if(info) {
 				tabs();
 				print("i_load ");
 				print(x.index);
+				print(" ");
+				print(value);
 				print("\n");
 			}
-			stack.emplace_back(stack.at<int32>(locals_begin + x.index));
+			stack.emplace_back(value);
 		}
 		else if constexpr (same_as<Type, l_load>) {
 			if(info) {
@@ -430,7 +434,7 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.at(locals_begin + x.index, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + x.index, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, l_store>) {
 			if(info) {
@@ -439,7 +443,7 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.at(locals_begin + x.index, stack.pop_back<int64>());
+			stack.emplace_at(locals_begin + x.index, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, f_store>) {
 			if(info) {
@@ -448,7 +452,7 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.at(locals_begin + x.index, stack.pop_back<float>());
+			stack.emplace_at(locals_begin + x.index, stack.pop_back<float>());
 		}
 		else if constexpr (same_as<Type, a_store>) {
 			if(info) {
@@ -463,35 +467,35 @@ static void execute(method& m) {
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
 			if(info) { tabs(); print("i_store_0\n"); }
-			stack.at(locals_begin + 0, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + 0, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_1>) {
 			if(info) { tabs(); print("i_store_1\n"); }
-			stack.at(locals_begin + 1, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + 1, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_2>) {
 			if(info) { tabs(); print("i_store_2\n"); }
-			stack.at(locals_begin + 2, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + 2, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, i_store_3>) {
 			if(info) { tabs(); print("i_store_3\n"); }
-			stack.at(locals_begin + 3, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + 3, stack.pop_back<int32>());
 		}
 		else if constexpr (same_as<Type, l_store_0>) {
 			if(info) { tabs(); print("l_store_0\n"); }
-			stack.at(locals_begin + 0, stack.pop_back<int64>());
+			stack.emplace_at(locals_begin + 0, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_1>) {
 			if(info) { tabs(); print("l_store_1\n"); }
-			stack.at(locals_begin + 1, stack.pop_back<int64>());
+			stack.emplace_at(locals_begin + 1, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_2>) {
 			if(info) { tabs(); print("l_store_2\n"); }
-			stack.at(locals_begin + 2, stack.pop_back<int64>());
+			stack.emplace_at(locals_begin + 2, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, l_store_3>) {
 			if(info) { tabs(); print("l_store_3\n"); }
-			stack.at(locals_begin + 3, stack.pop_back<int64>());
+			stack.emplace_at(locals_begin + 3, stack.pop_back<int64>());
 		}
 		else if constexpr (same_as<Type, a_store_0>) {
 			if(info) { tabs(); print("a_store_0\n"); }
@@ -737,12 +741,12 @@ static void execute(method& m) {
 		else if constexpr (same_as<Type, i_to_b>) {
 			if(info) { tabs(); print("i_to_b\n"); }
 			int32 value = stack.pop_back<int32>();
-			stack.emplace_back((int32) (int8) value);
+			stack.emplace_back((int32) (uint32) (int8) value);
 		}
 		else if constexpr (same_as<Type, i_to_c>) {
 			if(info) { tabs(); print("i_to_c\n"); }
 			int32 value = stack.pop_back<int32>();
-			stack.emplace_back((int32) (int16) value);
+			stack.emplace_back((int32) (uint32) (int16) value);
 		}
 
 		else if constexpr (same_as<Type, l_cmp>) {
@@ -967,24 +971,29 @@ static void execute(method& m) {
 			it = m.code().iterator() + pc + x.branch;
 		}
 		else if constexpr (same_as<Type, i_return>) {
-			if(info) { tabs(); print("i_return\n"); }
 			int32 result = stack.back<int32>();
 			m.return_type().view([&]<typename RetType>(RetType) {
 				if constexpr(same_as<RetType, class_file::z>) {
-					result = result == 1;
+					result = result & 1;
 				}
 				if constexpr(same_as<RetType, class_file::b>) {
-					result = (uint32) (int8) result;
+					result = uint8(result);
 				}
 				if constexpr(same_as<RetType, class_file::c>) {
-					result = (uint32) (uint16) result;
+					result = uint16(result);
 				}
 				if constexpr(same_as<RetType, class_file::s>) {
-					result = (uint32) ( int16) result;
+					result = int16(result);
 				}
 			});
 			stack.pop_back_until(locals_begin);
 			stack.emplace_back(result);
+			if(info) {
+				tabs();
+				print("i_return ");
+				print(result);
+				print("\n");
+			}
 			return loop_action::stop;
 		}
 		else if constexpr (same_as<Type, l_return>) {
@@ -1196,47 +1205,68 @@ static void execute(method& m) {
 			if(ref.is_null()) {
 				return loop_action::next;
 			}
+			
+			struct cast {
+
+			bool operator () (_class& s, _class& t) {
+				/* If S is a class type, then: */
+				if(!s.is_array()) {
+					/* If T is a class type, then S must be the same class as T,
+					   or S must be a subclass of T; */
+					if(!t.is_interface()) {
+						return &s == &t || s.is_sub_of(t);
+					}
+					/* If T is an interface type, then S must implement
+					   interface T. */
+					else {
+						return s.is_implementing(t);
+					}
+				}
+				/* If S is an array type SC[], that is, an array of components
+				   of type SC, then: */
+				else {
+					/* If T is a class type, then T must be Object. */
+					if(!t.is_interface() && !t.is_array()) {
+						return &t == object_class.ptr();
+					}
+					/* If T is an interface type, then T must be one of the
+					   interfaces implemented by arrays (JLS §4.10.3). */
+					else if(t.is_interface()) {
+						abort(); // unimplemented
+					}
+					/* If T is an array type TC[], that is, an array of
+					   components of type TC, then one of the following must be
+					   true: */
+					else {
+						_class& sc = s.get_component_class();
+						_class& tc = t.get_component_class();
+						/* TC and SC are the same primitive type. */
+						if(sc.is_primitive() && tc.is_primitive()) {
+							return &sc == &tc;
+						}
+						/* TC and SC are reference types, and type SC can be
+						cast to TC by recursive application of these rules. */
+						else if(!sc.is_primitive() && !tc.is_primitive()) {
+							return cast{}(sc, tc);
+						}
+						else {
+							return false;
+						}
+					}
+				}
+			}};
 
 			_class& s = ref._class();
 			_class& t = c.get_resolved_class(x.index);
-			
-			bool result;
 
-			if(!s.is_array()) {
-				if(!t.is_interface()) {
-					result = &s == &t || s.is_sub_of(t);
-				} else {
-					result = s.is_implementing(t);
-				}
-			} else {
-				if(!t.is_interface() && !t.is_array()) {
-					result = &t == object_class.ptr();
-				}
-				else if(t.is_interface()) {
-					abort(); // unimplemented
-				}
-				else {
-					_class& sc = s.get_component_class();
-					_class& tc = t.get_component_class();
-					if(sc.is_primitive() && tc.is_primitive()) {
-						result = &sc == &tc;
-					}
-					else if(!sc.is_primitive() && !tc.is_primitive()) {
-						abort(); // unimplemented
-					}
-					else {
-						result = false;
-					}
-				}
-				
+			/* If objectref can be cast to the resolved class, array, or
+			   interface type, the operand stack is unchanged; otherwise, the
+			   checkcast instruction throws a ClassCastException. */
+			if(!cast{}(s, t)) {
+				thrown = create_class_cast_exception();
+				return handle_thrown();
 			}
 
-			if(!result) {
-				abort(); // TODO throw ClassCastException
-			}
-			//_class& type = c.get_resolved_class(x.index);
-			//reference objectref = stack[stack_size - 1].get<reference>();
-			// TODO
 		}
 		else if constexpr (same_as<Type, instance_of>) {
 			if(info) {

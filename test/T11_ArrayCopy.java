@@ -1,4 +1,4 @@
-public class T12_ArrayCopy {
+public class T11_ArrayCopy {
 
 	public static void main(String... args) {
 		{

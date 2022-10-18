@@ -43,10 +43,24 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	}
 
 	void emplace_reference_at_unsafe(nuint index, reference ref) {
-		new ((char*) & base_type::operator [] (index)) reference(move(ref));
+		uint64* base_ptr = & base_type::operator [] (index);
+		new ((char*) base_ptr) reference(move(ref));
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		reference_bits_[bitmap_index].get() |= (1ull << bit_index);
+		reference_bits_[bitmap_index].get() |= (uint64(1) << bit_index);
+	}
+
+	reference destruct_reference_at(nuint index) {
+		reference& ref = at<reference>(index);
+		reference ref_moved = move(ref);
+		ref.~reference();
+		base_type::pop_back();
+
+		nuint bitmap_index = index / 64;
+		nuint bit_index = index % 64;
+		reference_bits_[bitmap_index].get() &= ~(uint64(1) << bit_index);
+
+		return ref_moved;
 	}
 
 public:
@@ -102,11 +116,7 @@ public:
 	}
 	void emplace_back(reference ref) {
 		base_type::emplace_back();
-		new ((char*) &base_type::back()) reference(move(ref));
-		nuint index = size() - 1;
-		nuint bitmap_index = index / 64;
-		nuint bit_index = index % 64;
-		reference_bits_[bitmap_index].get() |= (1ull << bit_index);
+		emplace_reference_at_unsafe(size() - 1, move(ref));
 	}
 
 	void emplace_at(nuint index, reference ref) {
@@ -115,6 +125,14 @@ public:
 		} else {
 			emplace_reference_at_unsafe(index, move(ref));
 		}
+	}
+
+	template<stack_primitive_element Type>
+	void emplace_at(nuint index, Type value) {
+		if(is_reference_at(index)) {
+			destruct_reference_at(index);
+		}
+		new (& base_type::operator [] (index)) Type(value);
 	}
 
 	template<stack_primitive_element Type>
@@ -153,17 +171,7 @@ public:
 	}
 	template<same_as<reference>>
 	reference pop_back() {
-		reference& ref_at_back = back<reference>();
-		reference ref_moved = move(ref_at_back);
-		ref_at_back.~reference();
-
-		nuint index = size() - 1;
-		nuint bitmap_index = index / 64;
-		nuint bit_index = index % 64;
-		reference_bits_[bitmap_index].get() &= ~(1 << bit_index);
-
-		base_type::pop_back();
-		return ref_moved;
+		return destruct_reference_at(size() - 1);
 	}
 
 	void dup_cat_1() {

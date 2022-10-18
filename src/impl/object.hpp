@@ -19,16 +19,15 @@ inline object::object(::_class& c) :
 		values_.emplace_back(instance_field->descriptor());
 	}
 
-	/*if(info) {
+	if(info) {
 		tabs();
-		fprintf(
-			stderr,
-			"constructing object @%p, ", this
-		);
+		print("constructing object @");
+		print_hex((nuint)this);
+		print(" of type ");
 		auto name = _class().name();
-		fwrite(name.elements_ptr(), 1, name.size(), stderr);
-		fputc('\n', stderr);
-	}*/
+		print(name);
+		print("\n");
+	}
 }
 
 inline object::~object() {
@@ -43,33 +42,30 @@ inline object::~object() {
 		// TODO compute actual size, uses free so its safe
 		posix::free_raw_memory(data);
 	}
-	/*if(info) {
+	if(info) {
 		tabs();
-		fprintf(
-			stderr,
-			"destructing object @%p, ", this
-		);
+		print("destructing object @");
+		print_hex((nuint)this);
+		print(" of type ");
 		auto name = _class().name();
-		fwrite(name.elements_ptr(), 1, name.size(), stderr);
-		fputc('\n', stderr);
-	}*/
+		print(name);
+		print("\n");
+	}
 }
 
 inline void object::on_reference_added() {
-	/*tabs();
-		fprintf(
-		stderr,
-		"added reference to object @%p\n", this
-	);*/
 	++references_;
+	if(info) {
+		tabs();
+		print("added reference to object @");
+		print_hex((nuint)this);
+		print(", now there is ");
+		print(references_);
+		print("\n");
+	}
 }
 
 inline void object::on_reference_removed() {
-	/*tabs();
-		fprintf(
-		stderr,
-		"removed reference to object @%p\n", this
-	);*/
 	if(references_ == 0) {
 		posix::std_err.write_from(
 			c_string{"removing reference on object without references\n"}
@@ -77,6 +73,14 @@ inline void object::on_reference_removed() {
 		posix::abort();
 	}
 	--references_;
+	if(info) {
+		tabs();
+		print("removed reference to object @");
+		print_hex((nuint)this);
+		print(", now there is ");
+		print(references_);
+		print("\n");
+	}
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 		this->~object();

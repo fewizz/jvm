@@ -1,6 +1,8 @@
 #include "decl/object/reference.hpp"
 
 #include "decl/object.hpp"
+#include "decl/print.hpp"
+#include "decl/execution/info.hpp"
 
 #include <exchange.hpp>
 
@@ -75,11 +77,12 @@ inline       field_value& reference::operator [] (uint16 index)       {
 
 inline reference::~reference() {
 	if(obj_ptr_ != nullptr) {
-		/*fprintf(
-			stderr,
-			"reference destruction with object address = %p\n",
-			obj_
-		);*/
+		if(info) {
+			tabs();
+			print("reference destruction, object @");
+			print_hex((nuint)obj_ptr_);
+			print("\n");
+		}
 		object().on_reference_removed();
 		obj_ptr_ = nullptr;
 	}

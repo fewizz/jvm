@@ -7,7 +7,7 @@
 #include <posix/io.hpp>
 
 inline struct buffered_print_t {
-	list<array<storage<char>, 4>> buff{};
+	list<array<storage<char>, 4096>> buff{};
 
 	void flush() {
 		posix::std_out.write_from(buff);
@@ -53,16 +53,25 @@ void print(Range&& range) {
 	buffered_print(range);
 };
 
-void print(unsigned_integer auto number) {
+void print_number(nuint base, unsigned_integer auto number) {
 	nuint count = 0;
-	for_each_digit_in_number(number, 10, [&](nuint) { ++count; });
+	for_each_digit_in_number(number, base, [&](nuint) { ++count; });
 	char digits[count];
 	count = 0;
-	for_each_digit_in_number(number, 10, [&](nuint digit) {
-		digits[count++] = (char)digit + '0';
+	for_each_digit_in_number(number, base, [&](nuint digit) {
+		digits[count++] = (char)digit + (digit <= 9 ? '0' : 'A' - 10);
 	});
 	buffered_print(span{ digits, count });
 };
+
+void print(unsigned_integer auto number) {
+	print_number(10, number);
+};
+
+void print_hex(unsigned_integer auto number) {
+	print("0x");
+	print_number(16, number);
+}
 
 void print(signed_integer auto number) {
 	if(number < 0) {

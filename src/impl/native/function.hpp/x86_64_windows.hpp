@@ -166,8 +166,12 @@ inline void native_interface_call(
 
 	m.return_type().view(
 		[&]<typename Type>(Type) {
-			if constexpr(
+			if constexpr(same_as<Type, class_file::v>) {
+				stack.pop_back_until(stack_begin);
+			}
+			else if constexpr(
 				same_as<Type, class_file::z> ||
+				same_as<Type, class_file::b> ||
 				same_as<Type, class_file::c> ||
 				same_as<Type, class_file::s> ||
 				same_as<Type, class_file::i>
@@ -191,6 +195,7 @@ inline void native_interface_call(
 				same_as<Type, class_file::object> ||
 				same_as<Type, class_file::array>
 			) {
+				// increment reference count before possible deletion on stack
 				reference ref{ * (::object*) result };
 				stack.pop_back_until(stack_begin);
 				stack.emplace_back(move(ref));
