@@ -10,7 +10,9 @@
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
 #include "decl/lib/java/lang/class_cast_exception.hpp"
 
+#include "./check_cast.hpp"
 #include "./get_field_value.hpp"
+#include "./instance_of.hpp"
 #include "./put_field_value.hpp"
 #include "./ldc.hpp"
 #include "./invoke_dynamic.hpp"
@@ -1194,110 +1196,18 @@ static void execute(method& m) {
 			thrown = move(ref);
 			return handle_thrown();
 		}
-		else if constexpr (same_as<Type, check_cast>) {
-			if(info) {
-				tabs();
-				print("check_cast ");
-				print((uint16) x.index);
-				print("\n");
-			}
-			reference& ref = stack.back<reference>();
-			if(ref.is_null()) {
-				return loop_action::next;
-			}
-			
-			struct cast {
-
-			bool operator () (_class& s, _class& t) {
-				/* If S is a class type, then: */
-				if(!s.is_array()) {
-					/* If T is a class type, then S must be the same class as T,
-					   or S must be a subclass of T; */
-					if(!t.is_interface()) {
-						return &s == &t || s.is_sub_of(t);
-					}
-					/* If T is an interface type, then S must implement
-					   interface T. */
-					else {
-						return s.is_implementing(t);
-					}
-				}
-				/* If S is an array type SC[], that is, an array of components
-				   of type SC, then: */
-				else {
-					/* If T is a class type, then T must be Object. */
-					if(!t.is_interface() && !t.is_array()) {
-						return &t == object_class.ptr();
-					}
-					/* If T is an interface type, then T must be one of the
-					   interfaces implemented by arrays (JLS §4.10.3). */
-					else if(t.is_interface()) {
-						abort(); // unimplemented
-					}
-					/* If T is an array type TC[], that is, an array of
-					   components of type TC, then one of the following must be
-					   true: */
-					else {
-						_class& sc = s.get_component_class();
-						_class& tc = t.get_component_class();
-						/* TC and SC are the same primitive type. */
-						if(sc.is_primitive() && tc.is_primitive()) {
-							return &sc == &tc;
-						}
-						/* TC and SC are reference types, and type SC can be
-						cast to TC by recursive application of these rules. */
-						else if(!sc.is_primitive() && !tc.is_primitive()) {
-							return cast{}(sc, tc);
-						}
-						else {
-							return false;
-						}
-					}
-				}
-			}};
-
-			_class& s = ref._class();
-			_class& t = c.get_resolved_class(x.index);
-
-			/* If objectref can be cast to the resolved class, array, or
-			   interface type, the operand stack is unchanged; otherwise, the
-			   checkcast instruction throws a ClassCastException. */
-			if(!cast{}(s, t)) {
-				thrown = create_class_cast_exception();
-				return handle_thrown();
-			}
-
+		else if constexpr(same_as<
+			Type,
+			class_file::attribute::code::instruction::check_cast
+		>) {
+			::check_cast(c, x.index);
+			return handle_thrown();
 		}
-		else if constexpr (same_as<Type, instance_of>) {
-			if(info) {
-				cc::_class _class = c.class_constant(x.index);
-				cc::utf8 name = c.utf8_constant(_class.name_index);
-				tabs();
-				print("instance_of ");
-				print(name);
-				print("\n");
-			}
-
-			reference objectref = stack.pop_back<reference>();
-			_class& s = objectref->_class();
-
-			int32 result = 0;
-			if(!objectref.is_null()) {
-				_class& t = c.get_resolved_class(x.index);
-
-				if(!s.is_interface()) {
-					if(!t.is_interface()) {
-						result = &s == &t || s.is_sub_of(t);
-					}
-					else {
-						result = s.is_implementing(t);
-					}
-				}
-				else {
-					abort();//TODO
-				}
-			}
-			stack.emplace_back(int32{ result });
+		else if constexpr (same_as<
+			Type,
+			class_file::attribute::code::instruction::instance_of
+		>) {
+			::instance_of(c, x.index);
 		}
 		else if constexpr (same_as<Type, if_null>) {
 			if(info) {

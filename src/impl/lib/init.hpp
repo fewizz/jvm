@@ -2,6 +2,7 @@
 
 #include "./java/io/file_descriptor.hpp"
 #include "./java/io/file_output_stream.hpp"
+#include "./java/io/serializable.hpp"
 #include "./java/lang/invoke/lambda_meta_factory.hpp"
 #include "./java/lang/invoke/method_handle.hpp"
 #include "./java/lang/invoke/method_handles_lookup.hpp"
@@ -10,6 +11,7 @@
 #include "./java/lang/array_store_exception.hpp"
 #include "./java/lang/class_cast_exception.hpp"
 #include "./java/lang/class.hpp"
+#include "./java/lang/cloneable.hpp"
 #include "./java/lang/double.hpp"
 #include "./java/lang/float.hpp"
 #include "./java/lang/index_out_of_bounds_exception.hpp"
@@ -31,6 +33,7 @@
 static inline void init_lib() {
 	init_java_io_file_descriptor();
 	init_java_io_file_output_stream();
+	init_java_io_serializable();
 	init_java_lang_invoke_lambda_meta_factory();
 	init_java_lang_invoke_method_handle();
 	init_java_lang_invoke_method_handles_lookup();
@@ -39,6 +42,8 @@ static inline void init_lib() {
 	init_java_lang_array_store_exception();
 	init_java_lang_class_cast_exception();
 	init_java_lang_class();
+	init_java_lang_class();
+	init_java_lang_cloneable();
 	init_java_lang_double();
 	init_java_lang_float();
 	init_java_lang_index_of_of_bounds_exception();

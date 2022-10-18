@@ -95,6 +95,8 @@ public:
 
 	bool is_array() const { return is_array_; }
 	bool is_primitive() const { return is_primitive_; }
+	bool is_reference() const { return !is_primitive_; }
+	bool is(const _class& c) const { return &c == this; }
 
 	_class& get_array_class();
 	_class& get_component_class();

@@ -1,4 +1,4 @@
-package java.lang;
+package java.io;
 
 public interface Cloneable {
 
