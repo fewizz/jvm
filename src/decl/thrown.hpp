@@ -2,4 +2,4 @@
 
 #include "object/reference.hpp"
 
-static thread_local reference thrown;
+static thread_local reference thrown{};

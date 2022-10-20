@@ -15,10 +15,6 @@ static struct classes : list<posix::memory_for_range_of<_class>> {
 	template<basic_range Name>
 	_class& find_or_load(Name&& name) {
 		optional<_class&> c = try_find(name);
-		//if(!c.has_value()) {
-		//	return ::load_class(name);
-		//}
-		//return c.value();
 		return c.set_if_has_no_value([&]() -> _class& {
 			return ::load_class(name);
 		}).value();

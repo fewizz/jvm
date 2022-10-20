@@ -428,17 +428,17 @@ static void execute(method& m) {
 		else if constexpr (same_as<Type, c_a_load>) {
 			if(info) { tabs(); print("c_a_load\n"); }
 			return view_array.template operator()<int16>([&](int16& v) {
-				stack.emplace_back(int32{ uint16(v) });
+				stack.emplace_back((int32) (uint32) (uint16) v);
 			});
 		}
 		else if constexpr (same_as<Type, i_store>) {
+			int32 value = stack.pop_back<int32>();
 			if(info) {
 				tabs();
-				print("i_store ");
-				print(x.index);
+				print("i_store "); print(x.index); print(" "); print(value);
 				print("\n");
 			}
-			stack.emplace_at(locals_begin + x.index, stack.pop_back<int32>());
+			stack.emplace_at(locals_begin + x.index, value);
 		}
 		else if constexpr (same_as<Type, l_store>) {
 			if(info) {
@@ -470,20 +470,24 @@ static void execute(method& m) {
 			);
 		}
 		else if constexpr (same_as<Type, i_store_0>) {
-			if(info) { tabs(); print("i_store_0\n"); }
-			stack.emplace_at(locals_begin + 0, stack.pop_back<int32>());
+			int32 value = stack.pop_back<int32>();
+			if(info) { tabs();print("i_store_0 ");print(value);print("\n"); }
+			stack.emplace_at(locals_begin + 0, value);
 		}
 		else if constexpr (same_as<Type, i_store_1>) {
-			if(info) { tabs(); print("i_store_1\n"); }
-			stack.emplace_at(locals_begin + 1, stack.pop_back<int32>());
+			int32 value = stack.pop_back<int32>();
+			if(info) { tabs();print("i_store_1 ");print(value);print("\n"); }
+			stack.emplace_at(locals_begin + 1, value);
 		}
 		else if constexpr (same_as<Type, i_store_2>) {
-			if(info) { tabs(); print("i_store_2\n"); }
-			stack.emplace_at(locals_begin + 2, stack.pop_back<int32>());
+			int32 value = stack.pop_back<int32>();
+			if(info) { tabs();print("i_store_2 ");print(value);print("\n"); }
+			stack.emplace_at(locals_begin + 2, value);
 		}
 		else if constexpr (same_as<Type, i_store_3>) {
-			if(info) { tabs(); print("i_store_3\n"); }
-			stack.emplace_at(locals_begin + 3, stack.pop_back<int32>());
+			int32 value = stack.pop_back<int32>();
+			if(info) { tabs();print("i_store_3 ");print(value);print("\n"); }
+			stack.emplace_at(locals_begin + 3, value);
 		}
 		else if constexpr (same_as<Type, l_store_0>) {
 			if(info) { tabs(); print("l_store_0\n"); }
@@ -518,8 +522,13 @@ static void execute(method& m) {
 			stack.emplace_at(locals_begin + 3, stack.pop_back<reference>());
 		}
 		else if constexpr (same_as<Type, i_a_store>) {
-			if(info) { tabs(); print("i_a_store\n"); }
 			int32 value = stack.pop_back<int32>();
+			if(info) {
+				tabs();
+				print("i_a_store ");
+				print(value);
+				print("\n");
+			}
 			return view_array.template operator()<int32>([&](int32& v) {
 				v = value;
 			});
@@ -535,14 +544,15 @@ static void execute(method& m) {
 			if(info) { tabs(); print("b_a_store\n"); }
 			int32 value = stack.pop_back<int32>();
 			return view_array.template operator()<int8>([&](int8& v) {
-				v = (uint8) uint32(value);
+				v = (uint8) (uint32) value;
 			});
 		}
 		else if constexpr (same_as<Type, c_a_store>) {
-			if(info) { tabs(); print("c_a_store\n"); }
-			int32 value = stack.pop_back<int32>();
+			int32 value0 = stack.pop_back<int32>();
+			int16 value = (int16) (uint16) (uint32) value0;
+			if(info) { tabs(); print("c_a_store "); print(value); print("\n"); }
 			return view_array.template operator() <int16>([&](int16& v) {
-				v = (uint16) uint32(value);
+				v = value;
 			});
 		}
 
@@ -675,10 +685,20 @@ static void execute(method& m) {
 			});
 		}
 		else if constexpr (same_as<Type, i_and>) {
-			if(info) { tabs(); print("i_and\n"); }
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
-			stack.emplace_back(int32{ value1 & value2 });
+			int32 result = value1 & value2;
+			if(info) {
+				tabs();
+				print("i_and ");
+				print(value1);
+				print(" ");
+				print(value2);
+				print(" = ");
+				print(result);
+				print("\n");
+			}
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, l_and>) {
 			if(info) { tabs(); print("l_and\n"); }
@@ -687,10 +707,20 @@ static void execute(method& m) {
 			stack.emplace_back(int64{ value1 & value2 });
 		}
 		else if constexpr (same_as<Type, i_or>) {
-			if(info) { tabs(); print("i_or\n"); }
-			int32 value2 = stack.pop_back<int64>();
-			int32 value1 = stack.pop_back<int64>();
-			stack.emplace_back(int64{ value1 | value2 });
+			int32 value2 = stack.pop_back<int32>();
+			int32 value1 = stack.pop_back<int32>();
+			int32 result = value1 | value2;
+			if(info) {
+				tabs();
+				print("i_and ");
+				print(value1);
+				print(" ");
+				print(value2);
+				print(" = ");
+				print(result);
+				print("\n");
+			}
+			stack.emplace_back(result);
 		}
 		else if constexpr (same_as<Type, l_or>) {
 			if(info) { tabs(); print("l_or\n"); }
