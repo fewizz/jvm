@@ -1,8 +1,8 @@
 #ifdef __x86_64__
 
-#include "decl/execution/stack_entry.hpp"
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
+#include "decl/primitives.hpp"
 
 #include <max.hpp>
 #include <class_file/descriptor/method_reader.hpp>

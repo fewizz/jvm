@@ -3,8 +3,6 @@
 #include "execution/stack.hpp"
 #include "method.hpp"
 
-//using arguments_span = span<stack_entry, uint16>;
-
 static void execute(method& m);
 
 template<basic_range StackType>

@@ -10,6 +10,5 @@ struct method;
 
 struct execution_context {
 	method& method;
-	//span<stack_entry> frame;
 	optional<execution_context&> previous;
 };

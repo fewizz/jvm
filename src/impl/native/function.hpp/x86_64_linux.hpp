@@ -1,9 +1,7 @@
 #ifdef __x86_64__
 
-
 #include "./for_each_parameter.hpp"
 
-#include "decl/execution/stack_entry.hpp"
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
 

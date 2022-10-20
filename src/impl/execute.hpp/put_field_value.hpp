@@ -1,4 +1,3 @@
-#include "decl/execution/stack_entry.hpp"
 #include "decl/field/value.hpp"
 #include "execution/stack.hpp"
 
