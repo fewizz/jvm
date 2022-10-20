@@ -58,8 +58,6 @@ int main (int argc, const char** argv) {
 	reference args_array = create_array_of(string_class.value(), 0);
 	stack.emplace_back(args_array);
 	execute(m);
-	// clear stack before classes (and etc.) destruction
-	stack.pop_back_until(0);
 
 	if(!thrown.is_null()) {
 		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
