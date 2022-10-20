@@ -8,6 +8,11 @@
 
 #include <posix/io.hpp>
 
+inline void reference::reset() {
+	object().on_reference_removed();
+	obj_ptr_ = nullptr;
+}
+
 inline reference::reference(::object& obj) : obj_ptr_{ &obj }{
 	obj.on_reference_added();
 }
@@ -28,13 +33,13 @@ inline reference::reference(reference&& other) :
 {}
 
 inline reference& reference::operator = (const reference& other) {
-	::object* prev = object_ptr();
+	if(this == &other) {
+		return *this;
+	}
+	try_reset();
 	obj_ptr_ = other.obj_ptr_;
 	if(obj_ptr_ != nullptr) {
 		object().on_reference_added();
-	}
-	if(prev != nullptr) {
-		prev->on_reference_removed();
 	}
 	return *this;
 }
@@ -43,10 +48,10 @@ inline reference& reference::operator = (reference&& other) {
 	if(this == &other) {
 		return *this;
 	}
-	::object* prev = object_ptr(); // in case if assigning same object
+	try_reset();
 	obj_ptr_ = exchange(other.obj_ptr_, nullptr);
-	if(prev != nullptr) {
-		prev->on_reference_removed();
+	if(obj_ptr_ != nullptr) {
+		object().on_reference_added();
 	}
 	return *this;
 }

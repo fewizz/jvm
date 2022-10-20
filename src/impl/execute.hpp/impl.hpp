@@ -48,9 +48,11 @@ static void execute(method& m) {
 		print(".");
 		print(m.name());
 		print(m.descriptor());
-		print(" ");
-		print("max_stack: ");
-		print(m.code().max_stack);
+		if(!m.is_native()) {
+			print(" ");
+			print("max_stack: ");
+			print(m.code().max_stack);
+		}
 		print("\n");
 		++tab;
 	}

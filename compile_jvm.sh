@@ -20,7 +20,7 @@ if ! clang++ \
 	-ferror-limit=64 \
 	-std=c++20 \
 	-Wall -Wextra \
-	-glldb \
+	-g \
 	-O0 \
 	-nostdinc++ \
 	-nostdinc \

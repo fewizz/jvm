@@ -13,6 +13,14 @@ private:
 
 	friend reference create_object(_class& c);
 
+	void reset();
+
+	void try_reset() {
+		if(obj_ptr_ != nullptr) {
+			reset();
+		}
+	}
+
 public:
 
 	reference(object& obj);
@@ -27,6 +35,11 @@ public:
 
 	reference& operator = (const reference& );
 	reference& operator = (      reference&&);
+
+	reference operator = (decltype(nullptr)) {
+		try_reset();
+		return *this;
+	}
 
 	const ::object& object() const;
 	      ::object& object();

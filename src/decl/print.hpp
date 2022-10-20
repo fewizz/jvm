@@ -3,6 +3,7 @@
 #include <array.hpp>
 #include <list.hpp>
 #include <range.hpp>
+#include <number.hpp>
 
 #include <posix/io.hpp>
 
@@ -53,7 +54,7 @@ void print(Range&& range) {
 	buffered_print(range);
 };
 
-void print_number(nuint base, unsigned_integer auto number) {
+void print_number(number_base base, unsigned_integer auto number) {
 	nuint count = 0;
 	for_each_digit_in_number(number, base, [&](nuint) { ++count; });
 	char digits[count];

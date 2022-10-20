@@ -63,6 +63,7 @@ int main (int argc, const char** argv) {
 
 	if(!thrown.is_null()) {
 		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
+		thrown = nullptr;
 		return 1;
 	}
 }
