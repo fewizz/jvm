@@ -1,5 +1,5 @@
 #include "decl/classes.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 
 #include <posix/io.hpp>
 
@@ -11,8 +11,8 @@ static void init_java_io_file_descriptor() {
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stderr_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_interface_environment*))
-		[](native_interface_environment*) {
+		(void*) (int32 (*)(native_environment*))
+		[](native_environment*) {
 			return 2;
 		}
 	);
@@ -20,8 +20,8 @@ static void init_java_io_file_descriptor() {
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stdin_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_interface_environment*))
-		[](native_interface_environment*) {
+		(void*) (int32 (*)(native_environment*))
+		[](native_environment*) {
 			return 0;
 		}
 	);
@@ -29,8 +29,8 @@ static void init_java_io_file_descriptor() {
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stdout_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_interface_environment*))
-		[](native_interface_environment*) {
+		(void*) (int32 (*)(native_environment*))
+		[](native_environment*) {
 			return 1;
 		}
 	);

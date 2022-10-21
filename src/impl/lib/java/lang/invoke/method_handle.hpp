@@ -2,7 +2,7 @@
 
 #include "decl/method.hpp"
 #include "decl/classes.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/object/reference.hpp"
 #include "decl/object.hpp"
 #include "decl/object/create.hpp"

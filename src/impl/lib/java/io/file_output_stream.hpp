@@ -1,6 +1,6 @@
 #include "decl/array.hpp"
 #include "decl/classes.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 
 #include <posix/io.hpp>
 
@@ -19,8 +19,8 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "write" }, c_string{ "(I)V" }
 	).native_function(
-		(void*) (void (*)(native_interface_environment*, object*, int32))
-		[](native_interface_environment*, object* ths, int32 value) {
+		(void*) (void (*)(native_environment*, object*, int32))
+		[](native_environment*, object* ths, int32 value) {
 			posix::file_descriptor fd0 {
 				(*ths)[file_output_stream_fd_value_index].get<jint>()
 			};
@@ -39,8 +39,8 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "write" }, c_string{ "([B)V" }
 	).native_function(
-		(void*) (void (*)(native_interface_environment*, object*, object*))
-		[](native_interface_environment*, object* ths, object* a) {
+		(void*) (void (*)(native_environment*, object*, object*))
+		[](native_environment*, object* ths, object* a) {
 			posix::file_descriptor fd0 {
 				(*ths)[file_output_stream_fd_value_index].get<jint>()
 			};
@@ -61,10 +61,10 @@ static inline void init_java_io_file_output_stream() {
 		c_string{ "write" }, c_string{ "([BII)V" }
 	).native_function(
 		(void*) (void (*)(
-			native_interface_environment*, object*, object*, int32, int32
+			native_environment*, object*, object*, int32, int32
 		))
 		[](
-			native_interface_environment*, object* ths,
+			native_environment*, object* ths,
 			object* a, int32 off, int32 len
 		) {
 			posix::file_descriptor fd0 {
@@ -85,8 +85,8 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "close" }, c_string{ "()V" }
 	).native_function(
-		(void*) (void (*)(native_interface_environment*, object*))
-		[](native_interface_environment*, object* ths) {
+		(void*) (void (*)(native_environment*, object*))
+		[](native_environment*, object* ths) {
 			posix::file_descriptor fd0 {
 				(*ths)[file_output_stream_fd_value_index].get<jint>()
 			};

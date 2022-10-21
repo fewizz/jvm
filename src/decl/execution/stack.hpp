@@ -65,14 +65,17 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 
 public:
 
-	stack(posix::memory_for_range_of<uint64> storage) :
-		base_type{ move(storage) },
+	stack(nuint size) :
+		base_type{ posix::allocate_memory_for<uint64>(size) },
 		reference_bits_ {
 			posix::allocate_zeroed_memory_for<uint64>(
-				base_type::capacity() / 64
+				(size / 64) + (size % 64 != 0)
 			)
 		}
 	{}
+
+	stack(stack&& other) = default;
+	stack& operator = (stack&& other) = default;
 
 	bool back_is_reference() const {
 		return is_reference_at(size() - 1);
@@ -209,5 +212,6 @@ public:
 	}
 
 	using base_type::size;
+	using base_type::capacity;
 
-} stack{ posix::allocate_memory_for<uint64>(4096) };
+} stack{ 512 };

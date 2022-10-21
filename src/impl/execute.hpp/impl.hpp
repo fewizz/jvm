@@ -5,10 +5,11 @@
 #include "decl/thrown.hpp"
 #include "decl/array.hpp"
 #include "decl/object/create.hpp"
-#include "decl/native/interface/call.hpp"
+#include "decl/native/call.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
 #include "decl/lib/java/lang/class_cast_exception.hpp"
+#include "decl/lib/java/lang/stack_overflow_error.hpp"
 
 #include "./check_cast.hpp"
 #include "./get_field_value.hpp"
@@ -91,6 +92,15 @@ static void execute(method& m) {
 	nuint locals_begin = stack.size() - m.parameters_stack_size();
 	nuint locals_end = locals_begin + m.code().max_locals;
 	nuint stack_begin = locals_end;
+
+	{
+		nuint max_possible_stack_end = stack_begin + m.code().max_stack * 2;
+		if(max_possible_stack_end > stack.capacity()) {
+			stack.pop_back_until(locals_begin);
+			thrown = create_stack_overflow_error();
+			return;
+		}
+	}
 
 	{
 		nuint locals_pushed = m.parameters_stack_size();

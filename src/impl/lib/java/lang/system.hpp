@@ -4,7 +4,7 @@
 #include "decl/array.hpp"
 #include "decl/class/load.hpp"
 #include "decl/classes.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/thrown.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/array_store_exception.hpp"
@@ -21,11 +21,11 @@ static inline void init_java_lang_system() {
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
 	).native_function(
 		(void*) (void(*)(
-			native_interface_environment*,
+			native_environment*,
 			object*, int32, object*, int32, int32
 		))
 		[](
-			native_interface_environment*,
+			native_environment*,
 			object* src, int32 src_pos,
 			object* dst, int32 dst_pos,
 			int32 len
@@ -168,8 +168,8 @@ static inline void init_java_lang_system() {
 	system_class->declared_methods().find(
 		c_string{ "nanoTime" }, c_string{ "()J" }
 	).native_function(
-		(void*) (int64(*)(native_interface_environment*))
-		[](native_interface_environment*) {
+		(void*) (int64(*)(native_environment*))
+		[](native_environment*) {
 			auto [seconds, nanoseconds]
 				= posix::monolitic_clock.secods_and_nanoseconds();
 			return (int64) (seconds * 1'000'000'000ll + nanoseconds);

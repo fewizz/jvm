@@ -6,7 +6,7 @@
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/classes.hpp"
 #include "decl/class/resolve_method.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 
 #include <range.hpp>
 
@@ -77,10 +77,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)
 		(object*(*)(
-			native_interface_environment*, object*, object*, object*, object*
+			native_environment*, object*, object*, object*, object*
 		))
 		[](
-			native_interface_environment*, object*,
+			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
 			return &
@@ -102,11 +102,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)
 		(object*(*)(
-			native_interface_environment*,
+			native_environment*,
 			object*, object*, object*, object*
 		))
 		[](
-			native_interface_environment*, object*,
+			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
 			return &
@@ -127,11 +127,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)
 		(object*(*)(
-			native_interface_environment*,
+			native_environment*,
 			object*, object*, object*
 		))
 		[](
-			native_interface_environment*, object*,
+			native_environment*, object*,
 			object* cls, object* mt
 		) -> object* {
 			return &
@@ -154,11 +154,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)
 		(object*(*)(
-			native_interface_environment*,
+			native_environment*,
 			object*, object*, object*, object*, object*
 		))
 		[](
-			native_interface_environment*, object*,
+			native_environment*, object*,
 			object* cls, object* name, object* mt, object* caller
 		) -> object* {
 			return &

@@ -1,6 +1,6 @@
 #include "decl/lib/java/lang/throwable.hpp"
 
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/execution/latest_context.hpp"
 #include "decl/array.hpp"
 #include "decl/primitives.hpp"
@@ -24,8 +24,8 @@ static inline void init_java_lang_throwable() {
 	.find(
 		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }
 	).native_function(
-		(void*) (object* (*)(native_interface_environment*, object*))
-		[](native_interface_environment*, object* ths) {
+		(void*) (object* (*)(native_environment*, object*))
+		[](native_environment*, object* ths) {
 			execution_context* ctx = latest_execution_context.ptr();
 			int32 frames_count = 0;
 

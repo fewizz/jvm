@@ -5,6 +5,12 @@
 
 static void execute(method& m);
 
+template<typename... Args>
+inline void execute(method& m, Args&&... args) {
+	(stack.emplace_back(forward<Args>(args)), ...);
+	execute(m);
+}
+
 template<basic_range StackType>
 inline void invoke_dynamic(
 	class_file::constant::invoke_dynamic_index ref_index, _class& c

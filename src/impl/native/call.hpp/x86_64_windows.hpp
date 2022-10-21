@@ -25,7 +25,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 
 	{
 		nuint arg = 0;
-		// native_interface_environment*
+		// native_environment*
 		i64_storage[arg++] = (uint64) nullptr;
 
 		nuint stack_at = stack_begin;

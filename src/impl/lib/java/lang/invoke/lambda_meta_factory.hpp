@@ -1,7 +1,7 @@
 #pragma once
 
 #include "decl/classes.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 
 #include <optional.hpp>
 
@@ -26,11 +26,11 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 		}
 	).native_function(
 		(void*) (void (*)(
-			native_interface_environment*,
+			native_environment*,
 			object*, object*, object*, object*, object*, object*)
 		)
 		[](
-			native_interface_environment*,
+			native_environment*,
 			[[maybe_unused]] object* caller,
 			[[maybe_unused]] object* interfaceMethodName,
 			[[maybe_unused]] object* factoryType,

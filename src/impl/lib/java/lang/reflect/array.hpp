@@ -1,7 +1,7 @@
 #include "decl/array.hpp"
 #include "decl/classes.hpp"
 #include "decl/thrown.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/lib/java/lang/negative_array_size_exception.hpp"
 
 static void init_java_lang_reflect_array() {
@@ -10,9 +10,9 @@ static void init_java_lang_reflect_array() {
 		c_string{ "newInstance" },
 		c_string{ "(Ljava/lang/Class;I)Ljava/lang/Object;" }
 	).native_function(
-		(void*) (object*(*)(native_interface_environment*, object*, int32))
+		(void*) (object*(*)(native_environment*, object*, int32))
 		[](
-			native_interface_environment*, object* component_type, int32 len
+			native_environment*, object* component_type, int32 len
 		) -> object* {
 			if(len < 0) {
 				thrown = create_negative_array_size_exception();

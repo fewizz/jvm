@@ -19,6 +19,7 @@
 #include "./java/lang/negative_array_size_exception.hpp"
 #include "./java/lang/null_pointer_exception.hpp"
 #include "./java/lang/object.hpp"
+#include "./java/lang/stack_overflow_error.hpp"
 #include "./java/lang/runtime.hpp"
 #include "./java/lang/stack_trace_element.hpp"
 #include "./java/lang/string.hpp"

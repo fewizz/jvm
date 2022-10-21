@@ -4,7 +4,7 @@
 #include "./define/primitive_class.hpp"
 #include "./execute.hpp/impl.hpp"
 #include "./lib/init.hpp"
-#include "./native/function.hpp/impl.hpp"
+#include "./native/call.hpp/impl.hpp"
 #include "./object/reference.hpp"
 #include "./method.hpp"
 #include "./object.hpp"

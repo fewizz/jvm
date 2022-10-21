@@ -9,10 +9,9 @@ inline reference create_null_pointer_exception() {
 	method& m = null_pointer_exception_constructor.value();
 
 	reference ref = create_object(c);
-	stack.emplace_back(ref);
-	execute(m);
+	execute(m, ref);
 
-	return move(ref);
+	return ref;
 }
 
 inline void init_java_lang_null_pointer_exception() {

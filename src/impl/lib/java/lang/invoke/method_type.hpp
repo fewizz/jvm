@@ -3,7 +3,7 @@
 #include "decl/classes.hpp"
 #include "decl/object.hpp"
 #include "decl/array.hpp"
-#include "decl/native/interface/environment.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class.hpp"
 
@@ -105,8 +105,8 @@ static void init_java_lang_invoke_method_type() {
 		c_string{ "descriptorUTF8" },
 		c_string{ "([Ljava/lang/Class;Ljava/lang/Class;)[B" }
 	).native_function(
-		(void*) (object*(*)(native_interface_environment*, object*, object*))
-		[](native_interface_environment*, object* params_array, object* ret) {
+		(void*) (object*(*)(native_environment*, object*, object*))
+		[](native_environment*, object* params_array, object* ret) {
 			return &
 				method_type_create_method_descriptor_utf8(*params_array, *ret)
 				.unsafe_release_without_destroing();
