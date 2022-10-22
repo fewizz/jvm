@@ -24,15 +24,15 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		uint8 i_stack_count = 0;
 		uint8 f_stack_count = 0;
 		for_each_parameter(m, jstack_begin, [&]<typename Type>(Type) {
-			++arg;
 			if constexpr(same_as<Type, float> || same_as<Type, double>) {
-				if(arg <= 8) {
+				if(arg < 8) {
 					++f_stack_count;
 				}
 			}
-			else if(arg <= 6) {
+			else if(arg < 6) {
 				++i_stack_count;
 			}
+			++arg;
 		});
 		return i_stack_count + f_stack_count;
 	}();
@@ -61,8 +61,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 					stack_storage[arg - 8] = bit_cast<uint32>(x);
 				}
 				else {
-					f_regs[arg] =
-						__extension__ (__m128){ x, 0, 0, 0 };
+					f_regs[arg] = __extension__ (__m128){ x, 0, 0, 0 };
 				}
 			}
 			else if constexpr(same_as<Type, double>) {
@@ -70,8 +69,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 					stack_storage[arg - 8] = bit_cast<uint64>(x);
 				}
 				else {
-					f_regs[arg] =
-						__extension__ (__m128d){ x, 0 };
+					f_regs[arg] = __extension__ (__m128d){ x, 0 };
 				}
 			} else {
 				abort();

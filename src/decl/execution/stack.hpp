@@ -42,7 +42,7 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 		else { handler(pop_back<int32>()); }
 	}
 
-	void emplace_reference_at_unsafe(nuint index, reference ref) {
+	void unsafely_emplace_reference_at(nuint index, reference ref) {
 		uint64* base_ptr = & base_type::operator [] (index);
 		new ((char*) base_ptr) reference(move(ref));
 		nuint bitmap_index = index / 64;
@@ -119,14 +119,14 @@ public:
 	}
 	void emplace_back(reference ref) {
 		base_type::emplace_back();
-		emplace_reference_at_unsafe(size() - 1, move(ref));
+		unsafely_emplace_reference_at(size() - 1, move(ref));
 	}
 
 	void emplace_at(nuint index, reference ref) {
 		if(is_reference_at(index)) {
 			at<reference>(index) = move(ref);
 		} else {
-			emplace_reference_at_unsafe(index, move(ref));
+			unsafely_emplace_reference_at(index, move(ref));
 		}
 	}
 
@@ -209,6 +209,21 @@ public:
 				emplace_back(move(value1));
 			});
 		});
+	}
+
+	void insert_at(nuint index, reference ref) {
+		// there's something at given index
+		// popping it, continuing recursively
+		if(index < size()) {
+			pop_back_and_view_as_int32_or_reference([&](auto popped) {
+				insert_at(index, move(ref));
+				emplace_back(move(popped));
+			});
+		}
+		// we're at the end
+		else {
+			emplace_back(move(ref));
+		}
 	}
 
 	using base_type::size;

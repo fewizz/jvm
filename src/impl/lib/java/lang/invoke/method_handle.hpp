@@ -70,13 +70,9 @@ inline reference create_method_handle_invoke_interface(method& m) {
 }
 
 inline void method_handle_invoke_exact(
-	[[maybe_unused]] reference ref, [[maybe_unused]] parameters_count count
+	[[maybe_unused]] reference ref, nuint args_stack_count
 ) {
-	abort(); // TODO
-	/*using behavior_kind = class_file::constant::method_handle::behavior_kind;
-	span<stack_entry> args {
-		&stack.back() - count, count
-	};
+	using behavior_kind = class_file::constant::method_handle::behavior_kind;
 
 	void* member = (void*) (uint64)
 		ref[method_handle_member_instance_field_index].get<jlong>();
@@ -86,39 +82,36 @@ inline void method_handle_invoke_exact(
 	switch (kind) {
 		case behavior_kind::invoke_virtual: {
 			method& resolved_method = * (method*) member;
-			reference& objectref = args[0].get<reference>();
+			reference& objectref =
+				stack.at<reference>(stack.size() - args_stack_count);
 			method& m = select_method(objectref->_class(), resolved_method);
-			return execute(m, count);
+			return execute(m);
 		}
 		case behavior_kind::invoke_static: {
-			return execute(* (method*) member, count);
+			return execute(* (method*) member);
 		}
 		case behavior_kind::invoke_special: {
-			return execute(* (method*) member, count);
+			return execute(* (method*) member);
 		}
 		case behavior_kind::new_invoke_special: {
 			method& init = * (method*) member;
 			_class& c = init._class();
 			reference ref = create_object(c);
 
-			// moving args to add instance ref at begining
-			stack.emplace_back(jint{});
+			// shifting args to add instance reference at the beginning
+			stack.insert_at(stack.size() - init.parameters_stack_size(), ref);
 
-			for(int i = 0; i < count; ++i) {
-				stack[stack.size() - i - 1] = move(stack[stack.size() - i - 2]);
-			}
-			// adding instance ref
-			stack[stack.size() - count - 1] = ref;
-			++count;
+			// calling constructor
+			execute(init);
 
-			execute(init, count);
-			return stack_entry{ ref };
+			stack.emplace_back(move(ref));
+			return;
 		}
 		case behavior_kind::invoke_interface: {
-			return execute(* (method*) member, count);
+			return execute(* (method*) member);
 		}
 		default: abort();
-	}*/
+	}
 }
 
 /*inline optional<stack_entry> method_handle_invoke(
