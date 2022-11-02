@@ -51,10 +51,8 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		super_class_reader.read_and_get_interfaces_reader()
 	};
 
-	declared_interfaces interfaces {
-		posix::allocate_memory_for<_class*>(interfaces_reader.count())
-	};
-
+	list interfaces =
+		posix::allocate_memory_for<_class*>(interfaces_reader.count());
 	auto fields_reader =
 		interfaces_reader.read_and_get_fields_reader(
 			[&](class_file::constant::interface_index interface_index) {
@@ -66,10 +64,12 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 				interfaces.emplace_back(&interface);
 			}
 		);
-
+	
 	uint16 fields_count = fields_reader.count();
 
-	declared_fields fields { posix::allocate_memory_for<field>(fields_count) };
+	list<posix::memory_for_range_of<field>> fields {
+		posix::allocate_memory_for<field>(fields_count)
+	};
 
 	auto methods_reader = fields_reader.read_and_get_methods_reader(
 		[&](auto field_reader) {
@@ -98,7 +98,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		}
 	);
 
-	declared_methods methods {
+	list<posix::memory_for_range_of<method>> methods {
 		posix::allocate_memory_for<method>(methods_reader.count())
 	};
 
@@ -161,9 +161,9 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		this_class_name{ name },
 		move(descriptor),
 		super,
-		move(interfaces),
-		move(fields),
-		move(methods),
+		interfaces.move_storage_range(),
+		fields.move_storage_range(),
+		methods.move_storage_range(),
 		is_array_class{ false },
 		is_primitive_class{ false }
 	);

@@ -1157,9 +1157,9 @@ static void execute(method& m) {
 			instance_field_index index =
 				index_and_class.get<instance_field_index>();
 			_class& base_c = index_and_class.get<_class&>();
-			field* base_field = base_c.instance_fields()[index];
+			field& base_field = base_c.instance_fields()[index];
 			reference ref = stack.at<reference>(
-				stack.size() - base_field->stack_size - 1
+				stack.size() - base_field.stack_size - 1
 			);
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();

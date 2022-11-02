@@ -23,115 +23,126 @@ inline _class::_class(
 	descriptor_          { move(descriptor)          },
 	super_               { super_class               },
 	declared_interfaces_ { move(declared_interfaces) },
-	declared_fields_     { move(declared_fields)     },
-	declared_methods_    { move(declared_methods)    },
+	declared_fields_     { [&] {
+		for(field& f : declared_fields.as_span()) {
+			f.class_ = *this;
+		}
+		return move(declared_fields);
+	}()},
+	declared_methods_    { [&] {
+		for(method& m : declared_methods.as_span()) {
+			m.class_ = *this;
+		}
+		return move(declared_methods);
+	}()},
+	declared_static_fields_ { [&] {
+		nuint count  = 0;
+		for(field& f : this->declared_fields()) {
+			if(f.access_flags()._static) {
+				++count;
+			}
+		}
+		::list fields = posix::allocate_memory_for<field*>(count);
+		for(field& f : this->declared_fields()) {
+			if(f.access_flags()._static) {
+				fields.emplace_back(&f);
+			}
+		}
+		return fields.move_storage_range();
+	}()},
+	declared_static_methods_ { [&] {
+		nuint count  = 0;
+		for(method& m : this->declared_methods()) {
+			if(m.access_flags()._static) {
+				++count;
+			}
+		}
+		::list methods = posix::allocate_memory_for<method*>(count);
+		for(method& m : this->declared_methods()) {
+			if(m.access_flags()._static) {
+				methods.emplace_back(&m);
+			}
+		}
+		return methods.move_storage_range();
+	}()},
+	declared_instance_fields_ { [&] {
+		nuint count =
+			this->declared_fields().size() -
+			range_size(declared_static_fields());
+		::list fields = posix::allocate_memory_for<field*>(count);
+		for(field& f : this->declared_fields()) {
+			if(!f.access_flags()._static) {
+				fields.emplace_back(&f);
+			}
+		}
+		return fields.move_storage_range();
+	}()},
+	declared_instance_methods_ { [&] {
+		nuint count =
+			range_size(this->declared_methods()) -
+			range_size(declared_static_methods());
+		::list methods = posix::allocate_memory_for<method*>(count);
+		for(method& m : this->declared_methods()) {
+			if(!m.access_flags()._static) {
+				methods.emplace_back(&m);
+			}
+		}
+		return methods.move_storage_range();
+	}()},
+	instance_fields_ { [&] {
+		nuint count  = declared_instance_fields_.size();
+		if(has_super()) {
+			count += range_size(super().instance_fields());
+		}
+		::list fields = posix::allocate_memory_for<field*>(count);
+		if(has_super()) {
+			for(field& f : super().instance_fields()) {
+				fields.emplace_back(&f);
+			}
+		}
+		for(field& f : declared_instance_fields()) {
+			fields.emplace_back(&f);
+		}
+		return fields.move_storage_range();
+	}()},
+	instance_methods_ { [&] {
+		nuint count = range_size(declared_instance_methods());
+		if(has_super()) {
+			// increase instance methods count if super instance method
+			// isn't overrided by any declared instance method
+			for(method& m : super().instance_methods()) {
+				if(!declared_instance_methods().try_find(m.name(), m.descriptor())) {
+					++count;
+				}
+			}
+		}
+		::list methods = posix::allocate_memory_for<method*>(count);
+		if(has_super()) {
+			for(method& m : super().instance_methods()) {
+				methods.emplace_back(&m);
+			}
+		}
+		for(method& m : declared_instance_methods()) {
+			auto index_of_overriden = find_by_name_and_descriptor_view {
+				methods.dereference_view()
+			}.try_find_index_of(m.name(), m.descriptor());
+			// declared instance method overrides super instance method
+			if(index_of_overriden) {
+				methods.emplace_at(index_of_overriden.value(), &m);
+			}
+			else {
+				methods.emplace_back(&m);
+			}
+		}
+		return methods.move_storage_range();
+	}()},
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              }
 {
-	for(field& f : this->declared_fields()) {
-		f.class_ = *this;
-	}
-	for(method& m : this->declared_methods()) {
-		m.class_ = *this;
-	}
-
-	// declared static members
-	nuint declared_static_fields_count  = 0;
-	nuint declared_static_methods_count = 0;
-	for(field& f : this->declared_fields()) {
-		if(f.access_flags()._static) {
-			++declared_static_fields_count;
-		}
-	}
-	for(method& m : this->declared_methods()) {
-		if(m.access_flags()._static) {
-			++declared_static_methods_count;
-		}
-	}
-
-	declared_static_fields_ = {
-		posix::allocate_memory_for<field*>(declared_static_fields_count)
-	};
-	declared_static_methods_ = {
-		posix::allocate_memory_for<method*>(declared_static_methods_count)
-	};
-
-	// declared instance members
-	nuint declared_instance_fields_count =
-		this->declared_fields().size() - declared_static_fields_count;
-	nuint declared_instance_methods_count =
-		this->declared_methods().size() - declared_static_methods_count;
-
-	declared_instance_fields_ = {
-		posix::allocate_memory_for<field*>(declared_instance_fields_count)
-	};
-	declared_instance_methods_ = {
-		posix::allocate_memory_for<method*>(declared_instance_methods_count)
-	};
-
-	// filling up declared static and instance members
-	for(field& f : this->declared_fields()) {
-		if(f.access_flags()._static) {
-			declared_static_fields_.emplace_back(&f);
-		}
-		else {
-			declared_instance_fields_.emplace_back(&f);
-		}
-	}
-	for(method& m : this->declared_methods()) {
-		if(m.access_flags()._static) {
-			declared_static_methods_.emplace_back(&m);
-		}
-		else {
-			declared_instance_methods_.emplace_back(&m);
-		}
-	}
-
-	// instance members
-	nuint instance_fields_count  = declared_instance_fields_count;
-	nuint instance_methods_count = declared_instance_methods_count;
-	if(has_super()) {
-		instance_fields_count  += super().instance_fields().size();
-		// increase instance methods count if super instance method
-		// isn't overrided by any declared instance method
-		for(method* m : super().instance_methods()) {
-			if(!declared_instance_methods_.try_find(m->name(), m->descriptor())) {
-				++instance_methods_count;
-			}
-		}
-	}
-
-	instance_fields_ = {
-		posix::allocate_memory_for<field*>(instance_fields_count)
-	};
-	instance_methods_ = {
-		posix::allocate_memory_for<method*>(instance_methods_count)
-	};
-
-	if(has_super()) {
-		for(field* f : super().instance_fields()) {
-			instance_fields_.emplace_back(f);
-		}
-		for(method* m : super().instance_methods()) {
-			instance_methods_.emplace_back(m);
-		}
-	}
-	for(field* f : declared_instance_fields_) {
-		instance_fields_.emplace_back(f);
-	}
-	for(method* m : declared_instance_methods_) {
-		auto index_of_overriden =
-			instance_methods_.try_find_index_of(m->name(), m->descriptor());
-		// declared instance method overrides super instance method
-		if(index_of_overriden) {
-			instance_methods_.emplace_at(index_of_overriden.value(), m);
-		}
-		else {
-			instance_methods_.emplace_back(m);
-		}
-	}
 
 	declared_static_fields_values_ = {
-		posix::allocate_memory_for<field_value>(declared_static_fields_count)
+		posix::allocate_memory_for<field_value>(
+			range_size(declared_static_fields())
+		)
 	};
 }

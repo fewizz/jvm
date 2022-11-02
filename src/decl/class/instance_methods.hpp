@@ -8,10 +8,8 @@
 
 #include <posix/memory.hpp>
 
-struct instance_methods :
-	list<posix::memory_for_range_of<method*>>,
-	find_by_name_and_descriptor_extension<instance_methods, true>
-{
-	using base_type = list<posix::memory_for_range_of<method*>>;
-	using base_type::base_type;
+struct instance_methods : posix::memory_for_range_of<method*> {
+	using base_type = posix::memory_for_range_of<method*>;
+	
+	instance_methods(base_type&& methods) : base_type{ move(methods) } {}
 };

@@ -9,9 +9,11 @@
 #include <posix/memory.hpp>
 
 struct declared_instance_methods :
-	list<posix::memory_for_range_of<method*>>,
-	find_by_name_and_descriptor_extension<declared_instance_methods, true>
+	posix::memory_for_range_of<method*>
 {
-	using base_type = list<posix::memory_for_range_of<method*>>;
-	using base_type::base_type;
+	using base_type = posix::memory_for_range_of<method*>;
+
+	declared_instance_methods(base_type&& methods) :
+		base_type{ move(methods) }
+	{}
 };

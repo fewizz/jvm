@@ -6,7 +6,10 @@
 
 struct _class;
 
-struct declared_interfaces : list<posix::memory_for_range_of<_class*>> {
-	using base_type = list<posix::memory_for_range_of<_class*>>;
-	using base_type::base_type;
+struct declared_interfaces : posix::memory_for_range_of<_class*> {
+	using base_type = posix::memory_for_range_of<_class*>;
+
+	declared_interfaces(posix::memory_for_range_of<_class*> s) :
+		base_type{ move(s) }
+	{}
 };

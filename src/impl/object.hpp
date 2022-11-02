@@ -12,11 +12,11 @@
 inline object::object(::_class& c) :
 	class_{ c },
 	values_ {
-		posix::allocate_memory_for<field_value>(c.instance_fields().size())
+		posix::allocate_memory_for<field_value>(range_size(c.instance_fields()))
 	}
 {
-	for(field* instance_field : c.instance_fields()) {
-		values_.emplace_back(instance_field->descriptor());
+	for(field& instance_field : c.instance_fields()) {
+		values_.emplace_back(instance_field.descriptor());
 	}
 
 	if(info) {

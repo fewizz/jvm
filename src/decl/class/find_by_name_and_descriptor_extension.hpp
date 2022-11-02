@@ -3,24 +3,14 @@
 #include "./has_name_and_descriptor_equal_to.hpp"
 #include <posix/abort.hpp>
 
-template<typename Type, bool Dereference>
+template<typename Type>
 struct find_by_name_and_descriptor_extension {
 private:
 	decltype(auto) derived() const {
-		if constexpr(Dereference) {
-			return ((const Type&) *this).dereference_view();
-		}
-		else {
-			return (const Type&) *this;
-		}
+		return (const Type&) *this;
 	}
 	decltype(auto) derived()       {
-		if constexpr(Dereference) {
-			return ((const Type&) *this).dereference_view();
-		}
-		else {
-			return (const Type&) *this;
-		}
+		return (const Type&) *this;
 	}
 public:
 
@@ -53,3 +43,29 @@ public:
 	}
 
 };
+
+template<basic_range Range>
+struct find_by_name_and_descriptor_view :
+	range_extensions<find_by_name_and_descriptor_view<Range>>,
+	find_by_name_and_descriptor_extension<
+		find_by_name_and_descriptor_view<Range>
+	>
+{
+private:
+	Range range_;
+public:
+
+	find_by_name_and_descriptor_view(Range&& range) :
+		range_{ forward<Range>(range) }
+	{}
+
+	auto iterator() const { return range_iterator(range_); }
+	auto iterator()       { return range_iterator(range_); }
+	auto sentinel() const { return range_sentinel(range_); }
+	auto sentinel()       { return range_sentinel(range_); }
+
+};
+
+template<basic_range Range>
+find_by_name_and_descriptor_view(Range&&)
+	-> find_by_name_and_descriptor_view<Range>;

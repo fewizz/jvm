@@ -41,7 +41,7 @@ private:
 	code_or_native_function_ptr        code_;
 	exception_handlers                 exception_handlers_;
 	uint8                              parameters_stack_size_ = 0;
-	list<posix::memory_for_range_of<one_of_non_void_descriptor_types>>
+	posix::memory_for_range_of<one_of_non_void_descriptor_types>
 	                                   parameter_types_;
 	one_of_descriptor_types            return_type_{ class_file::v{} };
 
@@ -63,11 +63,10 @@ public:
 			[]([[maybe_unused]] auto err) { abort(); }
 		).value();
 
-		parameter_types_ = {
+		list parameter_types_list =
 			posix::allocate_memory_for<one_of_non_void_descriptor_types>(
 				parameter_count
-			)
-		};
+			);
 
 		auto return_type_reader
 			= reader.try_read_parameter_types_and_get_return_type_reader(
@@ -76,7 +75,7 @@ public:
 						__builtin_unreachable();
 					}
 					else {
-						parameter_types_.emplace_back(parameter_type);
+						parameter_types_list.emplace_back(parameter_type);
 					}
 				},
 				[](auto) { abort(); }
@@ -92,7 +91,7 @@ public:
 		if(!access_flags._static) {
 			++parameters_stack_size_; // this
 		}
-		for(auto t : parameter_types_) {
+		for(one_of_non_void_descriptor_types t : parameter_types_list) {
 			t.view([&]<typename Type>(Type) {
 				if constexpr(
 					same_as<Type, class_file::j> ||
@@ -105,12 +104,13 @@ public:
 				}
 			});
 		}
+		parameter_types_ = parameter_types_list.move_storage_range();
 	}
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }
 
-	const auto& parameter_types() const {
-		return parameter_types_;
+	auto parameter_types() const {
+		return parameter_types_.as_span();
 	}
 
 	parameters_count parameters_count() {

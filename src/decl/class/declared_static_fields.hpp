@@ -7,13 +7,12 @@
 #include <list.hpp>
 #include <posix/memory.hpp>
 
-struct declared_static_fields :
-	list<posix::memory_for_range_of<field*>>,
-	find_by_name_and_descriptor_extension<declared_static_fields, true>
-{
+struct declared_static_fields : posix::memory_for_range_of<field*> {
 private:
-	using base_type = list<posix::memory_for_range_of<field*>>;
+	using base_type = posix::memory_for_range_of<field*>;
 public:
 
-	using base_type::base_type;
+	declared_static_fields(base_type&& fields) :
+		base_type{ move(fields) }
+	{}
 };

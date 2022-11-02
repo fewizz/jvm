@@ -10,6 +10,8 @@
 #include "./class/declared_static_methods.hpp"
 #include "./class/instance_methods.hpp"
 
+#include "./class/layout.hpp"
+
 #include "./class/constants.hpp"
 #include "./class/trampolines.hpp"
 #include "./class/bootstrap_methods.hpp"
@@ -29,33 +31,37 @@
 struct _class : constants, trampolines, bootstrap_methods {
 private:
 	posix::memory_for_range_of<uint8> bytes_;
-	class_file::access_flags     access_flags_;
-	this_class_name              this_name_;
+	const class_file::access_flags    access_flags_;
+	const this_class_name             this_name_;
 	posix::memory_for_range_of<uint8> descriptor_;
 	optional<_class&>            super_;
 
 	::declared_interfaces        declared_interfaces_;
 
 	::declared_fields            declared_fields_;
-	::declared_instance_fields   declared_instance_fields_;
+	::declared_methods           declared_methods_;
+
 	::declared_static_fields     declared_static_fields_;
+	::declared_static_methods    declared_static_methods_;
+
+	::declared_instance_fields   declared_instance_fields_;
+	::declared_instance_methods  declared_instance_methods_;
+
 	::instance_fields            instance_fields_;
+	::instance_methods           instance_methods_;
 
 	list<posix::memory_for_range_of<
 		field_value
 	>>                           declared_static_fields_values_;
 
-	::declared_methods           declared_methods_;
-	::declared_instance_methods  declared_instance_methods_;
-	::declared_static_methods    declared_static_methods_;
-	::instance_methods           instance_methods_;
+	layout                       layout_;
 
 	optional<_class&>            array_class_;
 	optional<_class&>            component_class_;
 	reference                    instance_;
 
-	is_array_class               is_array_;
-	is_primitive_class           is_primitive_;
+	const is_array_class         is_array_;
+	const is_primitive_class     is_primitive_;
 	enum initialisation_state {
 		not_started,
 		pending,
@@ -103,20 +109,57 @@ public:
 
 	void initialise_if_need();
 
-	auto& declared_fields() { return declared_fields_; }
-	auto& declared_static_fields() { return declared_static_fields_; }
-	auto& instance_fields() { return instance_fields_; }
+	auto declared_fields() {
+		return declared_fields_.as_span();
+	}
+	auto declared_methods() {
+		return find_by_name_and_descriptor_view {
+			declared_methods_.as_span()
+		};
+	}
+
+	auto declared_static_fields() {
+		return find_by_name_and_descriptor_view {
+			declared_static_fields_.as_span().dereference_view()
+		};
+	}
+	auto instance_fields() {
+		return find_by_name_and_descriptor_view {
+			instance_fields_.as_span().dereference_view()
+		};
+	}
 
 	auto& declared_static_fields_values() {
 		return declared_static_fields_values_;
 	}
 
-	auto& declared_methods() { return declared_methods_; }
-	auto& declared_static_methods() { return declared_static_methods_; }
-	auto& declared_instance_methods() { return declared_instance_methods_; }
-	auto& instance_methods() { return instance_methods_; }
+	auto declared_static_methods() {
+		return find_by_name_and_descriptor_view {
+			declared_static_methods_.as_span().dereference_view()
+		};
+	}
 
-	auto& declared_interfaces() { return declared_interfaces_; }
+	auto declared_instance_methods() {
+		return find_by_name_and_descriptor_view {
+			declared_instance_methods_.as_span().dereference_view()
+		};
+	}
+	auto declared_instance_fields() {
+		return find_by_name_and_descriptor_view {
+			declared_instance_fields_.as_span().dereference_view()
+		};
+	}
+	auto instance_methods() {
+		return find_by_name_and_descriptor_view {
+			instance_methods_.as_span().dereference_view()
+		};
+	}
+
+	auto declared_interfaces() {
+		return declared_interfaces_.transform_view(
+			[](storage<_class*>& storage) -> _class& { return *storage.get(); }
+		);
+	}
 
 	reference instance();
 
@@ -184,11 +227,11 @@ public:
 	}
 
 	bool is_implementing(_class& other) {
-		for(_class* i : declared_interfaces()) {
-			if(i == &other) {
+		for(_class& i : declared_interfaces()) {
+			if(&i == &other) {
 				return true;
 			}
-			if(i->is_implementing(other)) {
+			if(i.is_implementing(other)) {
 				return true;
 			}
 		}

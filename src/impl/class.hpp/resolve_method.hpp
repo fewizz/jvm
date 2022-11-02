@@ -110,12 +110,12 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	       its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	       arbitrarily chosen and method lookup succeeds."*/
 	c.for_each_super_interface([&](_class& i) {
-		for(method* m0 : i.declared_instance_methods()) {
+		for(method& m0 : i.declared_instance_methods()) {
 			if(
-				!m0->access_flags()._private &&
-				has_name_and_descriptor_equal_to{ name, descriptor }(*m0)
+				!m0.access_flags()._private &&
+				has_name_and_descriptor_equal_to{ name, descriptor }(m0)
 			) {
-				m = *m0;
+				m = m0;
 				return loop_action::stop;
 			}
 		}
