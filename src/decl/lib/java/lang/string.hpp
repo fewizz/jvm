@@ -2,17 +2,17 @@
 
 #include "decl/class.hpp"
 #include "decl/array.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
 
 static optional<_class&> string_class{};
-inline instance_field_index string_value_index{};
+inline instance_field_position string_value_field_position;
 
 template<typename Handler>
 inline void for_each_string_codepoint(object& str, Handler&& handler) {
-	reference& value = str.values()[string_value_index].get<reference>();
+	reference& value = str.get<reference>(string_value_field_position);
 
 	uint8* it = array_data<uint8>(value);
 	int32 len = array_length(value);

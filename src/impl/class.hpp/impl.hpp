@@ -12,6 +12,7 @@
 #include "./get_static_method.hpp"
 #include "./get_string.hpp"
 #include "./initialise_if_need.hpp"
+#include "./instance_field_position.hpp"
 #include "./instance.hpp"
 #include "./resolve_interface_method.hpp"
 #include "./resolve_method.hpp"

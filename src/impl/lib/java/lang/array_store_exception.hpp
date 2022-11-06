@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/array_store_exception.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/execute.hpp"
 
 #include <optional.hpp>

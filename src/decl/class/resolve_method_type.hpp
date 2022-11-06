@@ -1,7 +1,7 @@
 #pragma once
 
 #include "./resolve_class.hpp"
-#include "object/reference.hpp"
+#include "reference.hpp"
 
 #include <range.hpp>
 

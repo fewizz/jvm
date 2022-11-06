@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
 
 #include "decl/execute.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/classes.hpp"
 
 inline reference create_index_of_of_bounds_exception() {

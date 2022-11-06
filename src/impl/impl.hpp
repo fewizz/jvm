@@ -5,6 +5,7 @@
 #include "./execute.hpp/impl.hpp"
 #include "./lib/init.hpp"
 #include "./native/call.hpp/impl.hpp"
-#include "./object/reference.hpp"
+#include "./reference.hpp"
 #include "./method.hpp"
+#include "./field.hpp"
 #include "./object.hpp"

@@ -6,7 +6,6 @@
 #include "decl/thrown.hpp"
 #include "decl/execution/info.hpp"
 #include "decl/execution/stack.hpp"
-#include "decl/object/reference.hpp"
 
 #include <loop_action.hpp>
 

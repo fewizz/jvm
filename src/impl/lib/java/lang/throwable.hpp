@@ -4,7 +4,7 @@
 #include "decl/execution/latest_context.hpp"
 #include "decl/array.hpp"
 #include "decl/primitives.hpp"
-#include "decl/object/reference.hpp"
+#include "decl/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
 #include "decl/class/load.hpp"
 #include "decl/classes.hpp"
@@ -13,8 +13,8 @@ static inline void init_java_lang_throwable() {
 
 	throwable_class = classes.find_or_load(c_string{ "java/lang/Throwable" });
 
-	throwable_stack_trace_field_index =
-		throwable_class->instance_fields().find_index_of(
+	throwable_stack_trace_field_position =
+		throwable_class->instance_field_position(
 			c_string{ "stackTrace_" },
 			c_string{ "[Ljava/lang/StackTraceElement;" }
 		);
@@ -37,19 +37,18 @@ static inline void init_java_lang_throwable() {
 			reference ste_array = create_array_of(
 				stack_trace_element_class.value(), frames_count
 			);
-			reference* data = array_data<reference>(ste_array);
 
 			ctx = latest_execution_context.ptr();
 
-			for(int32 x = 0; x < frames_count; ++x) {
-				data[x] = create_stack_trace_element(
+			for(reference& frame : array_as_span<reference>(ste_array)) {
+				frame = create_stack_trace_element(
 					ctx->method._class().name(),
 					ctx->method.name()
 				);
 				ctx = ctx->previous.ptr();
 			}
 
-			ths->values()[throwable_stack_trace_field_index] = move(ste_array);
+			ths->set(throwable_stack_trace_field_position, move(ste_array));
 			return ths;
 		}
 	);

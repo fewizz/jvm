@@ -1,6 +1,6 @@
 #include "decl/lib/java/lang/system.hpp"
 
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/array.hpp"
 #include "decl/class/load.hpp"
 #include "decl/classes.hpp"

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "decl/class.hpp"
-#include "decl/object/reference.hpp"
+#include "decl/reference.hpp"
 #include "decl/execute.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_handles_lookup.hpp"
 #include "decl/class/resolve_method_type.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/lib/java/lang/string.hpp"
 
 #include <class_file/constant.hpp>

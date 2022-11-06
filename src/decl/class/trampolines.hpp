@@ -1,6 +1,6 @@
 #pragma once
 
-#include "object/reference.hpp"
+#include "reference.hpp"
 #include "method.hpp"
 #include "field/value.hpp"
 #include "class/instance_methods.hpp"

@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/class_cast_exception.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/execute.hpp"
 
 #include <optional.hpp>

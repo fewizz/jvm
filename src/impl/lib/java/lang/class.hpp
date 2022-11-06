@@ -8,13 +8,12 @@
 #include <c_string.hpp>
 
 static inline _class& class_from_class_instance(object& class_instance) {
-	return * (_class*) (int64)
-		class_instance.values()[class_ptr_field_index].get<jlong>();
+	return * (_class*) class_instance.get<int64>(class_ptr_field_position);
 }
 
 static inline void init_java_lang_class() {
 	class_class = classes.find_or_load(c_string{ "java/lang/Class" });
-	class_ptr_field_index = class_class->instance_fields().find_index_of(
+	class_ptr_field_position = class_class->instance_field_position(
 		c_string{ "ptr_" }, c_string{ "J" }
 	);
 

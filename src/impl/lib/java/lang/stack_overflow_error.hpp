@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/stack_overflow_error.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/execute.hpp"
 
 inline _class& get_stack_overflow_error_class() {

@@ -2,7 +2,7 @@
 
 #include "decl/execute.hpp"
 #include "decl/classes.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 
 static inline reference create_negative_array_size_exception() {
 	_class& c = negative_array_size_exception_class.value();

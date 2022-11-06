@@ -1,7 +1,7 @@
 #pragma once
 
 #include "primitives.hpp"
-#include "object/reference.hpp"
+#include "reference.hpp"
 
 #include <class_file/descriptor/method_reader.hpp>
 

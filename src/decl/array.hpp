@@ -12,23 +12,28 @@ inline optional<_class&> long_array_class{};
 inline optional<_class&> float_array_class{};
 inline optional<_class&> double_array_class{};
 
+constexpr inline instance_field_position
+	array_data_field_position{ 0 },
+	array_length_field_position{ bytes_in<int64> };
 
 template<typename Type>
 static Type* array_data(object& o) {
-	return (Type*) (int64) o.values()[0].get<jlong>();
+	return (Type*) o.get<int64>(array_data_field_position);
+}
+
+static inline int32 array_length(object& o) {
+	return o.get<int32>(array_length_field_position);
 }
 
 template<typename Type>
 static void array_data(object& o, Type* ptr) {
-	o.values()[0].get<jlong>() = (int64) ptr;
+	o.set(array_data_field_position, (int64) ptr);
 }
 
-static inline int32 array_length(object& o) {
-	return (int32) o.values()[1].get<jint>();
-}
+static inline int32 array_length(object& o);
 
 static inline void array_length(object& o, int32 length) {
-	o.values()[1].get<jint>() = length;
+	o.set(array_length_field_position, length);
 }
 
 template<typename Type>
@@ -39,11 +44,22 @@ static inline span<Type> array_as_span(object& o) {
 template<typename Type>
 static inline reference create_array_by_class(
 	_class& array_class, int32 length
-);
+) {
+	reference ref = create_object(array_class);
+	array_length(ref, length);
+	Type* data = (Type*) posix::allocate_raw_zeroed_memory_of<Type>(
+		length
+	).iterator();
+	array_data(ref, data);
+	return ref;
+}
 
 static inline reference create_array_of(
 	_class& element_class, int32 length
-);
+) {
+	_class& array_class = element_class.get_array_class();
+	return create_array_by_class<reference>(array_class, length);
+}
 
 static inline reference create_bool_array(int32 length) {
 	return create_array_by_class<jbool>(bool_array_class.value(), length);

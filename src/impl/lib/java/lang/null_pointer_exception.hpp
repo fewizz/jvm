@@ -1,6 +1,6 @@
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/execute.hpp"
 #include "decl/classes.hpp"
 

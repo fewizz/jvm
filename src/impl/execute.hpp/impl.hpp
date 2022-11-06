@@ -4,7 +4,6 @@
 #include "decl/execution/latest_context.hpp"
 #include "decl/thrown.hpp"
 #include "decl/array.hpp"
-#include "decl/object/create.hpp"
 #include "decl/native/call.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
@@ -1124,16 +1123,19 @@ static void execute(method& m) {
 			tuple<instance_field_index, _class&> index_and_class {
 				c.get_resolved_instance_field_index_and_class(x.index)
 			};
+			auto index = index_and_class.get<instance_field_index>();
 
 			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
-			field_value& value = ref[
-				index_and_class.get<instance_field_index>()
-			];
-			get_field_value(value);
+			ref->view(
+				index_and_class.get<_class&>().layout()
+					.slot_for_field_index(index).position(),
+				[&](auto& field_value) {
+				stack.emplace_back(field_value);
+			});
 		}
 		else if constexpr (same_as<Type, put_field>) {
 			if(info) {
@@ -1165,10 +1167,13 @@ static void execute(method& m) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
-
-			field_value& to = ref[index];
-			put_field_value(to);
-			stack.pop_back(); // pop reference to this
+			ref->view(
+				index_and_class.get<_class&>().layout()
+					.slot_for_field_index(index).position(),
+				[&]<typename FieldType>(FieldType& field_value) {
+					field_value = stack.pop_back<FieldType>();
+				}
+			);
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
 			::invoke_virtual(x.index, c);

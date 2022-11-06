@@ -49,9 +49,6 @@ public:
 
 	::object* operator -> () { return object_ptr(); }
 
-	const field_value& operator [] (uint16 index) const;
-	      field_value& operator [] (uint16 index);
-
 	bool is_null() const;
 
 	const ::_class& _class() const;

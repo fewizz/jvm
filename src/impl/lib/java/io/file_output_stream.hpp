@@ -4,15 +4,15 @@
 
 #include <posix/io.hpp>
 
-static instance_field_index file_output_stream_fd_value_index;
+static instance_field_position file_output_stream_fd_field_position;
 
 static inline void init_java_io_file_output_stream() {
 	_class& file_output_stream_class = classes.find_or_load(
 		c_string{ "java/io/FileOutputStream" }
 	);
 
-	file_output_stream_fd_value_index =
-		file_output_stream_class.instance_fields().find_index_of(
+	file_output_stream_fd_field_position =
+		file_output_stream_class.instance_field_position(
 			c_string{ "fd_value_" }, c_string{ "I" }
 		);
 
@@ -22,7 +22,7 @@ static inline void init_java_io_file_output_stream() {
 		(void*) (void (*)(native_environment*, object*, int32))
 		[](native_environment*, object* ths, int32 value) {
 			posix::file_descriptor fd0 {
-				(*ths)[file_output_stream_fd_value_index].get<jint>()
+				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			bool result = true;
 			fd0.try_write_from(
@@ -42,7 +42,7 @@ static inline void init_java_io_file_output_stream() {
 		(void*) (void (*)(native_environment*, object*, object*))
 		[](native_environment*, object* ths, object* a) {
 			posix::file_descriptor fd0 {
-				(*ths)[file_output_stream_fd_value_index].get<jint>()
+				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
 			bool result = true;
@@ -68,7 +68,7 @@ static inline void init_java_io_file_output_stream() {
 			object* a, int32 off, int32 len
 		) {
 			posix::file_descriptor fd0 {
-				(*ths)[file_output_stream_fd_value_index].get<jint>()
+				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
 			bool result = true;
@@ -88,7 +88,7 @@ static inline void init_java_io_file_output_stream() {
 		(void*) (void (*)(native_environment*, object*))
 		[](native_environment*, object* ths) {
 			posix::file_descriptor fd0 {
-				(*ths)[file_output_stream_fd_value_index].get<jint>()
+				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			bool result = true;
 			posix::try_close_file(

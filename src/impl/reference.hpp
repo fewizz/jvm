@@ -1,4 +1,4 @@
-#include "decl/object/reference.hpp"
+#include "decl/reference.hpp"
 
 #include "decl/object.hpp"
 #include "decl/print.hpp"
@@ -71,13 +71,6 @@ inline const object& reference::object() const {
 inline object& reference::object() {
 	abort_if_null(object_ptr());
 	return *object_ptr();
-}
-
-inline const field_value& reference::operator [] (uint16 index) const {
-	return object()[index];
-}
-inline       field_value& reference::operator [] (uint16 index)       {
-	return object()[index];
 }
 
 inline reference::~reference() {

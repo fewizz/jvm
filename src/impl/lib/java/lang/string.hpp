@@ -15,7 +15,7 @@ static inline reference create_string(span<uint16> data) {
 	array_data(data_ref, data.iterator());
 	array_length(data_ref, data.size());
 	reference string_ref = create_object(string_class.value());
-	string_ref->values()[string_value_index] = move(data_ref);
+	string_ref->set(string_value_field_position, move(data_ref));
 	return string_ref;
 }
 
@@ -55,7 +55,7 @@ static reference create_string_from_utf8(String&& str_utf8) {
 
 static inline void init_java_lang_string() {
 	string_class = classes.find_or_load(c_string{ "java/lang/String" });
-	string_value_index = string_class->instance_fields().find_index_of(
+	string_value_field_position = string_class->instance_field_position(
 		c_string{ "value_" }, c_string{ "[C" }
 	);
 }

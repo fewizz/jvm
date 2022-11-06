@@ -2,7 +2,7 @@
 
 #include "class.hpp"
 #include "method.hpp"
-#include "object/reference.hpp"
+#include "reference.hpp"
 
 #include <optional.hpp>
 

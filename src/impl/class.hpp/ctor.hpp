@@ -136,13 +136,16 @@ inline _class::_class(
 		}
 		return methods.move_storage_range();
 	}()},
+	layout_ { [&] {
+		return !has_super() ?
+			::layout { declared_instance_fields() } :
+			::layout { declared_instance_fields(), super().layout_ };
+	}()},
 	is_array_            { is_array                  },
-	is_primitive_        { is_primitive              }
-{
-
-	declared_static_fields_values_ = {
+	is_primitive_        { is_primitive              },
+	declared_static_fields_values_ {
 		posix::allocate_memory_for<field_value>(
 			range_size(declared_static_fields())
 		)
-	};
-}
+	}
+{}

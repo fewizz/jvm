@@ -24,7 +24,7 @@
 
 #include "./field/value.hpp"
 
-#include "./object/reference.hpp"
+#include "./reference.hpp"
 
 #include <class_file/access_flag.hpp>
 
@@ -50,10 +50,6 @@ private:
 	::instance_fields            instance_fields_;
 	::instance_methods           instance_methods_;
 
-	list<posix::memory_for_range_of<
-		field_value
-	>>                           declared_static_fields_values_;
-
 	layout                       layout_;
 
 	optional<_class&>            array_class_;
@@ -62,6 +58,9 @@ private:
 
 	const is_array_class         is_array_;
 	const is_primitive_class     is_primitive_;
+	posix::memory_for_range_of<
+		field_value
+	>                            declared_static_fields_values_;
 	enum initialisation_state {
 		not_started,
 		pending,
@@ -101,6 +100,7 @@ public:
 
 	bool is_array() const { return is_array_; }
 	bool is_primitive() const { return is_primitive_; }
+	bool is_not_primitive() const { return !is_primitive_; }
 	bool is_reference() const { return !is_primitive_; }
 	bool is(const _class& c) const { return &c == this; }
 
@@ -108,6 +108,19 @@ public:
 	_class& get_component_class();
 
 	void initialise_if_need();
+
+	layout& layout() { return layout_; }
+
+	::instance_field_position instance_field_position(
+		instance_field_index index
+	) {
+		return layout().slot_for_field_index(index).position();
+	}
+
+	template<basic_range Name, basic_range Descriptor>
+	::instance_field_position instance_field_position(
+		Name&& name, Descriptor&& descriptor
+	);
 
 	auto declared_fields() {
 		return declared_fields_.as_span();
@@ -129,8 +142,8 @@ public:
 		};
 	}
 
-	auto& declared_static_fields_values() {
-		return declared_static_fields_values_;
+	auto declared_static_fields_values() {
+		return declared_static_fields_values_.as_span();
 	}
 
 	auto declared_static_methods() {
@@ -214,7 +227,7 @@ public:
 
 	template<typename Handler>
 	void for_each_super_interface(Handler&& handler);
-	
+
 	bool is_sub_of(_class& other) {
 		if(has_super()) {
 			_class& s = super();

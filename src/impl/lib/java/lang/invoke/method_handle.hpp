@@ -3,9 +3,7 @@
 #include "decl/method.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
-#include "decl/object/reference.hpp"
 #include "decl/object.hpp"
-#include "decl/object/create.hpp"
 
 #include <class_file/constant.hpp>
 
@@ -14,27 +12,23 @@ static void init_java_lang_invoke_method_handle() {
 		c_string{ "java/lang/invoke/MethodHandle" }
 	);
 
-	method_handle_member_instance_field_index = {
-		(uint16) method_handle_class->instance_fields().find_index_of(
+	method_handle_member_instance_field_position =
+		method_handle_class->instance_field_position(
 			c_string{ "member_" }, c_string{ "J" }
-		)
-	};
+		);
 
-	method_handle_kind_instance_field_index = {
-		(uint16) method_handle_class->instance_fields().find_index_of(
+	method_handle_kind_instance_field_position =
+		method_handle_class->instance_field_position(
 			c_string{ "kind_" }, c_string{ "B" }
-		)
-	};
+		);
 }
 
 inline reference create_method_handle(
 	auto& member, class_file::constant::method_handle::behavior_kind kind
 ) {
 	reference ref = create_object(method_handle_class.value());
-	ref->values()[method_handle_member_instance_field_index]
-		= jlong{ (int64) &member };
-	ref->values()[method_handle_kind_instance_field_index]
-		= jbyte{ (int8) kind };
+	ref->set(method_handle_member_instance_field_position, (int64) &member);
+	ref->set(method_handle_kind_instance_field_position, (int8) kind);
 	return ref;
 }
 
@@ -74,10 +68,10 @@ inline void method_handle_invoke_exact(
 ) {
 	using behavior_kind = class_file::constant::method_handle::behavior_kind;
 
-	void* member = (void*) (uint64)
-		ref[method_handle_member_instance_field_index].get<jlong>();
+	void* member = (void*)
+		ref->get<int64>(method_handle_member_instance_field_position);
 	behavior_kind kind = (behavior_kind) (uint8)
-		ref[method_handle_kind_instance_field_index].get<jint>();
+		ref->get<int32>(method_handle_kind_instance_field_position);
 	
 	switch (kind) {
 		case behavior_kind::invoke_virtual: {

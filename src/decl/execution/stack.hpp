@@ -1,6 +1,6 @@
 #pragma once
 
-#include "decl/object/reference.hpp"
+#include "decl/reference.hpp"
 
 #include <list.hpp>
 #include <bit_cast.hpp>
@@ -121,6 +121,10 @@ public:
 		base_type::emplace_back();
 		unsafely_emplace_reference_at(size() - 1, move(ref));
 	}
+	void emplace_back(int16 v) { emplace_back((int32)(uint16)(uint32) v); }
+	void emplace_back(uint16 v) { emplace_back((int32)(uint32) v); }
+	void emplace_back(int8 v) { emplace_back((int32)(uint32)(uint8) v); }
+	void emplace_back(bool v) { emplace_back((int32) v); }
 
 	void emplace_at(nuint index, reference ref) {
 		if(is_reference_at(index)) {
@@ -176,6 +180,14 @@ public:
 	reference pop_back() {
 		return destruct_reference_at(size() - 1);
 	}
+	template<same_as<int16>>
+	int16 pop_back() { return (uint16)(uint32) pop_back<int32>(); }
+	template<same_as<uint16>>
+	uint16 pop_back() { return (uint32) pop_back<int32>(); }
+	template<same_as<int8>>
+	int8 pop_back() { return (uint8)(uint32) pop_back<int32>(); }
+	template<same_as<bool>>
+	bool pop_back() { return (bool) pop_back<int32>(); }
 
 	void dup_cat_1() {
 		view_as_int32_or_reference_at(size() - 1, [&](auto& value) {

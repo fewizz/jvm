@@ -1,6 +1,6 @@
 #include "decl/array.hpp"
 #include "decl/class.hpp"
-#include "decl/object/create.hpp"
+#include "decl/object.hpp"
 #include "decl/lib/java/lang/string.hpp"
 
 #include <class_file/constant.hpp>

@@ -29,9 +29,11 @@ static reference create_method_type(
 	descriptor.copy_to(array_as_span<uint8>(descriptor0));
 
 	reference o = create_object(method_type_class.value());
-	o[method_type_parameter_types_instance_field_index] = params_array;
-	o[method_type_return_type_instance_field_index] = ret_class.instance();
-	o[method_type_descriptor_instance_field_index] = descriptor0;
+	o->set(method_type_parameter_types_instance_field_position, params_array);
+	o->set(
+		method_type_return_type_instance_field_position, ret_class.instance()
+	);
+	o->set(method_type_descriptor_instance_field_position, descriptor0);
 	return o;
 }
 
@@ -80,26 +82,23 @@ static void init_java_lang_invoke_method_type() {
 		c_string{ "java/lang/invoke/MethodType" }
 	);
 
-	method_type_parameter_types_instance_field_index = {
-		(uint16) method_type_class->instance_fields().find_index_of(
+	method_type_parameter_types_instance_field_position =
+		method_type_class->instance_field_position(
 			c_string{ "parameterTypes_" },
 			c_string{ "[Ljava/lang/Class;" }
-		)
-	};
+		);
 
-	method_type_return_type_instance_field_index = {
-		(uint16) method_type_class->instance_fields().find_index_of(
+	method_type_return_type_instance_field_position =
+		method_type_class->instance_field_position(
 			c_string{ "returnType_" },
 			c_string{ "Ljava/lang/Class;" }
-		)
-	};
+		);
 
-	method_type_descriptor_instance_field_index = {
-		(uint16) method_type_class->instance_fields().find_index_of(
+	method_type_descriptor_instance_field_position =
+		method_type_class->instance_field_position(
 			c_string{ "descriptorUTF8_" },
 			c_string{ "[B" }
-		)
-	};
+		);
 
 	method_type_class->declared_methods().find(
 		c_string{ "descriptorUTF8" },
@@ -115,8 +114,8 @@ static void init_java_lang_invoke_method_type() {
 }
 
 static span<const char> method_type_descriptor(object& mt) {
-	reference& utf8_desc = mt[
-		method_type_descriptor_instance_field_index
-	].get<reference>();
+	reference& utf8_desc = mt.get<reference>(
+		method_type_descriptor_instance_field_position
+	);
 	return array_as_span<const char>(utf8_desc);
 }

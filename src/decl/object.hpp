@@ -1,7 +1,7 @@
 #pragma once
 
-#include "field/value.hpp"
-#include "class/field_index.hpp"
+#include "class/layout.hpp"
+#include "class/instance_fields.hpp"
 
 #include <optional.hpp>
 #include <integer.hpp>
@@ -17,7 +17,7 @@ struct object {
 private:
 	uint32 references_ = 0;
 	optional<_class&> class_;
-	list<posix::memory_for_range_of<field_value>> values_;
+	posix::memory_for_range_of<uint8> data_;
 
 	void on_reference_added();
 
@@ -34,14 +34,28 @@ public:
 	object(_class& c);
 	~object();
 
-	const field_value& operator [] (instance_field_index index) const;
-	      field_value& operator [] (instance_field_index index);
-
 	const ::_class& _class() const { return class_.value(); }
 	      ::_class& _class()       { return class_.value(); }
 
-	auto& values() { return values_; }
-
 	uint32 references() { return references_; }
 
+	decltype(auto) view_ptr(instance_field_position position, auto&& handler);
+
+	decltype(auto) view(instance_field_position position, auto&& handler);
+
+	template<typename Type>
+	decltype(auto) view(instance_field_position position, auto&& handler);
+
+	template<typename Type>
+	Type& get(instance_field_position position) {
+		return view<Type>(position, [](Type& e) -> Type& { return e; });
+	}
+
+	template<typename Type>
+	void set(instance_field_position position, Type value) {
+		view<Type>(position, [&](Type& e) { return e = move(value); });
+	}
+
 };
+
+inline reference create_object(_class& c);
