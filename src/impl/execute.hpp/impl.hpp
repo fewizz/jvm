@@ -419,7 +419,7 @@ static void execute(method& m) {
 		else if constexpr (same_as<Type, i_a_load>) {
 			if(info) { tabs(); print("i_a_load\n"); }
 			return view_array.template operator()<int32>([&](int32& v) {
-				stack.emplace_back(int32{ v });
+				stack.emplace_back(v);
 			});
 		}
 		else if constexpr (same_as<Type, a_a_load>) {
@@ -431,13 +431,13 @@ static void execute(method& m) {
 		else if constexpr (same_as<Type, b_a_load>) {
 			if(info) { tabs(); print("b_a_load\n"); }
 			return view_array.template operator()<int8>([&](int8& v) {
-				stack.emplace_back(int32{ uint8(v) });
+				stack.emplace_back(v);
 			});
 		}
 		else if constexpr (same_as<Type, c_a_load>) {
 			if(info) { tabs(); print("c_a_load\n"); }
 			return view_array.template operator()<int16>([&](int16& v) {
-				stack.emplace_back((int32) (uint32) (uint16) v);
+				stack.emplace_back(v);
 			});
 		}
 		else if constexpr (same_as<Type, i_store>) {
@@ -532,12 +532,7 @@ static void execute(method& m) {
 		}
 		else if constexpr (same_as<Type, i_a_store>) {
 			int32 value = stack.pop_back<int32>();
-			if(info) {
-				tabs();
-				print("i_a_store ");
-				print(value);
-				print("\n");
-			}
+			if(info) { tabs(); print("i_a_store "); print(value); print("\n"); }
 			return view_array.template operator()<int32>([&](int32& v) {
 				v = value;
 			});
@@ -550,10 +545,11 @@ static void execute(method& m) {
 			});
 		}
 		else if constexpr (same_as<Type, b_a_store>) {
-			if(info) { tabs(); print("b_a_store\n"); }
-			int32 value = stack.pop_back<int32>();
+			int32 value0 = stack.pop_back<int32>();
+			int8 value = (int8) (uint16) (uint32) value0;
+			if(info) { tabs(); print("b_a_store "); print(value); print("\n"); }
 			return view_array.template operator()<int8>([&](int8& v) {
-				v = (uint8) (uint32) value;
+				v = value;
 			});
 		}
 		else if constexpr (same_as<Type, c_a_store>) {
@@ -1131,8 +1127,7 @@ static void execute(method& m) {
 				return handle_thrown();
 			}
 			ref->view(
-				index_and_class.get<_class&>().layout()
-					.slot_for_field_index(index).position(),
+				index,
 				[&](auto& field_value) {
 				stack.emplace_back(field_value);
 			});
@@ -1168,12 +1163,12 @@ static void execute(method& m) {
 				return handle_thrown();
 			}
 			ref->view(
-				index_and_class.get<_class&>().layout()
-					.slot_for_field_index(index).position(),
+				index,
 				[&]<typename FieldType>(FieldType& field_value) {
 					field_value = stack.pop_back<FieldType>();
 				}
 			);
+			stack.pop_back<reference>();
 		}
 		else if constexpr (same_as<Type, instr::invoke_virtual>) {
 			::invoke_virtual(x.index, c);

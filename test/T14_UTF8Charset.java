@@ -20,9 +20,13 @@ public class T14_UTF8Charset {
 			ByteBuffer bb = ByteBuffer.allocate(1);
 			bb.put(0, (byte) 'a');
 			CharBuffer out = CharBuffer.allocate(1);
-			CoderResult res = d.decode(bb, out, true);
-			if(res != CoderResult.UNDERFLOW) {
-				System.exit(1);
+			try {
+				CoderResult res = d.decode(bb, out, true);
+				if(res != CoderResult.UNDERFLOW) {
+					System.exit(1);
+				}
+			} catch(Throwable t) {
+				System.exit(128);
 			}
 			if(out.position() != 1) {
 				System.exit(2);
@@ -37,9 +41,13 @@ public class T14_UTF8Charset {
 			bb.put(0, (byte) 0xD1);
 			bb.put(1, (byte) 0x8B);
 			CharBuffer out = CharBuffer.allocate(1);
-			CoderResult res = d.decode(bb, out, true);
-			if(res != CoderResult.UNDERFLOW) {
-				System.exit(4);
+			try {
+				CoderResult res = d.decode(bb, out, true);
+				if(res != CoderResult.UNDERFLOW) {
+					System.exit(4);
+				}
+			} catch(Throwable t) {
+				System.exit(129);
 			}
 			if(out.position() != 1) {
 				System.exit(5);
@@ -56,9 +64,13 @@ public class T14_UTF8Charset {
 			bb.put(2, (byte) 0xA4);
 			bb.put(3, (byte) 0x94);
 			CharBuffer out = CharBuffer.allocate(2);
-			CoderResult res = d.decode(bb, out, true);
-			if(res != CoderResult.UNDERFLOW) {
-				System.exit(7);
+			try {
+				CoderResult res = d.decode(bb, out, true);
+				if(res != CoderResult.UNDERFLOW) {
+					System.exit(7);
+				}
+			} catch(Throwable t) {
+				System.exit(130);
 			}
 			if(out.position() != 2) {
 				System.exit(8);

@@ -9,7 +9,7 @@
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-decltype(auto) object::view_ptr(instance_field_position index, auto&& handler) {
+decltype(auto) object::view_ptr(instance_field_index index, auto&& handler) {
 	layout::slot s = class_->layout().slot_for_field_index(index);
 	uint8* ptr = data_.as_span().iterator() + s.beginning();
 	
@@ -51,7 +51,7 @@ decltype(auto) object::view_ptr(instance_field_position index, auto&& handler) {
 	});
 }
 
-decltype(auto) object::view(instance_field_position index, auto&& handler) {
+decltype(auto) object::view(instance_field_index index, auto&& handler) {
 	return view_ptr(index, [&]<typename Type>(Type* e) -> decltype(auto) {
 		Type& ref = *e;
 		return handler(ref);
@@ -80,7 +80,7 @@ inline object::object(::_class& c) :
 {
 	if(info) {
 		tabs();
-		print("constructing object @");
+		print("# constructing object @");
 		print_hex((nuint)this);
 		print(" of type ");
 		auto name = _class().name();
@@ -89,9 +89,7 @@ inline object::object(::_class& c) :
 	}
 
 	c.instance_fields().for_each_index([&](nuint field_index) {
-		auto position =
-			_class().layout().slot_for_field_index(field_index).position();
-		view_ptr(position, []<typename Type>(Type* ptr) {
+		view_ptr(field_index, []<typename Type>(Type* ptr) {
 			new (ptr) Type();
 		});
 	});
@@ -100,7 +98,7 @@ inline object::object(::_class& c) :
 inline object::~object() {
 	if(info) {
 		tabs();
-		print("destructing object @");
+		print("# destructing object @");
 		print_hex((nuint)this);
 		print(" of type ");
 		auto name = _class().name();
@@ -119,9 +117,7 @@ inline object::~object() {
 	}
 
 	class_->instance_fields().for_each_index([&](nuint field_index) {
-		auto position =
-			_class().layout().slot_for_field_index(field_index).position();
-		view(position, []<typename Type>(Type& e) {
+		view(field_index, []<typename Type>(Type& e) {
 			e.~Type();
 		});
 	});
@@ -131,7 +127,7 @@ inline void object::on_reference_added() {
 	++references_;
 	if(info) {
 		tabs();
-		print("added reference to object @");
+		print("# added reference to object @");
 		print_hex((nuint)this);
 		print(", now there is ");
 		print(references_);
@@ -142,14 +138,14 @@ inline void object::on_reference_added() {
 inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		posix::std_err.write_from(
-			c_string{"removing reference on object without references\n"}
+			c_string{"# removing reference on object without references\n"}
 		);
 		posix::abort();
 	}
 	--references_;
 	if(info) {
 		tabs();
-		print("removed reference to object @");
+		print("# removed reference to object @");
 		print_hex((nuint)this);
 		print(", now there is ");
 		print(references_);

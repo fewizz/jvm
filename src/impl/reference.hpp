@@ -77,7 +77,7 @@ inline reference::~reference() {
 	if(obj_ptr_ != nullptr) {
 		if(info) {
 			tabs();
-			print("reference destruction, object @");
+			print("# reference destruction, object @");
 			print_hex((nuint)obj_ptr_);
 			print("\n");
 		}

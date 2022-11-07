@@ -39,9 +39,9 @@ public:
 
 	uint32 references() { return references_; }
 
-	decltype(auto) view_ptr(instance_field_position position, auto&& handler);
+	decltype(auto) view_ptr(instance_field_index index, auto&& handler);
 
-	decltype(auto) view(instance_field_position position, auto&& handler);
+	decltype(auto) view(instance_field_index position, auto&& handler);
 
 	template<typename Type>
 	decltype(auto) view(instance_field_position position, auto&& handler);

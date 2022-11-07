@@ -139,7 +139,7 @@ inline _class::_class(
 	layout_ { [&] {
 		return !has_super() ?
 			::layout { declared_instance_fields() } :
-			::layout { declared_instance_fields(), super().layout_ };
+			::layout { declared_instance_fields(), super().layout() };
 	}()},
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },

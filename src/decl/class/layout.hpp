@@ -35,23 +35,24 @@ struct layout {
 	layout(layout&&) = default;
 
 	template<basic_range Range>
-	layout(Range&& instance_fields, optional<layout&> super = {}) :
+	layout(Range&& declared_instance_fields, optional<layout&> super = {}) :
 		field_index_to_slot { [&] {
-			nuint count = range_size(instance_fields);
+			nuint count = 0;
 			if(super.has_value()) {
-				count += range_size(super.value().field_index_to_slot);
+				count += range_size(super->field_index_to_slot);
 			}
+			count += range_size(declared_instance_fields);
 
-			list field_index_to_slot{ posix::allocate_memory_for<slot>(count) };
+			auto field_index_to_slot = posix::allocate_memory_for<slot>(count);
+			list field_index_to_slot_list{ field_index_to_slot };
 			nuint current_position = 0;
 			if(super.has_value()) {
-				field_index_to_slot.put_back_copied_elements_of(
+				field_index_to_slot_list.put_back_copied_elements_of(
 					super->field_index_to_slot.as_span()
 				);
 				current_position = super->ending;
 			}
-
-			nuint initial_field_index = field_index_to_slot.size();
+			nuint initial_field_index = range_size(field_index_to_slot_list);
 
 			auto align = [&](nuint alignment_bytes) {
 				nuint o = current_position % alignment_bytes;
@@ -61,18 +62,16 @@ struct layout {
 			};
 
 			auto add = [&]<typename Type, typename... Types>() {
-				nuint current_field_index = initial_field_index;
-
-				while(current_field_index < range_size(instance_fields)) {
-					field& f = instance_fields[current_field_index];
+				nuint field_index = initial_field_index;
+				for(field& f : declared_instance_fields) {
 					if((f.type.is<Types>() || ... )) {
 						align(bytes_in_atoms<alignof(Type)>);
-						field_index_to_slot.emplace_back(
+						field_index_to_slot[field_index].construct(
 							current_position, bytes_in<Type>
 						);
 						current_position += bytes_in<Type>;
 					}
-					current_field_index++;
+					++field_index;
 				}
 			};
 
@@ -90,7 +89,7 @@ struct layout {
 
 			ending = current_position;
 
-			return field_index_to_slot.move_storage_range();
+			return move(field_index_to_slot);
 		}()}
 	{}
 
