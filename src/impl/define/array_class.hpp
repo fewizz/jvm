@@ -41,7 +41,7 @@ inline _class& define_array_class(Name&& name) {
 		object_class.value(),
 		declared_interfaces{posix::memory_for_range_of<_class*>{}},
 		move(declared_fields),
-		declared_methods{posix::memory_for_range_of<method>{}},
+		declared_methods{ posix::memory_for_range_of<method>{} },
 		is_array_class{ true },
 		is_primitive_class{ false }
 	);

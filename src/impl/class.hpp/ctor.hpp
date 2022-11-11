@@ -148,4 +148,6 @@ inline _class::_class(
 			range_size(declared_static_fields())
 		)
 	}
-{}
+{
+	
+}

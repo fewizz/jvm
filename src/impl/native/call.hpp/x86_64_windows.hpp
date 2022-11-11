@@ -7,6 +7,8 @@
 
 #include <max.hpp>
 #include <class_file/descriptor/method_reader.hpp>
+#include <overloaded.hpp>
+#include <types.hpp>
 
 #include <posix/abort.hpp>
 
@@ -42,39 +44,37 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 	{
 		nuint arg = 0;
 
-		for_each_parameter(m, jstack_begin, [&]<typename Type>(Type x) {
-			if constexpr(same_as<Type, void*>) {
+		for_each_parameter(m, jstack_begin, overloaded {
+			[&](void* ptr) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
-					(uint64) x;
-			}
-			else if constexpr(same_as<Type, reference>) {
+					(uint64) ptr;
+			},
+			[&](reference ref) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
-					(uint64) x.object_ptr();
-			}
-			else if constexpr(same_as<Type, int32> || same_as<Type, int64>) {
-				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
-					(uint64) x;
-			}
-			else if constexpr(same_as<Type, float>) {
+					(uint64) ref.object_ptr();
+			},
+			[&]<same_as<int32, int64> Type>
+			(Type x) {
+				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) = (uint64) x;
+			},
+			[&](float f) {
 				if(arg >= 4) {
-					stack_storage[arg - 4] = bit_cast<uint32>(x);
+					stack_storage[arg - 4] = bit_cast<uint32>(f);
 				}
 				else {
-					f_regs[arg] = __extension__ (__m128){ x, 0, 0, 0 };
+					f_regs[arg] = __extension__ (__m128){ f, 0, 0, 0 };
 				}
-			}
-			else if constexpr(same_as<Type, double>) {
+			},
+			[&](double d) {
 				if(arg >= 4) {
-					stack_storage[arg - 4] = bit_cast<uint64>(x);
+					stack_storage[arg - 4] = bit_cast<uint64>(d);
 				}
 				else {
-					f_regs[arg] = __extension__ (__m128d){ x, 0 };
+					f_regs[arg] = __extension__ (__m128d){ d, 0 };
 				}
-			} else {
-				abort();
-			}
-			++arg;
-		});
+			},
+			[&](auto){ abort(); }
+		}.then([&]{ ++arg; }));
 	}
 
 	register uint64 result asm("rax") = 0;
