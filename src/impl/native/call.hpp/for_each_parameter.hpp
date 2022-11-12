@@ -11,7 +11,7 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 	handler((void*) nullptr);
 
 	if(!m.is_static()) { // this
-		reference& r = stack.at<reference>(stack_at);
+		reference& r = stack.get<reference>(stack_at);
 		handler(r);
 		stack_at += 1;
 	}
@@ -19,12 +19,12 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 	for(one_of_non_void_descriptor_types pt : m.parameter_types()) {
 		pt.view_type(overloaded {
 			[&]<same_as<class_file::object, class_file::array>> {
-				reference& r = stack.at<reference>(stack_at);
+				reference& r = stack.get<reference>(stack_at);
 				handler(r);
 				stack_at += 1;
 			},
 			[&]<same_as<class_file::j>> {
-				int64 v = stack.at<int64>(stack_at);
+				int64 v = stack.get<int64>(stack_at);
 				handler(v);
 				stack_at += 2;
 			},
@@ -32,21 +32,20 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 				class_file::z, class_file::b, class_file::c,
 				class_file::s, class_file::i
 			>> {
-				int32 v = stack.at<int32>(stack_at);
+				int32 v = stack.get<int32>(stack_at);
 				handler(v);
 				stack_at += 1;
 			},
 			[&]<same_as<class_file::f>> {
-				float v = stack.at<float>(stack_at);
+				float v = stack.get<float>(stack_at);
 				handler(v);
 				stack_at += 1;
 			},
 			[&]<same_as<class_file::d>> {
-				double v = stack.at<double>(stack_at);
+				double v = stack.get<double>(stack_at);
 				handler(v);
 				stack_at += 2;
-			},
-			[&]<typename> { abort(); }
+			}
 		});
 	}
 }

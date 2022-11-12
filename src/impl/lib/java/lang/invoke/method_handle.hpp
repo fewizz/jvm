@@ -77,7 +77,7 @@ inline void method_handle_invoke_exact(
 		case behavior_kind::invoke_virtual: {
 			method& resolved_method = * (method*) member;
 			reference& objectref =
-				stack.at<reference>(stack.size() - args_stack_count);
+				stack.get<reference>(stack.size() - args_stack_count);
 			method& m = select_method(objectref->_class(), resolved_method);
 			return execute(m);
 		}

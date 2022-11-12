@@ -269,7 +269,7 @@ static void execute(method& m) {
 			::ldc_2_w(x.index, c);
 		},
 		[&](i_load x) {
-			int32 value = stack.at<int32>(locals_begin + x.index);
+			int32 value = stack.get<int32>(locals_begin + x.index);
 			if(info) {
 				tabs();
 				print("i_load ");
@@ -287,7 +287,7 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(stack.at<int64>(locals_begin + x.index));
+			stack.emplace_back(stack.get<int64>(locals_begin + x.index));
 		},
 		[&](f_load x) {
 			if(info) {
@@ -296,7 +296,7 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(stack.at<float>(locals_begin + x.index));
+			stack.emplace_back(stack.get<float>(locals_begin + x.index));
 		},
 		[&](a_load x) {
 			if(info) {
@@ -305,10 +305,10 @@ static void execute(method& m) {
 				print(x.index);
 				print("\n");
 			}
-			stack.emplace_back(stack.at<reference>(locals_begin + x.index));
+			stack.emplace_back(stack.get<reference>(locals_begin + x.index));
 		},
 		[&](i_load_0) {
-			int32 value = stack.at<int32>(locals_begin + 0);
+			int32 value = stack.get<int32>(locals_begin + 0);
 			if(info) {
 				tabs();
 				print("i_load_0 ");
@@ -318,7 +318,7 @@ static void execute(method& m) {
 			stack.emplace_back(value);
 		},
 		[&](i_load_1) {
-			int32 value = stack.at<int32>(locals_begin + 1);
+			int32 value = stack.get<int32>(locals_begin + 1);
 			if(info) {
 				tabs();
 				print("i_load_1 ");
@@ -328,7 +328,7 @@ static void execute(method& m) {
 			stack.emplace_back(value);
 		},
 		[&](i_load_2) {
-			int32 value = stack.at<int32>(locals_begin + 2);
+			int32 value = stack.get<int32>(locals_begin + 2);
 			if(info) {
 				tabs();
 				print("i_load_2 ");
@@ -338,7 +338,7 @@ static void execute(method& m) {
 			stack.emplace_back(value);
 		},
 		[&](i_load_3) {
-			int32 value = stack.at<int32>(locals_begin + 3);
+			int32 value = stack.get<int32>(locals_begin + 3);
 			if(info) {
 				tabs();
 				print("i_load_3 ");
@@ -349,38 +349,38 @@ static void execute(method& m) {
 		},
 		[&](l_load_0) {
 			if(info) { tabs(); print("l_load_0\n"); }
-			stack.emplace_back(stack.at<int64>(locals_begin + 0));
+			stack.emplace_back(stack.get<int64>(locals_begin + 0));
 		},
 		[&](l_load_1) {
 			if(info) { tabs(); print("l_load_1\n"); }
-			stack.emplace_back(stack.at<int64>(locals_begin + 1));
+			stack.emplace_back(stack.get<int64>(locals_begin + 1));
 		},
 		[&](l_load_2) {
 			if(info) { tabs(); print("l_load_2\n"); }
-			stack.emplace_back(stack.at<int64>(locals_begin + 2));
+			stack.emplace_back(stack.get<int64>(locals_begin + 2));
 		},
 		[&](l_load_3) {
 			if(info) { tabs(); print("l_load_3\n"); }
-			stack.emplace_back(stack.at<int64>(locals_begin + 3));
+			stack.emplace_back(stack.get<int64>(locals_begin + 3));
 		},
 		[&](f_load_0) {
 			if(info) { tabs(); print("f_load_0\n"); }
-			stack.emplace_back(stack.at<float>(locals_begin + 0));
+			stack.emplace_back(stack.get<float>(locals_begin + 0));
 		},
 		[&](f_load_1) {
 			if(info) { tabs(); print("f_load_1\n"); }
-			stack.emplace_back(stack.at<float>(locals_begin + 1));
+			stack.emplace_back(stack.get<float>(locals_begin + 1));
 		},
 		[&](f_load_2) {
 			if(info) { tabs(); print("f_load_2\n"); }
-			stack.emplace_back(stack.at<float>(locals_begin + 2));
+			stack.emplace_back(stack.get<float>(locals_begin + 2));
 		},
 		[&](f_load_3) {
 			if(info) { tabs(); print("f_load_3\n"); }
-			stack.emplace_back(stack.at<float>(locals_begin + 3));
+			stack.emplace_back(stack.get<float>(locals_begin + 3));
 		},
 		[&](a_load_0) {
-			reference ref = stack.at<reference>(locals_begin + 0);
+			reference ref = stack.get<reference>(locals_begin + 0);
 			if(info) {
 				tabs(); print("a_load_0 ");
 				if(!ref.is_null()) {
@@ -394,11 +394,11 @@ static void execute(method& m) {
 		},
 		[&](a_load_1) {
 			if(info) { tabs(); print("a_load_1\n"); }
-			reference ref = stack.at<reference>(locals_begin + 1);
+			reference ref = stack.get<reference>(locals_begin + 1);
 			stack.emplace_back(move(ref));
 		},
 		[&](a_load_2) {
-			reference ref = stack.at<reference>(locals_begin + 2);
+			reference ref = stack.get<reference>(locals_begin + 2);
 			if(info) {
 				tabs(); print("a_load_2 ");
 				if(!ref.is_null()) {
@@ -412,7 +412,7 @@ static void execute(method& m) {
 		},
 		[&](a_load_3) {
 			if(info) { tabs(); print("a_load_3\n"); }
-			reference ref = stack.at<reference>(locals_begin + 3);
+			reference ref = stack.get<reference>(locals_begin + 3);
 			stack.emplace_back(move(ref));
 		},
 		[&](i_a_load) {
@@ -745,7 +745,7 @@ static void execute(method& m) {
 				print(x.value);
 				print("\n");
 			}
-			stack.at<int32>(locals_begin + x.index) += x.value;
+			stack.get<int32>(locals_begin + x.index) += x.value;
 		},
 		[](i_to_l) {
 			if(info) { tabs(); print("i_to_l\n"); }
@@ -1152,7 +1152,7 @@ static void execute(method& m) {
 				index_and_class.get<instance_field_index>();
 			_class& base_c = index_and_class.get<_class&>();
 			field& base_field = base_c.instance_fields()[index];
-			reference ref = stack.at<reference>(
+			reference ref = stack.get<reference>(
 				stack.size() - base_field.stack_size - 1
 			);
 			if(ref.is_null()) {

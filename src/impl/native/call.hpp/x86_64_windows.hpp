@@ -72,8 +72,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 				else {
 					f_regs[arg] = __extension__ (__m128d){ d, 0 };
 				}
-			},
-			[&](auto){ abort(); }
+			}
 		}.then([&]{ ++arg; }));
 	}
 

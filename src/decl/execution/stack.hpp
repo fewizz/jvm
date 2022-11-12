@@ -32,8 +32,8 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 
 	template<typename Handler>
 	void view_as_int32_or_reference_at(nuint index, Handler&& handler) {
-		if(is_reference_at(index)) { handler(at<reference>(index)); }
-		else { handler(at<int32>(index)); }
+		if(is_reference_at(index)) { handler(get<reference>(index)); }
+		else { handler(get<int32>(index)); }
 	}
 
 	template<typename Handler>
@@ -51,7 +51,7 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	}
 
 	reference destruct_reference_at(nuint index) {
-		reference& ref = at<reference>(index);
+		reference& ref = get<reference>(index);
 		reference ref_moved = move(ref);
 		ref.~reference();
 		base_type::pop_back();
@@ -128,7 +128,7 @@ public:
 
 	void emplace_at(nuint index, reference ref) {
 		if(is_reference_at(index)) {
-			at<reference>(index) = move(ref);
+			get<reference>(index) = move(ref);
 		} else {
 			unsafely_emplace_reference_at(index, move(ref));
 		}
@@ -143,32 +143,32 @@ public:
 	}
 
 	template<stack_primitive_element Type>
-	Type& at(nuint index) {
+	Type& get(nuint index) {
 		return * (Type*) &base_type::operator[](index);
 	}
 	template<same_as<reference>>
-	reference& at(nuint i) {
+	reference& get(nuint i) {
 		return *(reference*) &base_type::operator[](i);
 	}
 
 	template<stack_primitive_element Type>
-	Type& at(nuint index, Type v) {
-		return at<Type>(index) = v;
+	Type& get(nuint index, Type v) {
+		return get<Type>(index) = v;
 	}
-	reference& at(nuint i, reference ref) {
-		return at<reference>(i) = move(ref);
+	reference& get(nuint i, reference ref) {
+		return get<reference>(i) = move(ref);
 	}
 
 	template<stack_primitive_element Type> requires(sizeof(Type) == 4)
 	Type& back() {
-		return at<Type>(size() - 1);
+		return get<Type>(size() - 1);
 	}
 	template<stack_primitive_element Type> requires(sizeof(Type) == 8)
 	Type& back() {
-		return at<Type>(size() - 2);
+		return get<Type>(size() - 2);
 	}
 	template<same_as<reference>>
-	reference& back() { return at<reference>(size() - 1); }
+	reference& back() { return get<reference>(size() - 1); }
 
 	template<stack_primitive_element Type>
 	Type pop_back() {
