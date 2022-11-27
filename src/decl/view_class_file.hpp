@@ -23,10 +23,11 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		return null_terminated.view_copied_elements_on_stack(
 			[&](span<const char> on_stack)
 			-> optional<decltype(
-				expression_of_type<Handler>(expression_of_type<posix::own_file>)
+				expression_of_type<Handler>
+				(expression_of_type<body<posix::file>>)
 			)> {
 				bool error = false;
-				posix::own_file f = posix::try_open_file(
+				optional<body<posix::file>> f = posix::try_open_file(
 					c_string{ on_stack.iterator() },
 					posix::file_access_modes {
 						posix::file_access_mode::read,
@@ -37,7 +38,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				if(error) {
 					return {};
 				}
-				return handler(f);
+				return handler(f.value());
 			}
 		);
 	};

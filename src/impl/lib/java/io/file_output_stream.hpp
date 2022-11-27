@@ -21,11 +21,11 @@ static inline void init_java_io_file_output_stream() {
 	).native_function(
 		(void*) (void (*)(native_environment*, object*, int32))
 		[](native_environment*, object* ths, int32 value) {
-			posix::file_descriptor fd0 {
+			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			bool result = true;
-			fd0.try_write_from(
+			fd->try_write_from(
 				array{ (char) value },
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
@@ -41,13 +41,13 @@ static inline void init_java_io_file_output_stream() {
 	).native_function(
 		(void*) (void (*)(native_environment*, object*, object*))
 		[](native_environment*, object* ths, object* a) {
-			posix::file_descriptor fd0 {
+			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
 			bool result = true;
 			int32 size = array_length(*a);
-			fd0.try_write_from(
+			fd->try_write_from(
 				span{ data, (nuint) size },
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
@@ -67,12 +67,12 @@ static inline void init_java_io_file_output_stream() {
 			native_environment*, object* ths,
 			object* a, int32 off, int32 len
 		) {
-			posix::file_descriptor fd0 {
+			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
 			bool result = true;
-			fd0.try_write_from(
+			fd->try_write_from(
 				span{ data + off, (nuint) len },
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
@@ -87,12 +87,12 @@ static inline void init_java_io_file_output_stream() {
 	).native_function(
 		(void*) (void (*)(native_environment*, object*))
 		[](native_environment*, object* ths) {
-			posix::file_descriptor fd0 {
+			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			bool result = true;
-			posix::try_close_file(
-				posix::file_descriptor{ fd0 },
+			posix::try_close(
+				fd,
 				[&]([[maybe_unused]] auto error) { result = false; }
 			);
 			if(!result) {
