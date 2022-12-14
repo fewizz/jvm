@@ -33,16 +33,20 @@ read_method_and_get_advaned_iterator(
 		[&](auto name_index) {
 			return const_pool.utf8_constant(name_index);
 		},
-		[&]<typename Type>(Type x) {
+		[&]<typename Type>(Type max_stack_reader) {
 			using namespace class_file;
 
 			if constexpr (Type::attribute_type == attribute::type::code) {
 				using namespace attribute::code;
 
-				auto [read_max_locals, max_stack] = x();
-				auto [read_code, max_locals] = read_max_locals();
+				auto [max_stack, max_locals_reader]
+					= max_stack_reader.read_and_get_max_locals_reader();
+				auto [max_locals, code_reader]
+					= max_locals_reader.read_and_get_code_reader();
 
-				auto [read_exception_table, code_span] = read_code.as_span();
+				auto code_span = code_reader.read_as_span();
+				auto exception_table_reader
+					= code_reader.skip_and_get_exception_table_reader();
 
 				code_or_native_function = ::code {
 					code_span, max_stack, max_locals
@@ -51,10 +55,11 @@ read_method_and_get_advaned_iterator(
 				exception_handlers = {
 					posix::allocate_memory_for<
 						class_file::attribute::code::exception_handler
-					>(read_exception_table.count())
+					>(exception_table_reader.read_count())
 				};
 
-				read_exception_table([&](exception_handler eh) {
+				exception_table_reader.read_and_get_attributes_reader(
+				[&](exception_handler eh) {
 					exception_handlers.emplace_back(eh);
 					return loop_action::next;
 				});

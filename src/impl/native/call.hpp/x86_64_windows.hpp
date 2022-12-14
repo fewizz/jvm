@@ -53,7 +53,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
 					(uint64) ref.object_ptr();
 			},
-			[&]<same_as<int32, int64> Type>
+			[&]<same_as_any<int32, int64> Type>
 			(Type x) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) = (uint64) x;
 			},

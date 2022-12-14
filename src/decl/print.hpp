@@ -8,7 +8,7 @@
 #include <posix/io.hpp>
 
 inline struct buffered_print_t {
-	list<array<storage<char>, 4096>> buff{};
+	list<array<storage<char>, 1024>> buff{};
 
 	void flush() {
 		posix::std_out.write_from(buff);

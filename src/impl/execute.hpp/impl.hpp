@@ -49,12 +49,6 @@ static void execute(method& m) {
 		print(".");
 		print(m.name());
 		print(m.descriptor());
-		if(!m.is_native()) {
-			print(" ");
-			print("max_stack: ");
-			print(m.code().max_stack);
-		}
-		print("\n");
 		++tab;
 	}
 
@@ -76,6 +70,9 @@ static void execute(method& m) {
 	};
 
 	if(m.is_native()) {
+		if(info) {
+			print("\n");
+		}
 		if(!m.native_function_is_loaded()) {
 			abort();
 		}
@@ -92,6 +89,14 @@ static void execute(method& m) {
 	nuint locals_begin = stack.size() - m.parameters_stack_size();
 	nuint locals_end = locals_begin + m.code().max_locals;
 	nuint stack_begin = locals_end;
+
+	if(info) {
+		print(" ");
+		print("max_stack: "); print(m.code().max_stack);
+		print(" locals begin: "); print(locals_begin);
+		print(" stack begin: "); print(stack_begin);
+		print("\n");
+	}
 
 	{
 		nuint max_possible_stack_end = stack_begin + m.code().max_stack * 2;
@@ -130,9 +135,10 @@ static void execute(method& m) {
 	cf::attribute::code::reader<
 		uint8*,
 		cf::attribute::code::reader_stage::code
-	> reader{ m.code().iterator() };
+	> code_reader{ m.code().iterator() - sizeof(uint32) }; // TODO, messy
 
-	reader([&]<typename Type>(Type x0, uint8*& it) {
+	code_reader.read_and_get_exception_table_reader(
+	[&]<typename Type>(Type x0, uint8*& it) {
 		on_scope_exit update_pc{[&](){
 			pc = it - m.code().iterator();
 		}};
@@ -221,11 +227,15 @@ static void execute(method& m) {
 			stack.emplace_back(int32{ 4 });
 		},
 		[](i_const_5) {
-			if(info) { tabs(); print("i_const_5\n"); }
+			if(info) {
+				tabs(); print("i_const_5 @"); print(stack.size()); print("\n");
+			}
 			stack.emplace_back(int32{ 5 });
 		},
 		[](l_const_0) {
-			if(info) { tabs(); print("l_const_0\n"); }
+			if(info) {
+				tabs(); print("l_const_0 @"); print(stack.size()); print("\n");
+			}
 			stack.emplace_back(int64{ 0 });
 		},
 		[](l_const_1) {
@@ -249,6 +259,8 @@ static void execute(method& m) {
 				tabs();
 				print("bi_push ");
 				print(x.value);
+				print(" @");
+				print(stack.size());
 				print("\n");
 			}
 			stack.emplace_back(int32{ x.value });
@@ -262,7 +274,7 @@ static void execute(method& m) {
 			}
 			stack.emplace_back(int32{ x.value });
 		},
-		[&](same_as<instr::ldc, instr::ldc_w> auto x) {
+		[&](same_as_any<instr::ldc, instr::ldc_w> auto x) {
 			::ldc(x.index, c);
 		},
 		[&](instr::ldc_2_w x) {
@@ -386,8 +398,8 @@ static void execute(method& m) {
 				if(!ref.is_null()) {
 					print(ref._class().name());
 				}
-				print(c_string{" @ "});
-				print((uint64) ref.object_ptr());
+				print(c_string{" @"});
+				print_hex((uint64) ref.object_ptr());
 				print(c_string{ "\n" });
 			}
 			stack.emplace_back(move(ref));
@@ -404,8 +416,8 @@ static void execute(method& m) {
 				if(!ref.is_null()) {
 					print(ref._class().name());
 				}
-				print(c_string{" @ "});
-				print((uint64) ref.object_ptr());
+				print(c_string{" @"});
+				print_hex((uint64) ref.object_ptr());
 				print(c_string{ "\n" });
 			}
 			stack.emplace_back(move(ref));
@@ -564,7 +576,10 @@ static void execute(method& m) {
 			stack.pop_back();
 		},
 		[](dup) {
-			if(info) { tabs(); print("dup\n"); }
+			if(info) {
+				tabs(); print("dup");
+				print(" @"); print(stack.size()); print("\n");
+			}
 			stack.dup_cat_1();
 		},
 		[](dup_x1) {
@@ -1077,6 +1092,8 @@ static void execute(method& m) {
 				print(class_name);
 				print(".");
 				print(name);
+				print(" @");
+				print(stack.size());
 				print("\n");
 			}
 			field_value& value = c.get_static_field_value(x.index);
@@ -1152,9 +1169,9 @@ static void execute(method& m) {
 				index_and_class.get_same_as<instance_field_index>();
 			_class& base_c = index_and_class.get_same_as<_class&>();
 			field& base_field = base_c.instance_fields()[index];
-			reference ref = stack.get<reference>(
+			reference ref = move(stack.get<reference>(
 				stack.size() - base_field.stack_size - 1
-			);
+			));
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
@@ -1195,6 +1212,8 @@ static void execute(method& m) {
 					c.class_constant(x.index).name_index
 				);
 				print(name);
+				print(" @");
+				print(stack.size());
 				print("\n");
 			}
 			_class& c0 = c.get_resolved_class(x.index);

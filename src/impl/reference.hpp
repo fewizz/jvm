@@ -50,9 +50,6 @@ inline reference& reference::operator = (reference&& other) {
 	}
 	try_reset();
 	obj_ptr_ = exchange(other.obj_ptr_, nullptr);
-	if(obj_ptr_ != nullptr) {
-		object().on_reference_added();
-	}
 	return *this;
 }
 
@@ -75,12 +72,12 @@ inline object& reference::object() {
 
 inline reference::~reference() {
 	if(obj_ptr_ != nullptr) {
-		if(info) {
+		/*if(info) {
 			tabs();
 			print("# reference destruction, object @");
 			print_hex((nuint)obj_ptr_);
 			print("\n");
-		}
+		}*/
 		object().on_reference_removed();
 		obj_ptr_ = nullptr;
 	}

@@ -129,6 +129,9 @@ inline void object::on_reference_added() {
 		tabs();
 		print("# added reference to object @");
 		print_hex((nuint)this);
+		print(" of type ");
+		auto name = _class().name();
+		print(name);
 		print(", now there is ");
 		print(references_);
 		print("\n");
@@ -147,6 +150,9 @@ inline void object::on_reference_removed() {
 		tabs();
 		print("# removed reference to object @");
 		print_hex((nuint)this);
+		print(" of type ");
+		auto name = _class().name();
+		print(name);
 		print(", now there is ");
 		print(references_);
 		print("\n");

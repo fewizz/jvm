@@ -10,10 +10,10 @@
 #include <class_file/reader.hpp>
 
 static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
-	class_file::reader reader{ (uint8*) bytes.iterator() };
+	class_file::reader magic_reader{ (uint8*) bytes.iterator() };
 
 	auto [magic_exists, version_reader] =
-		reader.check_for_magic_and_get_version_reader();
+		magic_reader.read_and_check_and_get_version_reader();
 
 	if(!magic_exists) {
 		abort();
@@ -22,7 +22,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 	auto [version, constant_pool_reader] =
 		version_reader.read_and_get_constant_pool_reader();
 
-	uint16 constants_count = constant_pool_reader.entries_count();
+	uint16 constants_count = constant_pool_reader.read_count();
 	constants const_pool { 
 		posix::allocate_memory_for<constant>(constants_count)
 	};
@@ -52,7 +52,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 	};
 
 	list interfaces =
-		posix::allocate_memory_for<_class*>(interfaces_reader.count());
+		posix::allocate_memory_for<_class*>(interfaces_reader.read_count());
 	auto fields_reader =
 		interfaces_reader.read_and_get_fields_reader(
 			[&](class_file::constant::interface_index interface_index) {
@@ -65,7 +65,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 			}
 		);
 	
-	uint16 fields_count = fields_reader.count();
+	uint16 fields_count = fields_reader.read_count();
 
 	list<posix::memory_for_range_of<field>> fields {
 		posix::allocate_memory_for<field>(fields_count)
@@ -99,7 +99,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 	);
 
 	list<posix::memory_for_range_of<method>> methods {
-		posix::allocate_memory_for<method>(methods_reader.count())
+		posix::allocate_memory_for<method>(methods_reader.read_count())
 	};
 
 	auto attributes_reader = methods_reader.read_and_get_attributes_reader(

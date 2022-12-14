@@ -18,7 +18,7 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 
 	for(one_of_non_void_descriptor_types pt : m.parameter_types()) {
 		pt.view_type(overloaded {
-			[&]<same_as<class_file::object, class_file::array>> {
+			[&]<same_as_any<class_file::object, class_file::array>> {
 				reference& r = stack.get<reference>(stack_at);
 				handler(r);
 				stack_at += 1;
@@ -28,7 +28,7 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 				handler(v);
 				stack_at += 2;
 			},
-			[&]<same_as<
+			[&]<same_as_any<
 				class_file::z, class_file::b, class_file::c,
 				class_file::s, class_file::i
 			>> {
