@@ -33,7 +33,7 @@ inline method& select_method(
 	optional<method&> m =
 		c.instance_methods().try_find(mr.name(), mr.descriptor());
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/*    "Otherwise, the maximally-specific superinterface methods of C are
@@ -50,7 +50,7 @@ inline method& select_method(
 		}
 	);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	abort();

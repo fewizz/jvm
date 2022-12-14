@@ -56,10 +56,10 @@ void print(Range&& range) {
 
 void print_number(number_base base, unsigned_integer auto number) {
 	nuint count = 0;
-	for_each_digit_in_number(number, base, [&](nuint) { ++count; });
+	::number{ number}.for_each_digit(base, [&](nuint) { ++count; });
 	char digits[count];
 	count = 0;
-	for_each_digit_in_number(number, base, [&](nuint digit) {
+	::number{ number }.for_each_digit(base, [&](nuint digit) {
 		digits[count++] = (char)digit + (digit <= 9 ? '0' : 'A' - 10);
 	});
 	buffered_print(span{ digits, count });

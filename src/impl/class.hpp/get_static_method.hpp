@@ -7,10 +7,10 @@ inline method& _class::get_static_method(
 	class_file::constant::method_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is<method&>()) {
+		if(!t.is_same_as<method&>()) {
 			abort();
 		}
-		return t.get<method&>();
+		return t.get_same_as<method&>();
 	}
 
 	namespace cc = class_file::constant;

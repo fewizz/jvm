@@ -7,10 +7,10 @@ inline field_value& _class::get_static_field_value(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is<field_value&>()) {
+		if(!t.is_same_as<field_value&>()) {
 			abort();
 		}
-		return t.get<field_value&>();
+		return t.get_same_as<field_value&>();
 	}
 
 	namespace cc = class_file::constant;
@@ -28,7 +28,7 @@ inline field_value& _class::get_static_field_value(
 	declared_static_field_index index =
 		c.declared_static_fields().try_find_index_of(name, desc)
 		.if_has_no_value(abort)
-		.value();
+		.get();
 
 	field_value& value = c.declared_static_fields_values()[index];
 

@@ -26,5 +26,5 @@ inline _class& _class::get_component_class() {
 		component_class_ = classes.find_or_load(component_name);
 		component_class_->array_class_ = *this;
 	}
-	return component_class_.value();
+	return component_class_.get();
 }

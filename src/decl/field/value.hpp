@@ -72,6 +72,6 @@ private:
 			},
 			[](auto){ posix::abort(); }
 		);
-		return jtype.value();
+		return jtype.get();
 	}
 };

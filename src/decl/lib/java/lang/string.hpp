@@ -19,7 +19,8 @@ inline void for_each_string_codepoint(object& str, Handler&& handler) {
 	auto end = it + len * sizeof(uint16);
 
 	while(it != end) {
-		auto cp = utf16::decoder<endianness::big>{}(it);
+		auto cp = utf16::decoder{}(it);
+		if(cp.is_unexpected()) { abort(); }
 		// TODO unexpected
 		handler(cp.get_expected());
 	}

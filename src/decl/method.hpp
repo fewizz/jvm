@@ -38,12 +38,12 @@ using exception_handlers = list<
 struct method : class_member {
 private:
 
-	code_or_native_function_ptr        code_;
-	exception_handlers                 exception_handlers_;
-	uint8                              parameters_stack_size_ = 0;
+	code_or_native_function_ptr code_;
+	exception_handlers exception_handlers_;
+	uint8 parameters_stack_size_ = 0;
 	posix::memory_for_range_of<one_of_non_void_descriptor_types>
-	                                   parameter_types_;
-	one_of_descriptor_types            return_type_{ class_file::v{} };
+		parameter_types_;
+	one_of_descriptor_types return_type_{ class_file::v{} };
 
 public:
 
@@ -61,7 +61,7 @@ public:
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
 		uint8 parameter_count = reader.try_read_parameters_count(
 			[]([[maybe_unused]] auto err) { abort(); }
-		).value();
+		).get();
 
 		list parameter_types_list =
 			posix::allocate_memory_for<one_of_non_void_descriptor_types>(
@@ -79,7 +79,7 @@ public:
 					}
 				},
 				[](auto) { abort(); }
-			).value();
+			).get();
 
 		return_type_reader.try_read_and_get_advanced_iterator(
 			[&](auto ret_type) {
@@ -118,7 +118,7 @@ public:
 		return ::parameters_count{ (uint8) count };
 	}
 
-	code code() const { return code_.get<::code>(); }
+	code code() const { return code_.get_same_as<::code>(); }
 
 	exception_handlers& exception_handlers() {
 		return exception_handlers_;
@@ -129,18 +129,18 @@ public:
 	}
 
 	bool native_function_is_loaded() const {
-		return code_.get<optional<native_function_ptr>>().has_value();
+		return code_.get_same_as<optional<native_function_ptr>>().has_value();
 	}
 
 	void native_function(native_function_ptr function) {
-		if(!code_.is<optional<native_function_ptr>>()) {
+		if(!code_.is_same_as<optional<native_function_ptr>>()) {
 			abort();
 		}
 		code_ = function;
 	}
 
 	native_function_ptr native_function() {
-		return code_.get<optional<native_function_ptr>>().value();
+		return code_.get_same_as<optional<native_function_ptr>>().get();
 	}
 
 	one_of_descriptor_types return_type() const {
@@ -148,7 +148,7 @@ public:
 	}
 
 	bool is_void() const {
-		return return_type_.is<class_file::v>();
+		return return_type_.is_same_as<class_file::v>();
 	}
 
 	bool is_instance_initialisation() const;

@@ -38,7 +38,7 @@ inline _class& define_array_class(Name&& name) {
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_name { data_as_span },
 		move(descriptor),
-		object_class.value(),
+		object_class.get(),
 		declared_interfaces{posix::memory_for_range_of<_class*>{}},
 		move(declared_fields),
 		declared_methods{ posix::memory_for_range_of<method>{} },

@@ -51,7 +51,7 @@ inline optional<method&> try_method_resolution_step_2(
 			++count;
 		}
 		if(count == 1) {
-			return first_poly_method.value();
+			return first_poly_method.get();
 		}
 	}
 
@@ -82,7 +82,7 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	       recursively invoked on the direct superclass of C." */
 	optional<method&> m = try_method_resolution_step_2(c, name, descriptor);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/* "3. Otherwise, method resolution attempts to locate the referenced method
@@ -102,7 +102,7 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 		}
 	);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/*    "Otherwise, if any superinterface of C declares a method with the name

@@ -20,8 +20,8 @@ static void init_java_lang_array_store_exception() {
 }
 
 static inline reference create_array_store_exception() {
-	reference o = create_object(array_store_exception_class.value());
+	reference o = create_object(array_store_exception_class.get());
 	stack.emplace_back(o);
-	execute(array_store_exception_constructor.value());
+	execute(array_store_exception_constructor.get());
 	return move(o);
 }

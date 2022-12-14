@@ -28,14 +28,14 @@ public:
 	decltype(auto) find(Name&& name) {
 		return try_find(
 			forward<Name>(name)
-		).if_no_value([] { abort(); }).value();
+		).if_no_value([] { abort(); }).get();
 	}
 
 	template<basic_range Name>
 	nuint find_index_of(Name&& name) {
 		return try_find_index_of(
 			forward<Name>(name)
-		).if_no_value([] { abort(); }).value();
+		).if_no_value([] { abort(); }).get();
 	}
 
 };

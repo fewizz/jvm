@@ -35,7 +35,7 @@ static inline void init_java_lang_throwable() {
 			}
 
 			reference ste_array = create_array_of(
-				stack_trace_element_class.value(), frames_count
+				stack_trace_element_class.get(), frames_count
 			);
 
 			ctx = latest_execution_context.ptr();

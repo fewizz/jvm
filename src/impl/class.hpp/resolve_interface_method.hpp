@@ -25,7 +25,7 @@ method& _class::resolve_interface_method(
 	optional<method&> m =
 		c.declared_instance_methods().try_find(name, descriptor);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/* "3. Otherwise, if the class Object declares a method with the name
@@ -41,7 +41,7 @@ method& _class::resolve_interface_method(
 		}
 	);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/* "4. Otherwise, if the maximally-specific superinterface methods
@@ -59,7 +59,7 @@ method& _class::resolve_interface_method(
 		}
 	);
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	/* "5. Otherwise, if any superinterface of C declares a method with the
@@ -79,7 +79,7 @@ method& _class::resolve_interface_method(
 		return loop_action::next;
 	});
 	if(m.has_value()) {
-		return m.value();
+		return m.get();
 	}
 
 	// "6. Otherwise, method lookup fails."

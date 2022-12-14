@@ -24,7 +24,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 			[&](span<const char> on_stack)
 			-> optional<decltype(
 				expression_of_type<Handler>
-				(expression_of_type<body<posix::file>>)
+				(move(expression_of_type<body<posix::file>>))
 			)> {
 				bool error = false;
 				optional<body<posix::file>> f = posix::try_open_file(
@@ -38,12 +38,12 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				if(error) {
 					return {};
 				}
-				return handler(f.value());
+				return handler(move(f.get()));
 			}
 		);
 	};
 
-	auto exe = executable_path.value().sized();
+	auto exe = executable_path.get().sized();
 
 	// TODO replace with algo
 	nuint last_slash = exe.size() - 1;
@@ -79,5 +79,5 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 		abort();
 	}
 
-	return result.value();
+	return result.get();
 }

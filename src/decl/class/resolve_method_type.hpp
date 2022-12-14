@@ -13,31 +13,31 @@ template<basic_range Descriptor>
 inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 	auto get_class = [&]<typename Type>(Type t) -> _class& {
 		if constexpr(same_as<Type, class_file::v>) {
-			return void_class.value();
+			return void_class.get();
 		}
 		if constexpr(same_as<Type, class_file::b>) {
-			return byte_class.value();
+			return byte_class.get();
 		}
 		if constexpr(same_as<Type, class_file::c>) {
-			return char_class.value();
+			return char_class.get();
 		}
 		if constexpr(same_as<Type, class_file::d>) {
-			return double_class.value();
+			return double_class.get();
 		}
 		if constexpr(same_as<Type, class_file::f>) {
-			return float_class.value();
+			return float_class.get();
 		}
 		if constexpr(same_as<Type, class_file::i>) {
-			return int_class.value();
+			return int_class.get();
 		}
 		if constexpr(same_as<Type, class_file::j>) {
-			return long_class.value();
+			return long_class.get();
 		}
 		if constexpr(same_as<Type, class_file::s>) {
-			return short_class.value();
+			return short_class.get();
 		}
 		if constexpr(same_as<Type, class_file::z>) {
-			return bool_class.value();
+			return bool_class.get();
 		}
 		else if constexpr(same_as<Type, class_file::object>) {
 			return resolve_class(d, t);
@@ -54,7 +54,7 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
 		nuint parameters_count = reader.try_read_parameters_count(
 			[](auto) { abort(); }
-		).value();
+		).get();
 		_class* params_classes[parameters_count];
 		parameters_count = 0;
 		_class* ret_class;

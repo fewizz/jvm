@@ -8,10 +8,10 @@ inline reference _class::get_resolved_method_handle(
 	class_file::constant::method_handle_index index
 ) {
 	if(auto e = trampoline(index); e.has_value()) {
-		if(!e.is<reference>()) {
+		if(!e.is_same_as<reference>()) {
 			abort();
 		}
-		return e.get<reference>();
+		return e.get_same_as<reference>();
 	}
 
 	class_file::constant::method_handle mh = method_handle_constant(index);

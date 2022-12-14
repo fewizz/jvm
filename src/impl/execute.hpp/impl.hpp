@@ -117,8 +117,8 @@ static void execute(method& m) {
 	auto on_unimplemented_instruction = [] (uint8 code) {
 		if(info) tabs();
 		posix::std_err.write_from(c_string{ "unimplemented instruction " });
-		for_each_digit_in_number(
-			code, number_base{ 10 },
+		number{ code }.for_each_digit(
+			number_base{ 10 },
 			[](auto digit) {
 				posix::std_err.write_from(array{ '0' + digit });
 			}
@@ -1115,7 +1115,7 @@ static void execute(method& m) {
 			tuple<instance_field_index, _class&> index_and_class {
 				c.get_resolved_instance_field_index_and_class(x.index)
 			};
-			auto index = index_and_class.get<instance_field_index>();
+			auto index = index_and_class.get_same_as<instance_field_index>();
 
 			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
@@ -1149,8 +1149,8 @@ static void execute(method& m) {
 				c.get_resolved_instance_field_index_and_class(x.index)
 			};
 			instance_field_index index =
-				index_and_class.get<instance_field_index>();
-			_class& base_c = index_and_class.get<_class&>();
+				index_and_class.get_same_as<instance_field_index>();
+			_class& base_c = index_and_class.get_same_as<_class&>();
 			field& base_field = base_c.instance_fields()[index];
 			reference ref = stack.get<reference>(
 				stack.size() - base_field.stack_size - 1

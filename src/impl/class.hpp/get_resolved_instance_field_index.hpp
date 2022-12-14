@@ -10,10 +10,10 @@ _class::get_resolved_instance_field_index_and_class(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is<tuple<instance_field_index, _class&>>()) {
+		if(!t.is_same_as<tuple<instance_field_index, _class&>>()) {
 			abort();
 		}
-		return t.get<tuple<instance_field_index, _class&>>();
+		return t.get_same_as<tuple<instance_field_index, _class&>>();
 	}
 
 	namespace cc = class_file::constant;
@@ -30,7 +30,7 @@ _class::get_resolved_instance_field_index_and_class(
 	instance_field_index index =
 		c.instance_fields().try_find_index_of(name, desc)
 		.if_has_no_value([]{ abort(); })
-		.value();
+		.get();
 	
 	tuple<instance_field_index, _class&> result{ index, c };
 	

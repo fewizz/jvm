@@ -30,27 +30,27 @@
 
 struct _class : constants, trampolines, bootstrap_methods {
 private:
-	posix::memory_for_range_of<uint8> bytes_;
+	const posix::memory_for_range_of<uint8> bytes_;
 	const class_file::access_flags    access_flags_;
 	const this_class_name             this_name_;
-	posix::memory_for_range_of<uint8> descriptor_;
+	const posix::memory_for_range_of<uint8> descriptor_;
 	optional<_class&>            super_;
 
-	::declared_interfaces        declared_interfaces_;
+	const ::declared_interfaces        declared_interfaces_;
 
 	::declared_fields            declared_fields_;
 	::declared_methods           declared_methods_;
 
-	::declared_static_fields     declared_static_fields_;
-	::declared_static_methods    declared_static_methods_;
+	const ::declared_static_fields     declared_static_fields_;
+	const ::declared_static_methods    declared_static_methods_;
 
-	::declared_instance_fields   declared_instance_fields_;
-	::declared_instance_methods  declared_instance_methods_;
+	const ::declared_instance_fields   declared_instance_fields_;
+	const ::declared_instance_methods  declared_instance_methods_;
 
-	::instance_fields            instance_fields_;
-	::instance_methods           instance_methods_;
+	const ::instance_fields            instance_fields_;
+	const ::instance_methods           instance_methods_;
 
-	layout                       layout_;
+	const layout                       layout_;
 
 	optional<_class&>            array_class_;
 	optional<_class&>            component_class_;
@@ -93,7 +93,8 @@ public:
 	span<char> descriptor() const {
 		return span{ (char*) descriptor_.iterator(), descriptor_.size() };
 	}
-	_class& super() { return super_.value(); }
+	const _class& super() const { return super_.get(); }
+	      _class& super()       { return super_.get(); }
 	bool has_super() const { return super_.has_value(); }
 
 	bool is_interface() const { return access_flags_.interface; }
@@ -109,7 +110,7 @@ public:
 
 	void initialise_if_need();
 
-	layout& layout() { return layout_; }
+	const layout& layout() const { return layout_; }
 
 	::instance_field_position instance_field_position(
 		instance_field_index index
@@ -131,12 +132,12 @@ public:
 		};
 	}
 
-	auto declared_static_fields() {
+	auto declared_static_fields() const {
 		return find_by_name_and_descriptor_view {
 			declared_static_fields_.as_span().dereference_view()
 		};
 	}
-	auto instance_fields() {
+	auto instance_fields() const {
 		return find_by_name_and_descriptor_view {
 			instance_fields_.as_span().dereference_view()
 		};
@@ -146,29 +147,29 @@ public:
 		return declared_static_fields_values_.as_span();
 	}
 
-	auto declared_static_methods() {
+	auto declared_static_methods() const {
 		return find_by_name_and_descriptor_view {
 			declared_static_methods_.as_span().dereference_view()
 		};
 	}
 
-	auto declared_instance_methods() {
+	auto declared_instance_methods() const {
 		return find_by_name_and_descriptor_view {
 			declared_instance_methods_.as_span().dereference_view()
 		};
 	}
-	auto declared_instance_fields() {
+	auto declared_instance_fields() const {
 		return find_by_name_and_descriptor_view {
 			declared_instance_fields_.as_span().dereference_view()
 		};
 	}
-	auto instance_methods() {
+	auto instance_methods() const {
 		return find_by_name_and_descriptor_view {
 			instance_methods_.as_span().dereference_view()
 		};
 	}
 
-	auto declared_interfaces() {
+	auto declared_interfaces() const {
 		return declared_interfaces_.transform_view(
 			[](storage<_class*>& storage) -> _class& { return *storage.get(); }
 		);
@@ -228,9 +229,9 @@ public:
 	template<typename Handler>
 	void for_each_super_interface(Handler&& handler);
 
-	bool is_sub_of(_class& other) {
+	bool is_sub_of(_class& other) const {
 		if(has_super()) {
-			_class& s = super();
+			const _class& s = super();
 			if(&s == &other) {
 				return true;
 			}
@@ -239,7 +240,7 @@ public:
 		return false;
 	}
 
-	bool is_implementing(_class& other) {
+	bool is_implementing(_class& other) const {
 		for(_class& i : declared_interfaces()) {
 			if(&i == &other) {
 				return true;

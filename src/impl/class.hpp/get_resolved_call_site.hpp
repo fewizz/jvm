@@ -19,10 +19,10 @@ inline reference _class::get_resolved_call_site(
 ) {
 	abort(); // TODO
 	if(auto e = trampoline(index); e.has_value()) {
-		if(!e.is<reference>()) {
+		if(!e.is_same_as<reference>()) {
 			abort();
 		}
-		return e.get<reference>();
+		return e.get_same_as<reference>();
 	}
 
 	class_file::constant::invoke_dynamic invoke_dynamic
@@ -65,7 +65,7 @@ inline reference _class::get_resolved_call_site(
 	   java.lang.invoke.MethodHandles.Lookup for the class in which R occurs,
 	   produced as if by invocation of the lookup method of
 	   java.lang.invoke.MethodHandles. */
-	//args.emplace_back(create_object(method_handles_lookup_class.value()));
+	//args.emplace_back(create_object(method_handles_lookup_class.get()));
 
 	/* The first component of the array is set to a reference to an instance of
 	   String that denotes N, the unqualified name given by R. */

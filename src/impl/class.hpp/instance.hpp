@@ -6,7 +6,7 @@
 
 inline reference _class::instance() {
 	if(instance_.is_null()) {
-		instance_ = create_object(class_class.value());
+		instance_ = create_object(class_class.get());
 		instance_->set<int64>(class_ptr_field_position, (int64) this);
 	}
 	return instance_;

@@ -12,7 +12,7 @@ static inline reference create_stack_trace_element(
 	reference class_name_str  = create_string_from_utf8(class_name);
 	reference method_name_str = create_string_from_utf8(method_name);
 
-	reference result = create_object(stack_trace_element_class.value());
+	reference result = create_object(stack_trace_element_class.get());
 
 	stack.emplace_back(result);
 	stack.emplace_back(move(class_name_str));
@@ -20,7 +20,7 @@ static inline reference create_stack_trace_element(
 	stack.emplace_back(reference{});
 	stack.emplace_back(int32{ -1 });
 
-	execute(stack_trace_element_constructor.value());
+	execute(stack_trace_element_constructor.get());
 
 	return result;
 }

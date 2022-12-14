@@ -23,10 +23,13 @@ inline field::field(
 					}
 				}, [](auto){ abort(); }
 			);
-			return type.value();
+			return type.get();
 		}()
 	},
 	stack_size {
-		(uint8) (type.is<class_file::j>() || type.is<class_file::d>() ? 2 : 1)
+		(uint8) ((
+			type.is_same_as<class_file::j>() ||
+			type.is_same_as<class_file::d>()
+		) ? 2 : 1)
 	}
 {}

@@ -14,22 +14,22 @@ inline void ldc(
 		print("\n");
 	}
 	constant constant = c.constant(const_index);
-	if(constant.is<class_file::constant::_int>()) {
+	if(constant.is_same_as<class_file::constant::_int>()) {
 		stack.emplace_back(int32 {
-			constant.get<class_file::constant::_int>().value
+			constant.get_same_as<class_file::constant::_int>().value
 		});
 	} else
-	if(constant.is<class_file::constant::_float>()) {
+	if(constant.is_same_as<class_file::constant::_float>()) {
 		stack.emplace_back(float {
-			constant.get<class_file::constant::_float>().value
+			constant.get_same_as<class_file::constant::_float>().value
 		});
 	} else
-	if(constant.is<class_file::constant::string>()) {
+	if(constant.is_same_as<class_file::constant::string>()) {
 		stack.emplace_back(c.get_string(
 			class_file::constant::string_index{ const_index }
 		));
 	} else
-	if(constant.is<class_file::constant::_class>()) {
+	if(constant.is_same_as<class_file::constant::_class>()) {
 		stack.emplace_back(c.get_resolved_class(
 			class_file::constant::class_index{ const_index }
 		).instance());
@@ -50,14 +50,14 @@ inline void ldc_2_w(
 		print("\n");
 	}
 	constant constant = c.constant(const_index);
-	if(constant.is<class_file::constant::_long>()) {
+	if(constant.is_same_as<class_file::constant::_long>()) {
 		stack.emplace_back(int64 {
-			constant.get<class_file::constant::_long>().value
+			constant.get_same_as<class_file::constant::_long>().value
 		});
 	} else
-	if(constant.is<class_file::constant::_double>()) {
+	if(constant.is_same_as<class_file::constant::_double>()) {
 		stack.emplace_back(double {
-			constant.get<class_file::constant::_double>().value
+			constant.get_same_as<class_file::constant::_double>().value
 		});
 	}
 	else {

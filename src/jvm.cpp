@@ -53,9 +53,9 @@ int main (int argc, const char** argv) {
 	).if_has_no_value([] {
 		posix::std_err.write_from(c_string{ "main method is not found\n" });
 		abort();
-	}).value();
+	}).get();
 
-	reference args_array = create_array_of(string_class.value(), 0);
+	reference args_array = create_array_of(string_class.get(), 0);
 	stack.emplace_back(args_array);
 	execute(m);
 

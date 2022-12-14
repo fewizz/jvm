@@ -26,7 +26,7 @@ static void init_java_lang_invoke_method_handle() {
 inline reference create_method_handle(
 	auto& member, class_file::constant::method_handle::behavior_kind kind
 ) {
-	reference ref = create_object(method_handle_class.value());
+	reference ref = create_object(method_handle_class.get());
 	ref->set(method_handle_member_instance_field_position, (int64) &member);
 	ref->set(method_handle_kind_instance_field_position, (int8) kind);
 	return ref;

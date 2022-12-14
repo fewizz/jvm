@@ -5,8 +5,8 @@
 #include "decl/classes.hpp"
 
 inline reference create_null_pointer_exception() {
-	_class& c = null_pointer_exception_class.value();
-	method& m = null_pointer_exception_constructor.value();
+	_class& c = null_pointer_exception_class.get();
+	method& m = null_pointer_exception_constructor.get();
 
 	reference ref = create_object(c);
 	execute(m, ref);
@@ -20,6 +20,6 @@ inline void init_java_lang_null_pointer_exception() {
 	);
 
 	null_pointer_exception_constructor =
-		null_pointer_exception_class.value()
+		null_pointer_exception_class.get()
 		.instance_methods().find(c_string{ "<init>" }, c_string{ "()V" });
 }

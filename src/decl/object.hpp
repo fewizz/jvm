@@ -11,7 +11,6 @@
 
 struct _class;
 struct reference;
-struct field_value;
 
 struct object {
 private:
@@ -19,23 +18,23 @@ private:
 	optional<_class&> class_;
 	posix::memory_for_range_of<uint8> data_;
 
+	friend reference;
+
+	friend reference create_object(_class& c);
+
 	void on_reference_added();
 
 	void on_reference_removed();
 
 	void unsafe_decrease_reference_count_without_destroing();
 
-	friend reference;
-
-	friend reference create_object(_class& c);
-
 public:
 
 	object(_class& c);
 	~object();
 
-	const ::_class& _class() const { return class_.value(); }
-	      ::_class& _class()       { return class_.value(); }
+	const ::_class& _class() const { return class_.get(); }
+	      ::_class& _class()       { return class_.get(); }
 
 	uint32 references() { return references_; }
 

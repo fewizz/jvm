@@ -128,7 +128,7 @@ inline _class::_class(
 			}.try_find_index_of(m.name(), m.descriptor());
 			// declared instance method overrides super instance method
 			if(index_of_overriden) {
-				methods.emplace_at(index_of_overriden.value(), &m);
+				methods.emplace_at(index_of_overriden.get(), &m);
 			}
 			else {
 				methods.emplace_back(&m);

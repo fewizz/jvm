@@ -52,7 +52,7 @@ public:
 	template<typename Type>
 	Type constant(class_file::constant::index index) const {
 		const ::constant& entry = constant(index);
-		return entry.get<Type>();
+		return entry.get_same_as<Type>();
 	}
 
 	auto utf8_constant(class_file::constant::utf8_index index) const {

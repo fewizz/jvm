@@ -9,10 +9,10 @@ struct _class;
 
 struct class_member {
 private:
-	optional<_class&>          class_;
-	class_file::access_flags   access_flags_;
-	class_file::constant::utf8 name_;
-	class_file::constant::utf8 desc_;
+	optional<_class&> class_;
+	const class_file::access_flags access_flags_;
+	const class_file::constant::utf8 name_;
+	const class_file::constant::utf8 desc_;
 
 	friend _class;
 public:
@@ -27,8 +27,8 @@ public:
 		desc_        { desc         }
 	{}
 
-	const ::_class& _class() const { return class_.value(); }
-	      ::_class& _class()       { return class_.value(); }
+	const ::_class& _class() const { return class_.get(); }
+	      ::_class& _class()       { return class_.get(); }
 
 	class_file::constant::utf8 name() const {
 		return name_;

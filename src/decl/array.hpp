@@ -62,33 +62,33 @@ static inline reference create_array_of(
 }
 
 static inline reference create_bool_array(int32 length) {
-	return create_array_by_class<jbool>(bool_array_class.value(), length);
+	return create_array_by_class<jbool>(bool_array_class.get(), length);
 }
 
 static inline reference create_byte_array(int32 length) {
-	return create_array_by_class<jbyte>(byte_array_class.value(), length);
+	return create_array_by_class<jbyte>(byte_array_class.get(), length);
 }
 
 static inline reference create_short_array(int32 length) {
-	return create_array_by_class<jshort>(short_array_class.value(), length);
+	return create_array_by_class<jshort>(short_array_class.get(), length);
 }
 
 static inline reference create_char_array(int32 length) {
-	return create_array_by_class<jchar>(char_array_class.value(), length);
+	return create_array_by_class<jchar>(char_array_class.get(), length);
 }
 
 static inline reference create_int_array(int32 length) {
-	return create_array_by_class<jint>(int_array_class.value(), length);
+	return create_array_by_class<jint>(int_array_class.get(), length);
 }
 
 static inline reference create_float_array(int32 length) {
-	return create_array_by_class<jfloat>(float_array_class.value(), length);
+	return create_array_by_class<jfloat>(float_array_class.get(), length);
 }
 
 static inline reference create_long_array(int32 length) {
-	return create_array_by_class<jlong>(long_array_class.value(), length);
+	return create_array_by_class<jlong>(long_array_class.get(), length);
 }
 
 static inline reference create_double_array(int32 length) {
-	return create_array_by_class<jdouble>(double_array_class.value(), length);
+	return create_array_by_class<jdouble>(double_array_class.get(), length);
 }

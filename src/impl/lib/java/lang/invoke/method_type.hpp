@@ -28,7 +28,7 @@ static reference create_method_type(
 	reference descriptor0 = create_byte_array(range_size(descriptor));
 	descriptor.copy_to(array_as_span<uint8>(descriptor0));
 
-	reference o = create_object(method_type_class.value());
+	reference o = create_object(method_type_class.get());
 	o->set(method_type_parameter_types_instance_field_position, params_array);
 	o->set(
 		method_type_return_type_instance_field_position, ret_class.instance()

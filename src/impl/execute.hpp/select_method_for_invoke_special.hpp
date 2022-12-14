@@ -76,5 +76,5 @@ inline method& select_method_for_invoke_special(
 		abort();
 	}
 
-	return m.value();
+	return m.get();
 }

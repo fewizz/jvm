@@ -43,7 +43,7 @@ inline void check_cast(_class& c, class_file::constant::class_index index) {
 		    SC, then:" */
 		/* If T is a class type, then T must be Object. */
 		if(!t.is_interface() && !t.is_array()) {
-			return t.is(object_class.value());
+			return t.is(object_class.get());
 		}
 		/* "If T is an interface type, then T must be one of the interfaces
 		    implemented by arrays (JLS §4.10.3)." */

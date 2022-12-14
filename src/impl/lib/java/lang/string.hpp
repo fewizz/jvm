@@ -14,7 +14,7 @@ static inline reference create_string(span<uint16> data) {
 	reference data_ref = create_char_array(data.size());
 	array_data(data_ref, data.iterator());
 	array_length(data_ref, data.size());
-	reference string_ref = create_object(string_class.value());
+	reference string_ref = create_object(string_class.get());
 	string_ref->set(string_value_field_position, move(data_ref));
 	return string_ref;
 }

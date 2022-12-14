@@ -11,10 +11,10 @@ inline reference _class::get_string(
 	class_file::constant::string_index string_index
 ) {
 	if(auto& t = trampoline(string_index); t.has_value()) {
-		if(!t.is<::reference>()) {
+		if(!t.is_same_as<::reference>()) {
 			abort();
 		}
-		return t.get<::reference>();
+		return t.get_same_as<::reference>();
 	}
 
 	class_file::constant::string string = string_constant(string_index);

@@ -35,7 +35,10 @@ struct layout {
 	layout(layout&&) = default;
 
 	template<basic_range Range>
-	layout(Range&& declared_instance_fields, optional<layout&> super = {}) :
+	layout(
+		Range&& declared_instance_fields,
+		optional<const layout&> super = {}
+	) :
 		field_index_to_slot { [&] {
 			nuint count = 0;
 			if(super.has_value()) {
@@ -64,7 +67,7 @@ struct layout {
 			auto add = [&]<typename Type, typename... Types>() {
 				nuint field_index = initial_field_index;
 				for(field& f : declared_instance_fields) {
-					if((f.type.is<Types>() || ... )) {
+					if((f.type.is_same_as<Types>() || ... )) {
 						align(bytes_in_atoms<alignof(Type)>);
 						field_index_to_slot[field_index].construct(
 							current_position, bytes_in<Type>
@@ -97,7 +100,7 @@ struct layout {
 		return ending;
 	}
 
-	slot slot_for_field_index(nuint index) {
+	slot slot_for_field_index(nuint index) const {
 		return field_index_to_slot.as_span()[index];
 	}
 
