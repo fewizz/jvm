@@ -1,3 +1,5 @@
+#include "decl/classes.hpp"
+#include "decl/execution/stack.hpp"
 #include "impl/impl.hpp"
 
 #include "define/primitive_class.hpp"

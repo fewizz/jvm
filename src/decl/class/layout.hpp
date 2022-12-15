@@ -7,7 +7,6 @@
 #include <posix/memory.hpp>
 #include <range.hpp>
 #include <max.hpp>
-#include <list.hpp>
 
 struct layout {
 
@@ -29,8 +28,8 @@ struct layout {
 		nuint ending() const { return beginning() + length(); }
 	};
 
-	nuint ending = 0;
-	posix::memory_for_range_of<slot> field_index_to_slot{};
+	nuint ending_ = 0;
+	posix::memory_for_range_of<slot> field_index_to_slot_{};
 
 	layout(layout&&) = default;
 
@@ -39,23 +38,25 @@ struct layout {
 		Range&& declared_instance_fields,
 		optional<const layout&> super = {}
 	) :
-		field_index_to_slot { [&] {
+		field_index_to_slot_ { [&] {
 			nuint count = 0;
 			if(super.has_value()) {
-				count += range_size(super->field_index_to_slot);
+				count += range_size(super->field_index_to_slot_);
 			}
 			count += range_size(declared_instance_fields);
 
 			auto field_index_to_slot = posix::allocate_memory_for<slot>(count);
-			list field_index_to_slot_list{ field_index_to_slot };
 			nuint current_position = 0;
+			nuint initial_field_index = 0;
 			if(super.has_value()) {
-				field_index_to_slot_list.put_back_copied_elements_of(
-					super->field_index_to_slot.as_span()
+				super->field_index_to_slot_.as_span().for_each_indexed(
+					[&](slot s, nuint index) {
+						field_index_to_slot[index].construct(s);
+					}
 				);
-				current_position = super->ending;
+				current_position = super->ending_;
+				initial_field_index = range_size(super->field_index_to_slot_);
 			}
-			nuint initial_field_index = range_size(field_index_to_slot_list);
 
 			auto align = [&](nuint alignment_bytes) {
 				nuint o = current_position % alignment_bytes;
@@ -90,18 +91,18 @@ struct layout {
 			add.template operator () <int8,   class_file::b>();
 			add.template operator () <bool,   class_file::z>();
 
-			ending = current_position;
+			ending_ = current_position;
 
 			return move(field_index_to_slot);
 		}()}
 	{}
 
 	nuint total_size() const {
-		return ending;
+		return ending_;
 	}
 
 	slot slot_for_field_index(nuint index) const {
-		return field_index_to_slot.as_span()[index];
+		return field_index_to_slot_.as_span()[index];
 	}
 
 };

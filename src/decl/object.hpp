@@ -5,7 +5,6 @@
 
 #include <optional.hpp>
 #include <integer.hpp>
-#include <list.hpp>
 
 #include <posix/memory.hpp>
 

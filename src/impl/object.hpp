@@ -132,9 +132,9 @@ inline void object::on_reference_added() {
 		print(" of type ");
 		auto name = _class().name();
 		print(name);
-		print(", now there is ");
+		print(", ");
 		print(references_);
-		print("\n");
+		print(" in sum\n");
 	}
 }
 
@@ -153,9 +153,9 @@ inline void object::on_reference_removed() {
 		print(" of type ");
 		auto name = _class().name();
 		print(name);
-		print(", now there is ");
+		print(", ");
 		print(references_);
-		print("\n");
+		print(" left\n");
 	}
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;

@@ -30,7 +30,7 @@ inline reference _class::get_resolved_call_site(
 	
 	/* R gives a symbolic reference to a bootstrap method handle. */
 	bootstrap_method& bm
-		= bootstrap_methods::operator [] (
+		= bootstrap_methods::as_span().operator [] (
 			invoke_dynamic.bootstrap_method_attr_index
 		);
 	/* The bootstrap method handle is resolved (§5.4.3.5) to obtain a reference

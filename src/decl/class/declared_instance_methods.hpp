@@ -4,8 +4,6 @@
 #include "./find_by_name_and_descriptor_extension.hpp"
 #include "method.hpp"
 
-#include <list.hpp>
-
 #include <posix/memory.hpp>
 
 struct declared_instance_methods :

@@ -23,7 +23,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		version_reader.read_and_get_constant_pool_reader();
 
 	uint16 constants_count = constant_pool_reader.read_count();
-	constants const_pool { 
+	list const_pool_raw { 
 		posix::allocate_memory_for<constant>(constants_count)
 	};
 
@@ -35,11 +35,13 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 					abort();
 				}
 				else {
-					const_pool.emplace_back(x);
+					const_pool_raw.emplace_back(x);
 				}
 			}
 		)
 	};
+
+	constants const_pool = const_pool_raw.move_storage_range();
 
 	auto [access_flags, this_class_reader] {
 		access_flags_reader.read_and_get_this_class_reader()

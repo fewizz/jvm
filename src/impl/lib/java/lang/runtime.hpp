@@ -1,5 +1,6 @@
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/execution/context.hpp"
 
 extern "C" [[ noreturn ]] void exit(int exit_code);
 

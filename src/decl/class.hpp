@@ -91,7 +91,7 @@ public:
 
 	this_class_name name() const { return this_name_; }
 	span<char> descriptor() const {
-		return span{ (char*) descriptor_.iterator(), descriptor_.size() };
+		return ::span{ (char*) descriptor_.iterator(), descriptor_.size() };
 	}
 	const _class& super() const { return super_.get(); }
 	      _class& super()       { return super_.get(); }

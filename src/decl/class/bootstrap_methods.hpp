@@ -2,15 +2,19 @@
 
 #include <class_file/constant.hpp>
 
-#include <list.hpp>
-
 #include <posix/memory.hpp>
 
 struct bootstrap_method_arguments_indices :
-	list<posix::memory_for_range_of<class_file::constant::index>>
+	posix::memory_for_range_of<class_file::constant::index>
 {
-	using base_type = list<posix::memory_for_range_of<class_file::constant::index>>;
+	using base_type = posix::memory_for_range_of<class_file::constant::index>;
 	using base_type::base_type;
+
+	bootstrap_method_arguments_indices(
+		posix::memory_for_range_of<class_file::constant::index> mem
+	) :
+		base_type{ move(mem) }
+	{}
 };
 
 struct bootstrap_method {
@@ -27,8 +31,12 @@ struct bootstrap_method {
 };
 
 struct bootstrap_methods :
-	list<posix::memory_for_range_of<bootstrap_method>>
+	posix::memory_for_range_of<bootstrap_method>
 {
-	using base_type = list<posix::memory_for_range_of<bootstrap_method>>;
+	using base_type = posix::memory_for_range_of<bootstrap_method>;
 	using base_type::base_type;
+
+	bootstrap_methods(posix::memory_for_range_of<bootstrap_method> mem) :
+		base_type{ move(mem) }
+	{}
 };

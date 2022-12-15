@@ -14,6 +14,10 @@ public final class Integer extends Number implements Comparable<Integer> {
 
 	public static native String toHexString(int i);
 
+	public static Integer valueOf(int i) {
+		return new Integer(i);
+	}
+
 	@Override
 	public byte byteValue() {
 		return (byte) value_;

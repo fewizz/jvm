@@ -1,7 +1,5 @@
 #pragma once
 
-#include <list.hpp>
-
 #include <posix/memory.hpp>
 
 struct _class;

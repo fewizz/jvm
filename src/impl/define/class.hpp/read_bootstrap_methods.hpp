@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/bootstrap_methods.hpp"
-
+#include <list.hpp>
 #include <class_file/attribute/bootstrap_methods/reader.hpp>
 
 static bootstrap_methods read_bootstap_methods(auto reader) {
@@ -9,7 +9,7 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 		reader.read_count_and_get_methods_reader()
 	};
 
-	bootstrap_methods bootstrap_methods {
+	list bootstrap_methods_raw {
 		posix::allocate_memory_for<bootstrap_method>(count)
 	};
 
@@ -24,7 +24,7 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 				arguments_count_reader.read_and_get_arguments_reader()
 			};
 
-			bootstrap_method_arguments_indices arguments_indices {
+			list arguments_indices_raw {
 				posix::allocate_memory_for<
 					class_file::constant::index
 				>(arguments_count)
@@ -33,15 +33,15 @@ static bootstrap_methods read_bootstap_methods(auto reader) {
 			arguments_reader.read(
 				arguments_count,
 				[&](class_file::constant::index index) {
-					arguments_indices.emplace_back(index);
+					arguments_indices_raw.emplace_back(index);
 				}
 			);
 
-			bootstrap_methods.emplace_back(
-				reference_index, move(arguments_indices)
+			bootstrap_methods_raw.emplace_back(
+				reference_index, arguments_indices_raw.move_storage_range()
 			);
 		}
 	);
 
-	return move(bootstrap_methods);
+	return bootstrap_methods{ bootstrap_methods_raw.move_storage_range() };
 }

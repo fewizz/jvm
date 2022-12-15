@@ -7,7 +7,6 @@
 #include "class/instance_fields.hpp"
 
 #include <optional.hpp>
-#include <list.hpp>
 
 #include <posix/memory.hpp>
 
@@ -20,28 +19,26 @@ using trampoline = optional<
 >;
 
 struct trampolines :
-	protected list<posix::memory_for_range_of<trampoline>>
+	protected posix::memory_for_range_of<trampoline>
 {
-	using base_type = list<posix::memory_for_range_of<trampoline>>;
+	using base_type = posix::memory_for_range_of<trampoline>;
 
 	trampolines(uint16 count) :
 		base_type{ posix::allocate_memory_for<::trampoline>(count) }
 	{
-		base_type::fill_with(::trampoline{});
+		for(storage<::trampoline>& s : *this) {
+			s.construct(::trampoline{});
+		}
 	}
 
-	using base_type::emplace_back;
-
-	uint16 trampolines_count() const {
-		return capacity();
-	}
+	using base_type::size;
 
 	const ::trampoline& trampoline(uint16 index) const {
-		return (*this)[index - 1];
+		return base_type::as_span()[index - 1];
 	}
 
 	      ::trampoline& trampoline(uint16 index)       {
-		return (*this)[index - 1];
+		return base_type::as_span()[index - 1];
 	}
 
 };

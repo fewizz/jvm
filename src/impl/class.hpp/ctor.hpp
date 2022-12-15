@@ -14,15 +14,15 @@ inline _class::_class(
 	is_array_class                    is_array,
 	is_primitive_class                is_primitive
 ) :
-	::constants          { move(constants)           },
-	::trampolines        { constants_count()         },
-	::bootstrap_methods  { move(bootstrap_methods)   },
-	bytes_               { move(bytes)               },
-	access_flags_        { access_flags              },
-	this_name_           { this_name                 },
-	descriptor_          { move(descriptor)          },
-	super_               { super_class               },
-	declared_interfaces_ { move(declared_interfaces) },
+	::constants          { move(constants)              },
+	::trampolines        { (uint16) ::constants::size() },
+	::bootstrap_methods  { move(bootstrap_methods)      },
+	bytes_               { move(bytes)                  },
+	access_flags_        { access_flags                 },
+	this_name_           { this_name                    },
+	descriptor_          { move(descriptor)             },
+	super_               { super_class                  },
+	declared_interfaces_ { move(declared_interfaces)    },
 	declared_fields_     { [&] {
 		for(field& f : declared_fields.as_span()) {
 			f.class_ = *this;

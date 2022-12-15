@@ -3,8 +3,6 @@
 #include "./find_by_name_and_descriptor_extension.hpp"
 #include "./method_index.hpp"
 
-#include <list.hpp>
-
 #include <posix/memory.hpp>
 
 struct method;

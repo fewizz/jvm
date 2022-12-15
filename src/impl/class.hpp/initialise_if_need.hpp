@@ -2,7 +2,6 @@
 #include "execute.hpp"
 
 #include <c_string.hpp>
-#include <list.hpp>
 
 inline void _class::initialise_if_need() {
 	if(
@@ -17,11 +16,9 @@ inline void _class::initialise_if_need() {
 		super().initialise_if_need();
 	}
 
-	::list values{ declared_static_fields_values_ };
-
-	for(field& f : declared_static_fields()) {
-		values.emplace_back(f.descriptor());
-	}
+	declared_static_fields().for_each_indexed([&](field& f, int16 index) {
+		declared_static_fields_values_[index].construct(f.descriptor());
+	});
 
 	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
 	declared_methods()

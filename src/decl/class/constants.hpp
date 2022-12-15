@@ -3,7 +3,6 @@
 #include <class_file/constant.hpp>
 
 #include <variant.hpp>
-#include <list.hpp>
 
 #include <posix/memory.hpp>
 
@@ -29,24 +28,25 @@ using constant = variant<
 >;
 
 struct constants :
-	private list<posix::memory_for_range_of<constant>>
+	private posix::memory_for_range_of<constant>
 {
-	using base_type = list<posix::memory_for_range_of<constant>>;
+	using base_type = posix::memory_for_range_of<constant>;
 	using base_type::base_type;
 
 public:
 
-	using base_type::emplace_back;
+	constants(posix::memory_for_range_of<constant> mem) :
+		base_type(move(mem))
+	{}
+
 	using base_type::size;
 
-	uint16 constants_count() const { return capacity(); }
-
 	const ::constant& constant(class_file::constant::index index) const {
-		return (*this)[index - 1];
+		return base_type::as_span()[index - 1];
 	}
 
 	::constant& constant(class_file::constant::index index) {
-		return (*this)[index - 1];
+		return base_type::as_span()[index - 1];
 	}
 
 	template<typename Type>

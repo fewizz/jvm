@@ -4,8 +4,6 @@
 #include "./method_index.hpp"
 #include "method.hpp"
 
-#include <list.hpp>
-
 #include <posix/memory.hpp>
 
 struct instance_methods : posix::memory_for_range_of<method*> {
