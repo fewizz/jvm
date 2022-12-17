@@ -8,8 +8,8 @@
 #include <optional.hpp>
 
 static optional<_class&> method_handle_class;
-inline instance_field_position method_handle_member_instance_field_position;
-inline instance_field_position method_handle_kind_instance_field_position;
+inline layout::position method_handle_member_instance_field_position;
+inline layout::position method_handle_kind_instance_field_position;
 
 void method_handle_invoke_exact(
 	reference ref, parameters_count

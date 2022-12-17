@@ -196,7 +196,7 @@ static void execute(method& m) {
 			return loop_action::next;
 		};
 
-		auto o = overloaded {
+		return overloaded {
 		[](nop) {},
 		[](a_const_null) {
 			if(info) { tabs(); print("a_const_null\n"); }

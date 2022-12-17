@@ -1,6 +1,5 @@
 #pragma once
 
-#include "./instance_field_position.hpp"
 #include "../field.hpp"
 #include "../reference.hpp"
 
@@ -8,24 +7,35 @@
 #include <range.hpp>
 #include <max.hpp>
 
+
 struct layout {
+
+	class position {
+		uint32 value_;
+	public:
+		constexpr explicit position() {}
+		constexpr explicit position(uint32 value) : value_{ value } {}
+		constexpr operator uint32() const { return value_; }
+	};
 
 	struct slot {
 	private:
-		nuint beginning_;
-		nuint length_;
+		layout::position position_;
+		uint32 size_;
 	public:
-		slot(nuint beginning, nuint length) :
-			beginning_{ beginning },
-			length_{ length }
+		slot(layout::position position, uint32 size) :
+			position_{ position },
+			size_{ size }
 		{}
 
-		instance_field_position position() const {
-			return instance_field_position{ beginning() };
+		layout::position beginning() const {
+			return position_;
 		};
-		nuint beginning() const { return beginning_; }
-		nuint length() const { return length_; }
-		nuint ending() const { return beginning() + length(); }
+		layout::position ending() const {
+			return layout::position{ position_ + size() };
+		}
+
+		uint32 size() const { return size_; }
 	};
 
 	nuint ending_ = 0;
@@ -39,15 +49,15 @@ struct layout {
 		optional<const layout&> super = {}
 	) :
 		field_index_to_slot_ { [&] {
-			nuint count = 0;
+			uint32 count = 0;
 			if(super.has_value()) {
 				count += range_size(super->field_index_to_slot_);
 			}
 			count += range_size(declared_instance_fields);
 
 			auto field_index_to_slot = posix::allocate_memory_for<slot>(count);
-			nuint current_position = 0;
-			nuint initial_field_index = 0;
+			uint32 current_position = 0;
+			uint32 initial_field_index = 0;
 			if(super.has_value()) {
 				super->field_index_to_slot_.as_span().for_each_indexed(
 					[&](slot s, nuint index) {
@@ -71,7 +81,7 @@ struct layout {
 					if((f.type.is_same_as<Types>() || ... )) {
 						align(bytes_in_atoms<alignof(Type)>);
 						field_index_to_slot[field_index].construct(
-							current_position, bytes_in<Type>
+							layout::position{ current_position }, bytes_in<Type>
 						);
 						current_position += bytes_in<Type>;
 					}

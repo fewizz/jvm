@@ -21,10 +21,10 @@
 struct _class : constants, trampolines, bootstrap_methods {
 private:
 	const posix::memory_for_range_of<uint8> bytes_;
-	const class_file::access_flags    access_flags_;
-	const this_class_name             this_name_;
+	const class_file::access_flags access_flags_;
+	const this_class_name this_name_;
 	const posix::memory_for_range_of<uint8> descriptor_;
-	optional<_class&>            super_;
+	optional<_class&> super_;
 
 	const posix::memory_for_range_of<_class*> declared_interfaces_;
 	posix::memory_for_range_of<field> declared_fields_;
@@ -39,7 +39,8 @@ private:
 	const posix::memory_for_range_of<field*> instance_fields_;
 	const posix::memory_for_range_of<method*> instance_methods_;
 
-	const layout layout_;
+	const layout instance_layout_;
+	const layout static_layout_;
 
 	optional<_class&> array_class_;
 	optional<_class&> component_class_;
@@ -99,16 +100,17 @@ public:
 
 	void initialise_if_need();
 
-	const layout& layout() const { return layout_; }
+	const layout& instance_layout() const { return instance_layout_; }
+	const layout& static_layout() const { return static_layout_; }
 
-	::instance_field_position instance_field_position(
+	layout::position instance_field_position(
 		instance_field_index index
 	) {
-		return layout().slot_for_field_index(index).position();
+		return instance_layout().slot_for_field_index(index).beginning();
 	}
 
 	template<basic_range Name, basic_range Descriptor>
-	::instance_field_position instance_field_position(
+	layout::position instance_field_position(
 		Name&& name, Descriptor&& descriptor
 	);
 

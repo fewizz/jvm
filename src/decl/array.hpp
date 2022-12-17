@@ -12,7 +12,7 @@ inline optional<_class&> long_array_class{};
 inline optional<_class&> float_array_class{};
 inline optional<_class&> double_array_class{};
 
-constexpr inline instance_field_position
+constexpr inline layout::position
 	array_data_field_position{ 0 },
 	array_length_field_position{ bytes_in<int64> };
 

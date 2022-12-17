@@ -9,8 +9,8 @@
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-decltype(auto) object::view_ptr(instance_field_index index, auto&& handler) {
-	layout::slot s = class_->layout().slot_for_field_index(index);
+decltype(auto) object::view_ptr(uint32 index, auto&& handler) {
+	layout::slot s = class_->instance_layout().slot_for_field_index(index);
 	uint8* ptr = data_.as_span().iterator() + s.beginning();
 	
 	field& f = class_->instance_fields()[index];
@@ -51,7 +51,7 @@ decltype(auto) object::view_ptr(instance_field_index index, auto&& handler) {
 	});
 }
 
-decltype(auto) object::view(instance_field_index index, auto&& handler) {
+decltype(auto) object::view(uint32 index, auto&& handler) {
 	return view_ptr(index, [&]<typename Type>(Type* e) -> decltype(auto) {
 		Type& ref = *e;
 		return handler(ref);
@@ -59,7 +59,7 @@ decltype(auto) object::view(instance_field_index index, auto&& handler) {
 }
 
 template<typename Type>
-decltype(auto) object::view(instance_field_position position, auto&& handler) {
+decltype(auto) object::view(layout::position position, auto&& handler) {
 	static_assert(
 		same_as<Type, reference> ||
 		same_as<Type, int64> || same_as<Type, int32> ||
@@ -75,7 +75,7 @@ decltype(auto) object::view(instance_field_position position, auto&& handler) {
 inline object::object(::_class& c) :
 	class_{ c },
 	data_ {
-		posix::allocate_memory_for<uint8>(c.layout().total_size())
+		posix::allocate_memory_for<uint8>(c.instance_layout().total_size())
 	}
 {
 	if(info) {

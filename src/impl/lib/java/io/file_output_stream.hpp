@@ -4,7 +4,7 @@
 
 #include <posix/io.hpp>
 
-static instance_field_position file_output_stream_fd_field_position;
+static layout::position file_output_stream_fd_field_position;
 
 static inline void init_java_io_file_output_stream() {
 	_class& file_output_stream_class = classes.find_or_load(

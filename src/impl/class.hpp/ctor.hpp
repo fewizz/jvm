@@ -136,10 +136,15 @@ inline _class::_class(
 		}
 		return methods.move_storage_range();
 	}()},
-	layout_ { [&] {
+	instance_layout_ { [&] {
 		return !has_super() ?
 			::layout { declared_instance_fields() } :
-			::layout { declared_instance_fields(), super().layout() };
+			::layout { declared_instance_fields(), super().instance_layout() };
+	}()},
+	static_layout_ { [&] {
+		return !has_super() ?
+			::layout { declared_static_fields() } :
+			::layout { declared_static_fields(), super().static_layout() };
 	}()},
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },

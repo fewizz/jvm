@@ -8,7 +8,7 @@
 #include <unicode/utf16.hpp>
 
 static optional<_class&> string_class{};
-inline instance_field_position string_value_field_position;
+inline layout::position string_value_field_position;
 
 template<typename Handler>
 inline void for_each_string_codepoint(object& str, Handler&& handler) {
