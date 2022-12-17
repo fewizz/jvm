@@ -196,7 +196,7 @@ static void execute(method& m) {
 			return loop_action::next;
 		};
 
-		return overloaded {
+		auto o = overloaded {
 		[](nop) {},
 		[](a_const_null) {
 			if(info) { tabs(); print("a_const_null\n"); }
@@ -1298,7 +1298,6 @@ static void execute(method& m) {
 		}
 		}.then([](loop_action action = loop_action::next) {
 			return action;
-		})
-		(x0);
+		})(x0);
 	}, m.code().size());
 }

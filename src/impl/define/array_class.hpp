@@ -12,7 +12,7 @@ inline _class& define_array_class(Name&& name) {
 	span<char> data_as_span{ (char*) data.iterator(), data.size() };
 	range{ name }.copy_to(data_as_span);
 
-	declared_fields declared_fields {
+	posix::memory_for_range_of<field> declared_fields {
 		posix::allocate_memory_for<field>(2)
 	};
 
@@ -39,9 +39,9 @@ inline _class& define_array_class(Name&& name) {
 		this_class_name { data_as_span },
 		move(descriptor),
 		object_class.get(),
-		declared_interfaces{posix::memory_for_range_of<_class*>{}},
+		posix::memory_for_range_of<_class*>{},
 		move(declared_fields),
-		declared_methods{ posix::memory_for_range_of<method>{} },
+		posix::memory_for_range_of<method>{},
 		is_array_class{ true },
 		is_primitive_class{ false }
 	);

@@ -1,26 +1,16 @@
 #pragma once
 
-#include "./class/declared_fields.hpp"
-#include "./class/declared_instance_fields.hpp"
-#include "./class/declared_static_fields.hpp"
-#include "./class/instance_fields.hpp"
-
-#include "./class/declared_methods.hpp"
-#include "./class/declared_instance_methods.hpp"
-#include "./class/declared_static_methods.hpp"
-#include "./class/instance_methods.hpp"
-
 #include "./class/layout.hpp"
 
 #include "./class/constants.hpp"
 #include "./class/trampolines.hpp"
 #include "./class/bootstrap_methods.hpp"
 
-#include "./class/declared_interfaces.hpp"
-
 #include "./class/name.hpp"
 #include "./class/is_array.hpp"
 #include "./class/is_primitive.hpp"
+
+#include "./class/find_by_name_and_descriptor_extension.hpp"
 
 #include "./field/value.hpp"
 
@@ -36,36 +26,35 @@ private:
 	const posix::memory_for_range_of<uint8> descriptor_;
 	optional<_class&>            super_;
 
-	const ::declared_interfaces        declared_interfaces_;
+	const posix::memory_for_range_of<_class*> declared_interfaces_;
+	posix::memory_for_range_of<field> declared_fields_;
+	posix::memory_for_range_of<method> declared_methods_;
 
-	::declared_fields            declared_fields_;
-	::declared_methods           declared_methods_;
+	const posix::memory_for_range_of<field*> declared_static_fields_;
+	const posix::memory_for_range_of<method*> declared_static_methods_;
 
-	const ::declared_static_fields     declared_static_fields_;
-	const ::declared_static_methods    declared_static_methods_;
+	const posix::memory_for_range_of<field*> declared_instance_fields_;
+	const posix::memory_for_range_of<method*> declared_instance_methods_;
 
-	const ::declared_instance_fields   declared_instance_fields_;
-	const ::declared_instance_methods  declared_instance_methods_;
+	const posix::memory_for_range_of<field*> instance_fields_;
+	const posix::memory_for_range_of<method*> instance_methods_;
 
-	const ::instance_fields            instance_fields_;
-	const ::instance_methods           instance_methods_;
+	const layout layout_;
 
-	const layout                       layout_;
+	optional<_class&> array_class_;
+	optional<_class&> component_class_;
+	reference instance_;
 
-	optional<_class&>            array_class_;
-	optional<_class&>            component_class_;
-	reference                    instance_;
-
-	const is_array_class         is_array_;
-	const is_primitive_class     is_primitive_;
+	const is_array_class is_array_;
+	const is_primitive_class is_primitive_;
 	posix::memory_for_range_of<
 		field_value
-	>                            declared_static_fields_values_;
+	> declared_static_fields_values_;
 	enum initialisation_state {
 		not_started,
 		pending,
 		done
-	}                            initialisation_state_ = not_started;
+	} initialisation_state_ = not_started;
 
 public:
 
@@ -75,9 +64,9 @@ public:
 		this_class_name,
 		posix::memory_for_range_of<uint8> descriptor,
 		optional<_class&> super,
-		::declared_interfaces&&,
-		::declared_fields&&,
-		::declared_methods&&,
+		posix::memory_for_range_of<_class*>,
+		posix::memory_for_range_of<field>,
+		posix::memory_for_range_of<method>,
 		is_array_class,
 		is_primitive_class
 	);

@@ -1,18 +1,18 @@
 #include "class.hpp"
 
 inline _class::_class(
-	constants&&                       constants,
-	bootstrap_methods&&               bootstrap_methods,
-	posix::memory_for_range_of<uint8> bytes,
-	class_file::access_flags          access_flags,
-	this_class_name                   this_name,
-	posix::memory_for_range_of<uint8> descriptor,
-	optional<_class&>                 super_class,
-	::declared_interfaces&&           declared_interfaces,
-	::declared_fields&&               declared_fields,
-	::declared_methods&&              declared_methods,
-	is_array_class                    is_array,
-	is_primitive_class                is_primitive
+	constants&&                         constants,
+	bootstrap_methods&&                 bootstrap_methods,
+	posix::memory_for_range_of<uint8>   bytes,
+	class_file::access_flags            access_flags,
+	this_class_name                     this_name,
+	posix::memory_for_range_of<uint8>   descriptor,
+	optional<_class&>                   super_class,
+	posix::memory_for_range_of<_class*> declared_interfaces,
+	posix::memory_for_range_of<field>   declared_fields,
+	posix::memory_for_range_of<method>  declared_methods,
+	is_array_class                      is_array,
+	is_primitive_class                  is_primitive
 ) :
 	::constants          { move(constants)              },
 	::trampolines        { (uint16) ::constants::size() },

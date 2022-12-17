@@ -19,7 +19,6 @@ static inline void init_java_lang_throwable() {
 			c_string{ "[Ljava/lang/StackTraceElement;" }
 		);
 
-
 	throwable_class->declared_instance_methods()
 	.find(
 		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }

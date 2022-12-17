@@ -7,12 +7,10 @@ struct has_name_equal_to {
 	Name name;
 
 	bool operator () (auto& e) const {
-		return
-			range{ e.name() }.have_elements_equal_to(name);
+		return range{ e.name() }.have_elements_equal_to(name);
 	}
 
 };
 
 template<basic_range Name>
-has_name_equal_to(Name&&)
-	-> has_name_equal_to<Name>;
+has_name_equal_to(Name&&) -> has_name_equal_to<Name>;

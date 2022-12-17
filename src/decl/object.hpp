@@ -1,7 +1,7 @@
 #pragma once
 
 #include "class/layout.hpp"
-#include "class/instance_fields.hpp"
+#include "class/member_index.hpp"
 
 #include <optional.hpp>
 #include <integer.hpp>

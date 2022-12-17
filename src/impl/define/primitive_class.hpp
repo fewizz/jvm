@@ -22,9 +22,9 @@ static inline _class& define_primitive_class(Name&& name, char ch) {
 		this_class_name{ data_span },
 		move(descriptor),
 		object_class,
-		declared_interfaces{ posix::memory_for_range_of<_class*>{} },
-		declared_fields{ posix::memory_for_range_of<field>{} },
-		declared_methods{ posix::memory_for_range_of<method>{} },
+		posix::memory_for_range_of<_class*>{},
+		posix::memory_for_range_of<field>{},
+		posix::memory_for_range_of<method>{},
 		is_array_class{ false },
 		is_primitive_class{ true }
 	);
