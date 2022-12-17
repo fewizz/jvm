@@ -5,15 +5,15 @@
 
 #include <tuple.hpp>
 
-inline tuple<instance_field_index, _class&>
-_class::get_resolved_instance_field_index_and_class(
+inline field_index_and_stack_size
+_class::get_resolved_instance_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is_same_as<tuple<instance_field_index, _class&>>()) {
+		if(!t.is_same_as<field_index_and_stack_size>()) {
 			abort();
 		}
-		return t.get_same_as<tuple<instance_field_index, _class&>>();
+		return t.get_same_as<field_index_and_stack_size>();
 	}
 
 	namespace cc = class_file::constant;
@@ -32,8 +32,11 @@ _class::get_resolved_instance_field_index_and_class(
 		.if_has_no_value([]{ abort(); })
 		.get();
 	
-	tuple<instance_field_index, _class&> result{ index, c };
-	
+	field_index_and_stack_size result {
+		.field_index = index,
+		.stack_size = c.instance_fields()[index].stack_size
+	};
+
 	trampoline(ref_index) = result;
 	return result;
 }

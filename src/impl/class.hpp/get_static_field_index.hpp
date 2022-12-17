@@ -3,14 +3,14 @@
 
 #include <class_file/constant.hpp>
 
-inline field_value& _class::get_static_field_value(
+inline class_and_declared_static_field_index _class::get_static_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
 	if(auto& t = trampoline(ref_index); t.has_value()) {
-		if(!t.is_same_as<field_value&>()) {
+		if(!t.is_same_as<class_and_declared_static_field_index>()) {
 			abort();
 		}
-		return t.get_same_as<field_value&>();
+		return t.get_same_as<class_and_declared_static_field_index>();
 	}
 
 	namespace cc = class_file::constant;
@@ -30,8 +30,11 @@ inline field_value& _class::get_static_field_value(
 		.if_has_no_value(abort)
 		.get();
 
-	field_value& value = c.declared_static_fields_values()[index];
+	class_and_declared_static_field_index result {
+		._class = c,
+		.field_index = index
+	};
 
-	trampoline(ref_index) = value;
-	return value;
+	trampoline(ref_index) = result;
+	return result;
 }

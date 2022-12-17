@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./class/layout.hpp"
+#include "./class/layout_view_extension.hpp"
 
 #include "./class/constants.hpp"
 #include "./class/trampolines.hpp"
@@ -12,19 +13,24 @@
 
 #include "./class/find_by_name_and_descriptor_extension.hpp"
 
-#include "./field/value.hpp"
-
 #include "./reference.hpp"
 
 #include <class_file/access_flag.hpp>
 
-struct _class : constants, trampolines, bootstrap_methods {
+struct _class :
+	layout_view_extension<_class>, // for constants
+	constants,
+	trampolines,
+	bootstrap_methods
+{
 private:
+	// mutable
+	optional<_class&> super_;
+
 	const posix::memory_for_range_of<uint8> bytes_;
 	const class_file::access_flags access_flags_;
 	const this_class_name this_name_;
 	const posix::memory_for_range_of<uint8> descriptor_;
-	optional<_class&> super_;
 
 	const posix::memory_for_range_of<_class*> declared_interfaces_;
 	posix::memory_for_range_of<field> declared_fields_;
@@ -39,23 +45,22 @@ private:
 	const posix::memory_for_range_of<field*> instance_fields_;
 	const posix::memory_for_range_of<method*> instance_methods_;
 
-	const layout instance_layout_;
-	const layout static_layout_;
-
-	optional<_class&> array_class_;
-	optional<_class&> component_class_;
-	reference instance_;
+	const ::layout instance_layout_;
+	const ::layout declared_static_layout_;
 
 	const is_array_class is_array_;
 	const is_primitive_class is_primitive_;
-	posix::memory_for_range_of<
-		field_value
-	> declared_static_fields_values_;
+
+	// mutable state:
+	optional<_class&> array_class_;
+	optional<_class&> component_class_;
+	reference instance_;
 	enum initialisation_state {
 		not_started,
 		pending,
 		done
 	} initialisation_state_ = not_started;
+	posix::memory_for_range_of<uint8> declared_static_fields_data_;
 
 public:
 
@@ -100,13 +105,35 @@ public:
 
 	void initialise_if_need();
 
-	const layout& instance_layout() const { return instance_layout_; }
-	const layout& static_layout() const { return static_layout_; }
+	const ::layout& instance_layout() const { return instance_layout_; }
+	const ::layout& declared_static_layout() const {
+		return declared_static_layout_;
+	}
+
+	// required member functions for layout_view_extension:
+	friend layout_view_extension<object>;
+
+	const ::layout& layout_for_view() const {
+		return declared_static_layout_;
+	}
+	inline uint8* data_for_layout_view() {
+		return declared_static_fields_data_.as_span().iterator();
+	}
+	inline auto fields_view_for_layout_view() const {
+		return declared_static_fields_.as_span().dereference_view();
+	}
+	//
 
 	layout::position instance_field_position(
 		instance_field_index index
 	) {
 		return instance_layout().slot_for_field_index(index).beginning();
+	}
+
+	layout::position declared_static_field_position(
+		declared_static_field_index index
+	) {
+		return declared_static_layout().slot_for_field_index(index).beginning();
 	}
 
 	template<basic_range Name, basic_range Descriptor>
@@ -132,10 +159,6 @@ public:
 		return find_by_name_and_descriptor_view {
 			instance_fields_.as_span().dereference_view()
 		};
-	}
-
-	auto declared_static_fields_values() {
-		return declared_static_fields_values_.as_span();
 	}
 
 	auto declared_static_methods() const {
@@ -199,8 +222,8 @@ public:
 		class_file::constant::interface_method_ref ref
 	);
 
-	tuple<instance_field_index, _class&>
-	get_resolved_instance_field_index_and_class(
+	field_index_and_stack_size
+	get_resolved_instance_field_index(
 		class_file::constant::field_ref_index ref_index
 	);
 
@@ -208,7 +231,7 @@ public:
 		class_file::constant::method_ref_index ref_index
 	);
 
-	field_value& get_static_field_value(
+	class_and_declared_static_field_index get_static_field_index(
 		class_file::constant::field_ref_index ref_index
 	);
 

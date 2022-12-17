@@ -11,9 +11,7 @@
 #include "decl/lib/java/lang/stack_overflow_error.hpp"
 
 #include "./check_cast.hpp"
-#include "./get_field_value.hpp"
 #include "./instance_of.hpp"
-#include "./put_field_value.hpp"
 #include "./ldc.hpp"
 #include "./invoke_dynamic.hpp"
 #include "./invoke_virtual.hpp"
@@ -1096,8 +1094,15 @@ static void execute(method& m) {
 				print(stack.size());
 				print("\n");
 			}
-			field_value& value = c.get_static_field_value(x.index);
-			get_field_value(value);
+			class_and_declared_static_field_index class_and_field_index
+				= c.get_static_field_index(x.index);
+			
+			class_and_field_index._class.view(
+				class_and_field_index.field_index,
+				[](auto& field_value) {
+					stack.emplace_back(field_value);
+				}
+			);
 		},
 		[&](put_static x) {
 			if(info) {
@@ -1110,8 +1115,14 @@ static void execute(method& m) {
 				print(name);
 				print("\n");
 			}
-			field_value& field_value = c.get_static_field_value(x.index);
-			put_field_value(field_value);
+			class_and_declared_static_field_index class_and_field_index
+				= c.get_static_field_index(x.index);
+			class_and_field_index._class.view(
+				class_and_field_index.field_index,
+				[]<typename FieldType>(FieldType& field_value) {
+					field_value = stack.pop_back<FieldType>();
+				}
+			);
 		},
 		[&](get_field x) {
 			if(info) {
@@ -1129,21 +1140,20 @@ static void execute(method& m) {
 				print("\n");
 			}
 
-			tuple<instance_field_index, _class&> index_and_class {
-				c.get_resolved_instance_field_index_and_class(x.index)
-			};
-			auto index = index_and_class.get_same_as<instance_field_index>();
-
 			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
+
+			field_index_and_stack_size field_index_and_stack_size
+				= c.get_resolved_instance_field_index(x.index);
 			ref->view(
-				index,
+				field_index_and_stack_size.field_index,
 				[&](auto& field_value) {
-				stack.emplace_back(field_value);
-			});
+					stack.emplace_back(field_value);
+				}
+			);
 			return loop_action::next;
 		},
 		[&](put_field x) {
@@ -1162,22 +1172,18 @@ static void execute(method& m) {
 				print("\n");
 			}
 
-			tuple<instance_field_index, _class&> index_and_class {
-				c.get_resolved_instance_field_index_and_class(x.index)
-			};
-			instance_field_index index =
-				index_and_class.get_same_as<instance_field_index>();
-			_class& base_c = index_and_class.get_same_as<_class&>();
-			field& base_field = base_c.instance_fields()[index];
+			field_index_and_stack_size field_index_and_stack_size
+				= c.get_resolved_instance_field_index(x.index);
+			
 			reference ref = move(stack.get<reference>(
-				stack.size() - base_field.stack_size - 1
+				stack.size() - 1 - field_index_and_stack_size.stack_size
 			));
 			if(ref.is_null()) {
 				thrown = create_null_pointer_exception();
 				return handle_thrown();
 			}
 			ref->view(
-				index,
+				field_index_and_stack_size.field_index,
 				[&]<typename FieldType>(FieldType& field_value) {
 					field_value = stack.pop_back<FieldType>();
 				}

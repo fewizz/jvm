@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./resolve_class.hpp"
+#include "primitives.hpp"
 #include "reference.hpp"
 
 #include <range.hpp>

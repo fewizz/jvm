@@ -9,67 +9,12 @@
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-decltype(auto) object::view_ptr(uint32 index, auto&& handler) {
-	layout::slot s = class_->instance_layout().slot_for_field_index(index);
-	uint8* ptr = data_.as_span().iterator() + s.beginning();
-	
-	field& f = class_->instance_fields()[index];
-	return f.type.view([&]<typename Type>(Type) -> decltype(auto) {
-		if constexpr(
-			same_as<Type, class_file::object> ||
-			same_as<Type, class_file::array>
-		) {
-			return handler((reference*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::d>) {
-			return handler((double*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::j>) {
-			return handler((int64*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::i>) {
-			return handler((int32*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::f>) {
-			return handler((float*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::c>) {
-			return handler((uint16*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::s>) {
-			return handler((int16*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::b>) {
-			return handler((int8*) ptr);
-		}
-		else if constexpr(same_as<Type, class_file::z>) {
-			return handler((bool*) ptr);
-		}
-		else {
-			posix::abort();
-		}
-	});
+inline const ::layout& object::layout_for_view() {
+	return class_->instance_layout();
 }
 
-decltype(auto) object::view(uint32 index, auto&& handler) {
-	return view_ptr(index, [&]<typename Type>(Type* e) -> decltype(auto) {
-		Type& ref = *e;
-		return handler(ref);
-	});
-}
-
-template<typename Type>
-decltype(auto) object::view(layout::position position, auto&& handler) {
-	static_assert(
-		same_as<Type, reference> ||
-		same_as<Type, int64> || same_as<Type, int32> ||
-		same_as<Type, double> || same_as<Type, float> ||
-		same_as<Type, int16> || same_as<Type, uint16> ||
-		same_as<Type, int8> || same_as<Type, bool>
-	);
-	uint8* ptr = data_.as_span().iterator() + position;
-	Type& e = * (Type*) ptr;
-	return handler(e);
+auto object::fields_view_for_layout_view() {
+	return class_->instance_fields();
 }
 
 inline object::object(::_class& c) :

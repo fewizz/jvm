@@ -7,7 +7,6 @@
 #include <range.hpp>
 #include <max.hpp>
 
-
 struct layout {
 
 	class position {
@@ -15,7 +14,7 @@ struct layout {
 	public:
 		constexpr explicit position() {}
 		constexpr explicit position(uint32 value) : value_{ value } {}
-		constexpr operator uint32() const { return value_; }
+		constexpr explicit operator uint32() const { return value_; }
 	};
 
 	struct slot {
@@ -32,7 +31,7 @@ struct layout {
 			return position_;
 		};
 		layout::position ending() const {
-			return layout::position{ position_ + size() };
+			return layout::position{ (uint32) position_ + size() };
 		}
 
 		uint32 size() const { return size_; }

@@ -17,11 +17,11 @@ inline _class::_class(
 	::constants          { move(constants)              },
 	::trampolines        { (uint16) ::constants::size() },
 	::bootstrap_methods  { move(bootstrap_methods)      },
+	super_               { super_class                  },
 	bytes_               { move(bytes)                  },
 	access_flags_        { access_flags                 },
 	this_name_           { this_name                    },
 	descriptor_          { move(descriptor)             },
-	super_               { super_class                  },
 	declared_interfaces_ { move(declared_interfaces)    },
 	declared_fields_     { [&] {
 		for(field& f : declared_fields.as_span()) {
@@ -141,16 +141,12 @@ inline _class::_class(
 			::layout { declared_instance_fields() } :
 			::layout { declared_instance_fields(), super().instance_layout() };
 	}()},
-	static_layout_ { [&] {
-		return !has_super() ?
-			::layout { declared_static_fields() } :
-			::layout { declared_static_fields(), super().static_layout() };
-	}()},
+	declared_static_layout_ { declared_static_fields() },
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },
-	declared_static_fields_values_ {
-		posix::allocate_memory_for<field_value>(
-			range_size(declared_static_fields())
+	declared_static_fields_data_ {
+		posix::allocate_memory_for<uint8>(
+			declared_static_layout().total_size()
 		)
 	}
 {

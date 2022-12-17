@@ -1,9 +1,10 @@
 #pragma once
 
+#include "./layout.hpp"
+#include "./member_index.hpp"
+
 #include "reference.hpp"
 #include "method.hpp"
-#include "field/value.hpp"
-#include "class/member_index.hpp"
 
 #include <optional.hpp>
 
@@ -11,10 +12,21 @@
 
 struct static_field;
 
+struct class_and_declared_static_field_index {
+	_class& _class;
+	uint16 field_index;
+};
+
+struct field_index_and_stack_size {
+	uint16 field_index;
+	uint8 stack_size;
+};
+
 using trampoline = optional<
-	reference, _class&, method&, field_value&,
-	instance_method_index, instance_field_index,
-	tuple<instance_field_index, _class&>
+	class_and_declared_static_field_index,
+	field_index_and_stack_size,
+	reference, _class&, method&,
+	instance_method_index, instance_field_index
 >;
 
 struct trampolines :

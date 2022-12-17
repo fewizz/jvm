@@ -5,7 +5,6 @@
 
 struct object;
 struct _class;
-struct field_value;
 
 struct reference {
 private:
