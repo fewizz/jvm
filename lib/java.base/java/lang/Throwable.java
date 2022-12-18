@@ -51,12 +51,27 @@ public class Throwable implements Serializable {
 
 	@Override
 	public java.lang.String toString() {
-		String mess = this.getLocalizedMessage();
-		if(mess == null) {
-			return mess;
-		}
+		StringBuilder sb = new StringBuilder();
+
 		String className = this.getClass().getName();
-		return className + ": " + mess;
+		sb.append(className);
+
+		String mess = this.getLocalizedMessage();
+
+		if(mess != null) {
+			sb.append(": ");
+			sb.append(mess);
+		}
+
+		return sb.toString();
+	}
+
+	public void printStackTrace() {
+		System.err.println(toString());
+		for(StackTraceElement e : stackTrace_) {
+			System.err.print('\t');
+			System.err.println(e.toString());
+		}
 	}
 
 	public native Throwable fillInStackTrace();

@@ -4,11 +4,7 @@ public final class Class<T> {
 
 	private long ptr_;
 	
-	public String getName() {
-		return __getName();
-	}
-
-	private native String __getName();
+	public native String getName();
 
 	public native Class<?> getComponentType();
 

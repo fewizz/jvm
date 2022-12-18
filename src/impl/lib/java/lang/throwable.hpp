@@ -25,19 +25,38 @@ static inline void init_java_lang_throwable() {
 	).native_function(
 		(void*) (object* (*)(native_environment*, object*))
 		[](native_environment*, object* ths) {
-			execution_context* ctx = latest_execution_context.ptr();
-			int32 frames_count = 0;
+			// lets skip constructors/fillInStackTrace frames
+			execution_context* ctx_begin = latest_execution_context.ptr();
+			auto this_class_name = ths->_class().name();
 
-			while(ctx != nullptr) {
-				ctx = ctx->previous.ptr();
-				++frames_count;
+			while(true) {
+				execution_context* prev = ctx_begin;
+
+				ctx_begin = ctx_begin->previous.ptr();
+				if(ctx_begin == nullptr) {
+					// didn't find
+					abort();
+				}
+
+				if(
+					prev->method._class().name().have_elements_equal_to(
+						this_class_name
+					) &&
+					prev->method.name().have_elements_equal_to(
+						c_string{ "<init>" }
+					)
+				) {
+					break;
+				}
 			}
+
+			nuint frames_count = ctx_begin->frames_until_end();
 
 			reference ste_array = create_array_of(
 				stack_trace_element_class.get(), frames_count
 			);
 
-			ctx = latest_execution_context.ptr();
+			execution_context* ctx = ctx_begin;
 
 			for(reference& frame : array_as_span<reference>(ste_array)) {
 				frame = create_stack_trace_element(

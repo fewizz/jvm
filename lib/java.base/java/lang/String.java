@@ -9,6 +9,11 @@ public final class String {
 		System.arraycopy(value, 0, this.value_, 0, value.length);
 	}
 
+	public String(char[] value, int offset, int count) {
+		this.value_ = new char[count];
+		System.arraycopy(value, offset, this.value_, 0, count);
+	}
+
 	public int length() {
 		return value_.length;
 	}

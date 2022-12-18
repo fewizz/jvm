@@ -4,6 +4,7 @@
 #include "decl/object.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/lib/java/lang/string.hpp"
 
 #include <c_string.hpp>
 
@@ -24,6 +25,18 @@ static inline void init_java_lang_class() {
 		[](native_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
 			return c.get_component_class().instance().object_ptr();
+		}
+	);
+
+	class_class->declared_methods().find(
+		c_string{ "getName" }, c_string{ "()Ljava/lang/String;" }
+	).native_function(
+		(void*) (object*(*)(native_environment*, object*))
+		[](native_environment*, object* ths) -> object* {
+			_class& c = class_from_class_instance(*ths);
+			return &
+				create_string_from_utf8(c.name())
+				.unsafe_release_without_destroing();
 		}
 	);
 }

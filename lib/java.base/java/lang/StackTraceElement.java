@@ -77,31 +77,37 @@ public final class StackTraceElement implements Serializable {
 
 	@Override
 	public java.lang.String toString() {
-		String loader = "";
+		StringBuilder sb = new StringBuilder(64);
+
 		if(classLoaderName_ != null) {
-			loader = classLoaderName_ + "/";
+			sb.append(classLoaderName_);
+			sb.append('/');
 		}
 
-		String mod = "/";
 		if(moduleName_ != null && moduleVersion_ != null) {
-			mod = moduleName_ + "@" + moduleVersion_ + "";
+			sb.append(moduleName_);
+			sb.append("@");
+			sb.append(moduleVersion_);
 		}
 
-		String where;
+		sb.append(declaringClass_);
+		sb.append('.');
+		sb.append(methodName_);
 
+		sb.append('(');
 		if(fileName_ != null) {
-			where = fileName_;
+			sb.append(fileName_);
 			if(lineNumber_ >= 0) {
-				where += ":" + lineNumber_;
+				sb.append(':');
+				sb.append(lineNumber_);
 			}
 		}
 		else {
-			where = isNativeMethod() ? "Native Method" : "Unknown Source";
+			sb.append(isNativeMethod() ? "Native Method" : "Unknown Source");
 		}
+		sb.append(')');
 
-		String method = declaringClass_ + "." + methodName_;
-
-		return loader + mod + method + "(" + where + ")";
+		return sb.toString();
 	}
 
 	@Override
