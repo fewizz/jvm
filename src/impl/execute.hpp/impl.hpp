@@ -1135,10 +1135,7 @@ static void execute(method& m) {
 		},
 		[&](if_eq x) {
 			if(info) {
-				tabs();
-				print("if_eq ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_eq "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value == 0) {
@@ -1147,10 +1144,7 @@ static void execute(method& m) {
 		},
 		[&](if_ne x) {
 			if(info) {
-				tabs();
-				print("if_ne ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_ne "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value != 0) {
@@ -1159,10 +1153,7 @@ static void execute(method& m) {
 		},
 		[&](if_lt x) {
 			if(info) {
-				tabs();
-				print("if_lt ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_lt "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value < 0) {
@@ -1171,10 +1162,7 @@ static void execute(method& m) {
 		},
 		[&](if_ge x) {
 			if(info) {
-				tabs();
-				print("if_ge ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_ge "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value >= 0) {
@@ -1183,10 +1171,7 @@ static void execute(method& m) {
 		},
 		[&](if_gt x) {
 			if(info) {
-				tabs();
-				print("if_gt ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_gt "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value > 0) {
@@ -1195,10 +1180,7 @@ static void execute(method& m) {
 		},
 		[&](if_le x) {
 			if(info) {
-				tabs();
-				print("if_le ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_le "); print(x.branch); print("\n");
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value <= 0) {
@@ -1207,10 +1189,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_eq x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_eq ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_eq "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1220,10 +1199,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_ne x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_ne ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_ne "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1233,10 +1209,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_lt x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_lt ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_lt "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1246,10 +1219,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_ge x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_ge ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_ge "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1259,10 +1229,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_gt x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_gt ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_gt "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1272,10 +1239,7 @@ static void execute(method& m) {
 		},
 		[&](if_i_cmp_le x) {
 			if(info) {
-				tabs();
-				print("if_i_cmp_le ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_i_cmp_le "); print(x.branch); print("\n");
 			}
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
@@ -1285,10 +1249,7 @@ static void execute(method& m) {
 		},
 		[&](if_a_cmp_eq x) {
 			if(info) {
-				tabs();
-				print("if_a_cmp_eq ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_a_cmp_eq "); print(x.branch); print("\n");
 			}
 			reference value2 = stack.pop_back<reference>();
 			reference value1 = stack.pop_back<reference>();
@@ -1298,10 +1259,7 @@ static void execute(method& m) {
 		},
 		[&](if_a_cmp_ne x) {
 			if(info) {
-				tabs();
-				print("if_a_cmp_ne ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_a_cmp_ne "); print(x.branch); print("\n");
 			}
 			reference value2 = stack.pop_back<reference>();
 			reference value1 = stack.pop_back<reference>();
@@ -1311,10 +1269,7 @@ static void execute(method& m) {
 		},
 		[&](go_to x) {
 			if(info) {
-				tabs();
-				print("go_to ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("go_to "); print(x.branch); print("\n");
 			}
 			next_instruction_ptr = instrution_ptr + x.branch;
 		},
@@ -1623,10 +1578,7 @@ static void execute(method& m) {
 		},
 		[&](if_null x) {
 			if(info) {
-				tabs();
-				print("if_null ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_null "); print(x.branch); print("\n");
 			}
 			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
@@ -1635,15 +1587,24 @@ static void execute(method& m) {
 		},
 		[&](if_non_null x) {
 			if(info) {
-				tabs();
-				print("if_non_null ");
-				print(x.branch);
-				print("\n");
+				tabs(); print("if_non_null "); print(x.branch); print("\n");
 			}
 			reference ref = stack.pop_back<reference>();
 			if(!ref.is_null()) {
 				next_instruction_ptr = instrution_ptr + x.branch;
 			}
+		},
+		[&](go_to_w x) {
+			if(info) {
+				tabs(); print("go_to_w "); print(x.branch); print("\n");
+			}
+			next_instruction_ptr = instrution_ptr + x.branch;
+		},
+		[&](jmp_sr_w x) {
+			if(info) { tabs(); print("jmp_sr_w\n"); }
+			uint32 address = (uint32) (uint64) next_instruction_ptr;
+			stack.emplace_back((int32)address);
+			next_instruction_ptr = instrution_ptr + x.branch;
 		},
 		[&](uint8 x) {
 			if(info) tabs();
