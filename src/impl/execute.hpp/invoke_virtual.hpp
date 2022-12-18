@@ -19,9 +19,10 @@ inline void invoke_virtual(
 	cc::utf8 desc = c.utf8_constant(nat.descriptor_index);
 	cc::utf8 name = c.utf8_constant(nat.name_index);
 
+	cc::_class _c { c.class_constant(method_ref.class_index) };
+	cc::utf8 class_name = c.utf8_constant(_c.name_index);
+
 	if(info) {
-		cc::_class _c { c.class_constant(method_ref.class_index) };
-		cc::utf8 class_name = c.utf8_constant(_c.name_index);
 		tabs(); print("invoke_virtual ");
 		print(class_name);
 		print(".");
@@ -30,27 +31,45 @@ inline void invoke_virtual(
 		print("\n");
 	}
 
-	method& resolved_method = c.get_resolved_method(ref_index);
+	if(class_name.have_elements_equal_to(
+		c_string{ "java/lang/invoke/MethodHandle" }
+	)) {
+		nuint args_count_stack = 0;
 
-	uint8 args_stack_count = resolved_method.parameters_stack_size();
-	reference& objectref =
-		stack.get<reference>(stack.size() - args_stack_count);
+		class_file::method_descriptor::reader reader{ desc.iterator() };
+		reader.try_read_parameter_types_and_get_return_type_reader(
+		[&]<typename ParamType>(ParamType) {
+				if constexpr(same_as<ParamType, class_file::v>) {
+					__builtin_unreachable();
+				} else {
+					args_count_stack += 
+						same_as_any<ParamType, class_file::j, class_file::d> ?
+						2 : 1;
+				}
+			},
+			[](auto) { abort(); }
+		);
+		reference& mh
+			= stack.get<reference>(stack.size() - args_count_stack - 1);
 
-	if(resolved_method._class().is(method_handle_class.get())) {
 		if(name.have_elements_equal_to(c_string{ "invokeExact" })) {
-			abort(); // TODO
 			method_handle_invoke_exact(
-				objectref, // method handle
-				args_stack_count - 1 // without method handle instance
+				mh, // method handle
+				args_count_stack
 			);
 		} else {
 			abort();
 		}
+		return;
 	}
+
+	method& resolved_method = c.get_resolved_method(ref_index);
+
+	uint8 args_stack_count = resolved_method.parameters_stack_size();
+	reference& obj_ref = stack.get<reference>(stack.size() - args_stack_count);
+
 	/* "Let C be the class of objectref. A method is selected with respect to C
 	and the resolved method (§5.4.6). This is the method to be invoked." */
-	else {
-		method& m = select_method(objectref->_class(), resolved_method);
-		execute(m);
-	}
+	method& m = select_method(obj_ref->_class(), resolved_method);
+	execute(m);
 }

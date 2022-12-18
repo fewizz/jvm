@@ -72,7 +72,7 @@ inline void method_handle_invoke_exact(
 		ref->get<int64>(method_handle_member_instance_field_position);
 	behavior_kind kind = (behavior_kind) (uint8)
 		ref->get<int32>(method_handle_kind_instance_field_position);
-	
+
 	switch (kind) {
 		case behavior_kind::invoke_virtual: {
 			method& resolved_method = * (method*) member;

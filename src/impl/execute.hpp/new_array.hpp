@@ -6,7 +6,6 @@
 #include <class_file/attribute/code/instruction.hpp>
 
 inline void new_array(
-	//_class& c, TODO use trampoline
 	class_file::attribute::code::instruction::new_array_type type
 ) {
 	int32 size = stack.pop_back<int32>();
@@ -24,7 +23,7 @@ inline void new_array(
 		case new_array_type::_int:     ref = create_int_array(size);    break;
 		case new_array_type::_long:    ref = create_long_array(size);   break;
 		default:
-			posix::std_err.write_from(c_string{ "unknown type of array\n" });
+			posix::std_err.write_from(c_string{ "unknown array type\n" });
 			abort();
 	}
 

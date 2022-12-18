@@ -4,6 +4,7 @@
 
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
+#include "decl/execution/info.hpp"
 
 #include <max.hpp>
 #include <class_file/descriptor/method_reader.hpp>
@@ -76,6 +77,12 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		}.then([&]{ ++arg; }));
 	}
 
+	if(info) {
+		tabs();
+		print("native function call:\n");
+		++tab;
+	}
+
 	register uint64 result asm("rax") = 0;
 	register __m128 arg_0_f asm("xmm0") = f_regs[0];
 	{
@@ -121,8 +128,13 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 			:
 				[stack_beginning]"m"(stack_storage),
 				[function_ptr]"m"(ptr)
-			: "r10", "memory", "cc"
+			: "r10", "r11", "r12", "r13", "r14", "r15",
+			  "memory", "cc"
 		);
+	}
+
+	if(info) {
+		--tab;
 	}
 
 	m.return_type().view(

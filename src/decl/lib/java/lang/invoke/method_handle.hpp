@@ -12,7 +12,7 @@ inline layout::position method_handle_member_instance_field_position;
 inline layout::position method_handle_kind_instance_field_position;
 
 void method_handle_invoke_exact(
-	reference ref, parameters_count
+	reference ref, nuint
 );
 
 reference create_method_handle_invoke_static(method&);

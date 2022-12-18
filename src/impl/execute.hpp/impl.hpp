@@ -69,6 +69,7 @@ static void execute(method& m) {
 		if(info) {
 			print("\n");
 		}
+
 		if(!m.native_function_is_loaded()) {
 			abort();
 		}
@@ -1306,6 +1307,27 @@ static void execute(method& m) {
 				Execution then continues at the target address. */
 				next_instruction_ptr = instrution_ptr + offset;
 			}
+		},
+		[&](lookup_switch x) {
+			if(info) { tabs(); print("lookup_switch\n"); }
+
+			int32 key = stack.pop_back<int32>();
+
+			for(match_offset mo : x.pairs) {
+				/*  The key is compared against the match values. */
+				if(mo.match == key) {
+					/* If it is equal to one of them, then a target address is
+					   calculated by adding the corresponding offset to the
+					   address of the opcode of this lookupswitch instruction.*/
+					next_instruction_ptr = instrution_ptr + mo.offset;
+					return loop_action::next;
+				}
+			}
+			/*  If the key does not match any of the match values, the target
+			    address is calculated by adding default to the address of the
+			    opcode of this lookupswitch instruction. */
+			next_instruction_ptr = instrution_ptr + x._default;
+			return loop_action::next;
 		},
 		[&](i_return) {
 			int32 result = stack.back<int32>();

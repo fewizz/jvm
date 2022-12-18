@@ -17,7 +17,11 @@
 inline reference _class::get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
-	abort(); // TODO
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is_same_as<reference>()) {
 			abort();
@@ -54,28 +58,26 @@ inline reference _class::get_resolved_call_site(
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
-	[[maybe_unused]] uint8 args_count = bm.arguments_indices.size() + 3;
+	nuint args_count_stack = 0;
 
-	// TODO
-	/*storage<stack_entry> args_storage[args_count];
-	list<span<storage<stack_entry>>> args {
-		span{ args_storage, args_count}
-	};*/
 	/* The zeroth component of the array is set to a reference to an instance of
 	   java.lang.invoke.MethodHandles.Lookup for the class in which R occurs,
 	   produced as if by invocation of the lookup method of
 	   java.lang.invoke.MethodHandles. */
-	//args.emplace_back(create_object(method_handles_lookup_class.get()));
+	stack.emplace_back(create_object(method_handles_lookup_class.get()));
+	++args_count_stack;
 
 	/* The first component of the array is set to a reference to an instance of
 	   String that denotes N, the unqualified name given by R. */
-	//args.emplace_back(create_string_from_utf8(name));
+	stack.emplace_back(create_string_from_utf8(name));
+	++args_count_stack;
 
 	/* The second component of the array is set to the reference to an instance
 	   of Class or java.lang.invoke.MethodType that was obtained earlier for the
 	   field descriptor or method descriptor given by R. */
 	// TODO "to an instance of Class" ???
-	//args.emplace_back(mt);
+	stack.emplace_back(mt);
+	++args_count_stack;
 
 	/* Subsequent components of the array are set to the references that were
 	   obtained earlier from resolving R's static arguments, if any.
@@ -85,35 +87,38 @@ inline reference _class::get_resolved_call_site(
 	/* R gives zero or more static arguments, which communicate
 	   application-specific metadata to the bootstrap method. Each static
 	   argument A is resolved, in the order given by R, as follows: */
-	/*for(auto index : bm.arguments_indices) {
-		constant(index).view([&]<typename Type>(Type v) {*/
+	for(class_file::constant::index index : bm.arguments_indices.as_span()) {
+		constant(index).view([&]<typename Type>(Type v) {
 			/* If A is a string constant, then a reference to its instance of
 			   class String is obtained. */
-			/*if constexpr(same_as<Type, class_file::constant::string>) {
-				args.emplace_back(
+			if constexpr(same_as<Type, class_file::constant::string>) {
+				stack.emplace_back(
 					get_string((class_file::constant::string_index) index)
 				);
-			}*/
+				++args_count_stack;
+			}
 			/* If A is a numeric constant, then a reference to an instance of
 			   java.lang.invoke.MethodHandle is obtained by the following
 			   procedure: */
 			// else if() TODO
-			/*else if constexpr(same_as<Type, class_file::constant::method_type>)
+			else if constexpr(same_as<Type, class_file::constant::method_type>)
 			{
 				class_file::constant::utf8 descriptor
 					= utf8_constant(v.descriptor_index);
-				args.emplace_back(
+				stack.emplace_back(
 					resolve_method_type(*this, descriptor)
 				);
+				++args_count_stack;
 			}
 			else if constexpr(
 				same_as<Type, class_file::constant::method_handle>
 			) {
-				args.emplace_back(
+				stack.emplace_back(
 					get_resolved_method_handle(
 						class_file::constant::method_handle_index{ index }
 					)
 				);
+				++args_count_stack;
 			}
 			else {
 				abort();
@@ -121,12 +126,13 @@ inline reference _class::get_resolved_call_site(
 		});
 	}
 
-	method_handle_invoke_exact(
-		mh, parameters_count{ args_count }
-	);
+	/* The bootstrap method handle is invoked, as if by the invocation
+	   BMH.invokeWithArguments(args), where BMH is the bootstrap method handle
+	   and args is the array allocated above. */
+	method_handle_invoke_exact(mh, args_count_stack);
 	
 	reference result = stack.pop_back<reference>();
 
 	trampoline(index) = result;
-	return move(result);*/
+	return move(result);
 }
