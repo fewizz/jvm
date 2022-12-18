@@ -137,7 +137,7 @@ static void execute(method& m) {
 
 	code_reader.read_and_get_exception_table_reader(
 	[&]<typename Type>(Type x0, uint8*& next_instruction_ptr) {
-		on_scope_exit update_beginning{[&](){
+		on_scope_exit update_instruction_ptr{[&] {
 			instrution_ptr = next_instruction_ptr;
 		}};
 
@@ -1319,13 +1319,38 @@ static void execute(method& m) {
 			next_instruction_ptr = instrution_ptr + x.branch;
 		},
 		[&](jmp_sr x) {
+			if(info) { tabs(); print("jmp_sr\n"); }
 			uint32 address = (uint32) (uint64) next_instruction_ptr;
 			stack.emplace_back((int32)address);
 			next_instruction_ptr = instrution_ptr + x.branch;
 		},
 		[&](return_sr x) {
+			if(info) { tabs(); print("return_sr\n"); }
 			uint32 address = stack.get<int32>(x.index);
 			next_instruction_ptr = m.code().iterator() + address;
+		},
+		[&](table_switch x) {
+			if(info) { tabs(); print("table_switch\n"); }
+			/* The index must be of type int and is popped from the operand
+			   stack. */
+			int32 index = stack.pop_back<int32>();
+
+			/* If index is less than low or index is greater than high, ... */
+			if(index < x.low || index > x.hight) {
+				/* ... then a target address is calculated by adding default to
+				   the address of the opcode of this tableswitch instruction */
+				next_instruction_ptr = instrution_ptr + x._default;
+			}
+			else {
+				/* Otherwise, the offset at position index - low of the jump
+				table is extracted */
+				uint32 position = index - x.low;
+				int32 offset = x.offsets[position];
+				/* The target address is calculated by adding that offset to the
+				address of the opcode of this tableswitch instruction.
+				Execution then continues at the target address. */
+				next_instruction_ptr = instrution_ptr + offset;
+			}
 		},
 		[&](i_return) {
 			int32 result = stack.back<int32>();
