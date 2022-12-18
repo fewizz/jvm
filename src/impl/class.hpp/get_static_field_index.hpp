@@ -6,6 +6,11 @@
 inline class_and_declared_static_field_index _class::get_static_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is_same_as<class_and_declared_static_field_index>()) {
 			abort();

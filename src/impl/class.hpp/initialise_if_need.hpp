@@ -4,6 +4,11 @@
 #include <c_string.hpp>
 
 inline void _class::initialise_if_need() {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(
 		initialisation_state_ != initialisation_state::not_started
 	) {

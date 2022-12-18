@@ -4,6 +4,11 @@
 inline _class& _class::get_resolved_class(
 	class_file::constant::class_index class_index
 ) {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto& t = trampoline(class_index); t.has_value()) {
 		if(!t.is_same_as<_class&>()) {
 			abort();

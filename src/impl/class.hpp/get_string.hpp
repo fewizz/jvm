@@ -10,6 +10,11 @@
 inline reference _class::get_string(
 	class_file::constant::string_index string_index
 ) {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto& t = trampoline(string_index); t.has_value()) {
 		if(!t.is_same_as<::reference>()) {
 			abort();

@@ -7,6 +7,11 @@
 inline reference _class::get_resolved_method_handle(
 	class_file::constant::method_handle_index index
 ) {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is_same_as<reference>()) {
 			abort();

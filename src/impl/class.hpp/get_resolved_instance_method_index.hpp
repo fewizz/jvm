@@ -8,6 +8,11 @@
 inline method& _class::get_resolved_method(
 	class_file::constant::method_ref_index ref_index
 ) {
+	mutex_->lock();
+	on_scope_exit unlock {[&] {
+		mutex_->unlock();
+	}};
+
 	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is_same_as<method&>()) {
 			abort();

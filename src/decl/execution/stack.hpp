@@ -213,12 +213,65 @@ public:
 		});
 	}
 
-	void dup_x1_cat_1() {
+	void dup_x1() {
 		pop_back_and_view_as_int32_or_reference([&](auto value1) {
 			pop_back_and_view_as_int32_or_reference([&](auto value2) {
 				emplace_back(value1);
 				emplace_back(move(value2));
 				emplace_back(move(value1));
+			});
+		});
+	}
+
+	void dup_x2() {
+		pop_back_and_view_as_int32_or_reference([&](auto value1) {
+			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+				pop_back_and_view_as_int32_or_reference([&](auto value3) {
+					emplace_back(value1);
+					emplace_back(move(value3));
+					emplace_back(move(value2));
+					emplace_back(move(value1));
+				});
+			});
+		});
+	}
+
+	void dup2_x1() {
+		pop_back_and_view_as_int32_or_reference([&](auto value1) {
+			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+				pop_back_and_view_as_int32_or_reference([&](auto value3) {
+					emplace_back(value2);
+					emplace_back(value1);
+					emplace_back(move(value3));
+					emplace_back(move(value2));
+					emplace_back(move(value1));
+				});
+			});
+		});
+	}
+
+	void dup2_x2() {
+		pop_back_and_view_as_int32_or_reference([&](auto value1) {
+			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+				pop_back_and_view_as_int32_or_reference([&](auto value3) {
+					pop_back_and_view_as_int32_or_reference([&](auto value4) {
+						emplace_back(value2);
+						emplace_back(value1);
+						emplace_back(move(value4));
+						emplace_back(move(value3));
+						emplace_back(move(value2));
+						emplace_back(move(value1));
+					});
+				});
+			});
+		});
+	}
+
+	void swap() {
+		pop_back_and_view_as_int32_or_reference([&](auto value1) {
+			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+				emplace_back(move(value1));
+				emplace_back(move(value2));
 			});
 		});
 	}

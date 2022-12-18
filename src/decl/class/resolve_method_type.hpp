@@ -59,7 +59,7 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 		_class* params_classes[parameters_count];
 		parameters_count = 0;
 		_class* ret_class;
-		
+
 		class_file::method_descriptor::try_read_parameter_and_return_types(
 			descriptor.iterator(),
 			[&]<typename ParamType>(ParamType p) {

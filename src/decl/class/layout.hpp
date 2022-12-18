@@ -106,7 +106,7 @@ struct layout {
 		}()}
 	{}
 
-	nuint total_size() const {
+	nuint size() const {
 		return ending_;
 	}
 

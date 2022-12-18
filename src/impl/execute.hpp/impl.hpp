@@ -54,8 +54,6 @@ static void execute(method& m) {
 		[] { if(info) { --tab; } }
 	};
 
-	uint32 pc = 0;
-
 	execution_context ctx {
 		m,
 		latest_execution_context
@@ -135,10 +133,12 @@ static void execute(method& m) {
 		cf::attribute::code::reader_stage::code
 	> code_reader{ m.code().iterator() - sizeof(uint32) }; // TODO, messy
 
+	uint8* instrution_ptr = m.code().iterator();
+
 	code_reader.read_and_get_exception_table_reader(
-	[&]<typename Type>(Type x0, uint8*& it) {
-		on_scope_exit update_pc{[&](){
-			pc = it - m.code().iterator();
+	[&]<typename Type>(Type x0, uint8*& next_instruction_ptr) {
+		on_scope_exit update_beginning{[&](){
+			instrution_ptr = next_instruction_ptr;
 		}};
 
 		auto handle_thrown = [&]() -> loop_action {
@@ -151,6 +151,7 @@ static void execute(method& m) {
 			auto& exception_handlers = m.exception_handlers();
 
 			for(attr::code::exception_handler handler : exception_handlers) {
+				uint32 pc = instrution_ptr - m.code().iterator();
 				bool in_range = pc >= handler.start_pc && pc < handler.end_pc;
 				if(!in_range) {
 					continue;
@@ -165,7 +166,7 @@ static void execute(method& m) {
 					continue;
 				}
 
-				it = m.code().iterator() + handler.handler_pc;
+				next_instruction_ptr = m.code().iterator() + handler.handler_pc;
 
 				stack.pop_back_until(stack_begin);
 				stack.emplace_back(move(thrown));
@@ -252,6 +253,14 @@ static void execute(method& m) {
 			if(info) { tabs(); print("f_const_2\n"); }
 			stack.emplace_back(float{ 2.0F });
 		},
+		[](d_const_0) {
+			if(info) { tabs(); print("d_const_0\n"); }
+			stack.emplace_back(double{ 0.0 });
+		},
+		[](d_const_1) {
+			if(info) { tabs(); print("d_const_1\n"); }
+			stack.emplace_back(double{ 1.0 });
+		},
 		[](bi_push x) {
 			if(info) {
 				tabs();
@@ -307,6 +316,15 @@ static void execute(method& m) {
 				print("\n");
 			}
 			stack.emplace_back(stack.get<float>(locals_begin + x.index));
+		},
+		[&](d_load x) {
+			if(info) {
+				tabs();
+				print("d_load ");
+				print(x.index);
+				print("\n");
+			}
+			stack.emplace_back(stack.get<double>(locals_begin + x.index));
 		},
 		[&](a_load x) {
 			if(info) {
@@ -389,6 +407,22 @@ static void execute(method& m) {
 			if(info) { tabs(); print("f_load_3\n"); }
 			stack.emplace_back(stack.get<float>(locals_begin + 3));
 		},
+		[&](d_load_0) {
+			if(info) { tabs(); print("d_load_0\n"); }
+			stack.emplace_back(stack.get<double>(locals_begin + 0));
+		},
+		[&](d_load_1) {
+			if(info) { tabs(); print("d_load_1\n"); }
+			stack.emplace_back(stack.get<double>(locals_begin + 1));
+		},
+		[&](d_load_2) {
+			if(info) { tabs(); print("d_load_2\n"); }
+			stack.emplace_back(stack.get<double>(locals_begin + 2));
+		},
+		[&](d_load_3) {
+			if(info) { tabs(); print("d_load_3\n"); }
+			stack.emplace_back(stack.get<double>(locals_begin + 3));
+		},
 		[&](a_load_0) {
 			reference ref = stack.get<reference>(locals_begin + 0);
 			if(info) {
@@ -431,6 +465,24 @@ static void execute(method& m) {
 				stack.emplace_back(v);
 			});
 		},
+		[&](l_a_load) {
+			if(info) { tabs(); print("l_a_load\n"); }
+			return view_array.template operator()<int64>([&](int64& v) {
+				stack.emplace_back(v);
+			});
+		},
+		[&](f_a_load) {
+			if(info) { tabs(); print("f_a_load\n"); }
+			return view_array.template operator()<float>([&](float& v) {
+				stack.emplace_back(v);
+			});
+		},
+		[&](d_a_load) {
+			if(info) { tabs(); print("d_a_load\n"); }
+			return view_array.template operator()<double>([&](double& v) {
+				stack.emplace_back(v);
+			});
+		},
 		[&](a_a_load) {
 			if(info) { tabs(); print("a_a_load\n"); }
 			return view_array.template operator()<reference>([&](reference& v) {
@@ -445,6 +497,12 @@ static void execute(method& m) {
 		},
 		[&](c_a_load) {
 			if(info) { tabs(); print("c_a_load\n"); }
+			return view_array.template operator()<uint16>([&](uint16& v) {
+				stack.emplace_back(v);
+			});
+		},
+		[&](s_a_load) {
+			if(info) { tabs(); print("s_a_load\n"); }
 			return view_array.template operator()<int16>([&](int16& v) {
 				stack.emplace_back(v);
 			});
@@ -475,6 +533,15 @@ static void execute(method& m) {
 				print("\n");
 			}
 			stack.emplace_at(locals_begin + x.index, stack.pop_back<float>());
+		},
+		[&](d_store x) {
+			if(info) {
+				tabs();
+				print("d_store ");
+				print(x.index);
+				print("\n");
+			}
+			stack.emplace_at(locals_begin + x.index, stack.pop_back<double>());
 		},
 		[&](a_store x) {
 			if(info) {
@@ -523,6 +590,38 @@ static void execute(method& m) {
 			if(info) { tabs(); print("l_store_3\n"); }
 			stack.emplace_at(locals_begin + 3, stack.pop_back<int64>());
 		},
+		[&](f_store_0) {
+			if(info) { tabs(); print("f_store_0\n"); }
+			stack.emplace_at(locals_begin + 0, stack.pop_back<float>());
+		},
+		[&](f_store_1) {
+			if(info) { tabs(); print("f_store_1\n"); }
+			stack.emplace_at(locals_begin + 1, stack.pop_back<float>());
+		},
+		[&](f_store_2) {
+			if(info) { tabs(); print("f_store_2\n"); }
+			stack.emplace_at(locals_begin + 2, stack.pop_back<float>());
+		},
+		[&](f_store_3) {
+			if(info) { tabs(); print("f_store_3\n"); }
+			stack.emplace_at(locals_begin + 3, stack.pop_back<float>());
+		},
+		[&](d_store_0) {
+			if(info) { tabs(); print("d_store_0\n"); }
+			stack.emplace_at(locals_begin + 0, stack.pop_back<double>());
+		},
+		[&](d_store_1) {
+			if(info) { tabs(); print("d_store_1\n"); }
+			stack.emplace_at(locals_begin + 1, stack.pop_back<double>());
+		},
+		[&](d_store_2) {
+			if(info) { tabs(); print("d_store_2\n"); }
+			stack.emplace_at(locals_begin + 2, stack.pop_back<double>());
+		},
+		[&](d_store_3) {
+			if(info) { tabs(); print("d_store_3\n"); }
+			stack.emplace_at(locals_begin + 3, stack.pop_back<double>());
+		},
 		[&](a_store_0) {
 			if(info) { tabs(); print("a_store_0\n"); }
 			stack.emplace_at(locals_begin + 0, stack.pop_back<reference>());
@@ -546,6 +645,33 @@ static void execute(method& m) {
 				v = value;
 			});
 		},
+		[&](l_a_store) {
+			int64 value = stack.pop_back<int64>();
+			if(info) { tabs(); print("l_a_store "); print(value); print("\n"); }
+			return view_array.template operator()<int64>([&](int64& v) {
+				v = value;
+			});
+		},
+		[&](f_a_store) {
+			float value = stack.pop_back<float>();
+			if(info) {
+				tabs(); print("f_a_store ");
+				//print(value); print("\n"); } // TODO
+			}
+			return view_array.template operator()<float>([&](float& v) {
+				v = value;
+			});
+		},
+		[&](d_a_store) {
+			double value = stack.pop_back<double>();
+			if(info) {
+				tabs(); print("d_a_store ");
+				//print(value); print("\n"); } // TODO
+			}
+			return view_array.template operator()<double>([&](double& v) {
+				v = value;
+			});
+		},
 		[&](a_a_store) {
 			if(info) { tabs(); print("a_a_store\n"); }
 			reference value = stack.pop_back<reference>();
@@ -563,6 +689,14 @@ static void execute(method& m) {
 		},
 		[&](c_a_store) {
 			int32 value0 = stack.pop_back<int32>();
+			uint16 value = (uint16) (uint32) value0;
+			if(info) { tabs(); print("c_a_store "); print(value); print("\n"); }
+			return view_array.template operator() <uint16>([&](uint16& v) {
+				v = value;
+			});
+		},
+		[&](s_a_store) {
+			int32 value0 = stack.pop_back<int32>();
 			int16 value = (int16) (uint16) (uint32) value0;
 			if(info) { tabs(); print("c_a_store "); print(value); print("\n"); }
 			return view_array.template operator() <int16>([&](int16& v) {
@@ -573,6 +707,10 @@ static void execute(method& m) {
 			if(info) { tabs(); print("pop\n"); }
 			stack.pop_back();
 		},
+		[](pop_2) {
+			if(info) { tabs(); print("pop_2\n"); }
+			stack.pop_back(2);
+		},
 		[](dup) {
 			if(info) {
 				tabs(); print("dup");
@@ -582,11 +720,27 @@ static void execute(method& m) {
 		},
 		[](dup_x1) {
 			if(info) { tabs(); print("dup_x1\n"); }
-			stack.dup_x1_cat_1();
+			stack.dup_x1();
+		},
+		[](dup_x2) {
+			if(info) { tabs(); print("dup_x2\n"); }
+			stack.dup_x2();
 		},
 		[](dup_2) {
 			if(info) { tabs(); print("dup_2\n"); }
 			stack.dup2();
+		},
+		[](dup_2_x1) {
+			if(info) { tabs(); print("dup_2_x1\n"); }
+			stack.dup2_x1();
+		},
+		[](dup_2_x2) {
+			if(info) { tabs(); print("dup_2_x2\n"); }
+			stack.dup2_x2();
+		},
+		[](swap) {
+			if(info) { tabs(); print("swap\n"); }
+			stack.swap();
 		},
 		[](i_add) {
 			if(info) { tabs(); print("i_add\n"); }
@@ -606,6 +760,12 @@ static void execute(method& m) {
 			float value1 = stack.pop_back<float>();
 			stack.emplace_back(float{ value1 + value2 });
 		},
+		[](d_add) {
+			if(info) { tabs(); print("d_add\n"); }
+			double value2 = stack.pop_back<double>();
+			double value1 = stack.pop_back<double>();
+			stack.emplace_back(double{ value1 + value2 });
+		},
 		[](i_sub) {
 			if(info) { tabs(); print("i_sub\n"); }
 			int32 value2 = stack.pop_back<int32>();
@@ -617,6 +777,18 @@ static void execute(method& m) {
 			int64 value2 = stack.pop_back<int64>();
 			int64 value1 = stack.pop_back<int64>();
 			stack.emplace_back(int64{ value1 - value2 });
+		},
+		[](f_sub) {
+			if(info) { tabs(); print("f_sub\n"); }
+			float value2 = stack.pop_back<float>();
+			float value1 = stack.pop_back<float>();
+			stack.emplace_back(float{ value1 - value2 });
+		},
+		[](d_sub) {
+			if(info) { tabs(); print("d_sub\n"); }
+			double value2 = stack.pop_back<double>();
+			double value1 = stack.pop_back<double>();
+			stack.emplace_back(double{ value1 - value2 });
 		},
 		[](i_mul) {
 			if(info) { tabs(); print("i_mul\n"); }
@@ -636,11 +808,23 @@ static void execute(method& m) {
 			float value1 = stack.pop_back<float>();
 			stack.emplace_back(float{ value1 * value2 });
 		},
+		[](d_mul) {
+			if(info) { tabs(); print("d_mul\n"); }
+			double value2 = stack.pop_back<double>();
+			double value1 = stack.pop_back<double>();
+			stack.emplace_back(double{ value1 * value2 });
+		},
 		[](i_div) {
 			if(info) { tabs(); print("i_div\n"); }
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			stack.emplace_back(int32{ value1 / value2 });
+		},
+		[](l_div) {
+			if(info) { tabs(); print("l_div\n"); }
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 / value2 });
 		},
 		[](f_div) {
 			if(info) { tabs(); print("f_div\n"); }
@@ -648,16 +832,55 @@ static void execute(method& m) {
 			float value1 = stack.pop_back<float>();
 			stack.emplace_back(float{ value1 / value2 });
 		},
+		[](d_div) {
+			if(info) { tabs(); print("d_div\n"); }
+			double value2 = stack.pop_back<double>();
+			double value1 = stack.pop_back<double>();
+			stack.emplace_back(double{ value1 / value2 });
+		},
 		[](i_rem) {
 			if(info) { tabs(); print("i_rem\n"); }
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			stack.emplace_back(int32{ value1 - (value1 / value2) * value2 });
 		},
+		[](l_rem) {
+			if(info) { tabs(); print("l_rem\n"); }
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 - (value1 / value2) * value2 });
+		},
+		[](f_rem) { // TODO spec
+			if(info) { tabs(); print("f_rem\n"); }
+			float value2 = stack.pop_back<float>();
+			float value1 = stack.pop_back<float>();
+			stack.emplace_back(float{ value1 - (value1 / value2) * value2 });
+		},
+		[](d_rem) { // TODO spec
+			if(info) { tabs(); print("d_rem\n"); }
+			double value2 = stack.pop_back<double>();
+			double value1 = stack.pop_back<double>();
+			stack.emplace_back(double{ value1 - (value1 / value2) * value2 });
+		},
 		[](i_neg) {
 			if(info) { tabs(); print("i_neg\n"); }
 			int32 value = stack.pop_back<int32>();
 			stack.emplace_back(int32{ -value });
+		},
+		[](l_neg) {
+			if(info) { tabs(); print("l_neg\n"); }
+			int64 value = stack.pop_back<int64>();
+			stack.emplace_back(int64{ -value });
+		},
+		[](f_neg) {
+			if(info) { tabs(); print("f_neg\n"); }
+			float value = stack.pop_back<float>();
+			stack.emplace_back(float{ -value });
+		},
+		[](d_neg) {
+			if(info) { tabs(); print("d_neg\n"); }
+			double value = stack.pop_back<double>();
+			stack.emplace_back(double{ -value });
 		},
 		[](i_sh_l) {
 			if(info) { tabs(); print("i_sh_l\n"); }
@@ -749,6 +972,12 @@ static void execute(method& m) {
 			int32 value1 = stack.pop_back<int32>();
 			stack.emplace_back(int32{ value1 ^ value2 });
 		},
+		[](l_xor) {
+			if(info) { tabs(); print("l_xor\n"); }
+			int64 value2 = stack.pop_back<int64>();
+			int64 value1 = stack.pop_back<int64>();
+			stack.emplace_back(int64{ value1 ^ value2 });
+		},
 		[&](i_inc x) {
 			if(info) {
 				tabs();
@@ -770,10 +999,25 @@ static void execute(method& m) {
 			int32 value = stack.pop_back<int32>();
 			stack.emplace_back((float) value);
 		},
+		[](i_to_d) {
+			if(info) { tabs(); print("i_to_d\n"); }
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((double) value);
+		},
 		[](l_to_i) {
 			if(info) { tabs(); print("l_to_i\n"); }
 			int64 value = stack.pop_back<int64>();
 			stack.emplace_back((int32) (value & 0xFFFFFFFF));
+		},
+		[](l_to_f) {
+			if(info) { tabs(); print("l_to_f\n"); }
+			int64 value = stack.pop_back<int64>();
+			stack.emplace_back((float) value);
+		},
+		[](l_to_d) {
+			if(info) { tabs(); print("l_to_d\n"); }
+			int64 value = stack.pop_back<int64>();
+			stack.emplace_back((double) value);
 		},
 		[](f_to_i) {
 			if(info) { tabs(); print("f_to_i\n"); }
@@ -787,6 +1031,31 @@ static void execute(method& m) {
 			}
 			stack.emplace_back(result);
 		},
+		[](f_to_l) {
+			if(info) { tabs(); print("f_to_l\n"); }
+			float value = stack.pop_back<float>();
+			stack.emplace_back((int64) value);
+		},
+		[](f_to_d) {
+			if(info) { tabs(); print("f_to_d\n"); }
+			float value = stack.pop_back<float>();
+			stack.emplace_back((double) value);
+		},
+		[](d_to_i) {
+			if(info) { tabs(); print("d_to_i\n"); }
+			double value = stack.pop_back<double>();
+			stack.emplace_back((int32) value);
+		},
+		[](d_to_l) {
+			if(info) { tabs(); print("d_to_l\n"); }
+			double value = stack.pop_back<double>();
+			stack.emplace_back((int64) value);
+		},
+		[](d_to_f) {
+			if(info) { tabs(); print("d_to_f\n"); }
+			double value = stack.pop_back<double>();
+			stack.emplace_back((float) value);
+		},
 		[](i_to_b) {
 			if(info) { tabs(); print("i_to_b\n"); }
 			int32 value = stack.pop_back<int32>();
@@ -794,6 +1063,11 @@ static void execute(method& m) {
 		},
 		[](i_to_c) {
 			if(info) { tabs(); print("i_to_c\n"); }
+			int32 value = stack.pop_back<int32>();
+			stack.emplace_back((int32) (uint32) (uint16) (uint32) value);
+		},
+		[](i_to_s) {
+			if(info) { tabs(); print("i_to_s\n"); }
 			int32 value = stack.pop_back<int32>();
 			stack.emplace_back((int32) (uint32) (int16) value);
 		},
@@ -833,6 +1107,32 @@ static void execute(method& m) {
 			}
 			stack.emplace_back(result);
 		},
+		[](d_cmp_l) {
+			if(info) { tabs(); print("d_cmp_l\n"); }
+			double value_2 = stack.pop_back<double>();
+			double value_1 = stack.pop_back<double>();
+			int32 result;
+			if(value_1 >  value_2) result =  1;
+			else if(value_1 == value_2) result =  0;
+			else if(value_1 <  value_2) result = -1;
+			else { // NaN
+				result = -1;
+			}
+			stack.emplace_back(result);
+		},
+		[](d_cmp_g) {
+			if(info) { tabs(); print("d_cmp_g\n"); }
+			double value_2 = stack.pop_back<double>();
+			double value_1 = stack.pop_back<double>();
+			int32 result;
+			if(value_1 >  value_2) result =  1;
+			else if(value_1 == value_2) result =  0;
+			else if(value_1 <  value_2) result = -1;
+			else { // NaN
+				result = 1;
+			}
+			stack.emplace_back(result);
+		},
 		[&](if_eq x) {
 			if(info) {
 				tabs();
@@ -842,7 +1142,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value == 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_ne x) {
@@ -854,7 +1154,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value != 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_lt x) {
@@ -866,7 +1166,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value < 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_ge x) {
@@ -878,7 +1178,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value >= 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_gt x) {
@@ -890,7 +1190,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value > 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_le x) {
@@ -902,7 +1202,7 @@ static void execute(method& m) {
 			}
 			int32 value = stack.pop_back<int32>();
 			if(value <= 0) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_eq x) {
@@ -915,7 +1215,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 == value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_ne x) {
@@ -928,7 +1228,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 != value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_lt x) {
@@ -941,7 +1241,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 < value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_ge x) {
@@ -954,7 +1254,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 >= value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_gt x) {
@@ -967,7 +1267,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 > value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_i_cmp_le x) {
@@ -980,7 +1280,7 @@ static void execute(method& m) {
 			int32 value2 = stack.pop_back<int32>();
 			int32 value1 = stack.pop_back<int32>();
 			if(value1 <= value2) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_a_cmp_eq x) {
@@ -993,7 +1293,7 @@ static void execute(method& m) {
 			reference value2 = stack.pop_back<reference>();
 			reference value1 = stack.pop_back<reference>();
 			if(value1.object_ptr() == value2.object_ptr()) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_a_cmp_ne x) {
@@ -1006,7 +1306,7 @@ static void execute(method& m) {
 			reference value2 = stack.pop_back<reference>();
 			reference value1 = stack.pop_back<reference>();
 			if(value1.object_ptr() != value2.object_ptr()) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](go_to x) {
@@ -1016,7 +1316,16 @@ static void execute(method& m) {
 				print(x.branch);
 				print("\n");
 			}
-			it = m.code().iterator() + pc + x.branch;
+			next_instruction_ptr = instrution_ptr + x.branch;
+		},
+		[&](jmp_sr x) {
+			uint32 address = (uint32) (uint64) next_instruction_ptr;
+			stack.emplace_back((int32)address);
+			next_instruction_ptr = instrution_ptr + x.branch;
+		},
+		[&](return_sr x) {
+			uint32 address = stack.get<int32>(x.index);
+			next_instruction_ptr = m.code().iterator() + address;
 		},
 		[&](i_return) {
 			int32 result = stack.back<int32>();
@@ -1269,6 +1578,24 @@ static void execute(method& m) {
 		[&](class_file::attribute::code::instruction::instance_of x) {
 			::instance_of(c, x.index);
 		},
+		[&](monitor_enter) {
+			reference ref = stack.pop_back<reference>();
+			if(ref.is_null()) {
+				ref = create_null_pointer_exception();
+				return handle_thrown();
+			}
+			ref->lock();
+			return loop_action::next;
+		},
+		[&](monitor_exit) {
+			reference ref = stack.pop_back<reference>();
+			if(ref.is_null()) {
+				ref = create_null_pointer_exception();
+				return handle_thrown();
+			}
+			ref->unlock();
+			return loop_action::next;
+		},
 		[&](if_null x) {
 			if(info) {
 				tabs();
@@ -1278,7 +1605,7 @@ static void execute(method& m) {
 			}
 			reference ref = stack.pop_back<reference>();
 			if(ref.is_null()) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](if_non_null x) {
@@ -1290,7 +1617,7 @@ static void execute(method& m) {
 			}
 			reference ref = stack.pop_back<reference>();
 			if(!ref.is_null()) {
-				it = m.code().iterator() + pc + x.branch;
+				next_instruction_ptr = instrution_ptr + x.branch;
 			}
 		},
 		[&](uint8 x) {

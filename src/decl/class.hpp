@@ -15,6 +15,8 @@
 
 #include "./reference.hpp"
 
+#include "mutex_attribute_recursive.hpp"
+
 #include <class_file/access_flag.hpp>
 
 struct _class :
@@ -50,6 +52,7 @@ private:
 
 	const is_array_class is_array_;
 	const is_primitive_class is_primitive_;
+	body<posix::mutex> mutex_;
 
 	// mutable state:
 	optional<_class&> array_class_;

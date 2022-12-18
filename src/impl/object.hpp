@@ -1,5 +1,6 @@
 #include "decl/object.hpp"
 
+#include "decl/mutex_attribute_recursive.hpp"
 #include "decl/class.hpp"
 #include "decl/field.hpp"
 #include "decl/array.hpp"
@@ -19,8 +20,11 @@ auto object::fields_view_for_layout_view() {
 
 inline object::object(::_class& c) :
 	class_{ c },
+	mutex_ { [&]() {
+		return posix::create_mutex(get_mutex_attribute_recursive());
+	}()},
 	data_ {
-		posix::allocate_memory_for<uint8>(c.instance_layout().total_size())
+		posix::allocate_memory_for<uint8>(c.instance_layout().size())
 	}
 {
 	if(info) {
