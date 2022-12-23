@@ -11,8 +11,7 @@ static inline void init_java_lang_double() {
 	double_class.declared_methods().find(
 		c_string{ "doubleToRawLongBits" }, c_string{ "(D)J" }
 	).native_function(
-		(void*) (int64(*)(native_environment*, jdouble))
-		[](native_environment*, jdouble value) {
+		(void*)+[](native_environment*, double value) {
 			return bit_cast<int64>(value);
 		}
 	);
@@ -20,8 +19,7 @@ static inline void init_java_lang_double() {
 	double_class.declared_methods().find(
 		c_string{ "longBitsToDouble" }, c_string{ "(J)D" }
 	).native_function(
-		(void*) (double(*)(native_environment*, int64))
-		[](native_environment*, int64 value) {
+		(void*)+[](native_environment*, int64 value) {
 			double result = bit_cast<double>(value);
 			if(posix::is_nan(result)) {
 				result = __builtin_nan("");

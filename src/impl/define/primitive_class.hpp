@@ -31,7 +31,7 @@ static inline _class& define_primitive_class(Name&& name, char ch) {
 }
 
 template<basic_range Name>
-static inline _class& define_primitive_and_its_array_classes(
+static inline _class& define_primitive_and_its_array_class(
 	Name&& name, char ch
 ) {
 	_class& component_class = define_primitive_class(name, ch);

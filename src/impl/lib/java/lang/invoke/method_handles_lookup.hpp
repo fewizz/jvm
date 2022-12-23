@@ -75,11 +75,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			"Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)
-		(object*(*)(
-			native_environment*, object*, object*, object*, object*
-		))
-		[](
+		(void*)+[](
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
@@ -100,12 +96,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			"Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)
-		(object*(*)(
-			native_environment*,
-			object*, object*, object*, object*
-		))
-		[](
+		(void*)+[](
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
@@ -125,12 +116,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			"Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)
-		(object*(*)(
-			native_environment*,
-			object*, object*, object*
-		))
-		[](
+		(void*)+[](
 			native_environment*, object*,
 			object* cls, object* mt
 		) -> object* {
@@ -152,12 +138,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			"Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)
-		(object*(*)(
-			native_environment*,
-			object*, object*, object*, object*, object*
-		))
-		[](
+		(void*)+[](
 			native_environment*, object*,
 			object* cls, object* name, object* mt, object* caller
 		) -> object* {

@@ -20,11 +20,7 @@ static void init_java_lang_invoke_string_concat_factory() {
 	);
 
 	make_concat_with_constants.native_function(
-		(void*)
-		(object* (*)(
-			object*, object*, object*, object*, object*
-		))
-		[](
+		(void*)+[](
 			[[maybe_unused]] object* lookup,
 			object*,
 			object*,

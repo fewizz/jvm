@@ -104,8 +104,7 @@ static void init_java_lang_invoke_method_type() {
 		c_string{ "descriptorUTF8" },
 		c_string{ "([Ljava/lang/Class;Ljava/lang/Class;)[B" }
 	).native_function(
-		(void*) (object*(*)(native_environment*, object*, object*))
-		[](native_environment*, object* params_array, object* ret) {
+		(void*)+[](native_environment*, object* params_array, object* ret) {
 			return &
 				method_type_create_method_descriptor_utf8(*params_array, *ret)
 				.unsafe_release_without_destroing();

@@ -11,27 +11,24 @@ static void init_java_io_file_descriptor() {
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stderr_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_environment*))
-		[](native_environment*) {
-			return 2;
+		(void*)+[](native_environment*) {
+			return posix::std_err.underlying();
 		}
 	);
 
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stdin_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_environment*))
-		[](native_environment*) {
-			return 0;
+		(void*)+[](native_environment*) {
+			return posix::std_in.underlying();
 		}
 	);
 
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stdout_fd" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32 (*)(native_environment*))
-		[](native_environment*) {
-			return 1;
+		(void*)+[](native_environment*) {
+			return posix::std_out.underlying();
 		}
 	);
 }

@@ -20,11 +20,7 @@ static inline void init_java_lang_system() {
 		c_string{ "arraycopy" },
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
 	).native_function(
-		(void*) (void(*)(
-			native_environment*,
-			object*, int32, object*, int32, int32
-		))
-		[](
+		(void*)+[](
 			native_environment*,
 			object* src, int32 src_pos,
 			object* dst, int32 dst_pos,

@@ -1,5 +1,6 @@
 #include "decl/classes.hpp"
 #include "decl/execution/stack.hpp"
+#include "decl/execution/thread.hpp"
 #include "impl/impl.hpp"
 
 #include "define/primitive_class.hpp"
@@ -19,23 +20,22 @@ int main (int argc, const char** argv) {
 	init_java_lang_object();
 
 	void_class = define_primitive_class(c_string{ "void"    }, 'V');
-	bool_class =
-		define_primitive_and_its_array_classes(c_string{ "boolean" }, 'Z');
-	byte_class =
-		define_primitive_and_its_array_classes(c_string{ "byte" }, 'B');
-	short_class =
-		define_primitive_and_its_array_classes(c_string{ "short" }, 'S');
-	char_class =
-		define_primitive_and_its_array_classes(c_string{ "char" }, 'C');
-	int_class =
-		define_primitive_and_its_array_classes(c_string{ "int" }, 'I');
-	long_class = {
-		define_primitive_and_its_array_classes(c_string{ "long"}, 'J')
-	};
-	float_class =
-		define_primitive_and_its_array_classes(c_string{ "float" }, 'F');
-	double_class =
-		define_primitive_and_its_array_classes(c_string{ "double" }, 'D');
+	bool_class
+		= define_primitive_and_its_array_class(c_string{ "boolean" }, 'Z');
+	byte_class
+		= define_primitive_and_its_array_class(c_string{ "byte" }, 'B');
+	short_class
+		= define_primitive_and_its_array_class(c_string{ "short" }, 'S');
+	char_class
+		= define_primitive_and_its_array_class(c_string{ "char" }, 'C');
+	int_class
+		= define_primitive_and_its_array_class(c_string{ "int" }, 'I');
+	long_class
+		= define_primitive_and_its_array_class(c_string{ "long"}, 'J');
+	float_class
+		= define_primitive_and_its_array_class(c_string{ "float" }, 'F');
+	double_class
+		= define_primitive_and_its_array_class(c_string{ "double" }, 'D');
 
 	bool_array_class   = bool_class  ->get_array_class();
 	byte_array_class   = byte_class  ->get_array_class();
@@ -47,6 +47,8 @@ int main (int argc, const char** argv) {
 	double_array_class = double_class->get_array_class();
 
 	init_lib();
+
+	thread = create_thread();
 
 	_class& c = load_class(c_string{ argv[1] }.sized());
 	method& m = c.declared_static_methods().try_find(

@@ -20,6 +20,8 @@ inline void init_java_lang_null_pointer_exception() {
 	);
 
 	null_pointer_exception_constructor =
-		null_pointer_exception_class.get()
-		.instance_methods().find(c_string{ "<init>" }, c_string{ "()V" });
+		null_pointer_exception_class
+		.get().instance_methods().find(
+			c_string{ "<init>" }, c_string{ "()V" }
+		);
 }

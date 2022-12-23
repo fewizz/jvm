@@ -1,4 +1,5 @@
 #include "decl/classes.hpp"
+#include "decl/primitives.hpp"
 #include "decl/native/environment.hpp"
 
 static void init_java_lang_integer() {
@@ -6,8 +7,7 @@ static void init_java_lang_integer() {
 	.declared_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
-		(void*) (object*(*)(native_environment*))
-		[](native_environment*) -> object* {
+		(void*)+[](native_environment*) -> object* {
 			return int_class->instance().object_ptr();
 		}
 	);

@@ -25,11 +25,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 		"Ljava/lang/invoke/CallSite;"
 		}
 	).native_function(
-		(void*) (void (*)(
-			native_environment*,
-			object*, object*, object*, object*, object*, object*)
-		)
-		[](
+		(void*)+[](
 			native_environment*,
 			[[maybe_unused]] object* caller,
 			[[maybe_unused]] object* interfaceMethodName,

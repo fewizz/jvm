@@ -24,6 +24,7 @@
 #include "./java/lang/stack_trace_element.hpp"
 #include "./java/lang/string.hpp"
 #include "./java/lang/system.hpp"
+#include "./java/lang/thread.hpp"
 #include "./java/lang/throwable.hpp"
 #include "./java/lang/void.hpp"
 #include "./java/nio/buffer.hpp"
@@ -55,6 +56,7 @@ static inline void init_lib() {
 	init_java_lang_stack_trace_element();
 	init_java_lang_string();
 	init_java_lang_system();
+	init_java_lang_thread();
 	init_java_lang_throwable();
 	init_java_lang_void();
 	init_java_nio_buffer();

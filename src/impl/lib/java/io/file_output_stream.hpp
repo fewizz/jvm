@@ -19,8 +19,7 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "write" }, c_string{ "(I)V" }
 	).native_function(
-		(void*) (void (*)(native_environment*, object*, int32))
-		[](native_environment*, object* ths, int32 value) {
+		(void*)+[](native_environment*, object* ths, int32 value) {
 			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
@@ -39,8 +38,7 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "write" }, c_string{ "([B)V" }
 	).native_function(
-		(void*) (void (*)(native_environment*, object*, object*))
-		[](native_environment*, object* ths, object* a) {
+		(void*)+[](native_environment*, object* ths, object* a) {
 			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
@@ -60,10 +58,7 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "write" }, c_string{ "([BII)V" }
 	).native_function(
-		(void*) (void (*)(
-			native_environment*, object*, object*, int32, int32
-		))
-		[](
+		(void*)+[](
 			native_environment*, object* ths,
 			object* a, int32 off, int32 len
 		) {
@@ -85,8 +80,7 @@ static inline void init_java_io_file_output_stream() {
 	file_output_stream_class.declared_methods().find(
 		c_string{ "close" }, c_string{ "()V" }
 	).native_function(
-		(void*) (void (*)(native_environment*, object*))
-		[](native_environment*, object* ths) {
+		(void*)+[](native_environment*, object* ths) {
 			handle<posix::file> fd {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};

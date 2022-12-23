@@ -21,8 +21,7 @@ static inline void init_java_lang_class() {
 	class_class->declared_methods().find(
 		c_string{ "getComponentType" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
-		(void*) (object*(*)(native_environment*, object*))
-		[](native_environment*, object* ths) -> object* {
+		(void*)+[](native_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
 			return c.get_component_class().instance().object_ptr();
 		}
@@ -31,8 +30,7 @@ static inline void init_java_lang_class() {
 	class_class->declared_methods().find(
 		c_string{ "getName" }, c_string{ "()Ljava/lang/String;" }
 	).native_function(
-		(void*) (object*(*)(native_environment*, object*))
-		[](native_environment*, object* ths) -> object* {
+		(void*)+[](native_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
 			return &
 				create_string_from_utf8(c.name())

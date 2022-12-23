@@ -12,8 +12,7 @@ static inline void init_java_lang_runtime() {
 	runtime_class.declared_methods().find(
 		c_string{ "exit" }, c_string{ "(I)V" }
 	).native_function(
-		(void*) (void(*)(native_environment*, object*, int32))
-		[](native_environment*, object*, int32 status) {
+		(void*)+[](native_environment*, object*, int32 status) {
 			exit(status);
 		}
 	);
@@ -21,8 +20,7 @@ static inline void init_java_lang_runtime() {
 	runtime_class.declared_methods().find(
 		c_string{ "availableProcessors" }, c_string{ "()I" }
 	).native_function(
-		(void*) (int32(*)(native_environment*, object*))
-		[](native_environment*, object*) {
+		(void*)+[](native_environment*, object*) {
 			return 1; // TODO
 		}
 	);
