@@ -22,6 +22,7 @@ private:
 	uint8* data() {
 		return derived().data_for_layout_view();
 	}
+
 	auto fields() { return derived().fields_view_for_layout_view(); }
 
 public:

@@ -10,14 +10,6 @@
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-inline const ::layout& object::layout_for_view() {
-	return class_->instance_layout();
-}
-
-auto object::fields_view_for_layout_view() {
-	return class_->instance_fields();
-}
-
 inline object::object(::_class& c) :
 	class_{ c },
 	mutex_ { [&]() {

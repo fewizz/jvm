@@ -1,5 +1,6 @@
 #pragma once
 
+#include "class.hpp"
 #include "class/layout.hpp"
 #include "class/layout_view_extension.hpp"
 #include "class/member_index.hpp"
@@ -30,9 +31,13 @@ private:
 	// required member functions for layout_view_extension:
 	friend layout_view_extension<object>;
 
-	inline const ::layout& layout_for_view();
+	inline const ::layout& layout_for_view() {
+		return class_->instance_layout();
+	}
 	uint8* data_for_layout_view() { return data_.as_span().begin(); }
-	inline auto fields_view_for_layout_view();
+	inline auto fields_view_for_layout_view() {
+		return class_->instance_fields();
+	}
 
 public:
 
