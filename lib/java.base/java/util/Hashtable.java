@@ -36,16 +36,18 @@ public class Hashtable<K,V>
 
 		@Override
 		public boolean equals(Object o) {
-			Entry e = (Entry) o;
-			return (
-				this.getKey() == null ?
-				e.getKey() == null :
-				this.getKey().equals(e.getKey())
-			) && (
-				this.getValue() == null ?
-				e.getValue() == null :
-				this.getValue().equals(e.getValue())
-			);
+			if(o != null && o instanceof Entry e) {
+				return (
+					this.key_ == null ?
+					e.key_ == null :
+					this.key_.equals(e.key_)
+				) && (
+					this.value_ == null ?
+					e.value_ == null :
+					this.value_.equals(e.value_)
+				);
+			}
+			return false;
 		}
 
 		@Override
@@ -135,12 +137,12 @@ public class Hashtable<K,V>
 
 	@Override
 	public synchronized V get(Object key) {
-		int hash = key.hashCode();
-		int index = (hash & 0x7FFFFFFF) % entries_.length;
+		int keyHash = key.hashCode();
+		int index = (keyHash & 0x7FFFFFFF) % entries_.length;
 
 		Entry<K, V> e = entries_[index];
 		while(e != null) {
-			if ((e.keyHash_ == hash) && e.key_.equals(key)) {
+			if ((e.keyHash_ == keyHash) && e.key_.equals(key)) {
 				return (V)e.value_;
 			}
 			e = e.next_;
@@ -157,9 +159,8 @@ public class Hashtable<K,V>
 
 			while(e != null) {
 				Entry<K, V> next = e.next_;
-				e.next_ = null;
 
-				int index = (e.keyHash_ % 0x7FFFFFFF) % newEntries.length;
+				int index = (e.keyHash_ & 0x7FFFFFFF) % newEntries.length;
 				Entry<K, V> new_e = newEntries[index];
 				e.next_ = new_e;
 				newEntries[index] = e;
@@ -186,26 +187,32 @@ public class Hashtable<K,V>
 		var new_e = new Entry<K, V>(key, value, keyHash, value.hashCode());
 
 		if(e == null) {
-			entries_[index] = new_e;
+			this.entries_[index] = new_e;
 			++size_;
 			return null;
+		}
+		else if(e.keyHash_ == keyHash && e.key_.equals(key)) {
+			V prev_value = e.value_;
+			new_e.next_ = e.next_;
+			this.entries_[index] = new_e;
+			return prev_value;
 		}
 
 		Entry<K, V> prev_e = null;
 
-		do {
-			if (e.keyHash_ == keyHash && e.key_.equals(key)) {
-				V prev_value = e.value_;
-				if(prev_e != null) {
-					prev_e.next_ = new_e;
-				}
-				return prev_value;
-			}
-
+		while(true) {
 			prev_e = e;
 			e = e.next_;
+			if(e == null) {
+				break;
+			}
+			if (e.keyHash_ == keyHash && e.key_.equals(key)) {
+				V prev_value = e.value_;
+				new_e.next_ = e.next_;
+				prev_e.next_ = new_e;
+				return prev_value;
+			}
 		}
-		while(e != null);
 
 		++size_;
 		prev_e.next_ = new_e;

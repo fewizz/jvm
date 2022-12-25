@@ -3,7 +3,9 @@
 #include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/object.hpp"
+#include "decl/thrown.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
+#include "decl/lib/java/lang/null_pointer_exception.hpp"
 
 #include <class_file/constant.hpp>
 
@@ -67,6 +69,11 @@ inline void invoke_virtual(
 
 	uint8 args_stack_count = resolved_method.parameters_stack_size();
 	reference& obj_ref = stack.get<reference>(stack.size() - args_stack_count);
+
+	if(obj_ref.is_null()) {
+		thrown = create_null_pointer_exception();
+		return;
+	}
 
 	/* "Let C be the class of objectref. A method is selected with respect to C
 	and the resolved method (§5.4.6). This is the method to be invoked." */

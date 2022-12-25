@@ -11,6 +11,10 @@ public final class Double
 		this.value_ = value;
 	}
 
+	public static Double valueOf(double f) {
+		return new Double(f);
+	}
+
 	@Override
 	public byte byteValue() {
 		return (byte) this.value_;

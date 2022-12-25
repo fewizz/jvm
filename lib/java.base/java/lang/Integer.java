@@ -49,6 +49,19 @@ public final class Integer extends Number implements Comparable<Integer> {
 	}
 
 	@Override
+	public int hashCode() {
+		return value_;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj != null && obj instanceof Integer i) {
+			return value_ == i.value_;
+		}
+		return false;
+	}
+
+	@Override
 	public int compareTo(Integer anotherInteger) {
 		return compare(this.value_, anotherInteger.value_);
 	}

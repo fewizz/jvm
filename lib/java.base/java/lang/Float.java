@@ -8,6 +8,10 @@ public final class Float extends Number implements Comparable<Float> {
 		this.value_ = value;
 	}
 
+	public static Float valueOf(float f) {
+		return new Float(f);
+	}
+
 	public static native boolean isNaN(float v);
 
 	@Override
@@ -38,6 +42,19 @@ public final class Float extends Number implements Comparable<Float> {
 	@Override
 	public double doubleValue() {
 		return value_;
+	}
+
+	@Override
+	public int hashCode() {
+		return floatToIntBits(value_);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj != null && obj instanceof Float f) {
+			return floatToIntBits(value_) == floatToIntBits(f.value_);
+		}
+		return false;
 	}
 
 	public static native int floatToIntBits(float value);

@@ -6,6 +6,7 @@
 #include "native/environment.hpp"
 #include "execution/stack.hpp"
 #include "execution/thread.hpp"
+#include "thrown.hpp"
 #include "execute.hpp"
 
 #include <posix/thread.hpp>
@@ -31,6 +32,21 @@ inline reference create_thread(reference runnable) {
 	return ref;
 }
 
+static void on_thread_exit() {
+	if(!thrown.is_null()) {
+		reference thrown0 = move(thrown);
+		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
+
+		method& print_stack_trace = thrown0->_class().instance_methods().find(
+			c_string{ "printStackTrace" }, c_string{ "()V" }
+		);
+
+		stack.emplace_back(thrown0);
+		execute(print_stack_trace);
+	}
+	thread = reference{};
+}
+
 static void* thread_start(void* arg) {
 	thread = *(reference*)arg;
 	posix::free_raw_memory(arg);
@@ -42,6 +58,8 @@ static void* thread_start(void* arg) {
 	execute(runnable->_class().declared_instance_methods().find(
 		c_string{ "run" }, c_string{ "()V" }
 	));
+
+	on_thread_exit();
 
 	return nullptr;
 }

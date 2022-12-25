@@ -1,6 +1,8 @@
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/execution/context.hpp"
+#include "decl/execution/thread.hpp"
+#include "decl/thrown.hpp"
 
 extern "C" [[ noreturn ]] void exit(int exit_code);
 
@@ -13,6 +15,9 @@ static inline void init_java_lang_runtime() {
 		c_string{ "exit" }, c_string{ "(I)V" }
 	).native_function(
 		(void*)+[](native_environment*, object*, int32 status) {
+			thrown = reference{};
+			thread = reference{};
+			stack.pop_back_until(0);
 			exit(status);
 		}
 	);

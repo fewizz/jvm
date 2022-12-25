@@ -11,13 +11,13 @@
 
 inline void instance_of(_class& c, class_file::constant::class_index index) {
 	_class& t = c.get_resolved_class(index);
+	
 	if(info) {
 		tabs();
 		print("instance_of ");
 		print(t.name());
-		print("\n");
 	}
-	
+
 	struct check {
 
 	bool operator () (_class& s, _class& t) {
@@ -25,7 +25,7 @@ inline void instance_of(_class& c, class_file::constant::class_index index) {
 		if(!s.is_array()) {
 			/* "If T is a class type, then S must be the same class as T, or S
 			    must be a subclass of T;" */
-			if(!t.is_interface() && t.is_array()) {
+			if(!t.is_interface() && !t.is_array()) {
 				return s.is(t) || s.is_sub_of(t);
 			}
 			/* "If T is an interface type, then S must implement interface T."*/
@@ -76,6 +76,19 @@ inline void instance_of(_class& c, class_file::constant::class_index index) {
 	else {
 		_class& s = ref._class();
 		result = check{}(s, t);
+	}
+
+	if(info) {
+		print(" ref type: ");
+		if(ref.is_null()) {
+			print("null");
+		}
+		else {
+			print(ref._class().name());
+		}
+		print(" ");
+		result == 0 ? print("false"): print("true");
+		print("\n");
 	}
 
 	stack.emplace_back(result);

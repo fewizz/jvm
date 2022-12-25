@@ -742,10 +742,18 @@ struct execute_instruction {
 		stack.emplace_back(double{ value1 / value2 });
 	}
 	void operator () (instr::i_rem) {
-		if(info) { tabs(); print("i_rem\n"); }
+		if(info) { tabs(); print("i_rem "); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 - (value1 / value2) * value2 });
+		int32 result = int32{ value1 - (value1 / value2) * value2 };
+		if(info) {
+			print(value1);
+			print(" % ");
+			print(value2);
+			print(" = ");
+			print(result);
+		}
+		stack.emplace_back(result);
 	}
 	void operator () (instr::l_rem) {
 		if(info) { tabs(); print("l_rem\n"); }
@@ -1037,10 +1045,15 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::if_eq x) {
-		if(info) {
-			tabs(); print("if_eq "); print(x.branch); print("\n");
-		}
 		int32 value = stack.pop_back<int32>();
+		if(info) {
+			tabs();
+			print("if_eq ");
+			value == 0 ? print("true") : print("false");
+			print(" +");
+			print(x.branch);
+			print("\n");
+		}
 		if(value == 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}

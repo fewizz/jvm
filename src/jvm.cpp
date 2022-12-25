@@ -63,17 +63,8 @@ int main (int argc, const char** argv) {
 	stack.emplace_back(args_array);
 	execute(m);
 
-	if(!thrown.is_null()) {
-		reference thrown0 = move(thrown);
-		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
+	bool there_was_unhandled_exception = !thrown.is_null();
+	on_thread_exit();
 
-		method& print_stack_trace = thrown0->_class().instance_methods().find(
-			c_string{ "printStackTrace" }, c_string{ "()V" }
-		);
-
-		stack.emplace_back(thrown0);
-		execute(print_stack_trace);
-
-		return 1;
-	}
+	return there_was_unhandled_exception ? -1 : 0;
 }
