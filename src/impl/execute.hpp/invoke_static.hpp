@@ -3,6 +3,7 @@
 #include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/method.hpp"
+#include "decl/object.hpp"
 
 inline void invoke_static(
 	class_file::constant::method_ref_index ref_index, _class& c
@@ -28,5 +29,13 @@ inline void invoke_static(
 	}
 
 	method& m = c.get_static_method(ref_index);
+
+	if(m.access_flags().super_or_synchronized) {
+		c.instance()->lock();
+	}
+	on_scope_exit unlock_if_synchronized { [&] {
+		if(m.access_flags().super_or_synchronized) c.instance()->lock();
+	}};
+
 	execute(m);
 }

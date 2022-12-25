@@ -21,7 +21,7 @@ inline method& select_method_for_invoke_special(
 		      considers the ACC_SUPER flag to be set in every class file,
 		      regardless of the actual value of the flag in the class file and
 		      the version of the class file" */
-		current.access_flags().super;
+		current.access_flags().super_or_synchronized;
 
 	_class& c =
 		c_is_direct_super_class ? current.super() :

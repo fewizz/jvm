@@ -4,6 +4,7 @@
 #include "decl/class.hpp"
 #include "decl/method.hpp"
 #include "decl/lib/java/lang/object.hpp"
+#include "decl/object.hpp"
 
 #include <loop_action.hpp>
 
@@ -38,5 +39,18 @@ inline void invoke_special(
 	method& m = select_method_for_invoke_special(
 		current, referenced_class, resolved_method
 	);
+
+	// copy, so object and it's lock may not be destroyed
+	reference obj_ref = stack.get<reference>(
+		stack.size() - m.parameters_stack_size()
+	);
+
+	if(m.access_flags().super_or_synchronized) {
+		obj_ref->lock();
+	}
+	on_scope_exit unlock_if_synchronized { [&] {
+		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
+	}};
+
 	execute(m);
 }

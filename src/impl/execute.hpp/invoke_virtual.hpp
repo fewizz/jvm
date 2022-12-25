@@ -68,7 +68,9 @@ inline void invoke_virtual(
 	method& resolved_method = c.get_resolved_method(ref_index);
 
 	uint8 args_stack_count = resolved_method.parameters_stack_size();
-	reference& obj_ref = stack.get<reference>(stack.size() - args_stack_count);
+
+	// copy, so object and it's lock may not be destroyed
+	reference obj_ref = stack.get<reference>(stack.size() - args_stack_count);
 
 	if(obj_ref.is_null()) {
 		thrown = create_null_pointer_exception();
@@ -78,5 +80,13 @@ inline void invoke_virtual(
 	/* "Let C be the class of objectref. A method is selected with respect to C
 	and the resolved method (§5.4.6). This is the method to be invoked." */
 	method& m = select_method(obj_ref->_class(), resolved_method);
+
+	if(m.access_flags().super_or_synchronized) {
+		obj_ref->lock();
+	}
+	on_scope_exit unlock_if_synchronized { [&] {
+		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
+	}};
+
 	execute(m);
 }
