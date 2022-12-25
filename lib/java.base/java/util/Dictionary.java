@@ -8,9 +8,9 @@ public abstract class Dictionary<K,V> {
 
 	public abstract boolean isEmpty();
 
-	public abstract Enumeration<K> keys();
+	//public abstract Enumeration<K> keys();
 
-	public abstract Enumeration<V> elements();
+	//public abstract Enumeration<V> elements();
 
 	public abstract V get(Object key);
 

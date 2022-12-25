@@ -8,6 +8,8 @@ public final class Float extends Number implements Comparable<Float> {
 		this.value_ = value;
 	}
 
+	public static native boolean isNaN(float v);
+
 	@Override
 	public byte byteValue() {
 		return (byte) value_;

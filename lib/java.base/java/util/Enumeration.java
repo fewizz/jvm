@@ -6,6 +6,15 @@ public interface Enumeration<E> {
 
 	E nextElement();
 
-	default Iterator<E> asIterator();
+	default Iterator<E> asIterator() {
+		return new Iterator<>() {
+			@Override public boolean hasNext() {
+				return hasMoreElements();
+			}
+			@Override public E next() {
+				return nextElement();
+			}
+		};
+	}
 
 }

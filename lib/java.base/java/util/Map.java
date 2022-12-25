@@ -1,8 +1,13 @@
 package java.util;
 
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 public interface Map<K,V> {
 
 	public static interface Entry<K,V> {
+
 		K getKey();
 
 		V getValue();
@@ -12,6 +17,7 @@ public interface Map<K,V> {
 		boolean equals(Object o);
 
 		int hashCode();
+
 	}
 
 	int size();
@@ -28,15 +34,15 @@ public interface Map<K,V> {
 
 	V remove(Object key);
 
-	void putAll(Map<? extends K,? extends V> m);
+	//void putAll(Map<? extends K,? extends V> m);
 
 	void clear();
 
-	Set<K> keySet();
+	//Set<K> keySet();
 
-	Collection<V> values();
+	//Collection<V> values();
 
-	Set<Map.Entry<K,V>> entrySet();
+	//Set<Map.Entry<K,V>> entrySet();
 
 	boolean equals(Object o);
 
@@ -47,13 +53,13 @@ public interface Map<K,V> {
 		return v != null || containsKey(key)? v : defaultValue;
 	}
 
-	default void forEach(BiConsumer<? super K,? super V> action) {
+	/*default void forEach(BiConsumer<? super K,? super V> action) {
 		if(action == null) throw new NullPointerException();
 
 		for (Map.Entry<K, V> entry : this.entrySet()) {
-     		action.accept(entry.getKey(), entry.getValue())
+			action.accept(entry.getKey(), entry.getValue());
 		}
-	}
+	}*/
 
 	//default void replaceAll(
 	//	BiFunction<? super K,? super V,? extends V> function
@@ -61,35 +67,35 @@ public interface Map<K,V> {
 
 	default V putIfAbsent(K key, V value) {
 		V v = this.get(key);
- 		if (v == null) {
-     		v = this.put(key, value);
+		if (v == null) {
+			v = this.put(key, value);
 		}
 		return v;
 	}
 
 	default boolean remove(Object key, Object value) {
 		if (this.containsKey(key) && Objects.equals(this.get(key), value)) {
-     		this.remove(key);
-     		return true;
- 		} else {
-     		return false;
+			this.remove(key);
+			return true;
+		} else {
+			return false;
 		}
 	}
 
 	default boolean replace(K key, V oldValue, V newValue) {
 		if (this.containsKey(key) && Objects.equals(this.get(key), oldValue)) {
-     		this.put(key, newValue);
-     		return true;
- 		} else {
-     		return false;
+			this.put(key, newValue);
+			return true;
+		} else {
+			return false;
 		}
 	}
 
 	default V replace(K key, V value) {
 		if (this.containsKey(key)) {
-     		return this.put(key, value);
- 		} else {
-     		return null;
+			return this.put(key, value);
+		} else {
+			return null;
 		}
 	}
 
@@ -97,12 +103,12 @@ public interface Map<K,V> {
 		K key, Function<? super K,? extends V> mappingFunction
 	) {
 		V result = this.get(key);
-		if (prev == null) {
-     		result = mappingFunction.apply(key);
-     		if (result != null) {
-         		this.put(key, reslt);
+		if (result == null) {
+			result = mappingFunction.apply(key);
+			if (result != null) {
+				this.put(key, result);
 			}
- 		}
+		}
 		return result;
 	}
 
@@ -112,7 +118,7 @@ public interface Map<K,V> {
 		V result = this.get(key); 
 		if (result != null) {
 			V oldValue = result;
-			V result = remappingFunction.apply(key, oldValue);
+			result = remappingFunction.apply(key, oldValue);
 			if (result != null) {
 				this.put(key, result);
 			}

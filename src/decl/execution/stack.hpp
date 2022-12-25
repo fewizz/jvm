@@ -104,7 +104,7 @@ public:
 	}
 
 	~stack() {
-		pop_back_until(0);
+		//pop_back_until(0);
 	}
 
 	template<stack_primitive_element Type>

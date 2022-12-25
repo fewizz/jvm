@@ -6,9 +6,18 @@ public interface Consumer<T> {
 	void accept(T t);
 
 	default Consumer<T> andThen(Consumer<? super T> after) {
-		return (t) -> {
-			accept(t);
-			after.accept(t);
+		if(after == null) {
+			throw new NullPointerException();
+		}
+
+		Consumer<T> before = this;
+
+		return new Consumer<T>() {
+			@Override
+			public void accept(T t) {
+				before.accept(t);
+				after.accept(t);
+			}
 		};
 	}
 

@@ -40,7 +40,7 @@ static void* thread_start(void* arg) {
 	stack.emplace_back(runnable);
 	
 	execute(runnable->_class().declared_instance_methods().find(
-		c_string{ "run" }, c_string{ "" }
+		c_string{ "run" }, c_string{ "()V" }
 	));
 
 	return nullptr;
@@ -50,7 +50,7 @@ inline void init_java_lang_thread() {
 	thread_class = load_class(c_string{ "java/lang/Thread" });
 	thread_runnable_field_position
 		= thread_class->instance_field_position(
-			c_string{ "runnable_" }, c_string{ "java/lang/Runnable" }
+			c_string{ "runnable_" }, c_string{ "Ljava/lang/Runnable;" }
 		);
 	
 	thread_class->declared_instance_methods().find(
