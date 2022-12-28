@@ -10,6 +10,7 @@
 #include <class_file/descriptor/type.hpp>
 #include <class_file/descriptor/method_reader.hpp>
 #include <class_file/attribute/code/exception_handler.hpp>
+#include <class_file/attribute/line_numbers/reader.hpp>
 
 #include <span.hpp>
 #include <variant.hpp>
@@ -35,15 +36,22 @@ using exception_handlers = list<
 	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
 >;
 
+
 struct method : class_member {
 private:
 
 	code_or_native_function_ptr code_;
-	exception_handlers exception_handlers_;
+	posix::memory_for_range_of<
+		class_file::attribute::code::exception_handler
+	> exception_handlers_;
 	uint8 parameters_stack_size_ = 0;
-	posix::memory_for_range_of<one_of_non_void_descriptor_types>
-		parameter_types_;
+	posix::memory_for_range_of<
+		one_of_non_void_descriptor_types
+	> parameter_types_;
 	one_of_descriptor_types return_type_{ class_file::v{} };
+	posix::memory_for_range_of<
+		tuple<uint16, class_file::line_number>
+	> line_numbers_;
 
 public:
 
@@ -52,11 +60,17 @@ public:
 		class_file::constant::utf8             name,
 		class_file::constant::utf8             descriptor,
 		code_or_native_function_ptr            code,
-		exception_handlers&&                   exception_handlers
+		posix::memory_for_range_of<
+			class_file::attribute::code::exception_handler
+		>&& exception_handlers,
+		posix::memory_for_range_of<
+			tuple<uint16, class_file::line_number>
+		>&& line_numbers
 	) :
 		class_member       { access_flags, name, descriptor },
 		code_              { code                           },
-		exception_handlers_{ move(exception_handlers)       }
+		exception_handlers_{ move(exception_handlers)       },
+		line_numbers_      { move(line_numbers)             }
 	{
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
 		uint8 parameter_count = reader.try_read_parameters_count(
@@ -120,8 +134,12 @@ public:
 
 	code code() const { return code_.get_same_as<::code>(); }
 
-	exception_handlers& exception_handlers() {
+	auto& exception_handlers() {
 		return exception_handlers_;
+	}
+
+	auto& line_numbers() {
+		return line_numbers_;
 	}
 
 	bool is_native() const {

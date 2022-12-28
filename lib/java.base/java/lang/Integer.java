@@ -12,6 +12,8 @@ public final class Integer extends Number implements Comparable<Integer> {
 		this.value_ = value;
 	}
 
+	public static native String toString(int i, int radix);
+
 	public static native String toHexString(int i);
 
 	public static Integer valueOf(int i) {

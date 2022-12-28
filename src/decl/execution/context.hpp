@@ -11,6 +11,7 @@ struct method;
 struct execution_context {
 	method& method;
 	optional<execution_context&> previous;
+	const uint8* instruction_ptr = nullptr;
 
 	nuint frames_until_end() const {
 		if(previous.has_no_value()) {

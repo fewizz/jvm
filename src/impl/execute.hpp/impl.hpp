@@ -105,6 +105,8 @@ static void execute(method& m) {
 			instrution_ptr = next_instruction_ptr;
 		}};
 
+		ctx.instruction_ptr = instrution_ptr;
+
 		execute_instruction instr_exe {
 			.m = m,
 			.c = c,

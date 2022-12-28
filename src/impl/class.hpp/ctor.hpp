@@ -7,6 +7,7 @@ inline _class::_class(
 	class_file::access_flags            access_flags,
 	this_class_name                     this_name,
 	posix::memory_for_range_of<uint8>   descriptor,
+	class_file::constant::utf8          source_file,
 	optional<_class&>                   super_class,
 	posix::memory_for_range_of<_class*> declared_interfaces,
 	posix::memory_for_range_of<field>   declared_fields,
@@ -22,6 +23,7 @@ inline _class::_class(
 	access_flags_        { access_flags                 },
 	this_name_           { this_name                    },
 	descriptor_          { move(descriptor)             },
+	source_file_         { source_file                  },
 	declared_interfaces_ { move(declared_interfaces)    },
 	declared_fields_     { [&] {
 		for(field& f : declared_fields.as_span()) {

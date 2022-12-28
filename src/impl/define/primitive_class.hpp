@@ -21,6 +21,7 @@ static inline _class& define_primitive_class(Name&& name, char ch) {
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_name{ data_span },
 		move(descriptor),
+		class_file::constant::utf8{},
 		object_class,
 		posix::memory_for_range_of<_class*>{},
 		posix::memory_for_range_of<field>{},

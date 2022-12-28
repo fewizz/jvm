@@ -27,45 +27,90 @@ read_method_and_get_advaned_iterator(
 		optional<native_function_ptr>()
 	};
 
-	exception_handlers exception_handlers;
+	posix::memory_for_range_of<
+		class_file::attribute::code::exception_handler
+	> exception_handlers{};
+
+	posix::memory_for_range_of<
+		tuple<uint16, class_file::line_number>
+	> line_numbers{};
+
+	auto mapper = [&](auto name_index) {
+		return const_pool.utf8_constant(name_index);
+	};
 
 	Iterator it = attributes_reader.read_and_get_advanced_iterator(
-		[&](auto name_index) {
-			return const_pool.utf8_constant(name_index);
-		},
-		[&]<typename Type>(Type max_stack_reader) {
-			using namespace class_file;
+		mapper, [&]<typename Type>(Type reader) {
 
-			if constexpr (Type::attribute_type == attribute::type::code) {
-				using namespace attribute::code;
+		using namespace class_file;
 
-				auto [max_stack, max_locals_reader]
-					= max_stack_reader.read_and_get_max_locals_reader();
-				auto [max_locals, code_reader]
-					= max_locals_reader.read_and_get_code_reader();
+		if constexpr (Type::attribute_type == attribute::type::code) {
+			using namespace attribute::code;
+			Type max_stack_reader = reader;
 
-				auto code_span = code_reader.read_as_span();
-				auto exception_table_reader
-					= code_reader.skip_and_get_exception_table_reader();
+			auto [max_stack, max_locals_reader]
+				= max_stack_reader.read_and_get_max_locals_reader();
+			auto [max_locals, code_reader]
+				= max_locals_reader.read_and_get_code_reader();
 
-				code_or_native_function = ::code {
-					code_span, max_stack, max_locals
-				};
+			auto code_span = code_reader.read_as_span();
+			auto exception_table_reader
+				= code_reader.skip_and_get_exception_table_reader();
 
-				exception_handlers = {
-					posix::allocate_memory_for<
-						class_file::attribute::code::exception_handler
-					>(exception_table_reader.read_count())
-				};
+			code_or_native_function = ::code {
+				code_span, max_stack, max_locals
+			};
 
-				exception_table_reader.read_and_get_attributes_reader(
+			list exception_handlers_list {
+				posix::allocate_memory_for<
+					class_file::attribute::code::exception_handler
+				>(exception_table_reader.read_count())
+			};
+
+			auto attributes_reader
+				= exception_table_reader.read_and_get_attributes_reader(
 				[&](exception_handler eh) {
-					exception_handlers.emplace_back(eh);
+					exception_handlers_list.emplace_back(eh);
 					return loop_action::next;
-				});
-			}
+				}
+			);
+
+			attributes_reader.read_and_get_advanced_iterator(
+				mapper,
+				[&]<typename CodeAttributeType>(
+					CodeAttributeType reader
+				) {
+					using namespace class_file;
+
+					if constexpr (
+						CodeAttributeType::attribute_type ==
+						attribute::type::line_numbers
+					) {
+						CodeAttributeType count_reader = reader;
+						auto [count, line_numbers_reader]
+							= count_reader
+							.read_and_get_line_numbers_reader();
+						
+						list line_numbers_list {
+							posix::allocate_memory_for<
+								tuple<uint16, class_file::line_number>
+							>(count)
+						};
+
+						line_numbers_reader.read_and_get_advanced_iterator(
+							count,
+							[&](uint16 start_pc, class_file::line_number ln) {
+								line_numbers_list.emplace_back(start_pc, ln);
+							}
+						);
+						line_numbers = line_numbers_list.move_storage_range();
+					}
+				}
+			);
+
+			exception_handlers = exception_handlers_list.move_storage_range();
 		}
-	);
+	});
 
 	class_file::constant::utf8 name = const_pool.utf8_constant(name_index);
 	class_file::constant::utf8 desc = const_pool.utf8_constant(desc_index);
@@ -76,7 +121,8 @@ read_method_and_get_advaned_iterator(
 			name,
 			desc,
 			code_or_native_function,
-			move(exception_handlers)
+			move(exception_handlers),
+			move(line_numbers)
 		},
 		it
 	};

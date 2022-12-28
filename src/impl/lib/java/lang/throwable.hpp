@@ -2,10 +2,12 @@
 
 #include "decl/native/environment.hpp"
 #include "decl/execution/latest_context.hpp"
+#include "decl/execute.hpp"
 #include "decl/array.hpp"
 #include "decl/primitives.hpp"
 #include "decl/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
+#include "decl/lib/java/lang/string.hpp"
 #include "decl/class/load.hpp"
 #include "decl/classes.hpp"
 
@@ -57,10 +59,47 @@ static inline void init_java_lang_throwable() {
 		execution_context* ctx = ctx_begin;
 
 		for(reference& frame : array_as_span<reference>(ste_array)) {
-			frame = create_stack_trace_element(
-				ctx->method._class().name(),
+			reference ste = create_object(stack_trace_element_class.get());
+			stack.emplace_back(ste);
+			
+			reference class_name = create_string_from_utf8(
+				ctx->method._class().name()
+			);
+			reference method_name = create_string_from_utf8(
 				ctx->method.name()
 			);
+			stack.emplace_back(move(class_name));
+			stack.emplace_back(move(method_name));
+
+			reference file_name{};
+			uint16 line_number = -1;
+
+			if(ctx->method.is_native()) {
+				line_number = -2;
+			}
+			else if(ctx->method._class().has_source_file()) {
+				file_name = create_string_from_utf8(
+					ctx->method._class().source_file()
+				);
+				uint32 pc =
+					ctx->instruction_ptr - ctx->method.code().iterator();
+				for(
+					auto start_pc_and_line_number :
+					ctx->method.line_numbers().as_span()
+				) {
+					auto [start_pc, possible_line_number]
+						= start_pc_and_line_number;
+					if(start_pc <= pc) {
+						line_number = (uint16) possible_line_number;
+					}
+				}
+			}
+
+			stack.emplace_back(file_name);
+			stack.emplace_back<int32>(line_number);
+			execute(stack_trace_element_constructor.get());
+
+			frame = move(ste);
 			ctx = ctx->previous.ptr();
 		}
 

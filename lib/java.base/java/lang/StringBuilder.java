@@ -48,7 +48,7 @@ public final class StringBuilder {
 	}
 
 	public StringBuilder append(int i) {
-		return this; // TODO
+		return append(Integer.toString(i, 10));
 	}
 
 	@Override

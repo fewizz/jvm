@@ -115,6 +115,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 	);
 
 	bootstrap_methods bootstrap_methods{};
+	class_file::constant::utf8 source_file{};
 
 	attributes_reader.read_and_get_advanced_iterator(
 		[&](auto attribute_name_index) {
@@ -126,6 +127,15 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 				class_file::attribute::type::bootstrap_methods
 			) {
 				bootstrap_methods = read_bootstap_methods(attribute_reader);
+			}
+			if constexpr(
+				Type::attribute_type == class_file::attribute::type::source_file
+			) {
+				Type index_reader = attribute_reader;
+				auto [utf8_index, it]
+					= index_reader.read_and_get_advanced_iterator();
+				
+				source_file = const_pool.utf8_constant(utf8_index);
 			}
 		}
 	);
@@ -162,6 +172,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		move(bytes), access_flags,
 		this_class_name{ name },
 		move(descriptor),
+		source_file,
 		super,
 		interfaces.move_storage_range(),
 		fields.move_storage_range(),

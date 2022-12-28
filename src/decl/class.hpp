@@ -18,6 +18,7 @@
 #include "mutex_attribute_recursive.hpp"
 
 #include <class_file/access_flag.hpp>
+#include <class_file/constant.hpp>
 
 struct _class :
 	layout_view_extension<_class>, // for constants
@@ -33,6 +34,7 @@ private:
 	const class_file::access_flags access_flags_;
 	const this_class_name this_name_;
 	const posix::memory_for_range_of<uint8> descriptor_;
+	const class_file::constant::utf8 source_file_;
 
 	const posix::memory_for_range_of<_class*> declared_interfaces_;
 	posix::memory_for_range_of<field> declared_fields_;
@@ -72,6 +74,7 @@ public:
 		posix::memory_for_range_of<uint8> bytes, class_file::access_flags,
 		this_class_name,
 		posix::memory_for_range_of<uint8> descriptor,
+		class_file::constant::utf8 source_file,
 		optional<_class&> super,
 		posix::memory_for_range_of<_class*>,
 		posix::memory_for_range_of<field>,
@@ -94,6 +97,9 @@ public:
 	const _class& super() const { return super_.get(); }
 	      _class& super()       { return super_.get(); }
 	bool has_super() const { return super_.has_value(); }
+
+	class_file::constant::utf8 source_file() const { return source_file_; }
+	bool has_source_file() const { return source_file_.iterator() != nullptr; }
 
 	bool is_interface() const { return access_flags_.interface; }
 

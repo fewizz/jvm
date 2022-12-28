@@ -38,6 +38,7 @@ inline _class& define_array_class(Name&& name) {
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_class_name { data_as_span },
 		move(descriptor),
+		class_file::constant::utf8{},
 		object_class.get(),
 		posix::memory_for_range_of<_class*>{},
 		move(declared_fields),
