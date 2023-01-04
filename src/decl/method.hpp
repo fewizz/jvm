@@ -46,9 +46,9 @@ private:
 	> exception_handlers_;
 	uint8 parameters_stack_size_ = 0;
 	posix::memory_for_range_of<
-		one_of_non_void_descriptor_types
+		one_of_descriptor_parameter_types
 	> parameter_types_;
-	one_of_descriptor_types return_type_{ class_file::v{} };
+	one_of_descriptor_return_types return_type_{ class_file::v{} };
 	posix::memory_for_range_of<
 		tuple<uint16, class_file::line_number>
 	> line_numbers_;
@@ -78,19 +78,14 @@ public:
 		).get();
 
 		list parameter_types_list =
-			posix::allocate_memory_for<one_of_non_void_descriptor_types>(
+			posix::allocate_memory_for<one_of_descriptor_parameter_types>(
 				parameter_count
 			);
 
 		auto return_type_reader
 			= reader.try_read_parameter_types_and_get_return_type_reader(
 				[&]<typename ParamType>(ParamType parameter_type) {
-					if constexpr(same_as<ParamType, class_file::v>) {
-						__builtin_unreachable();
-					}
-					else {
-						parameter_types_list.emplace_back(parameter_type);
-					}
+					parameter_types_list.emplace_back(parameter_type);
 				},
 				[](auto) { abort(); }
 			).get();
@@ -105,7 +100,7 @@ public:
 		if(!access_flags._static) {
 			++parameters_stack_size_; // this
 		}
-		for(one_of_non_void_descriptor_types t : parameter_types_list) {
+		for(one_of_descriptor_parameter_types t : parameter_types_list) {
 			t.view([&]<typename Type>(Type) {
 				if constexpr(
 					same_as<Type, class_file::j> ||
@@ -161,7 +156,7 @@ public:
 		return code_.get_same_as<optional<native_function_ptr>>().get();
 	}
 
-	one_of_descriptor_types return_type() const {
+	one_of_descriptor_return_types return_type() const {
 		return return_type_;
 	}
 

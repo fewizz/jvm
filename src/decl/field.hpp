@@ -8,7 +8,7 @@
 struct field : class_member {
 	using class_member::class_member;
 
-	one_of_non_void_descriptor_types type;
+	one_of_descriptor_field_types type;
 	uint8 stack_size;
 
 	field(

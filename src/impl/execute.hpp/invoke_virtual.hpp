@@ -41,13 +41,9 @@ inline void invoke_virtual(
 		class_file::method_descriptor::reader reader{ desc.iterator() };
 		reader.try_read_parameter_types_and_get_return_type_reader(
 		[&]<typename ParamType>(ParamType) {
-				if constexpr(same_as<ParamType, class_file::v>) {
-					__builtin_unreachable();
-				} else {
-					args_count_stack += 
-						same_as_any<ParamType, class_file::j, class_file::d> ?
-						2 : 1;
-				}
+				args_count_stack += 
+					same_as_any<ParamType, class_file::j, class_file::d> ?
+					2 : 1;
 			},
 			[](auto) { abort(); }
 		);

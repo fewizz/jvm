@@ -11,16 +11,11 @@ inline field::field(
 	class_member{ access_flags, name, desc },
 	type {
 		[&] {
-			optional<one_of_non_void_descriptor_types> type;
-			class_file::read_type_descriptor(
+			optional<one_of_descriptor_parameter_types> type;
+			class_file::read_field_type_descriptor(
 				desc.iterator(),
 				[&]<typename Type>(Type t) {
-					if constexpr(same_as<Type, class_file::v>) {
-						abort();
-					}
-					else {
-						type = t;
-					}
+					type = t;
 				}, [](auto){ abort(); }
 			);
 			return type.get();
