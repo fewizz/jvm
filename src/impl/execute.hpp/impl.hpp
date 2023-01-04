@@ -15,7 +15,7 @@
 
 #include <class_file/reader.hpp>
 #include <class_file/descriptor/method_reader.hpp>
-#include <class_file/attribute/code/reader.hpp>
+#include <class_file/attribute/code/read_instruction.hpp>
 
 static void execute(method& m) {
 	_class& c = m._class();
@@ -91,38 +91,45 @@ static void execute(method& m) {
 		}
 	}
 
-	class_file::attribute::code::reader<
-		uint8*,
-		class_file::attribute::code::reader_stage::code
-	> code_reader{ m.code().iterator() - sizeof(uint32) }; // TODO, messy
+	const uint8* instruction_ptr = m.code().iterator();
+	const uint8* instruction_end_ptr = m.code().sentinel();
 
-	const uint8* instrution_ptr = m.code().iterator();
+	while(instruction_ptr < instruction_end_ptr) {
+		const uint8* next_instruction_ptr = instruction_ptr;
 
-	code_reader.read_and_get_exception_table_reader(
-	[&]<typename Type>(Type x0, uint8*& next_instruction_ptr)
-	-> loop_action {
-		on_scope_exit update_instruction_ptr{[&] {
-			instrution_ptr = next_instruction_ptr;
-		}};
+		loop_action action = class_file::attribute::code::instruction::read(
+			next_instruction_ptr,
+			// beginning, required for table_swith and others
+			m.code().iterator(),
+			[&]<typename Type>(Type instruction) -> loop_action {
+				on_scope_exit update_instruction_ptr{[&] {
+					instruction_ptr = next_instruction_ptr;
+				}};
 
-		ctx.instruction_ptr = instrution_ptr;
+				ctx.instruction_ptr = instruction_ptr;
 
-		execute_instruction instr_exe {
-			.m = m,
-			.c = c,
-			.instruction_ptr = instrution_ptr,
-			// TODO
-			.next_instruction_ptr = (const uint8*&) next_instruction_ptr,
-			.locals_begin = locals_begin,
-			.stack_begin = stack_begin
-		};
+				execute_instruction instr_exe {
+					.m = m,
+					.c = c,
+					.instruction_ptr = instruction_ptr,
+					// TODO
+					.next_instruction_ptr = (const uint8*&)next_instruction_ptr,
+					.locals_begin = locals_begin,
+					.stack_begin = stack_begin
+				};
 
-		if constexpr(same_as<decltype(instr_exe(x0)), loop_action>) {
-			return instr_exe(x0);
-		}
-		else {
-			instr_exe(x0);
-			return loop_action::next;
-		}
-	}, m.code().size());
+				if constexpr(
+					same_as<decltype(instr_exe(instruction)), loop_action>
+				) {
+					return instr_exe(instruction);
+				}
+				else {
+					instr_exe(instruction);
+					return loop_action::next;
+				}
+			}
+		);
+
+		if(action == loop_action::stop) break;
+	}
 }

@@ -1549,10 +1549,10 @@ struct execute_instruction {
 		stack.emplace_back((int32)address);
 		next_instruction_ptr = instruction_ptr + x.branch;
 	}
-	void operator () (uint8 x) {
+	void operator () (instr::unknown x) {
 		if(info) tabs();
 		print("unknown instruction ");
-		print(x);
+		print(x.code);
 		abort();
 	}
 	void operator () (auto x) {
