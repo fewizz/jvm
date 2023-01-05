@@ -38,8 +38,8 @@ inline optional<method&> try_method_resolution_step_2(
 				return
 					m.access_flags().varargs &&
 					m.access_flags().native &&
-					m.name().have_elements_equal_to(name) &&
-					m.descriptor().have_elements_equal_to(
+					m.name().has_equal_size_and_elements(name) &&
+					m.descriptor().has_equal_size_and_elements(
 						c_string{ "([Ljava/lang/Object;)Ljava/lang/Object;" }
 					);
 			}

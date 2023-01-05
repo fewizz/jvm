@@ -38,7 +38,7 @@ static struct classes : private list<posix::memory_for_range_of<_class>> {
 
 		return this->try_find_first_satisfying(
 			[&](_class& c) {
-				return range{ c.name() }.have_elements_equal_to(name);
+				return range{ c.name() }.has_equal_size_and_elements(name);
 			}
 		);
 	}

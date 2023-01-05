@@ -39,10 +39,10 @@ static inline void init_java_lang_throwable() {
 			}
 
 			if(
-				prev->method._class().name().have_elements_equal_to(
+				prev->method._class().name().has_equal_size_and_elements(
 					this_class_name
 				) &&
-				prev->method.name().have_elements_equal_to(
+				prev->method.name().has_equal_size_and_elements(
 					c_string{ "<init>" }
 				)
 			) {

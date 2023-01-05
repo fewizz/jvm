@@ -33,7 +33,7 @@ inline void invoke_virtual(
 		print("\n");
 	}
 
-	if(class_name.have_elements_equal_to(
+	if(class_name.has_equal_size_and_elements(
 		c_string{ "java/lang/invoke/MethodHandle" }
 	)) {
 		nuint args_count_stack = 0;
@@ -50,7 +50,7 @@ inline void invoke_virtual(
 		reference& mh
 			= stack.get<reference>(stack.size() - args_count_stack - 1);
 
-		if(name.have_elements_equal_to(c_string{ "invokeExact" })) {
+		if(name.has_equal_size_and_elements(c_string{ "invokeExact" })) {
 			method_handle_invoke_exact(
 				mh, // method handle
 				args_count_stack
