@@ -11,7 +11,7 @@ inline _class& _class::get_resolved_class(
 
 	if(auto& t = trampoline(class_index); t.has_value()) {
 		if(!t.is_same_as<_class&>()) {
-			abort();
+			posix::abort();
 		}
 		return t.get_same_as<_class&>();
 	}

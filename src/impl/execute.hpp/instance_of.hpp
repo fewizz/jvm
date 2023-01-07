@@ -9,13 +9,14 @@
 
 #include <loop_action.hpp>
 
+#include <print/print.hpp>
+
 inline void instance_of(_class& c, class_file::constant::class_index index) {
 	_class& t = c.get_resolved_class(index);
 	
 	if(info) {
 		tabs();
-		print("instance_of ");
-		print(t.name());
+		print::out("instance_of ", t.name());
 	}
 
 	struct check {
@@ -79,16 +80,14 @@ inline void instance_of(_class& c, class_file::constant::class_index index) {
 	}
 
 	if(info) {
-		print(" ref type: ");
+		print::out(" ref type: ");
 		if(ref.is_null()) {
-			print("null");
+			print::out("null");
 		}
 		else {
-			print(ref._class().name());
+			print::out(ref._class().name());
 		}
-		print(" ");
-		result == 0 ? print("false"): print("true");
-		print("\n");
+		print::out(" ", result != 0, "\n");
 	}
 
 	stack.emplace_back(result);

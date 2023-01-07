@@ -14,7 +14,7 @@ inline reference _class::get_resolved_method_handle(
 
 	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is_same_as<reference>()) {
-			abort();
+			posix::abort();
 		}
 		return e.get_same_as<reference>();
 	}
@@ -35,6 +35,6 @@ inline reference _class::get_resolved_method_handle(
 			method& m = c.declared_methods().find(name, desc);
 			return create_method_handle_invoke_static(m);
 		}
-		default: abort();
+		default: posix::abort();
 	}
 }

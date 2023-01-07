@@ -9,9 +9,7 @@ inline void ldc(
 ) {
 	if(info) {
 		tabs();
-		print("ldc ");
-		print((uint8) const_index);
-		print("\n");
+		print::out("ldc ", (uint8) const_index, "\n");
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is_same_as<class_file::constant::_int>()) {
@@ -35,8 +33,8 @@ inline void ldc(
 		).instance());
 	}
 	else {
-		posix::std_err.write_from(c_string{ "unknown constant\n" });
-		abort();
+		print::err("unknown constant\n");
+		posix::abort();
 	}
 }
 
@@ -45,9 +43,7 @@ inline void ldc_2_w(
 ) {
 	if(info) {
 		tabs();
-		print("ldc_2_w ");
-		print((uint16) const_index);
-		print("\n");
+		print::out("ldc_2_w ", (uint16) const_index, "\n");
 	}
 	constant constant = c.constant(const_index);
 	if(constant.is_same_as<class_file::constant::_long>()) {
@@ -61,7 +57,7 @@ inline void ldc_2_w(
 		});
 	}
 	else {
-		posix::std_err.write_from(c_string{ "unknown constant\n" });
-		abort();
+		print::err("unknown constant\n");
+		posix::abort();
 	}
 }

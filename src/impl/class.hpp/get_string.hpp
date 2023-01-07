@@ -17,7 +17,7 @@ inline reference _class::get_string(
 
 	if(auto& t = trampoline(string_index); t.has_value()) {
 		if(!t.is_same_as<::reference>()) {
-			abort();
+			posix::abort();
 		}
 		return t.get_same_as<::reference>();
 	}

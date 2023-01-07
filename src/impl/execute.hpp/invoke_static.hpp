@@ -17,15 +17,12 @@ inline void invoke_static(
 	cc::utf8 method_desc = c.utf8_constant(nat.descriptor_index);
 
 	if(info) {
-		tabs(); print("invoke_static ");
+		tabs();
+		print::out("invoke_static ");
 		cc::_class _c = c.class_constant(method_ref.class_index);
 		cc::utf8 class_name = c.utf8_constant(_c.name_index);
-		print(class_name);
-		print(".");
 		auto method_name = c.utf8_constant(nat.name_index);
-		print(method_name);
-		print(method_desc);
-		print("\n");
+		print::out(class_name, ".", method_name, method_desc, "\n");
 	}
 
 	method& m = c.get_static_method(ref_index);

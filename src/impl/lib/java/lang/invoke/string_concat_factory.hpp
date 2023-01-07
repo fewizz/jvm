@@ -27,7 +27,7 @@ static void init_java_lang_invoke_string_concat_factory() {
 			object*,
 			object*
 		) -> object* {
-			abort();
+			posix::abort();
 		}
 	);
 }

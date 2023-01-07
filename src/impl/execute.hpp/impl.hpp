@@ -17,15 +17,13 @@
 #include <class_file/descriptor/method_reader.hpp>
 #include <class_file/attribute/code/read_instruction.hpp>
 
+#include <print/print.hpp>
+
 static void execute(method& m) {
 	_class& c = m._class();
 	if(info) {
 		tabs();
-		print("executing: ");
-		print(c.name());
-		print(".");
-		print(m.name());
-		print(m.descriptor());
+		print::out("executing: ", c.name(), ".", m.name(), m.descriptor());
 		++tab;
 	}
 
@@ -46,11 +44,11 @@ static void execute(method& m) {
 
 	if(m.is_native()) {
 		if(info) {
-			print("\n");
+			print::out("\n");
 		}
 
 		if(!m.native_function_is_loaded()) {
-			abort();
+			posix::abort();
 		}
 		native_function_ptr ptr = m.native_function();
 		native_interface_call(ptr, m);
@@ -58,8 +56,8 @@ static void execute(method& m) {
 	}
 
 	if(m.code().iterator() == nullptr) {
-		posix::std_err.write_from(c_string{ "no code\n" });
-		abort();
+		print::err("no code\n");
+		posix::abort();
 	}
 
 	nuint locals_begin = stack.size() - m.parameters_stack_size();
@@ -67,11 +65,11 @@ static void execute(method& m) {
 	nuint stack_begin = locals_end;
 
 	if(info) {
-		print(" ");
-		print("max_stack: "); print(m.code().max_stack);
-		print(" locals begin: "); print(locals_begin);
-		print(" stack begin: "); print(stack_begin);
-		print("\n");
+		print::out(" ",
+			"max_stack: ", m.code().max_stack,
+			" locals begin: ", locals_begin,
+			" stack begin: ", stack_begin, "\n"
+		);
 	}
 
 	{

@@ -73,7 +73,7 @@ inline method& select_method_for_invoke_special(
 	}
 
 	if(!m.has_value()) {
-		abort();
+		posix::abort();
 	}
 
 	return m.get();

@@ -3,7 +3,8 @@
 #include "decl/execute.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/execution/info.hpp"
-#include "decl/print.hpp"
+
+#include <print/print.hpp>
 
 inline void invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index, _class& c
@@ -21,12 +22,8 @@ inline void invoke_interface(
 		cc::_class class_info
 			= c.class_constant(method_ref_info.interface_index);
 		auto class_name = c.utf8_constant(class_info.name_index);
-		tabs(); print("invoke_interface ");
-		print(class_name);
-		print(".");
-		print(name);
-		print(desc);
-		print("\n");
+		tabs();
+		print::out("invoke_interface ", class_name, ".", name, desc, "\n");
 	}
 
 	method& resolved_method = c.resolve_interface_method(method_ref_info);

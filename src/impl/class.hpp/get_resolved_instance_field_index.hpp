@@ -16,7 +16,7 @@ _class::get_resolved_instance_field_index(
 
 	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is_same_as<field_index_and_stack_size>()) {
-			abort();
+			posix::abort();
 		}
 		return t.get_same_as<field_index_and_stack_size>();
 	}
@@ -34,7 +34,7 @@ _class::get_resolved_instance_field_index(
 
 	instance_field_index index =
 		c.instance_fields().try_find_index_of(name, desc)
-		.if_has_no_value([]{ abort(); })
+		.if_has_no_value([]{ posix::abort(); })
 		.get();
 	
 	field_index_and_stack_size result {

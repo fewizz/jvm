@@ -32,7 +32,7 @@ static inline void init_java_lang_system() {
 			}
 			// TODO case when src == dst
 			if(src == dst) {
-				abort();
+				posix::abort();
 			}
 			/* Otherwise, if any of the following is true, an
 			   ArrayStoreException is thrown and the destination is not
@@ -119,10 +119,8 @@ static inline void init_java_lang_system() {
 					src_ptr == double_array_class.ptr()
 				) { copy_primitive_array.operator () <uint64>(); }
 				else {
-					posix::std_err.write_from(
-						c_string{ "unknown primitive type?\n" }
-					);
-					abort();
+					print::err("unknown primitive type?\n");
+					posix::abort();
 				}
 				return;
 			}

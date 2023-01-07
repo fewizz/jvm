@@ -1,12 +1,11 @@
 #include "decl/reference.hpp"
 
 #include "decl/object.hpp"
-#include "decl/print.hpp"
 #include "decl/execution/info.hpp"
 
 #include <exchange.hpp>
 
-#include <posix/io.hpp>
+#include <print/print.hpp>
 
 inline void reference::reset() {
 	object().on_reference_removed();
@@ -55,8 +54,8 @@ inline reference& reference::operator = (reference&& other) {
 
 inline void abort_if_null(const object* obj_ptr) {
 	if(obj_ptr == nullptr) {
-		posix::std_err.write_from(c_string{ "obj_ is nullptr\n" });
-		abort();
+		print::err("obj_ is nullptr\n");
+		posix::abort();
 	}
 }
 

@@ -21,15 +21,12 @@ inline void invoke_special(
 	cc::utf8 method_desc = current.utf8_constant(nat.descriptor_index);
 
 	if(info) {
-		tabs(); print("invoke_special ");
+		tabs();
+		print::out("invoke_special ");
 		cc::_class _c = current.class_constant(method_ref.class_index);
 		cc::utf8 class_name = current.utf8_constant(_c.name_index);
-		print(class_name);
-		print(".");
 		cc::utf8 method_name = current.utf8_constant(nat.name_index);
-		print(method_name);
-		print(method_desc);
-		print("\n");
+		print::out(class_name, ".", method_name, method_desc, "\n");
 	}
 
 	method& resolved_method = current.get_resolved_method(ref_index);

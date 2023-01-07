@@ -104,14 +104,14 @@ inline void method_handle_invoke_exact(
 		case behavior_kind::invoke_interface: {
 			return execute(* (method*) member);
 		}
-		default: abort();
+		default: posix::abort();
 	}
 }
 
 /*inline optional<stack_entry> method_handle_invoke(
 	reference ref, parameters_count count
 ) {
-	abort();
+	posix::abort();
 	/using behavior_kind = class_file::constant::method_handle::behavior_kind;
 	void* member = (void*) (uint64)
 		ref[method_handle_member_instance_field_index].get<jlong>();
@@ -127,6 +127,6 @@ inline void method_handle_invoke_exact(
 		//m.descriptor().
 	}
 	else {
-		abort();
+		posix::abort();
 	}
 }*/

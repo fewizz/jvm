@@ -13,7 +13,7 @@ inline class_and_declared_static_field_index _class::get_static_field_index(
 
 	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is_same_as<class_and_declared_static_field_index>()) {
-			abort();
+			posix::abort();
 		}
 		return t.get_same_as<class_and_declared_static_field_index>();
 	}
@@ -32,7 +32,7 @@ inline class_and_declared_static_field_index _class::get_static_field_index(
 
 	declared_static_field_index index =
 		c.declared_static_fields().try_find_index_of(name, desc)
-		.if_has_no_value(abort)
+		.if_has_no_value(posix::abort)
 		.get();
 
 	class_and_declared_static_field_index result {

@@ -123,5 +123,5 @@ method& resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	});
 
 	//    "Otherwise, method lookup fails.""
-	abort();
+	posix::abort();
 }

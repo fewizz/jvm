@@ -51,7 +51,7 @@ static struct classes : private list<posix::memory_for_range_of<_class>> {
 		}};
 
 		return try_find(name).if_has_no_value([] {
-			abort();
+			posix::abort();
 		}).get();
 	}
 

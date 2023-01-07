@@ -54,7 +54,7 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 	if(descriptor.size() > 0 && descriptor[0] == '(') {
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
 		nuint parameters_count = reader.try_read_parameters_count(
-			[](auto) { abort(); }
+			[](auto) { posix::abort(); }
 		).get();
 		_class* params_classes[parameters_count];
 		parameters_count = 0;
@@ -68,7 +68,7 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 			[&]<typename ReturnType>(ReturnType r) {
 				ret_class = &get_class(r);
 			},
-			[](auto) { abort(); }
+			[](auto) { posix::abort(); }
 		);
 		return create_method_type(
 			span{ params_classes, parameters_count },
@@ -78,7 +78,7 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 	}
 	else {
 		//class_file::descriptor::read_field(descriptor.iterator(), resolve);
-		abort();
+		posix::abort();
 	}
 
 

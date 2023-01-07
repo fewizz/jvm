@@ -16,7 +16,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		magic_reader.read_and_check_and_get_version_reader();
 
 	if(!magic_exists) {
-		abort();
+		posix::abort();
 	}
 
 	auto [version, constant_pool_reader] =
@@ -31,8 +31,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		constant_pool_reader.read_and_get_access_flags_reader(
 			[&]<typename Type>(Type x) {
 				if constexpr(same_as<class_file::constant::unknown, Type>) {
-					//fprintf(stderr, "unknown constant with tag %hhu", x.tag);
-					abort();
+					posix::abort();
 				}
 				else {
 					const_pool_raw.emplace_back(x);

@@ -7,10 +7,11 @@
 #include "executable_path.hpp"
 
 #include <posix/default_error_handler.cpp>
+#include <print/print.hpp>
 
 int main (int argc, const char** argv) {
 	if(argc != 2) {
-		posix::std_err.write_from(c_string{ "usage: 'class name'\n" });
+		print::err("usage: 'class name'\n");
 		return 1;
 	}
 
@@ -55,8 +56,8 @@ int main (int argc, const char** argv) {
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }
 	).if_has_no_value([] {
-		posix::std_err.write_from(c_string{ "main method is not found\n" });
-		abort();
+		print::err("main method is not found\n");
+		posix::abort();
 	}).get();
 
 	reference args_array = create_array_of(string_class.get(), 0);

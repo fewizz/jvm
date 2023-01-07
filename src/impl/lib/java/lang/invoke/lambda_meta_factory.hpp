@@ -34,7 +34,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 			[[maybe_unused]] object* implementation,
 			[[maybe_unused]] object* dynamicMethodType
 		) {
-			abort();
+			posix::abort();
 		}
 	);
 

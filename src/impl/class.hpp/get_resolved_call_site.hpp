@@ -24,7 +24,7 @@ inline reference _class::get_resolved_call_site(
 
 	if(auto e = trampoline(index); e.has_value()) {
 		if(!e.is_same_as<reference>()) {
-			abort();
+			posix::abort();
 		}
 		return e.get_same_as<reference>();
 	}
@@ -121,7 +121,7 @@ inline reference _class::get_resolved_call_site(
 				++args_count_stack;
 			}
 			else {
-				abort();
+				posix::abort();
 			}
 		});
 	}

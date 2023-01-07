@@ -16,7 +16,7 @@ inline field::field(
 				desc.iterator(),
 				[&]<typename Type>(Type t) {
 					type = t;
-				}, [](auto){ abort(); }
+				}, [](auto){ posix::abort(); }
 			);
 			return type.get();
 		}()

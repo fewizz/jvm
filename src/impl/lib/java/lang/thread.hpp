@@ -35,7 +35,7 @@ inline reference create_thread(reference runnable) {
 static void on_thread_exit() {
 	if(!thrown.is_null()) {
 		reference thrown0 = move(thrown);
-		posix::std_err.write_from(c_string{ "unhandled throwable\n" });
+		print::err("unhandled throwable\n");
 
 		method& print_stack_trace = thrown0->_class().instance_methods().find(
 			c_string{ "printStackTrace" }, c_string{ "()V" }

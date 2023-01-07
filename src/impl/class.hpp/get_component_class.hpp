@@ -13,8 +13,7 @@ inline _class& _class::get_component_class() {
 
 	if(!component_class_.has_value()) {
 		if(!is_array()) {
-			//fputs("asking component class of non-array class", stderr);
-			abort();
+			posix::abort();
 		}
 		auto n = name();
 		bool component_is_reference = n[1] == 'L';

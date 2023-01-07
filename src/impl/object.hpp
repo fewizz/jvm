@@ -21,12 +21,10 @@ inline object::object(::_class& c) :
 {
 	if(info) {
 		tabs();
-		print("# constructing object @");
-		print_hex((nuint)this);
-		print(" of type ");
+		print::out("# constructing object @");
+		print::out.hex((nuint)this);
 		auto name = _class().name();
-		print(name);
-		print("\n");
+		print::out(" of type ", name, "\n");
 	}
 
 	c.instance_fields().for_each_index([&](nuint field_index) {
@@ -39,12 +37,10 @@ inline object::object(::_class& c) :
 inline object::~object() {
 	if(info) {
 		tabs();
-		print("# destructing object @");
-		print_hex((nuint)this);
-		print(" of type ");
+		print::out("# destructing object @");
+		print::out.hex((nuint)this);
 		auto name = _class().name();
-		print(name);
-		print("\n");
+		print::out(" of type ", name, "\n");
 	}
 
 	if(_class().is_array()) {
@@ -68,35 +64,25 @@ inline void object::on_reference_added() {
 	++references_;
 	if(info) {
 		tabs();
-		print("# added reference to object @");
-		print_hex((nuint)this);
-		print(" of type ");
+		print::out("# added reference to object @");
+		print::out.hex((nuint)this);
 		auto name = _class().name();
-		print(name);
-		print(", ");
-		print(references_);
-		print(" in sum\n");
+		print::out(" of type ", name, ", ", references_, " in sum\n");
 	}
 }
 
 inline void object::on_reference_removed() {
 	if(references_ == 0) {
-		posix::std_err.write_from(
-			c_string{"# removing reference on object without references\n"}
-		);
+		print::err("# removing reference on object without references\n");
 		posix::abort();
 	}
 	--references_;
 	if(info) {
 		tabs();
-		print("# removed reference to object @");
-		print_hex((nuint)this);
-		print(" of type ");
+		print::out("# removed reference to object @");
+		print::out.hex((nuint)this);
 		auto name = _class().name();
-		print(name);
-		print(", ");
-		print(references_);
-		print(" left\n");
+		print::out(" of type ", name, ", ", references_, " left\n");
 	}
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
@@ -107,10 +93,10 @@ inline void object::on_reference_removed() {
 
 inline void object::unsafe_decrease_reference_count_without_destroing() {
 	if(references_ == 0) {
-		posix::std_err.write_from(c_string {
+		print::err(
 			"'unsafe_decrease_reference_count_without_destroing'"
 			" on object without references\n"
-		});
+		);
 		posix::abort();
 	}
 	--references_;

@@ -35,7 +35,7 @@ static inline void init_java_lang_throwable() {
 			ctx_begin = ctx_begin->previous.ptr();
 			if(ctx_begin == nullptr) {
 				// didn't find
-				abort();
+				posix::abort();
 			}
 
 			if(

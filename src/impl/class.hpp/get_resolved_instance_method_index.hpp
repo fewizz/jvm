@@ -15,7 +15,7 @@ inline method& _class::get_resolved_method(
 
 	if(auto& t = trampoline(ref_index); t.has_value()) {
 		if(!t.is_same_as<method&>()) {
-			abort();
+			posix::abort();
 		}
 		return t.get_same_as<method&>();
 	}

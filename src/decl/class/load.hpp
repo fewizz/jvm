@@ -8,7 +8,7 @@
 
 #include <range.hpp>
 
-#include <posix/io.hpp>
+#include <print/print.hpp>
 
 // only for loading NON-LOADED classes.
 // otherwise, use find_or_load_class(name)
@@ -16,11 +16,11 @@ template<basic_range Name>
 inline _class& load_class(Name&& name) {
 	if(info) {
 		tabs();
-		print("loading class ");
+		print::out("loading class ");
 
 		range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
-			print(on_stack);
-			print("\n");
+			print::out(on_stack);
+			print::out("\n");
 		});
 	}
 

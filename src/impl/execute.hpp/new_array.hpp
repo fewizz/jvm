@@ -23,8 +23,8 @@ inline void new_array(
 		case new_array_type::_int:     ref = create_int_array(size);    break;
 		case new_array_type::_long:    ref = create_long_array(size);   break;
 		default:
-			posix::std_err.write_from(c_string{ "unknown array type\n" });
-			abort();
+			print::err("unknown array type\n");
+			posix::abort();
 	}
 
 	if(info) {
@@ -41,11 +41,7 @@ inline void new_array(
 			case new_array_type::_long:    type_ch = 'J'; break;
 		}
 		tabs();
-		print("new_array ");
-		print((uint8) type_ch);
-		print(" of size ");
-		print(size);
-		print("\n");
+		print::out("new_array ", (uint8) type_ch, " of size ", size, "\n");
 	}
 
 	stack.emplace_back(move(ref));

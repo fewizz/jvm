@@ -29,7 +29,7 @@ static inline void init_java_io_file_output_stream() {
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
 			if(!result) {
-				abort();
+				posix::abort();
 				// thrown = create_io_exception TODO
 			}
 		}
@@ -50,7 +50,7 @@ static inline void init_java_io_file_output_stream() {
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
 			if(!result) {
-				abort();
+				posix::abort();
 			}
 		}
 	);
@@ -72,7 +72,7 @@ static inline void init_java_io_file_output_stream() {
 				[&]([[maybe_unused]]auto error) { result = false; }
 			);
 			if(!result) {
-				abort();
+				posix::abort();
 			}
 		}
 	);
@@ -90,7 +90,7 @@ static inline void init_java_io_file_output_stream() {
 				[&]([[maybe_unused]] auto error) { result = false; }
 			);
 			if(!result) {
-				abort();
+				posix::abort();
 			}
 		}
 	);

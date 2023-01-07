@@ -53,5 +53,5 @@ inline method& select_method(
 		return m.get();
 	}
 
-	abort();
+	posix::abort();
 }

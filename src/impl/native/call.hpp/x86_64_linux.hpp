@@ -72,7 +72,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 					f_regs[arg] = __extension__ (__m128d){ x, 0 };
 				}
 			} else {
-				abort();
+				posix::abort();
 			}
 			++arg;
 		});
@@ -171,7 +171,7 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 				stack.pop_back_until(jstack_begin);
 				stack.emplace_back(move(ref));
 			} else {
-				abort();
+				posix::abort();
 			}
 		}
 	);

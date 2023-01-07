@@ -10,7 +10,7 @@
 #include <on_scope_exit.hpp>
 #include <expression_of_type.hpp>
 
-#include <posix/io.hpp>
+#include <print/print.hpp>
 
 template<basic_range Name, typename Handler>
 inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
@@ -71,12 +71,8 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 	}
 
 	if(!result) {
-		posix::std_err.write_from(c_string{"couldn't find class file "});
-		range{ name }.view_copied_elements_on_stack([&](auto name_on_stack) {
-			posix::std_err.write_from(name_on_stack);
-		});
-		posix::std_err.write_from(c_string{ "\n" });
-		abort();
+		print::err("couldn't find class file ", name, "\n");
+		posix::abort();
 	}
 
 	return result.get();

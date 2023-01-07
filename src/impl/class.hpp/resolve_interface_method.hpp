@@ -83,5 +83,5 @@ method& _class::resolve_interface_method(
 	}
 
 	// "6. Otherwise, method lookup fails."
-	abort();
+	posix::abort();
 }

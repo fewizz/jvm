@@ -13,9 +13,7 @@ inline void check_cast(_class& c, class_file::constant::class_index index) {
 	_class& t = c.get_resolved_class(index);
 	if(info) {
 		tabs();
-		print("check_cast ");
-		print(t.name());
-		print("\n");
+		print::out("check_cast ", t.name(), "\n");
 	}
 
 	reference& ref = stack.back<reference>();

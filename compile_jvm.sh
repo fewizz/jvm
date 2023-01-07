@@ -33,6 +33,7 @@ if ! clang++ \
 	-I ${root}/../encoding/include \
 	-I ${root}/../class-file/include \
 	-I ${root}/../posix-wrapper/include \
+	-I ${root}/../print/include \
 	-o ${root}/build/jvm \
 	${additional_args[@]} \
 	${root}/src/jvm.cpp

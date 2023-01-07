@@ -20,7 +20,7 @@ inline void for_each_string_codepoint(object& str, Handler&& handler) {
 
 	while(it != end) {
 		auto cp = utf16::decoder{}(it);
-		if(cp.is_unexpected()) { abort(); }
+		if(cp.is_unexpected()) { posix::abort(); }
 		// TODO unexpected
 		handler(cp.get_expected());
 	}

@@ -10,10 +10,13 @@
 -fuse-ld=lld
 -iquote./src/decl
 -iquote./src
+
 -I../core/include
 -I../class-file/include
 -I../encoding/include
 -I../posix-wrapper/include
+-I../print/include
+
 -fmodules
 -Xclang -fimplicit-module-maps
 -Xclang -fprebuilt-module-path=./build

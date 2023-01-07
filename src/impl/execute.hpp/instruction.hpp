@@ -95,87 +95,79 @@ struct execute_instruction {
 	void operator () (instr::nop) {}
 
 	void operator () (instr::a_const_null) {
-		if(info) { tabs(); print("a_const_null\n"); }
+		if(info) { tabs(); print::out("a_const_null\n"); }
 		stack.emplace_back(reference{});
 	}
 
 	void operator () (instr::i_const_m1) {
-		if(info) { tabs(); print("i_const_m1\n"); }
+		if(info) { tabs(); print::out("i_const_m1\n"); }
 		stack.emplace_back(int32{ -1 });
 	}
 	void operator () (instr::i_const_0) {
-		if(info) { tabs(); print("i_const_0\n"); }
+		if(info) { tabs(); print::out("i_const_0\n"); }
 		stack.emplace_back(int32{ 0 });
 	}
 	void operator () (instr::i_const_1) {
-		if(info) { tabs(); print("i_const_1\n"); }
+		if(info) { tabs(); print::out("i_const_1\n"); }
 		stack.emplace_back(int32{ 1 });
 	}
 	void operator () (instr::i_const_2) {
-		if(info) { tabs(); print("i_const_2\n"); }
+		if(info) { tabs(); print::out("i_const_2\n"); }
 		stack.emplace_back(int32{ 2 });
 	}
 	void operator () (instr::i_const_3) {
-		if(info) { tabs(); print("i_const_3\n"); }
+		if(info) { tabs(); print::out("i_const_3\n"); }
 		stack.emplace_back(int32{ 3 });
 	}
 	void operator () (instr::i_const_4) {
-		if(info) { tabs(); print("i_const_4\n"); }
+		if(info) { tabs(); print::out("i_const_4\n"); }
 		stack.emplace_back(int32{ 4 });
 	}
 	void operator () (instr::i_const_5) {
 		if(info) {
-			tabs(); print("i_const_5 @"); print(stack.size()); print("\n");
+			tabs(); print::out("i_const_5 @", stack.size(), "\n");
 		}
 		stack.emplace_back(int32{ 5 });
 	}
 	void operator () (instr::l_const_0) {
 		if(info) {
-			tabs(); print("l_const_0 @"); print(stack.size()); print("\n");
+			tabs(); print::out("l_const_0 @", stack.size(), "\n");
 		}
 		stack.emplace_back(int64{ 0 });
 	}
 	void operator () (instr::l_const_1) {
-		if(info) { tabs(); print("l_const_1\n"); }
+		if(info) { tabs(); print::out("l_const_1\n"); }
 		stack.emplace_back(int64{ 1 });
 	}
 	void operator () (instr::f_const_0) {
-		if(info) { tabs(); print("f_const_0\n"); }
+		if(info) { tabs(); print::out("f_const_0\n"); }
 		stack.emplace_back(float{ 0.0F });
 	}
 	void operator () (instr::f_const_1) {
-		if(info) { tabs(); print("f_const_1\n"); }
+		if(info) { tabs(); print::out("f_const_1\n"); }
 		stack.emplace_back(float{ 1.0F });
 	}
 	void operator () (instr::f_const_2) {
-		if(info) { tabs(); print("f_const_2\n"); }
+		if(info) { tabs(); print::out("f_const_2\n"); }
 		stack.emplace_back(float{ 2.0F });
 	}
 	void operator () (instr::d_const_0) {
-		if(info) { tabs(); print("d_const_0\n"); }
+		if(info) { tabs(); print::out("d_const_0\n"); }
 		stack.emplace_back(double{ 0.0 });
 	}
 	void operator () (instr::d_const_1) {
-		if(info) { tabs(); print("d_const_1\n"); }
+		if(info) { tabs(); print::out("d_const_1\n"); }
 		stack.emplace_back(double{ 1.0 });
 	}
 	void operator () (instr::bi_push x) {
 		if(info) {
-			tabs();
-			print("bi_push ");
-			print(x.value);
-			print(" @");
-			print(stack.size());
-			print("\n");
+			tabs(); print::out("bi_push ", x.value, " @", stack.size(), "\n");
 		}
 		stack.emplace_back(int32{ x.value });
 	}
 	void operator () (instr::si_push x) {
 		if(info) {
-			tabs();
-			print("si_push ");
-			print(x.value);
-			print("\n");
+			tabs(); print::out("si_push ", x.value, "\n");
 		}
 		stack.emplace_back(int32{ x.value });
 	}
@@ -194,47 +186,35 @@ struct execute_instruction {
 		int32 value = stack.get<int32>(locals_begin + x.index);
 		if(info) {
 			tabs();
-			print("i_load ");
-			print(x.index);
-			print(" ");
-			print(value);
-			print("\n");
+			print::out("i_load ", x.index, " ", value, "\n");
 		}
 		stack.emplace_back(value);
 	}
 	void operator () (instr::l_load x) {
 		if(info) {
 			tabs();
-			print("l_load ");
-			print(x.index);
-			print("\n");
+			print::out("l_load ", x.index, "\n");
 		}
 		stack.emplace_back(stack.get<int64>(locals_begin + x.index));
 	}
 	void operator () (instr::f_load x) {
 		if(info) {
 			tabs();
-			print("f_load ");
-			print(x.index);
-			print("\n");
+			print::out("f_load ", x.index, "\n");
 		}
 		stack.emplace_back(stack.get<float>(locals_begin + x.index));
 	}
 	void operator () (instr::d_load x) {
 		if(info) {
 			tabs();
-			print("d_load ");
-			print(x.index);
-			print("\n");
+			print::out("d_load ", x.index, "\n");
 		}
 		stack.emplace_back(stack.get<double>(locals_begin + x.index));
 	}
 	void operator () (instr::a_load x) {
 		if(info) {
 			tabs();
-			print("a_load ");
-			print(x.index);
-			print("\n");
+			print::out("a_load ", x.index, "\n");
 		}
 		stack.emplace_back(stack.get<reference>(locals_begin + x.index));
 	}
@@ -242,9 +222,7 @@ struct execute_instruction {
 		int32 value = stack.get<int32>(locals_begin + 0);
 		if(info) {
 			tabs();
-			print("i_load_0 ");
-			print(value);
-			print("\n");
+			print::out("i_load_0 ", value, "\n");
 		}
 		stack.emplace_back(value);
 	}
@@ -252,9 +230,7 @@ struct execute_instruction {
 		int32 value = stack.get<int32>(locals_begin + 1);
 		if(info) {
 			tabs();
-			print("i_load_1 ");
-			print(value);
-			print("\n");
+			print::out("i_load_1 ", value, "\n");
 		}
 		stack.emplace_back(value);
 	}
@@ -262,9 +238,7 @@ struct execute_instruction {
 		int32 value = stack.get<int32>(locals_begin + 2);
 		if(info) {
 			tabs();
-			print("i_load_2 ");
-			print(value);
-			print("\n");
+			print::out("i_load_2 ", value, "\n");
 		}
 		stack.emplace_back(value);
 	}
@@ -272,140 +246,138 @@ struct execute_instruction {
 		int32 value = stack.get<int32>(locals_begin + 3);
 		if(info) {
 			tabs();
-			print("i_load_3 ");
-			print(value);
-			print("\n");
+			print::out("i_load_3 ", value, "\n");
 		}
 		stack.emplace_back(value);
 	}
 	void operator () (instr::l_load_0) {
-		if(info) { tabs(); print("l_load_0\n"); }
+		if(info) { tabs(); print::out("l_load_0\n"); }
 		stack.emplace_back(stack.get<int64>(locals_begin + 0));
 	}
 	void operator () (instr::l_load_1) {
-		if(info) { tabs(); print("l_load_1\n"); }
+		if(info) { tabs(); print::out("l_load_1\n"); }
 		stack.emplace_back(stack.get<int64>(locals_begin + 1));
 	}
 	void operator () (instr::l_load_2) {
-		if(info) { tabs(); print("l_load_2\n"); }
+		if(info) { tabs(); print::out("l_load_2\n"); }
 		stack.emplace_back(stack.get<int64>(locals_begin + 2));
 	}
 	void operator () (instr::l_load_3) {
-		if(info) { tabs(); print("l_load_3\n"); }
+		if(info) { tabs(); print::out("l_load_3\n"); }
 		stack.emplace_back(stack.get<int64>(locals_begin + 3));
 	}
 	void operator () (instr::f_load_0) {
-		if(info) { tabs(); print("f_load_0\n"); }
+		if(info) { tabs(); print::out("f_load_0\n"); }
 		stack.emplace_back(stack.get<float>(locals_begin + 0));
 	}
 	void operator () (instr::f_load_1) {
-		if(info) { tabs(); print("f_load_1\n"); }
+		if(info) { tabs(); print::out("f_load_1\n"); }
 		stack.emplace_back(stack.get<float>(locals_begin + 1));
 	}
 	void operator () (instr::f_load_2) {
-		if(info) { tabs(); print("f_load_2\n"); }
+		if(info) { tabs(); print::out("f_load_2\n"); }
 		stack.emplace_back(stack.get<float>(locals_begin + 2));
 	}
 	void operator () (instr::f_load_3) {
-		if(info) { tabs(); print("f_load_3\n"); }
+		if(info) { tabs(); print::out("f_load_3\n"); }
 		stack.emplace_back(stack.get<float>(locals_begin + 3));
 	}
 	void operator () (instr::d_load_0) {
-		if(info) { tabs(); print("d_load_0\n"); }
+		if(info) { tabs(); print::out("d_load_0\n"); }
 		stack.emplace_back(stack.get<double>(locals_begin + 0));
 	}
 	void operator () (instr::d_load_1) {
-		if(info) { tabs(); print("d_load_1\n"); }
+		if(info) { tabs(); print::out("d_load_1\n"); }
 		stack.emplace_back(stack.get<double>(locals_begin + 1));
 	}
 	void operator () (instr::d_load_2) {
-		if(info) { tabs(); print("d_load_2\n"); }
+		if(info) { tabs(); print::out("d_load_2\n"); }
 		stack.emplace_back(stack.get<double>(locals_begin + 2));
 	}
 	void operator () (instr::d_load_3) {
-		if(info) { tabs(); print("d_load_3\n"); }
+		if(info) { tabs(); print::out("d_load_3\n"); }
 		stack.emplace_back(stack.get<double>(locals_begin + 3));
 	}
 	void operator () (instr::a_load_0) {
 		reference ref = stack.get<reference>(locals_begin + 0);
 		if(info) {
-			tabs(); print("a_load_0 ");
+			tabs(); print::out("a_load_0 ");
 			if(!ref.is_null()) {
-				print(ref._class().name());
+				print::out(ref._class().name());
 			}
-			print(c_string{" @"});
-			print_hex((uint64) ref.object_ptr());
-			print(c_string{ "\n" });
+			print::out(" @");
+			print::out.hex((uint64) ref.object_ptr());
+			print::out("\n");
 		}
 		stack.emplace_back(move(ref));
 	}
 	void operator () (instr::a_load_1) {
-		if(info) { tabs(); print("a_load_1\n"); }
+		if(info) { tabs(); print::out("a_load_1\n"); }
 		reference ref = stack.get<reference>(locals_begin + 1);
 		stack.emplace_back(move(ref));
 	}
 	void operator () (instr::a_load_2) {
 		reference ref = stack.get<reference>(locals_begin + 2);
 		if(info) {
-			tabs(); print("a_load_2 ");
+			tabs(); print::out("a_load_2 ");
 			if(!ref.is_null()) {
-				print(ref._class().name());
+				print::out(ref._class().name());
 			}
-			print(c_string{" @"});
-			print_hex((uint64) ref.object_ptr());
-			print(c_string{ "\n" });
+			print::out(" @");
+			print::out.hex((uint64) ref.object_ptr());
+			print::out("\n");
 		}
 		stack.emplace_back(move(ref));
 	}
 	void operator () (instr::a_load_3) {
-		if(info) { tabs(); print("a_load_3\n"); }
+		if(info) { tabs(); print::out("a_load_3\n"); }
 		reference ref = stack.get<reference>(locals_begin + 3);
 		stack.emplace_back(move(ref));
 	}
 	loop_action operator () (instr::i_a_load) {
-		if(info) { tabs(); print("i_a_load\n"); }
+		if(info) { tabs(); print::out("i_a_load\n"); }
 		return view_array<int32>([&](int32& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::l_a_load) {
-		if(info) { tabs(); print("l_a_load\n"); }
+		if(info) { tabs(); print::out("l_a_load\n"); }
 		return view_array<int64>([&](int64& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::f_a_load) {
-		if(info) { tabs(); print("f_a_load\n"); }
+		if(info) { tabs(); print::out("f_a_load\n"); }
 		return view_array<float>([&](float& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::d_a_load) {
-		if(info) { tabs(); print("d_a_load\n"); }
+		if(info) { tabs(); print::out("d_a_load\n"); }
 		return view_array<double>([&](double& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::a_a_load) {
-		if(info) { tabs(); print("a_a_load\n"); }
+		if(info) { tabs(); print::out("a_a_load\n"); }
 		return view_array<reference>([&](reference& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::b_a_load) {
-		if(info) { tabs(); print("b_a_load\n"); }
+		if(info) { tabs(); print::out("b_a_load\n"); }
 		return view_array<int8>([&](int8& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::c_a_load) {
-		if(info) { tabs(); print("c_a_load\n"); }
+		if(info) { tabs(); print::out("c_a_load\n"); }
 		return view_array<uint16>([&](uint16& v) {
 			stack.emplace_back(v);
 		});
 	}
 	loop_action operator () (instr::s_a_load) {
-		if(info) { tabs(); print("s_a_load\n"); }
+		if(info) { tabs(); print::out("s_a_load\n"); }
 		return view_array<int16>([&](int16& v) {
 			stack.emplace_back(v);
 		});
@@ -413,45 +385,31 @@ struct execute_instruction {
 	void operator () (instr::i_store x) {
 		int32 value = stack.pop_back<int32>();
 		if(info) {
-			tabs();
-			print("i_store "); print(x.index); print(" "); print(value);
-			print("\n");
+			tabs(); print::out("i_store ", x.index, " ", value, "\n");
 		}
 		stack.emplace_at(locals_begin + x.index, value);
 	}
 	void operator () (instr::l_store x) {
 		if(info) {
-			tabs();
-			print("l_store ");
-			print(x.index);
-			print("\n");
+			tabs(); print::out("l_store ", x.index, "\n");
 		}
 		stack.emplace_at(locals_begin + x.index, stack.pop_back<int64>());
 	}
 	void operator () (instr::f_store x) {
 		if(info) {
-			tabs();
-			print("f_store ");
-			print(x.index);
-			print("\n");
+			tabs(); print::out("f_store ", x.index, "\n");
 		}
 		stack.emplace_at(locals_begin + x.index, stack.pop_back<float>());
 	}
 	void operator () (instr::d_store x) {
 		if(info) {
-			tabs();
-			print("d_store ");
-			print(x.index);
-			print("\n");
+			tabs(); print::out("d_store ", x.index, "\n");
 		}
 		stack.emplace_at(locals_begin + x.index, stack.pop_back<double>());
 	}
 	void operator () (instr::a_store x) {
 		if(info) {
-			tabs();
-			print("a_store ");
-			print(x.index);
-			print("\n");
+			tabs(); print::out("a_store ", x.index, "\n");
 		}
 		stack.emplace_at(
 			locals_begin + x.index, stack.pop_back<reference>()
@@ -459,124 +417,118 @@ struct execute_instruction {
 	}
 	void operator () (instr::i_store_0) {
 		int32 value = stack.pop_back<int32>();
-		if(info) { tabs();print("i_store_0 ");print(value);print("\n"); }
+		if(info) { tabs(); print::out("i_store_0 ", value, "\n"); }
 		stack.emplace_at(locals_begin + 0, value);
 	}
 	void operator () (instr::i_store_1) {
 		int32 value = stack.pop_back<int32>();
-		if(info) { tabs();print("i_store_1 ");print(value);print("\n"); }
+		if(info) { tabs(); print::out("i_store_1 ", value, "\n"); }
 		stack.emplace_at(locals_begin + 1, value);
 	}
 	void operator () (instr::i_store_2) {
 		int32 value = stack.pop_back<int32>();
-		if(info) { tabs();print("i_store_2 ");print(value);print("\n"); }
+		if(info) { tabs(); print::out("i_store_2 ", value, "\n"); }
 		stack.emplace_at(locals_begin + 2, value);
 	}
 	void operator () (instr::i_store_3) {
 		int32 value = stack.pop_back<int32>();
-		if(info) { tabs();print("i_store_3 ");print(value);print("\n"); }
+		if(info) { tabs(); print::out("i_store_3 ", value, "\n"); }
 		stack.emplace_at(locals_begin + 3, value);
 	}
 	void operator () (instr::l_store_0) {
-		if(info) { tabs(); print("l_store_0\n"); }
+		if(info) { tabs(); print::out("l_store_0\n"); }
 		stack.emplace_at(locals_begin + 0, stack.pop_back<int64>());
 	}
 	void operator () (instr::l_store_1) {
-		if(info) { tabs(); print("l_store_1\n"); }
+		if(info) { tabs(); print::out("l_store_1\n"); }
 		stack.emplace_at(locals_begin + 1, stack.pop_back<int64>());
 	}
 	void operator () (instr::l_store_2) {
-		if(info) { tabs(); print("l_store_2\n"); }
+		if(info) { tabs(); print::out("l_store_2\n"); }
 		stack.emplace_at(locals_begin + 2, stack.pop_back<int64>());
 	}
 	void operator () (instr::l_store_3) {
-		if(info) { tabs(); print("l_store_3\n"); }
+		if(info) { tabs(); print::out("l_store_3\n"); }
 		stack.emplace_at(locals_begin + 3, stack.pop_back<int64>());
 	}
 	void operator () (instr::f_store_0) {
-		if(info) { tabs(); print("f_store_0\n"); }
+		if(info) { tabs(); print::out("f_store_0\n"); }
 		stack.emplace_at(locals_begin + 0, stack.pop_back<float>());
 	}
 	void operator () (instr::f_store_1) {
-		if(info) { tabs(); print("f_store_1\n"); }
+		if(info) { tabs(); print::out("f_store_1\n"); }
 		stack.emplace_at(locals_begin + 1, stack.pop_back<float>());
 	}
 	void operator () (instr::f_store_2) {
-		if(info) { tabs(); print("f_store_2\n"); }
+		if(info) { tabs(); print::out("f_store_2\n"); }
 		stack.emplace_at(locals_begin + 2, stack.pop_back<float>());
 	}
 	void operator () (instr::f_store_3) {
-		if(info) { tabs(); print("f_store_3\n"); }
+		if(info) { tabs(); print::out("f_store_3\n"); }
 		stack.emplace_at(locals_begin + 3, stack.pop_back<float>());
 	}
 	void operator () (instr::d_store_0) {
-		if(info) { tabs(); print("d_store_0\n"); }
+		if(info) { tabs(); print::out("d_store_0\n"); }
 		stack.emplace_at(locals_begin + 0, stack.pop_back<double>());
 	}
 	void operator () (instr::d_store_1) {
-		if(info) { tabs(); print("d_store_1\n"); }
+		if(info) { tabs(); print::out("d_store_1\n"); }
 		stack.emplace_at(locals_begin + 1, stack.pop_back<double>());
 	}
 	void operator () (instr::d_store_2) {
-		if(info) { tabs(); print("d_store_2\n"); }
+		if(info) { tabs(); print::out("d_store_2\n"); }
 		stack.emplace_at(locals_begin + 2, stack.pop_back<double>());
 	}
 	void operator () (instr::d_store_3) {
-		if(info) { tabs(); print("d_store_3\n"); }
+		if(info) { tabs(); print::out("d_store_3\n"); }
 		stack.emplace_at(locals_begin + 3, stack.pop_back<double>());
 	}
 	void operator () (instr::a_store_0) {
-		if(info) { tabs(); print("a_store_0\n"); }
+		if(info) { tabs(); print::out("a_store_0\n"); }
 		stack.emplace_at(locals_begin + 0, stack.pop_back<reference>());
 	}
 	void operator () (instr::a_store_1) {
-		if(info) { tabs(); print("a_store_1\n"); }
+		if(info) { tabs(); print::out("a_store_1\n"); }
 		stack.emplace_at(locals_begin + 1, stack.pop_back<reference>());
 	}
 	void operator () (instr::a_store_2) {
-		if(info) { tabs(); print("a_store_2\n"); }
+		if(info) { tabs(); print::out("a_store_2\n"); }
 		stack.emplace_at(locals_begin + 2, stack.pop_back<reference>());
 	}
 	void operator () (instr::a_store_3) {
-		if(info) { tabs(); print("a_store_3\n"); }
+		if(info) { tabs(); print::out("a_store_3\n"); }
 		stack.emplace_at(locals_begin + 3, stack.pop_back<reference>());
 	}
 	loop_action operator () (instr::i_a_store) {
 		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print("i_a_store "); print(value); print("\n"); }
+		if(info) { tabs(); print::out("i_a_store ", value, "\n"); }
 		return view_array<int32>([&](int32& v) {
 			v = value;
 		});
 	}
 	loop_action operator () (instr::l_a_store) {
 		int64 value = stack.pop_back<int64>();
-		if(info) { tabs(); print("l_a_store "); print(value); print("\n"); }
+		if(info) { tabs(); print::out("l_a_store ", value, "\n"); }
 		return view_array<int64>([&](int64& v) {
 			v = value;
 		});
 	}
 	loop_action operator () (instr::f_a_store) {
 		float value = stack.pop_back<float>();
-		if(info) {
-			tabs(); print("f_a_store ");
-			//print(value); print("\n"); } // TODO
-		}
+		if(info) { tabs(); print::out("f_a_store ", value, "\n"); }
 		return view_array<float>([&](float& v) {
 			v = value;
 		});
 	}
 	loop_action operator () (instr::d_a_store) {
 		double value = stack.pop_back<double>();
-		if(info) {
-			tabs(); print("d_a_store ");
-			//print(value); print("\n"); } // TODO
-		}
+		if(info) { tabs(); print::out("d_a_store ", value, "\n"); }
 		return view_array<double>([&](double& v) {
 			v = value;
 		});
 	}
 	loop_action operator () (instr::a_a_store) {
-		if(info) { tabs(); print("a_a_store\n"); }
+		if(info) { tabs(); print::out("a_a_store\n"); }
 		reference value = stack.pop_back<reference>();
 		return view_array<reference>([&](reference& v) {
 			v = value;
@@ -585,7 +537,7 @@ struct execute_instruction {
 	loop_action operator () (instr::b_a_store) {
 		int32 value0 = stack.pop_back<int32>();
 		int8 value = (int8) (uint16) (uint32) value0;
-		if(info) { tabs(); print("b_a_store "); print(value); print("\n"); }
+		if(info) { tabs(); print::out("b_a_store ", value, "\n"); }
 		return view_array<int8>([&](int8& v) {
 			v = value;
 		});
@@ -593,7 +545,7 @@ struct execute_instruction {
 	loop_action operator () (instr::c_a_store) {
 		int32 value0 = stack.pop_back<int32>();
 		uint16 value = (uint16) (uint32) value0;
-		if(info) { tabs(); print("c_a_store "); print(value); print("\n"); }
+		if(info) { tabs(); print::out("c_a_store ", value, "\n"); }
 		return view_array<uint16>([&](uint16& v) {
 			v = value;
 		});
@@ -601,224 +553,215 @@ struct execute_instruction {
 	loop_action operator () (instr::s_a_store) {
 		int32 value0 = stack.pop_back<int32>();
 		int16 value = (int16) (uint16) (uint32) value0;
-		if(info) { tabs(); print("c_a_store "); print(value); print("\n"); }
+		if(info) { tabs(); print::out("c_a_store ", value, "\n"); }
 		return view_array<int16>([&](int16& v) {
 			v = value;
 		});
 	}
 	void operator () (instr::pop) {
-		if(info) { tabs(); print("pop\n"); }
+		if(info) { tabs(); print::out("pop\n"); }
 		stack.pop_back();
 	}
 	void operator () (instr::pop_2) {
-		if(info) { tabs(); print("pop_2\n"); }
+		if(info) { tabs(); print::out("pop_2\n"); }
 		stack.pop_back(2);
 	}
 	void operator () (instr::dup) {
-		if(info) {
-			tabs(); print("dup");
-			print(" @"); print(stack.size()); print("\n");
-		}
+		if(info) { tabs(); print::out("dup @", stack.size(), "\n"); }
 		stack.dup_cat_1();
 	}
 	void operator () (instr::dup_x1) {
-		if(info) { tabs(); print("dup_x1\n"); }
+		if(info) { tabs(); print::out("dup_x1\n"); }
 		stack.dup_x1();
 	}
 	void operator () (instr::dup_x2) {
-		if(info) { tabs(); print("dup_x2\n"); }
+		if(info) { tabs(); print::out("dup_x2\n"); }
 		stack.dup_x2();
 	}
 	void operator () (instr::dup_2) {
-		if(info) { tabs(); print("dup_2\n"); }
+		if(info) { tabs(); print::out("dup_2\n"); }
 		stack.dup2();
 	}
 	void operator () (instr::dup_2_x1) {
-		if(info) { tabs(); print("dup_2_x1\n"); }
+		if(info) { tabs(); print::out("dup_2_x1\n"); }
 		stack.dup2_x1();
 	}
 	void operator () (instr::dup_2_x2) {
-		if(info) { tabs(); print("dup_2_x2\n"); }
+		if(info) { tabs(); print::out("dup_2_x2\n"); }
 		stack.dup2_x2();
 	}
 	void operator () (instr::swap) {
-		if(info) { tabs(); print("swap\n"); }
+		if(info) { tabs(); print::out("swap\n"); }
 		stack.swap();
 	}
 	void operator () (instr::i_add) {
-		if(info) { tabs(); print("i_add\n"); }
+		if(info) { tabs(); print::out("i_add\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 + value2 });
 	}
 	void operator () (instr::l_add) {
-		if(info) { tabs(); print("l_add\n"); }
+		if(info) { tabs(); print::out("l_add\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 + value2 });
 	}
 	void operator () (instr::f_add) {
-		if(info) { tabs(); print("f_add\n"); }
+		if(info) { tabs(); print::out("f_add\n"); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
 		stack.emplace_back(float{ value1 + value2 });
 	}
 	void operator () (instr::d_add) {
-		if(info) { tabs(); print("d_add\n"); }
+		if(info) { tabs(); print::out("d_add\n"); }
 		double value2 = stack.pop_back<double>();
 		double value1 = stack.pop_back<double>();
 		stack.emplace_back(double{ value1 + value2 });
 	}
 	void operator () (instr::i_sub) {
-		if(info) { tabs(); print("i_sub\n"); }
+		if(info) { tabs(); print::out("i_sub\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 - value2 });
 	}
 	void operator () (instr::l_sub) {
-		if(info) { tabs(); print("l_sub\n"); }
+		if(info) { tabs(); print::out("l_sub\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 - value2 });
 	}
 	void operator () (instr::f_sub) {
-		if(info) { tabs(); print("f_sub\n"); }
+		if(info) { tabs(); print::out("f_sub\n"); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
 		stack.emplace_back(float{ value1 - value2 });
 	}
 	void operator () (instr::d_sub) {
-		if(info) { tabs(); print("d_sub\n"); }
+		if(info) { tabs(); print::out("d_sub\n"); }
 		double value2 = stack.pop_back<double>();
 		double value1 = stack.pop_back<double>();
 		stack.emplace_back(double{ value1 - value2 });
 	}
 	void operator () (instr::i_mul) {
-		if(info) { tabs(); print("i_mul\n"); }
+		if(info) { tabs(); print::out("i_mul\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 * value2 });
 	}
 	void operator () (instr::l_mul) {
-		if(info) { tabs(); print("l_mul\n"); }
+		if(info) { tabs(); print::out("l_mul\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 * value2 });
 	}
 	void operator () (instr::f_mul) {
-		if(info) { tabs(); print("f_mul\n"); }
+		if(info) { tabs(); print::out("f_mul\n"); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
 		stack.emplace_back(float{ value1 * value2 });
 	}
 	void operator () (instr::d_mul) {
-		if(info) { tabs(); print("d_mul\n"); }
+		if(info) { tabs(); print::out("d_mul\n"); }
 		double value2 = stack.pop_back<double>();
 		double value1 = stack.pop_back<double>();
 		stack.emplace_back(double{ value1 * value2 });
 	}
 	void operator () (instr::i_div) {
-		if(info) { tabs(); print("i_div\n"); }
+		if(info) { tabs(); print::out("i_div\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 / value2 });
 	}
 	void operator () (instr::l_div) {
-		if(info) { tabs(); print("l_div\n"); }
+		if(info) { tabs(); print::out("l_div\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 / value2 });
 	}
 	void operator () (instr::f_div) {
-		if(info) { tabs(); print("f_div\n"); }
+		if(info) { tabs(); print::out("f_div\n"); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
 		stack.emplace_back(float{ value1 / value2 });
 	}
 	void operator () (instr::d_div) {
-		if(info) { tabs(); print("d_div\n"); }
+		if(info) { tabs(); print::out("d_div\n"); }
 		double value2 = stack.pop_back<double>();
 		double value1 = stack.pop_back<double>();
 		stack.emplace_back(double{ value1 / value2 });
 	}
 	void operator () (instr::i_rem) {
-		if(info) { tabs(); print("i_rem "); }
+		if(info) { tabs(); print::out("i_rem "); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		int32 result = int32{ value1 - (value1 / value2) * value2 };
-		if(info) {
-			print(value1);
-			print(" % ");
-			print(value2);
-			print(" = ");
-			print(result);
-		}
+		if(info) { print::out(value1," % ", value2, " = ", result); }
 		stack.emplace_back(result);
 	}
 	void operator () (instr::l_rem) {
-		if(info) { tabs(); print("l_rem\n"); }
+		if(info) { tabs(); print::out("l_rem\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 - (value1 / value2) * value2 });
 	}
 	void operator () (instr::f_rem) { // TODO spec
-		if(info) { tabs(); print("f_rem\n"); }
+		if(info) { tabs(); print::out("f_rem\n"); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
 		stack.emplace_back(float{ value1 - (value1 / value2) * value2 });
 	}
 	void operator () (instr::d_rem) { // TODO spec
-		if(info) { tabs(); print("d_rem\n"); }
+		if(info) { tabs(); print::out("d_rem\n"); }
 		double value2 = stack.pop_back<double>();
 		double value1 = stack.pop_back<double>();
 		stack.emplace_back(double{ value1 - (value1 / value2) * value2 });
 	}
 	void operator () (instr::i_neg) {
-		if(info) { tabs(); print("i_neg\n"); }
+		if(info) { tabs(); print::out("i_neg\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back(int32{ -value });
 	}
 	void operator () (instr::l_neg) {
-		if(info) { tabs(); print("l_neg\n"); }
+		if(info) { tabs(); print::out("l_neg\n"); }
 		int64 value = stack.pop_back<int64>();
 		stack.emplace_back(int64{ -value });
 	}
 	void operator () (instr::f_neg) {
-		if(info) { tabs(); print("f_neg\n"); }
+		if(info) { tabs(); print::out("f_neg\n"); }
 		float value = stack.pop_back<float>();
 		stack.emplace_back(float{ -value });
 	}
 	void operator () (instr::d_neg) {
-		if(info) { tabs(); print("d_neg\n"); }
+		if(info) { tabs(); print::out("d_neg\n"); }
 		double value = stack.pop_back<double>();
 		stack.emplace_back(double{ -value });
 	}
 	void operator () (instr::i_sh_l) {
-		if(info) { tabs(); print("i_sh_l\n"); }
+		if(info) { tabs(); print::out("i_sh_l\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 << (value2 & 0x1F) });
 	}
 	void operator () (instr::l_sh_l) {
-		if(info) { tabs(); print("l_sh_l\n"); }
+		if(info) { tabs(); print::out("l_sh_l\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 << (value2 & 0x3F) });
 	}
 	void operator () (instr::i_sh_r) {
-		if(info) { tabs(); print("i_sh_r\n"); }
+		if(info) { tabs(); print::out("i_sh_r\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 >> (value2 & 0x1F) });
 	}
 	void operator () (instr::l_sh_r) {
-		if(info) { tabs(); print("l_sh_r\n"); }
+		if(info) { tabs(); print::out("l_sh_r\n"); }
 		int32 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 >> (value2 & 0x3F) });
 	}
 	void operator () (instr::i_u_sh_r) {
-		if(info) { tabs(); print("i_u_sh_r\n"); }
+		if(info) { tabs(); print::out("i_u_sh_r\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32 {
@@ -826,7 +769,7 @@ struct execute_instruction {
 		});
 	}
 	void operator () (instr::l_u_sh_r) {
-		if(info) { tabs(); print("l_ush_r\n"); }
+		if(info) { tabs(); print::out("l_ush_r\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64 {
@@ -834,104 +777,83 @@ struct execute_instruction {
 		});
 	}
 	void operator () (instr::i_and) {
+		if(info) { tabs(); print::out("i_and "); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		int32 result = value1 & value2;
 		if(info) {
-			tabs();
-			print("i_and ");
-			print(value1);
-			print(" ");
-			print(value2);
-			print(" = ");
-			print(result);
-			print("\n");
+			print::out(value1, " ", value2, " = ", result, "\n");
 		}
 		stack.emplace_back(result);
 	}
 	void operator () (instr::l_and) {
-		if(info) { tabs(); print("l_and\n"); }
+		if(info) { tabs(); print::out("l_and\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 & value2 });
 	}
 	void operator () (instr::i_or) {
+		if(info) { tabs(); print::out("i_or "); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		int32 result = value1 | value2;
-		if(info) {
-			tabs();
-			print("i_and ");
-			print(value1);
-			print(" ");
-			print(value2);
-			print(" = ");
-			print(result);
-			print("\n");
-		}
+		if(info) { print::out(value1, " ", value2, " = ", result, "\n"); }
 		stack.emplace_back(result);
 	}
 	void operator () (instr::l_or) {
-		if(info) { tabs(); print("l_or\n"); }
+		if(info) { tabs(); print::out("l_or\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 | value2 });
 	}
 	void operator () (instr::i_xor) {
-		if(info) { tabs(); print("i_xor\n"); }
+		if(info) { tabs(); print::out("i_xor\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		stack.emplace_back(int32{ value1 ^ value2 });
 	}
 	void operator () (instr::l_xor) {
-		if(info) { tabs(); print("l_xor\n"); }
+		if(info) { tabs(); print::out("l_xor\n"); }
 		int64 value2 = stack.pop_back<int64>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 ^ value2 });
 	}
 	void operator () (instr::i_inc x) {
-		if(info) {
-			tabs();
-			print("i_inc ");
-			print(x.index);
-			print(" ");
-			print(x.value);
-			print("\n");
-		}
+		if(info) { tabs(); print::out("i_inc ", x.index, " ", x.value, "\n"); }
 		stack.get<int32>(locals_begin + x.index) += x.value;
 	}
 	void operator () (instr::i_to_l) {
-		if(info) { tabs(); print("i_to_l\n"); }
+		if(info) { tabs(); print::out("i_to_l\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((int64) value);
 	}
 	void operator () (instr::i_to_f) {
-		if(info) { tabs(); print("i_to_f\n"); }
+		if(info) { tabs(); print::out("i_to_f\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((float) value);
 	}
 	void operator () (instr::i_to_d) {
-		if(info) { tabs(); print("i_to_d\n"); }
+		if(info) { tabs(); print::out("i_to_d\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((double) value);
 	}
 	void operator () (instr::l_to_i) {
-		if(info) { tabs(); print("l_to_i\n"); }
+		if(info) { tabs(); print::out("l_to_i\n"); }
 		int64 value = stack.pop_back<int64>();
 		stack.emplace_back((int32) (value & 0xFFFFFFFF));
 	}
 	void operator () (instr::l_to_f) {
-		if(info) { tabs(); print("l_to_f\n"); }
+		if(info) { tabs(); print::out("l_to_f\n"); }
 		int64 value = stack.pop_back<int64>();
 		stack.emplace_back((float) value);
 	}
 	void operator () (instr::l_to_d) {
-		if(info) { tabs(); print("l_to_d\n"); }
+		if(info) { tabs(); print::out("l_to_d\n"); }
 		int64 value = stack.pop_back<int64>();
 		stack.emplace_back((double) value);
 	}
 	void operator () (instr::f_to_i) {
-		if(info) { tabs(); print("f_to_i\n"); }
+		if(info) { tabs(); print::out("f_to_i\n"); }
 		float value = stack.pop_back<float>();
 		int32 result;
 		if(posix::is_nan(value)) {
@@ -943,47 +865,47 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::f_to_l) {
-		if(info) { tabs(); print("f_to_l\n"); }
+		if(info) { tabs(); print::out("f_to_l\n"); }
 		float value = stack.pop_back<float>();
 		stack.emplace_back((int64) value);
 	}
 	void operator () (instr::f_to_d) {
-		if(info) { tabs(); print("f_to_d\n"); }
+		if(info) { tabs(); print::out("f_to_d\n"); }
 		float value = stack.pop_back<float>();
 		stack.emplace_back((double) value);
 	}
 	void operator () (instr::d_to_i) {
-		if(info) { tabs(); print("d_to_i\n"); }
+		if(info) { tabs(); print::out("d_to_i\n"); }
 		double value = stack.pop_back<double>();
 		stack.emplace_back((int32) value);
 	}
 	void operator () (instr::d_to_l) {
-		if(info) { tabs(); print("d_to_l\n"); }
+		if(info) { tabs(); print::out("d_to_l\n"); }
 		double value = stack.pop_back<double>();
 		stack.emplace_back((int64) value);
 	}
 	void operator () (instr::d_to_f) {
-		if(info) { tabs(); print("d_to_f\n"); }
+		if(info) { tabs(); print::out("d_to_f\n"); }
 		double value = stack.pop_back<double>();
 		stack.emplace_back((float) value);
 	}
 	void operator () (instr::i_to_b) {
-		if(info) { tabs(); print("i_to_b\n"); }
+		if(info) { tabs(); print::out("i_to_b\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((int32) (uint32) (int8) value);
 	}
 	void operator () (instr::i_to_c) {
-		if(info) { tabs(); print("i_to_c\n"); }
+		if(info) { tabs(); print::out("i_to_c\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((int32) (uint32) (uint16) (uint32) value);
 	}
 	void operator () (instr::i_to_s) {
-		if(info) { tabs(); print("i_to_s\n"); }
+		if(info) { tabs(); print::out("i_to_s\n"); }
 		int32 value = stack.pop_back<int32>();
 		stack.emplace_back((int32) (uint32) (int16) value);
 	}
 	void operator () (instr::l_cmp) {
-		if(info) { tabs(); print("l_cmp\n"); }
+		if(info) { tabs(); print::out("l_cmp\n"); }
 		int64 value_2 = stack.pop_back<int64>();
 		int64 value_1 = stack.pop_back<int64>();
 		int32 result;
@@ -993,7 +915,7 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::f_cmp_l) {
-		if(info) { tabs(); print("f_cmp_l\n"); }
+		if(info) { tabs(); print::out("f_cmp_l\n"); }
 		float value_2 = stack.pop_back<float>();
 		float value_1 = stack.pop_back<float>();
 		int32 result;
@@ -1006,7 +928,7 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::f_cmp_g) {
-		if(info) { tabs(); print("f_cmp_g\n"); }
+		if(info) { tabs(); print::out("f_cmp_g\n"); }
 		float value_2 = stack.pop_back<float>();
 		float value_1 = stack.pop_back<float>();
 		int32 result;
@@ -1019,7 +941,7 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::d_cmp_l) {
-		if(info) { tabs(); print("d_cmp_l\n"); }
+		if(info) { tabs(); print::out("d_cmp_l\n"); }
 		double value_2 = stack.pop_back<double>();
 		double value_1 = stack.pop_back<double>();
 		int32 result;
@@ -1032,7 +954,7 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::d_cmp_g) {
-		if(info) { tabs(); print("d_cmp_g\n"); }
+		if(info) { tabs(); print::out("d_cmp_g\n"); }
 		double value_2 = stack.pop_back<double>();
 		double value_1 = stack.pop_back<double>();
 		int32 result;
@@ -1045,68 +967,52 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::if_eq x) {
+		if(info) { tabs(); print::out("if_eq "); }
 		int32 value = stack.pop_back<int32>();
 		if(info) {
-			tabs();
-			print("if_eq ");
-			value == 0 ? print("true") : print("false");
-			print(" +");
-			print(x.branch);
-			print("\n");
+			print::out(value == 0, " +", x.branch, "\n");
 		}
 		if(value == 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_ne x) {
-		if(info) {
-			tabs(); print("if_ne "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_ne ", x.branch, "\n"); }
 		int32 value = stack.pop_back<int32>();
 		if(value != 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_lt x) {
-		if(info) {
-			tabs(); print("if_lt "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_lt ", x.branch, "\n"); }
 		int32 value = stack.pop_back<int32>();
 		if(value < 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_ge x) {
-		if(info) {
-			tabs(); print("if_ge "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_ge ", x.branch, "\n"); }
 		int32 value = stack.pop_back<int32>();
 		if(value >= 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_gt x) {
-		if(info) {
-			tabs(); print("if_gt "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_gt ", x.branch, "\n"); }
 		int32 value = stack.pop_back<int32>();
 		if(value > 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_le x) {
-		if(info) {
-			tabs(); print("if_le "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_le ", x.branch, "\n"); }
 		int32 value = stack.pop_back<int32>();
 		if(value <= 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_i_cmp_eq x) {
-		if(info) {
-			tabs(); print("if_i_cmp_eq "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_eq ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 == value2) {
@@ -1114,9 +1020,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_i_cmp_ne x) {
-		if(info) {
-			tabs(); print("if_i_cmp_ne "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_ne ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 != value2) {
@@ -1124,9 +1028,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_i_cmp_lt x) {
-		if(info) {
-			tabs(); print("if_i_cmp_lt "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_lt ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 < value2) {
@@ -1134,9 +1036,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_i_cmp_ge x) {
-		if(info) {
-			tabs(); print("if_i_cmp_ge "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_ge ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 >= value2) {
@@ -1144,9 +1044,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_i_cmp_gt x) {
-		if(info) {
-			tabs(); print("if_i_cmp_gt "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_gt ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 > value2) {
@@ -1154,9 +1052,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_i_cmp_le x) {
-		if(info) {
-			tabs(); print("if_i_cmp_le "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_i_cmp_le ", x.branch, "\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
 		if(value1 <= value2) {
@@ -1164,9 +1060,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_a_cmp_eq x) {
-		if(info) {
-			tabs(); print("if_a_cmp_eq "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_a_cmp_eq ", x.branch, "\n"); }
 		reference value2 = stack.pop_back<reference>();
 		reference value1 = stack.pop_back<reference>();
 		if(value1.object_ptr() == value2.object_ptr()) {
@@ -1174,9 +1068,7 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::if_a_cmp_ne x) {
-		if(info) {
-			tabs(); print("if_a_cmp_ne "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_a_cmp_ne ", x.branch, "\n"); }
 		reference value2 = stack.pop_back<reference>();
 		reference value1 = stack.pop_back<reference>();
 		if(value1.object_ptr() != value2.object_ptr()) {
@@ -1184,24 +1076,22 @@ struct execute_instruction {
 		}
 	}
 	void operator () (instr::go_to x) {
-		if(info) {
-			tabs(); print("go_to "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("go_to ", x.branch, "\n"); }
 		next_instruction_ptr = instruction_ptr + x.branch;
 	}
 	void operator () (instr::jmp_sr x) {
-		if(info) { tabs(); print("jmp_sr\n"); }
+		if(info) { tabs(); print::out("jmp_sr\n"); }
 		uint32 address = (uint32) (uint64) next_instruction_ptr;
 		stack.emplace_back((int32)address);
 		next_instruction_ptr = instruction_ptr + x.branch;
 	}
 	void operator () (instr::return_sr x) {
-		if(info) { tabs(); print("return_sr\n"); }
+		if(info) { tabs(); print::out("return_sr\n"); }
 		uint32 address = stack.get<int32>(x.index);
 		next_instruction_ptr = m.code().iterator() + address;
 	}
 	void operator () (instr::table_switch x) {
-		if(info) { tabs(); print("table_switch\n"); }
+		if(info) { tabs(); print::out("table_switch\n"); }
 		/* The index must be of type int and is popped from the operand
 			stack. */
 		int32 index = stack.pop_back<int32>();
@@ -1224,7 +1114,7 @@ struct execute_instruction {
 		}
 	}
 	loop_action operator () (instr::lookup_switch x) {
-		if(info) { tabs(); print("lookup_switch\n"); }
+		if(info) { tabs(); print::out("lookup_switch\n"); }
 
 		int32 key = stack.pop_back<int32>();
 
@@ -1245,6 +1135,8 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	loop_action operator () (instr::i_return) {
+		if(info) { tabs(); print::out("i_return "); }
+
 		int32 result = stack.back<int32>();
 		m.return_type().view([&]<typename RetType>(RetType) {
 			if constexpr(same_as<RetType, class_file::z>) {
@@ -1262,51 +1154,46 @@ struct execute_instruction {
 		});
 		stack.pop_back_until(locals_begin);
 		stack.emplace_back(result);
-		if(info) {
-			tabs();
-			print("i_return ");
-			print(result);
-			print("\n");
-		}
+		if(info) { print::out(result, "\n"); }
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::l_return) {
-		if(info) { tabs(); print("l_return\n"); }
+		if(info) { tabs(); print::out("l_return\n"); }
 		int64 result = stack.pop_back<int64>();
 		stack.pop_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::f_return) {
-		if(info) { tabs(); print("f_return\n"); }
+		if(info) { tabs(); print::out("f_return\n"); }
 		float result = stack.pop_back<float>();
 		stack.pop_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::d_return) {
-		if(info) { tabs(); print("d_return\n"); }
+		if(info) { tabs(); print::out("d_return\n"); }
 		double result = stack.pop_back<double>();
 		stack.pop_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::a_return) {
-		if(info) { tabs(); print("a_return\n"); }
+		if(info) { tabs(); print::out("a_return\n"); }
 		reference result = stack.pop_back<reference>();
 		stack.pop_back_until(locals_begin);
 		stack.emplace_back(move(result));
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::_return) {
-		if(info) { tabs(); print("return\n"); }
+		if(info) { tabs(); print::out("return\n"); }
 		stack.pop_back_until(locals_begin);
 		return loop_action::stop;
 	}
 	void operator () (instr::get_static x) {
 		namespace cc = class_file::constant;
 		if(info) {
-			tabs(); print("get_static ");
+			tabs(); print::out("get_static ");
 			cc::field_ref field_ref = c.field_ref_constant(x.index);
 			cc::_class _class = c.class_constant(field_ref.class_index);
 			cc::utf8 class_name = c.utf8_constant(_class.name_index);
@@ -1314,12 +1201,7 @@ struct execute_instruction {
 				c.name_and_type_constant(field_ref.name_and_type_index)
 			};
 			cc::utf8 name = c.utf8_constant(nat.name_index);
-			print(class_name);
-			print(".");
-			print(name);
-			print(" @");
-			print(stack.size());
-			print("\n");
+			print::out(class_name, ".", name, " @", stack.size(), "\n");
 		}
 		class_and_declared_static_field_index class_and_field_index
 			= c.get_static_field_index(x.index);
@@ -1334,14 +1216,13 @@ struct execute_instruction {
 	void operator () (instr::put_static x) {
 		namespace cc = class_file::constant;
 		if(info) {
-			tabs(); print("put_static ");
+			tabs(); print::out("put_static ");
 			cc::field_ref field_ref = c.field_ref_constant(x.index);
 			cc::name_and_type nat {
 				c.name_and_type_constant(field_ref.name_and_type_index)
 			};
 			cc::utf8 name = c.utf8_constant(nat.name_index);
-			print(name);
-			print("\n");
+			print::out(name, "\n");
 		}
 		class_and_declared_static_field_index class_and_field_index
 			= c.get_static_field_index(x.index);
@@ -1355,7 +1236,7 @@ struct execute_instruction {
 	loop_action operator () (instr::get_field x) {
 		namespace cc = class_file::constant;
 		if(info) {
-			tabs(); print("get_field ");
+			tabs(); print::out("get_field ");
 			auto field_ref = c.field_ref_constant(x.index);
 			cc::name_and_type nat = c.name_and_type_constant(
 				field_ref.name_and_type_index
@@ -1363,10 +1244,7 @@ struct execute_instruction {
 			cc::_class class_ = c.class_constant(field_ref.class_index);
 			cc::utf8 class_name = c.utf8_constant(class_.name_index);
 			cc::utf8 field_name = c.utf8_constant(nat.name_index);
-			print(class_name);
-			print(".");
-			print(field_name);
-			print("\n");
+			print::out(class_name, ".", field_name, "\n");
 		}
 
 		reference ref = stack.pop_back<reference>();
@@ -1388,7 +1266,7 @@ struct execute_instruction {
 	loop_action operator () (instr::put_field x) {
 		namespace cc = class_file::constant;
 		if(info) {
-			tabs(); print("put_field ");
+			tabs(); print::out("put_field ");
 			cc::field_ref field_ref = c.field_ref_constant(x.index);
 			cc::name_and_type nat = c.name_and_type_constant(
 				field_ref.name_and_type_index
@@ -1396,10 +1274,7 @@ struct execute_instruction {
 			cc::_class class_ = c.class_constant(field_ref.class_index);
 			cc::utf8 class_name = c.utf8_constant(class_.name_index);
 			cc::utf8 name = c.utf8_constant(nat.name_index);
-			print(class_name);
-			print(".");
-			print(name);
-			print("\n");
+			print::out(class_name, ".", name, "\n");
 		}
 
 		field_index_and_stack_size field_index_and_stack_size
@@ -1445,14 +1320,11 @@ struct execute_instruction {
 	}
 	void operator () (instr::_new x) {
 		if(info) {
-			tabs(); print("new ");
+			tabs(); print::out("new ");
 			class_file::constant::utf8 name = c.utf8_constant(
 				c.class_constant(x.index).name_index
 			);
-			print(name);
-			print(" @");
-			print(stack.size());
-			print("\n");
+			print::out(name, " @", stack.size(), "\n");
 		}
 		_class& c0 = c.get_resolved_class(x.index);
 		stack.emplace_back(create_object(c0));
@@ -1464,10 +1336,9 @@ struct execute_instruction {
 		_class& element_class = c.get_resolved_class(x.index);
 
 		if(info) {
-			tabs(); print("a_new_array ");
+			tabs(); print::out("a_new_array ");
 			class_file::constant::utf8 name = element_class.name();
-			print(name);
-			print("\n");
+			print::out(name, "\n");
 		}
 
 		int32 count = stack.pop_back<int32>();
@@ -1475,7 +1346,7 @@ struct execute_instruction {
 		stack.emplace_back(move(ref));
 	}
 	loop_action operator () (instr::array_length) {
-		if(info) { tabs(); print("array_length\n"); }
+		if(info) { tabs(); print::out("array_length\n"); }
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
 			thrown = create_null_pointer_exception();
@@ -1485,7 +1356,7 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	loop_action operator () (instr::a_throw) {
-		if(info) { tabs(); print("a_throw\n"); }
+		if(info) { tabs(); print::out("a_throw\n"); }
 
 		reference ref = move(stack.pop_back<reference>());
 		if(ref.is_null()) {
@@ -1520,52 +1391,42 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	void operator () (instr::if_null x) {
-		if(info) {
-			tabs(); print("if_null "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_null ", x.branch, "\n"); }
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::if_non_null x) {
-		if(info) {
-			tabs(); print("if_non_null "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("if_non_null ", x.branch, "\n"); }
 		reference ref = stack.pop_back<reference>();
 		if(!ref.is_null()) {
 			next_instruction_ptr = instruction_ptr + x.branch;
 		}
 	}
 	void operator () (instr::go_to_w x) {
-		if(info) {
-			tabs(); print("go_to_w "); print(x.branch); print("\n");
-		}
+		if(info) { tabs(); print::out("go_to_w ", x.branch, "\n"); }
 		next_instruction_ptr = instruction_ptr + x.branch;
 	}
 	void operator () (instr::jmp_sr_w x) {
-		if(info) { tabs(); print("jmp_sr_w\n"); }
+		if(info) { tabs(); print::out("jmp_sr_w\n"); }
 		uint32 address = (uint32) (uint64) next_instruction_ptr;
 		stack.emplace_back((int32)address);
 		next_instruction_ptr = instruction_ptr + x.branch;
 	}
 	void operator () (instr::unknown x) {
-		if(info) tabs();
-		print("unknown instruction ");
-		print(x.code);
-		abort();
+		if(info) {
+			tabs();
+			print::err("unknown instruction ", x.code, "\n");
+		}
+		posix::abort();
 	}
 	void operator () (auto x) {
-		if(info) tabs();
-		posix::std_err.write_from(c_string{ "unimplemented instruction " });
-		number{ decltype(x)::code }.for_each_digit(
-			number_base{ 10 },
-			[](auto digit) {
-				posix::std_err.write_from(array{ '0' + digit });
-			}
-		);
-		posix::std_err.write_from(c_string{ "\n" });
-		abort();
+		if(info) {
+			tabs();
+			print::err("unimplemented instruction ", decltype(x)::code, "\n");
+		}
+		posix::abort();
 	}
 
 };

@@ -32,14 +32,14 @@ public:
 	decltype(auto) find(Name&& name, Descriptor&& descriptor) {
 		return try_find(
 			forward<Name>(name), forward<Descriptor>(descriptor)
-		).if_has_no_value([] { abort(); }).get();
+		).if_has_no_value([] { posix::abort(); }).get();
 	}
 
 	template<basic_range Name, basic_range Descriptor>
 	auto find_index_of(Name&& name, Descriptor&& descriptor) {
 		return try_find_index_of(
 			forward<Name>(name), forward<Descriptor>(descriptor)
-		).if_has_no_value([] { abort(); }).get();
+		).if_has_no_value([] { posix::abort(); }).get();
 	}
 
 };

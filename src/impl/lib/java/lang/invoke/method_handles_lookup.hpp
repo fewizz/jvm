@@ -36,7 +36,7 @@ static reference lookup_find_special(
 ) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
 		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
-			abort(); // TODO throw NoSuchElementException
+			posix::abort(); // TODO throw NoSuchElementException
 		}
 		_class& receiver = class_from_class_instance(refc);
 		_class& current = class_from_class_instance(special_caller);

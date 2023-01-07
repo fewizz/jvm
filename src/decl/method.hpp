@@ -74,7 +74,7 @@ public:
 	{
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
 		uint8 parameter_count = reader.try_read_parameters_count(
-			[]([[maybe_unused]] auto err) { abort(); }
+			[]([[maybe_unused]] auto err) { posix::abort(); }
 		).get();
 
 		list parameter_types_list =
@@ -87,14 +87,14 @@ public:
 				[&]<typename ParamType>(ParamType parameter_type) {
 					parameter_types_list.emplace_back(parameter_type);
 				},
-				[](auto) { abort(); }
+				[](auto) { posix::abort(); }
 			).get();
 
 		return_type_reader.try_read_and_get_advanced_iterator(
 			[&](auto ret_type) {
 				return_type_ = ret_type;
 			},
-			[](auto) { abort(); }
+			[](auto) { posix::abort(); }
 		);
 
 		if(!access_flags._static) {
@@ -147,7 +147,7 @@ public:
 
 	void native_function(native_function_ptr function) {
 		if(!code_.is_same_as<optional<native_function_ptr>>()) {
-			abort();
+			posix::abort();
 		}
 		code_ = function;
 	}

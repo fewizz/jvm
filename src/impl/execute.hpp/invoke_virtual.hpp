@@ -25,12 +25,8 @@ inline void invoke_virtual(
 	cc::utf8 class_name = c.utf8_constant(_c.name_index);
 
 	if(info) {
-		tabs(); print("invoke_virtual ");
-		print(class_name);
-		print(".");
-		print(name);
-		print(desc);
-		print("\n");
+		tabs();
+		print::out("invoke_virtual ", class_name, ".", name, desc, "\n");
 	}
 
 	if(class_name.has_equal_size_and_elements(
@@ -45,7 +41,7 @@ inline void invoke_virtual(
 					same_as_any<ParamType, class_file::j, class_file::d> ?
 					2 : 1;
 			},
-			[](auto) { abort(); }
+			[](auto) { posix::abort(); }
 		);
 		reference& mh
 			= stack.get<reference>(stack.size() - args_count_stack - 1);
@@ -56,7 +52,7 @@ inline void invoke_virtual(
 				args_count_stack
 			);
 		} else {
-			abort();
+			posix::abort();
 		}
 		return;
 	}

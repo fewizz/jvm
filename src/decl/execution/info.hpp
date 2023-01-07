@@ -1,8 +1,8 @@
 #pragma once
 
-#include "print.hpp"
-
 #include <integer.hpp>
+
+#include <print/print.hpp>
 
 #ifndef PRINT_EXECUTION_INFO
 #define PRINT_EXECUTION_INFO false
@@ -19,5 +19,5 @@ inline void tabs() {
 
 	for(nuint i = 0; i < size; ++i) { chrs[i] = ' '; }
 
-	print(span{ chrs, size });
+	print::out(span{ chrs, size });
 }
