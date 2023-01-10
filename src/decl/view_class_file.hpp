@@ -26,19 +26,18 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				expression_of_type<Handler>
 				(move(expression_of_type<body<posix::file>>))
 			)> {
-				bool error = false;
-				optional<body<posix::file>> f = posix::try_open_file(
-					c_string{ on_stack.iterator() },
-					posix::file_access_modes {
-						posix::file_access_mode::read,
-						posix::file_access_mode::binary
-					},
-					[&](auto) { error = true; }
-				);
-				if(error) {
+				expected<body<posix::file>, posix::error> result
+					= posix::try_open_file(
+						c_string{ on_stack.iterator() },
+						posix::file_access_modes {
+							posix::file_access_mode::read,
+							posix::file_access_mode::binary
+						}
+					);
+				if(result.is_unexpected()) {
 					return {};
 				}
-				return handler(move(f.get()));
+				return handler(move(result).get_expected());
 			}
 		);
 	};
