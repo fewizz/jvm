@@ -17,8 +17,8 @@ struct reference;
 struct object : layout_view_extension<object> {
 private:
 	uint32 references_ = 0;
-	optional<_class&> class_;
-	body<posix::mutex> mutex_;
+	optional<_class&> class_{};
+	body<posix::mutex> mutex_{};
 	posix::memory_for_range_of<uint8> data_;
 
 	friend reference;

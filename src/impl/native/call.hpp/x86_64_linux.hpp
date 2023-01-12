@@ -5,7 +5,8 @@
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
 
-#include <max.hpp>
+#include <numbers.hpp>
+
 #include <class_file/descriptor/method_reader.hpp>
 
 #include <posix/abort.hpp>
@@ -37,8 +38,10 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		return i_stack_count + f_stack_count;
 	}();
 
-	uint64 stack_storage[max(stack_count, 1u)];
-	for(nuint i = 0; i < max(stack_count, 1u); ++i) { stack_storage[i] = 0; }
+
+	uint8 stack_storage_size = numbers{ uint8(1), stack_count }.max();
+	uint64 stack_storage[stack_storage_size];
+	for(nuint i = 0; i < stack_storage_size; ++i) { stack_storage[i] = 0; }
 
 	{
 		nuint arg = 0;

@@ -37,9 +37,8 @@ inline object::object(::_class& c) :
 inline object::~object() {
 	if(info) {
 		tabs();
-		print::out("# destructing object @");
-		print::out.hex((nuint)this);
 		auto name = _class().name();
+		print::out("# destructing object @").hex((nuint)this);
 		print::out(" of type ", name, "\n");
 	}
 
@@ -79,8 +78,7 @@ inline void object::on_reference_removed() {
 	--references_;
 	if(info) {
 		tabs();
-		print::out("# removed reference to object @");
-		print::out.hex((nuint)this);
+		print::out("# removed reference to object @").hex((nuint)this);
 		auto name = _class().name();
 		print::out(" of type ", name, ", ", references_, " left\n");
 	}
