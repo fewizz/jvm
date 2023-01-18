@@ -146,7 +146,7 @@ inline _class::_class(
 	declared_static_layout_ { declared_static_fields() },
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },
-	mutex_ { posix::create_mutex(get_mutex_attribute_recursive()) },
+	mutex_ { posix::create_mutex(mutex_attribute_recursive) },
 	declared_static_fields_data_ {
 		posix::allocate_memory_for<uint8>(
 			declared_static_layout().size()

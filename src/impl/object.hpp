@@ -12,9 +12,7 @@
 
 inline object::object(::_class& c) :
 	class_{ c },
-	mutex_ { [&]() {
-		return posix::create_mutex(get_mutex_attribute_recursive());
-	}()},
+	mutex_{ posix::create_mutex(mutex_attribute_recursive) },
 	data_ {
 		posix::allocate_memory_for<uint8>(c.instance_layout().size())
 	}

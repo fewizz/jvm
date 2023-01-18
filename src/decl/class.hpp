@@ -119,6 +119,8 @@ public:
 		return declared_static_layout_;
 	}
 
+	inline void destruct_declared_static_fields_values();
+
 	// required member functions for layout_view_extension:
 	friend layout_view_extension<object>;
 

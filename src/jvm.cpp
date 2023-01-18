@@ -6,7 +6,7 @@
 #include "define/primitive_class.hpp"
 #include "executable_path.hpp"
 
-#include <posix/__internal/default_unexpected_handler.cpp>
+#include <posix/default_unhandled.cpp>
 #include <print/print.hpp>
 
 int main (int argc, const char** argv) {
@@ -18,7 +18,7 @@ int main (int argc, const char** argv) {
 	// TODO replace with somethig more reliable
 	executable_path = argv[0];
 
-	get_mutex_attribute_recursive(); //initialise it
+	//classes = posix::allocate_memory_for<_class>(65536);
 
 	init_java_lang_object();
 

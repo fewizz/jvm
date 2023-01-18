@@ -13,8 +13,13 @@ static struct classes : private list<posix::memory_for_range_of<_class>> {
 	using base_type = list<posix::memory_for_range_of<_class>>;
 	using base_type::base_type;
 
-	body<posix::mutex> mutex_
-		= posix::create_mutex(get_mutex_attribute_recursive());
+	body<posix::mutex> mutex_ = posix::create_mutex(mutex_attribute_recursive);
+
+	~classes() {
+		for(_class& c : *this) {
+			c.destruct_declared_static_fields_values();
+		}
+	}
 
 	template<basic_range Name>
 	_class& find_or_load(Name&& name) {

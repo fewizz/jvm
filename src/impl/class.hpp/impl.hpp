@@ -1,4 +1,5 @@
 #include "./ctor.hpp"
+#include "./destruct_declared_static_fields_values.hpp"
 #include "./for_each_maximally_specific_super_interface_method.hpp"
 #include "./for_each_super_interface.hpp"
 #include "./get_array_class.hpp"
