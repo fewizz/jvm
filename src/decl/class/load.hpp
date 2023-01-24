@@ -28,7 +28,8 @@ inline _class& load_class(Name&& name) {
 		return define_array_class(name);
 	}
 
-	return view_class_file(name,
+	return view_class_file(
+		name,
 		[&](body<posix::file> f) -> _class& {
 			nuint size = f->set_offset_to_end();
 			f->set_offset(0);

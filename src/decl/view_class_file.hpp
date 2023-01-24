@@ -26,7 +26,7 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				expression_of_type<Handler>
 				(move(expression_of_type<body<posix::file>>))
 			)> {
-				expected<body<posix::file>, posix::error> result
+				expected<handle<posix::file>, posix::error> result
 					= posix::try_open_file(
 						c_string{ on_stack.iterator() },
 						posix::file_access_modes {
@@ -37,12 +37,12 @@ inline decltype(auto) view_class_file(Name&& name, Handler&& handler) {
 				if(result.is_unexpected()) {
 					return {};
 				}
-				return handler(move(result).get_expected());
+				return handler(body<posix::file>{ result.get_expected() });
 			}
 		);
 	};
 
-	auto exe = executable_path.get().sized();
+	c_string_of_known_size exe = executable_path.get().sized();
 
 	// TODO replace with algo
 	nuint last_slash = exe.size() - 1;
