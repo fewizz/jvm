@@ -4,6 +4,7 @@
 #include "../reference.hpp"
 
 #include <posix/memory.hpp>
+#include <print/print.hpp>
 #include <range.hpp>
 
 struct layout {
@@ -53,7 +54,9 @@ struct layout {
 			}
 			count += range_size(declared_instance_fields);
 
-			auto field_index_to_slot = posix::allocate_memory_for<slot>(count);
+			posix::memory_for_range_of<slot> field_index_to_slot
+				= posix::allocate_memory_for<slot>(count);
+
 			uint32 current_position = 0;
 			uint32 initial_field_index = 0;
 			if(super.has_value()) {

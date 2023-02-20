@@ -44,8 +44,20 @@ public:
 	object(_class& c);
 	~object();
 
-	const ::_class& _class() const { return class_.get(); }
-	      ::_class& _class()       { return class_.get(); }
+	const ::_class& _class() const {
+		if(!class_.has_value()) {
+			print::err("object::_class(): object is null");
+			posix::abort();
+		}
+		return class_.get();
+	}
+	      ::_class& _class()       {
+		if(!class_.has_value()) {
+			print::err("object::_class(): object is null");
+			posix::abort();
+		}
+		return class_.get();
+	}
 
 	uint32 references() { return references_; }
 
