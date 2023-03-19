@@ -11,7 +11,7 @@ public abstract class Charset implements Comparable<Charset> {
 	}
 
 	public static Charset defaultCharset() {
-		return jvm.internal.UTF8Charset.INSTANCE;
+		return jvm.UTF8Charset.INSTANCE;
 	}
 
 	public final String name() {

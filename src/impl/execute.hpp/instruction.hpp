@@ -970,7 +970,7 @@ struct execute_instruction {
 		if(info) { tabs(); print::out("if_eq "); }
 		int32 value = stack.pop_back<int32>();
 		if(info) {
-			print::out(value == 0, " +", x.branch, "\n");
+			print::out(value, " +", x.branch, "\n");
 		}
 		if(value == 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;

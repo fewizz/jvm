@@ -129,7 +129,8 @@ inline reference _class::get_resolved_call_site(
 	/* The bootstrap method handle is invoked, as if by the invocation
 	   BMH.invokeWithArguments(args), where BMH is the bootstrap method handle
 	   and args is the array allocated above. */
-	method_handle_invoke_exact(mh, args_count_stack);
+	//method_handle_invoke_exact(mh, args_count_stack);
+	posix::abort();
 	
 	reference result = stack.pop_back<reference>();
 

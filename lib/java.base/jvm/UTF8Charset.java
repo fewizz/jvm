@@ -1,4 +1,4 @@
-package jvm.internal;
+package jvm;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;

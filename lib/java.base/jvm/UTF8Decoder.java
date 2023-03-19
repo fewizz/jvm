@@ -1,4 +1,4 @@
-package jvm.internal;
+package jvm;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;

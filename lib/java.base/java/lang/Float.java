@@ -2,6 +2,10 @@ package java.lang;
 
 public final class Float extends Number implements Comparable<Float> {
 
+	private static native Class<Float> getPrimitiveClass();
+
+	public static final Class<Float> TYPE = getPrimitiveClass();
+
 	private float value_;
 
 	public Float(float value) {

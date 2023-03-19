@@ -77,14 +77,13 @@ public:
 	}
 
 	template<typename Type>
+	requires
+		same_as<Type, reference> ||
+		same_as<Type, int64> || same_as<Type, int32> ||
+		same_as<Type, double> || same_as<Type, float> ||
+		same_as<Type, int16> || same_as<Type, uint16> ||
+		same_as<Type, int8> || same_as<Type, bool>
 	decltype(auto) view(layout::position position, auto&& handler) {
-		static_assert(
-			same_as<Type, reference> ||
-			same_as<Type, int64> || same_as<Type, int32> ||
-			same_as<Type, double> || same_as<Type, float> ||
-			same_as<Type, int16> || same_as<Type, uint16> ||
-			same_as<Type, int8> || same_as<Type, bool>
-		);
 		uint8* ptr = data() + (uint32) position;
 		Type& e = * (Type*) ptr;
 		return handler(e);

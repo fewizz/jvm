@@ -15,18 +15,19 @@ inline method& select_method_for_invoke_special(
 		!resolved_method.is_instance_initialisation() &&
 		/*    "The symbolic reference names a class (not an interface), and that
 		       class is a superclass of the current class." */
-		!referenced_class.is_interface() && current.is_sub_of(current) &&
+		!referenced_class.is_interface() &&
+		 referenced_class.is_sub_of(current);// &&
 		/*    "The ACC_SUPER flag is set for the class file (§4.1)." */
 		/*    always set: "In Java SE 8 and above, the Java Virtual Machine
 		      considers the ACC_SUPER flag to be set in every class file,
 		      regardless of the actual value of the flag in the class file and
 		      the version of the class file" */
-		current.access_flags().super_or_synchronized;
+		//current.access_flags().super_or_synchronized;
 
 	_class& c =
 		c_is_direct_super_class ? current.super() :
 		/* "Otherwise, let C be the class or interface named by the symbolic
-		    reference.s" */
+		    reference." */
 		referenced_class;
 
 	/* "The actual method to be invoked is selected by the following lookup

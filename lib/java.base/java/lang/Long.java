@@ -2,6 +2,10 @@ package java.lang;
 
 public final class Long extends Number {
 
+	private static native Class<Long> getPrimitiveClass();
+
+	public static final Class<Long> TYPE = getPrimitiveClass();
+
 	private final long value_;
 
 	public Long(long value) {

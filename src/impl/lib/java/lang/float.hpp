@@ -1,12 +1,21 @@
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/primitives.hpp"
 
 #include <bit_cast.hpp>
 
 static inline void init_java_lang_float() {
-	_class& float_class = classes.find_or_load(c_string{ "java/lang/Float" });
+	_class& c = classes.find_or_load(c_string{ "java/lang/Float" });
 
-	float_class.declared_methods().find(
+	c.declared_static_methods().find(
+		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
+	).native_function(
+		(void*)+[]() -> object* {
+			return & float_class->instance().unsafe_release_without_destroing();
+		}
+	);
+
+	c.declared_methods().find(
 		c_string{ "floatToRawIntBits" }, c_string{ "(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {
@@ -14,7 +23,7 @@ static inline void init_java_lang_float() {
 		}
 	);
 
-	float_class.declared_methods().find(
+	c.declared_methods().find(
 		c_string{ "floatToIntBits" }, c_string{ "(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) -> int32 {
@@ -33,7 +42,7 @@ static inline void init_java_lang_float() {
 		}
 	);
 
-	float_class.declared_methods().find(
+	c.declared_methods().find(
 		c_string{ "isNaN" }, c_string{ "(F)Z" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {

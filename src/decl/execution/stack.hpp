@@ -31,15 +31,23 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	}
 
 	template<typename Handler>
-	void view_as_int32_or_reference_at(nuint index, Handler&& handler) {
-		if(is_reference_at(index)) { handler(get<reference>(index)); }
-		else { handler(get<int32>(index)); }
+	decltype(auto) view_as_int32_or_reference_at(nuint index, Handler&& handler) {
+		if(is_reference_at(index)) {
+			return handler(get<reference>(index));
+		}
+		else {
+			return handler(get<int32>(index));
+		}
 	}
 
 	template<typename Handler>
-	void pop_back_and_view_as_int32_or_reference(Handler&& handler) {
-		if(is_reference_at(size() - 1)) { handler(pop_back<reference>()); }
-		else { handler(pop_back<int32>()); }
+	decltype(auto) pop_back_and_view_as_int32_or_reference(Handler&& handler) {
+		if(is_reference_at(size() - 1)) {
+			return handler(pop_back<reference>());
+		}
+		else {
+			return handler(pop_back<int32>());
+		}
 	}
 
 	void unsafely_emplace_reference_at(nuint index, reference ref) {
@@ -107,19 +115,20 @@ public:
 		//pop_back_until(0);
 	}
 
-	template<stack_primitive_element Type>
-	void emplace_back(Type v) {
-		if constexpr(sizeof(Type) == 4) {
-			base_type::emplace_back((uint64) bit_cast<uint32>(v));
-		}
-		else {
-			base_type::emplace_back(bit_cast<uint64>(v));
-			base_type::emplace_back(uint64(-1));
-		}
-	}
 	void emplace_back(reference ref) {
 		base_type::emplace_back();
 		unsafely_emplace_reference_at(size() - 1, move(ref));
+	}
+	template<stack_primitive_element Type>
+	requires (bytes_in<Type> == 4)
+	void emplace_back(Type v) {
+		base_type::emplace_back((uint64) bit_cast<uint32>(v));
+	}
+	template<stack_primitive_element Type>
+	requires (bytes_in<Type> == 8)
+	void emplace_back(Type v) {
+		base_type::emplace_back(bit_cast<uint64>(v));
+		base_type::emplace_back(uint64(-1));
 	}
 	void emplace_back(int16 v) { emplace_back((int32)(uint16)(uint32) v); }
 	void emplace_back(uint16 v) { emplace_back((int32)(uint32) v); }
@@ -277,18 +286,37 @@ public:
 	}
 
 	void insert_at(nuint index, reference ref) {
-		// there's something at given index
-		// popping it, continuing recursively
-		if(index < size()) {
-			pop_back_and_view_as_int32_or_reference([&](auto popped) {
-				insert_at(index, move(ref));
-				emplace_back(move(popped));
-			});
+		if(index > size()) {
+			posix::abort();
 		}
 		// we're at the end
-		else {
-			emplace_back(move(ref));
+		if(index == size()) {
+			return emplace_back(move(ref));
 		}
+		// there's something at given index
+		// popping it, continuing recursively
+		pop_back_and_view_as_int32_or_reference([&](auto popped) {
+			insert_at(index, move(ref));
+			emplace_back(move(popped));
+		});
+	}
+
+	template<typename Type>
+	Type pop_at(nuint index) {
+		nuint stack_size = same_as<Type, reference> ? 1 : sizeof(Type) / 4;
+		nuint min_index = size() - stack_size;
+
+		if(index > min_index) {
+			posix::abort();
+		}
+		if(index == min_index) {
+			return pop_back<Type>();
+		}
+		return pop_back_and_view_as_int32_or_reference([&](auto popped) {
+			Type result = pop_at<Type>(index);
+			emplace_back(move(popped));
+			return result;
+		});
 	}
 
 	using base_type::size;

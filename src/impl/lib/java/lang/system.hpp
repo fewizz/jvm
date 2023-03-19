@@ -26,6 +26,10 @@ static inline void init_java_lang_system() {
 			object* dst, int32 dst_pos,
 			int32 len
 		) {
+			/* If dest is null, then a NullPointerException is thrown.
+			   If src is null, then a NullPointerException is thrown and the
+			   destination array is not modified.
+			*/
 			if(src == nullptr || dst == nullptr) {
 				thrown = create_null_pointer_exception();
 				return;
@@ -124,37 +128,41 @@ static inline void init_java_lang_system() {
 				}
 				return;
 			}
-			/* Otherwise, if any actual component of the source array from
-			   position srcPos through srcPos+length-1 cannot be converted to
-			   the component type of the destination array by assignment
-			   conversion, an ArrayStoreException is thrown. In this case, let
-			   k be the smallest nonnegative integer less than length such that
-			   src[srcPos+k] cannot be converted to the component type of the
-			   destination array; when the exception is thrown, source array
-			   components from positions srcPos through srcPos+k-1 will already
-			   have been copied to destination array positions destPos through
-			   destPos+k-1 and no other positions of the destination array will
-			   have been modified. (Because of the restrictions already
-			   itemized, this paragraph effectively applies only to the
-			   situation where both arrays have component types that are
-			   reference types.) */
+
 			reference* src_data = array_data<reference>(*src);
 			reference* dst_data = array_data<reference>(*dst);
 			span src_span{ src_data + src_pos, (nuint) len };
 			span dst_span{ dst_data + dst_pos, (nuint) len };
-			if(src_component_class.is_sub_of(dst_component_class)) {
-				src_span.copy_to(dst_span);
-			}
-			else {
-				for(nuint x = 0; x < (nuint) len; ++x) {
-					reference& s = src_span[x];
-					reference& d = dst_span[x];
-					if(!s._class().is_sub_of(d._class())) {
+
+			for(nuint x = 0; x < (nuint) len; ++x) {
+				reference& s = src_span[x];
+				reference& d = dst_span[x];
+				if(!s.is_null() && !d.is_null()) {
+					_class& sc = s._class();
+					_class& dc = d._class();
+
+					/* Otherwise, if any actual component of the source array
+					   from position srcPos through srcPos+length-1 cannot be
+					   converted to the component type of the destination array
+					   by assignment conversion, an ArrayStoreException is
+					   thrown. In this case, let k be the smallest nonnegative
+					   integer less than length such that src[srcPos+k] cannot
+					   be converted to the component type of the destination
+					   array; when the exception is thrown, source array
+					   components from positions srcPos through srcPos+k-1 will
+					   already have been copied to destination array positions
+					   destPos through destPos+k-1 and no other positions of the
+					   destination array will have been modified. (Because of
+					   the restrictions already itemized, this paragraph
+					   effectively applies only to the situation where both
+					   arrays have component types that are reference types.) */
+					bool assignable = sc.is(dc) || sc.is_sub_of(dc);
+					if(!assignable) {
 						thrown = create_array_store_exception();
 						return;
 					}
-					d = s;
 				}
+				d = s;
 			}
 		}
 	);

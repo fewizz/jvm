@@ -5,8 +5,10 @@
 #include "./java/io/serializable.hpp"
 #include "./java/lang/invoke/lambda_meta_factory.hpp"
 #include "./java/lang/invoke/method_handle.hpp"
+#include "./java/lang/invoke/method_handles.hpp"
 #include "./java/lang/invoke/method_handles_lookup.hpp"
 #include "./java/lang/invoke/method_type.hpp"
+#include "./java/lang/invoke/wrong_method_type_exception.hpp"
 #include "./java/lang/reflect/array.hpp"
 #include "./java/lang/array_store_exception.hpp"
 #include "./java/lang/class_cast_exception.hpp"
@@ -16,6 +18,7 @@
 #include "./java/lang/float.hpp"
 #include "./java/lang/index_out_of_bounds_exception.hpp"
 #include "./java/lang/integer.hpp"
+#include "./java/lang/long.hpp"
 #include "./java/lang/negative_array_size_exception.hpp"
 #include "./java/lang/null_pointer_exception.hpp"
 #include "./java/lang/object.hpp"
@@ -28,9 +31,13 @@
 #include "./java/lang/throwable.hpp"
 #include "./java/lang/void.hpp"
 #include "./java/nio/buffer.hpp"
-// #include "jdk_internal_misc/cds.hpp"
-// #include "jdk_internal_misc/unsafe.hpp"
-// #include "jdk_internal_reflect/reflect.hpp"*/
+
+#include "./jvm/mh/class_member.hpp"
+#include "./jvm/mh/constructor.hpp"
+#include "./jvm/mh/getter.hpp"
+#include "./jvm/mh/special.hpp"
+#include "./jvm/mh/static.hpp"
+#include "./jvm/mh/virtual.hpp"
 
 static inline void init_lib() {
 	init_java_io_file_descriptor();
@@ -38,8 +45,10 @@ static inline void init_lib() {
 	init_java_io_serializable();
 	init_java_lang_invoke_lambda_meta_factory();
 	init_java_lang_invoke_method_handle();
+	init_java_lang_invoke_method_handles();
 	init_java_lang_invoke_method_handles_lookup();
 	init_java_lang_invoke_method_type();
+	init_java_lang_invoke_wrong_method_type_exception();
 	init_java_lang_reflect_array();
 	init_java_lang_array_store_exception();
 	init_java_lang_class_cast_exception();
@@ -50,6 +59,7 @@ static inline void init_lib() {
 	init_java_lang_float();
 	init_java_lang_index_of_of_bounds_exception();
 	init_java_lang_integer();
+	init_java_lang_long();
 	init_java_lang_negative_array_size_exception();
 	init_java_lang_null_pointer_exception();
 	init_java_lang_runtime();
@@ -60,7 +70,11 @@ static inline void init_lib() {
 	init_java_lang_throwable();
 	init_java_lang_void();
 	init_java_nio_buffer();
-	// init_jdk_internal_misc_cds();
-	// init_jdk_internal_misc_unsafe();
-	// init_jdk_internal_reflect();
+
+	init_jvm_mh_class_member();
+	init_jvm_mh_constructor();
+	init_jvm_mh_getter();
+	init_jvm_mh_special();
+	init_jvm_mh_static();
+	init_jvm_mh_virtual();
 }

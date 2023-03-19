@@ -43,17 +43,23 @@ inline void invoke_virtual(
 			},
 			[](auto) { posix::abort(); }
 		);
-		reference& mh
-			= stack.get<reference>(stack.size() - args_count_stack - 1);
+
+		// reference to method handle is popped from stack
+		// before calling invoke[Exact]!
+		nuint args_beginning_positoin = stack.size() - args_count_stack;
+
+		reference mh_ref; {
+			nuint mh_ref_stack_position = args_beginning_positoin - 1;
+			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
+			--args_beginning_positoin;
+		}
 
 		if(name.has_equal_size_and_elements(c_string{ "invokeExact" })) {
-			method_handle_invoke_exact(
-				mh, // method handle
-				args_count_stack
-			);
+			method_handle_invoke_exact(move(mh_ref), args_beginning_positoin);
 		} else {
 			posix::abort();
 		}
+
 		return;
 	}
 

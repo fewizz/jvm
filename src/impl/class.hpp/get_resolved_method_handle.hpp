@@ -33,7 +33,8 @@ inline reference _class::get_resolved_method_handle(
 			auto name = utf8_constant(nat.name_index);
 			auto desc = utf8_constant(nat.descriptor_index);
 			method& m = c.declared_methods().find(name, desc);
-			return create_method_handle_invoke_static(m);
+			posix::abort();
+			//return create_method_handle_invoke_static(m);
 		}
 		default: posix::abort();
 	}
