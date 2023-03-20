@@ -8,13 +8,25 @@ public final class MethodType {
 	final byte[] descriptorUTF8_;
 
 	private static native byte[] descriptorUTF8(
-		Class<?>[] parameterTypes, Class<?> returnType
+		Class<?> returnType, Class<?>[] parameterTypes
 	);
 
-	private MethodType(Class<?> returnType, Class<?>[] parameterTypes) {
-		this.parameterTypes_ = parameterTypes;
+	private MethodType(
+		Class<?> returnType,
+		Class<?>[] parameterTypes,
+		byte[] descriptorUTF8
+	) {
 		this.returnType_ = returnType;
-		this.descriptorUTF8_ = descriptorUTF8(parameterTypes, returnType);
+		this.parameterTypes_ = parameterTypes;
+		this.descriptorUTF8_ = descriptorUTF8;
+	}
+
+	private MethodType(Class<?> returnType, Class<?>[] parameterTypes) {
+		this(
+			returnType,
+			parameterTypes,
+			descriptorUTF8(returnType, parameterTypes)
+		);
 	}
 
 	public static MethodType methodType(Class<?> rtype, Class<?>[] ptypes) {

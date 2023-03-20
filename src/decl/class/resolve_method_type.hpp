@@ -71,8 +71,8 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 			[](auto) { posix::abort(); }
 		);
 		return create_method_type(
-			span{ params_classes, parameters_count },
 			*ret_class,
+			span<_class&>{ params_classes, parameters_count },
 			descriptor
 		);
 	}

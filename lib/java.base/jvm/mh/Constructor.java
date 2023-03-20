@@ -1,12 +1,16 @@
 package jvm.mh;
 
+import java.lang.invoke.MethodType;
+
 public class Constructor extends ClassMember {
 
-	private static native long functionPtr();
+	@Override
+	protected native void invokeExactPtr();
 
-	private Constructor(Class<?> c, int instanceFieldIndex) {
-		super(c, instanceFieldIndex);
-		this.functionPtr_ = functionPtr();
+	private Constructor(
+		MethodType methodType, Class<?> c, int instanceFieldIndex
+	) {
+		super(methodType, c, instanceFieldIndex);
 	}
 
 }

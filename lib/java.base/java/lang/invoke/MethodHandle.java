@@ -1,9 +1,17 @@
 package java.lang.invoke;
 
 public abstract class MethodHandle {
-	protected long functionPtr_;
+	private final MethodType methodType_;
 
-	native public MethodType type();
+	protected MethodHandle(MethodType methodType) {
+		this.methodType_ = methodType;
+	}
+
+	protected abstract void invokeExactPtr();
+
+	public MethodType type() {
+		return methodType_;
+	}
 
 	public final Object invokeExact(Object... args) throws Throwable {
 		throw new Error();

@@ -6,6 +6,6 @@
 
 static optional<_class&> method_handle_class;
 
-inline layout::position method_handle_function_ptr_position;
+inline instance_method_index method_handle_invoke_exact_ptr_index;
 
 inline void method_handle_invoke_exact(reference mh_ref, nuint args_beginning);

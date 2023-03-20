@@ -26,7 +26,7 @@ private:
 public:
 	native_function_ptr(void* value) : value_{ value } {}
 
-	operator void*& () & { return value_; }
+	operator void* () const { return value_; }
 };
 
 using code_or_native_function_ptr =

@@ -1,12 +1,16 @@
 package jvm.mh;
 
+import java.lang.invoke.MethodType;
+
 public class Virtual extends ClassMember {
 
-	private static native long functionPtr();
+	@Override
+	protected native void invokeExactPtr();
 
-	private Virtual(Class<?> c, int declaredStaticMethodIndex) {
-		super(c, declaredStaticMethodIndex);
-		this.functionPtr_ = functionPtr();
+	private Virtual(
+		MethodType methodType, Class<?> c, int declaredStaticMethodIndex
+	) {
+		super(methodType, c, declaredStaticMethodIndex);
 	}
 	
 }

@@ -12,16 +12,17 @@ inline void init_java_lang_invoke_method_handle() {
 		c_string{ "java/lang/invoke/MethodHandle" }
 	);
 
-	method_handle_function_ptr_position
-		= method_handle_class->instance_field_position(
-			c_string{"functionPtr_"}, c_string{"J"}
+	method_handle_invoke_exact_ptr_index
+		= method_handle_class->instance_methods().find_index_of(
+			c_string{"invokeExactPtr"}, c_string{"()V"}
 		);
 }
 
 inline void method_handle_invoke_exact(reference mh_ref, nuint args_beginning) {
-	uint64 ptr0 = mh_ref->get<int64>(
-		method_handle_function_ptr_position
-	);
+	method& m = mh_ref->_class().instance_methods()
+		[method_handle_invoke_exact_ptr_index];
+
+	void* ptr0 = m.native_function();
 	using f = void(*)(reference mh_ref, nuint args_beginning);
 	((f)ptr0)(move(mh_ref), args_beginning);
 }

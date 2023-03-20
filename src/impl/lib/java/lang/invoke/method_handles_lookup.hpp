@@ -15,33 +15,49 @@
 #include "decl/execute.hpp"
 
 #include <range.hpp>
+#include <span.hpp>
 
-static reference lookup_find_getter(object& cls, object& name, object& c) {
+static reference lookup_find_getter(
+	object& c_inst, object& name, object& field_type_inst
+) {
+	_class& c = class_from_class_instance(c_inst);
+	_class& field_c = class_from_class_instance(field_type_inst);
+
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		nuint index =
-			class_from_class_instance(cls)
-			.instance_fields().find_index_of(
-				name_utf8,
-				class_from_class_instance(c).descriptor()
+		nuint index
+			= c.instance_fields().find_index_of(
+				name_utf8, field_c.descriptor()
 			);
+
+		reference method_type = create_method_type(field_c, span<_class&>{});
 		
-		reference result = create_object(mh_static_class.get());
-		execute(mh_getter_constructor.get(), result, cls, (int32)index);
+		reference result = create_object(mh_getter_class.get());
+		execute(
+			mh_getter_constructor.get(),
+			result, // this
+			method_type, c_inst, (int32)index
+		);
 		return result;
 	});
 }
 
-static reference lookup_find_virtual(object& cls, object& name, object& mt) {
+static reference lookup_find_virtual(
+	object& c_inst, object& name, object& mt
+) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
 		nuint index =
-			class_from_class_instance(cls)
+			class_from_class_instance(c_inst)
 			.instance_methods().find_index_of(
 				name_utf8,
 				method_type_descriptor(mt)
 			);
-		
+
 		reference result = create_object(mh_virtual_class.get());
-		execute(mh_virtual_constructor.get(), result, cls, (int32)index);
+		execute(
+			mh_virtual_constructor.get(),
+			result, // this
+			mt, c_inst, (int32)index
+		);
 		return result;
 	});
 }
@@ -56,7 +72,11 @@ static reference lookup_find_static(object& cls, object& name, object& mt) {
 			);
 		
 		reference result = create_object(mh_static_class.get());
-		execute(mh_static_constructor.get(), result, cls, (int32)index);
+		execute(
+			mh_static_constructor.get(),
+			result, // this
+			mt, cls, (int32)index
+		);
 		return result;
 	});
 }
@@ -86,9 +106,8 @@ static reference lookup_find_special(
 		reference result = create_object(mh_special_class.get());
 		execute(
 			mh_special_constructor.get(),
-			result,
-			m._class().instance(),
-			(int32) possible_index.get()
+			result, // this
+			mt, m._class().instance(), (int32) possible_index.get()
 		);
 		return result;
 	});
@@ -104,9 +123,8 @@ static reference lookup_find_constructor(
 	reference result = create_object(mh_constructor_class.get());
 	execute(
 		mh_constructor_constructor.get(),
-		result,
-		reference(refc),
-		(int32) index
+		result, // this,
+		mt, refc, (int32) index
 	);
 	return result;
 }

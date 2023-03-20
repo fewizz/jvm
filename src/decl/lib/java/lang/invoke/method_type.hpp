@@ -10,3 +10,9 @@ inline layout::position
 	method_type_descriptor_instance_field_position;
 
 static span<const char> method_type_descriptor(object& mt);
+
+template<range_of<_class&> ParamClasses>
+static reference create_method_type(
+	_class& ret_class,
+	ParamClasses&& params_classes
+);

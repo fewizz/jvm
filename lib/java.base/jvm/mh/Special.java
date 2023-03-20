@@ -1,12 +1,16 @@
 package jvm.mh;
 
+import java.lang.invoke.MethodType;
+
 public class Special extends ClassMember {
 
-	private static native long functionPtr();
+	@Override
+	protected native void invokeExactPtr();
 
-	private Special(Class<?> c, int instanceFieldIndex) {
-		super(c, instanceFieldIndex);
-		this.functionPtr_ = functionPtr();
+	private Special(
+		MethodType methodType, Class<?> c, int instanceFieldIndex
+	) {
+		super(methodType, c, instanceFieldIndex);
 	}
 
 

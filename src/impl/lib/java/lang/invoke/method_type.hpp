@@ -6,80 +6,104 @@
 #include "decl/native/environment.hpp"
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class.hpp"
+#include "decl/execute.hpp"
 
 #include <c_string.hpp>
 #include <range.hpp>
 #include <span.hpp>
 
-template<range_of_decayed<_class*> ParamClasses, range_of_decayed<char> Descriptor>
+static optional<method&> method_type_constructor;
+
+template<
+	range_of<_class&> ParamClasses,
+	range_of_decayed<char> Descriptor
+>
 static reference create_method_type(
-	ParamClasses&& params_classes,
 	_class& ret_class,
+	ParamClasses&& params_classes,
 	Descriptor&& descriptor
 ) {
-	reference params_array = create_array_of(
+	reference params_array_ref = create_array_of(
 		class_class->get_array_class(),
 		range_size(params_classes)
 	);
+
 	params_classes
-		.transform_view([](_class* c) { return c->instance(); })
-		.copy_to(array_as_span<reference>(params_array));
+		.transform_view([](_class& c) { return c.instance(); })
+		.copy_to(array_as_span<reference>(params_array_ref));
 
-	reference descriptor0 = create_byte_array(range_size(descriptor));
-	descriptor.copy_to(array_as_span<uint8>(descriptor0));
+	reference descriptor_ref = create_byte_array(range_size(descriptor));
+	descriptor.copy_to(array_as_span<uint8>(descriptor_ref));
 
-	reference o = create_object(method_type_class.get());
-	o->set(method_type_parameter_types_instance_field_position, params_array);
-	o->set(
-		method_type_return_type_instance_field_position, ret_class.instance()
+	reference result = create_object(method_type_class.get());
+
+	execute(
+		method_type_constructor.get(),
+		result,
+		ret_class.instance(),
+		params_array_ref,
+		descriptor_ref
 	);
-	o->set(method_type_descriptor_instance_field_position, descriptor0);
-	return o;
+
+	return result;
 }
 
-template<range_of<_class&> ParamsClasses>
-static reference method_type_create_method_descriptor_utf8(
-	ParamsClasses&& params_classes, _class& ret
+template<
+	range_of<_class&> ParamsClasses,
+	typename Handler
+>
+static decltype(auto) method_type_view_descriptor_utf8(
+	_class& ret, ParamsClasses&& params_classes, Handler&& handler
 ) {
-	return range{ params_classes }.transform_view(
-		[&](_class& c) -> span<const char> {
-			return c.descriptor();
-		}
-	)
+	return range { params_classes }
+		.transform_view(
+			[&](_class& c) -> span<const char> {
+				return c.descriptor();
+			}
+		)
 		.flat_view()
 		.sized_view()
-		.view_copied_elements_on_stack(
-	[&](span<const char> params) {
-		auto descriptor = ranges {
-			array{ '(' },
-			params,
-			array{ ')' },
-			ret.descriptor()
-		}.concat_view().sized_view();
+		.view_copied_elements_on_stack([&](span<const char> params)
+			-> decltype(auto)
+		{
+			auto descriptor = ranges {
+				array{ '(' },
+				params,
+				array{ ')' },
+				ret.descriptor()
+			}.concat_view().sized_view();
 
-		reference array = create_byte_array(descriptor.size());
-		descriptor.copy_to(array_as_span<uint8>(array));
-
-		return array;
-	});
+			return handler(descriptor);
+		}
+	);
 }
 
-static reference method_type_create_method_descriptor_utf8(
-	object& params_array, object& ret
+template<range_of<_class&> ParamClasses>
+static reference create_method_type(
+	_class& ret_class,
+	ParamClasses&& params_classes
 ) {
-	return method_type_create_method_descriptor_utf8(
-		array_as_span<reference>(params_array).transform_view(
-			[](reference ref) -> _class& {
-				return class_from_class_instance(ref);
-			}
-		),
-		class_from_class_instance(ret)
+	return method_type_view_descriptor_utf8(
+		ret_class,
+		params_classes,
+		[&](auto desc) {
+			return create_method_type(
+				ret_class,
+				forward<ParamClasses>(params_classes),
+				desc
+			);
+		}
 	);
 }
 
 static void init_java_lang_invoke_method_type() {
 	method_type_class = classes.find_or_load(
 		c_string{ "java/lang/invoke/MethodType" }
+	);
+
+	method_type_constructor = method_type_class->instance_methods().find(
+		c_string{"<init>"},
+		c_string{"(Ljava/lang/Class;[Ljava/lang/Class;[B)V"}
 	);
 
 	method_type_parameter_types_instance_field_position =
@@ -102,12 +126,27 @@ static void init_java_lang_invoke_method_type() {
 
 	method_type_class->declared_methods().find(
 		c_string{ "descriptorUTF8" },
-		c_string{ "([Ljava/lang/Class;Ljava/lang/Class;)[B" }
+		c_string{ "(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(
-		(void*)+[](native_environment*, object* params_array, object* ret) {
-			return &
-				method_type_create_method_descriptor_utf8(*params_array, *ret)
-				.unsafe_release_without_destroing();
+		(void*)+[](
+			native_environment*, object* ret_class, object* params_class_array
+		) -> object* {
+
+			auto params
+				= array_as_span<reference>(*params_class_array)
+				.transform_view([](reference& class_ref) -> _class& {
+					return class_from_class_instance(class_ref);
+				});
+
+			return & method_type_view_descriptor_utf8(
+				class_from_class_instance(*ret_class),
+				params,
+				[](auto destriptor) {
+					reference array = create_byte_array(destriptor.size());
+					destriptor.copy_to(array_as_span<char>(array));
+					return array;
+				}
+			).unsafe_release_without_destroing();
 		}
 	);
 }
