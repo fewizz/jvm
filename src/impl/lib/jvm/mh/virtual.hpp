@@ -13,14 +13,16 @@ static void init_jvm_mh_virtual() {
 
 	mh_virtual_constructor = mh_virtual_class->declared_instance_methods().find(
 		c_string{"<init>"},
-		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;I)V"}
+		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V"}
 	);
 
 	mh_virtual_class->declared_instance_methods().find(
 		c_string{"invokeExactPtr"}, c_string{"()V"}
 	).native_function(
 		(void*)+[](reference mh, nuint args_beginning) -> void {
-			uint32 index = mh->get<int32>(mh_class_member_index_position);
+			instance_method_index method_index {
+				mh->get<uint16>(mh_class_member_index_position)
+			};
 			reference& refc_ref
 				= mh->get<reference>(mh_class_member_class_position);
 
@@ -37,7 +39,7 @@ static void init_jvm_mh_virtual() {
 				return;
 			}
 
-			execute(obj_ref._class().instance_methods()[index]);
+			execute(obj_ref._class()[method_index]);
 		}
 	);
 }

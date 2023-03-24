@@ -2,7 +2,7 @@
 
 #include "./layout.hpp"
 
-template<typename Derived>
+template<typename Derived, typename IndexType>
 struct layout_view_extension {
 private:
 	const Derived& derived() const & { return *(const Derived*) this; }
@@ -27,7 +27,7 @@ private:
 
 public:
 
-	decltype(auto) view_ptr(uint16 index, auto&& handler) {
+	decltype(auto) view_ptr(IndexType index, auto&& handler) {
 		layout::slot s = layout().slot_for_field_index(index);
 		uint8* ptr = data() + (uint32) s.beginning();
 		field& f = fields()[index];
@@ -69,7 +69,7 @@ public:
 		});
 	}
 
-	decltype(auto) view(uint16 index, auto&& handler) {
+	decltype(auto) view(IndexType index, auto&& handler) {
 		return view_ptr(index, [&]<typename Type>(Type* e) -> decltype(auto) {
 			Type& ref = *e;
 			return handler(ref);

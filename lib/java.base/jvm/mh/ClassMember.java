@@ -5,10 +5,10 @@ import java.lang.invoke.MethodType;
 
 public abstract class ClassMember extends MethodHandle {
 	protected final Class<?> class_;
-	protected final int memberIndex_;
+	protected final short memberIndex_;
 
 	protected ClassMember(
-		MethodType methodType, Class<?> c, int memberIndex
+		MethodType methodType, Class<?> c, short memberIndex
 	) {
 		super(methodType);
 		this.class_ = c;

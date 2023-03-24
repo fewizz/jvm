@@ -9,7 +9,10 @@
 
 #include <class_file/reader.hpp>
 
-static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
+static inline _class& define_class(
+	posix::memory_for_range_of<uint8> bytes,
+	reference loader
+) {
 	class_file::reader magic_reader{ (uint8*) bytes.iterator() };
 
 	auto [magic_exists, version_reader] =
@@ -177,6 +180,7 @@ static inline _class& define_class(posix::memory_for_range_of<uint8> bytes) {
 		fields.move_storage_range(),
 		methods.move_storage_range(),
 		is_array_class{ false },
-		is_primitive_class{ false }
+		is_primitive_class{ false },
+		move(loader)
 	);
 }

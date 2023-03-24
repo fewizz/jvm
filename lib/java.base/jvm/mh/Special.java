@@ -8,7 +8,7 @@ public class Special extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Special(
-		MethodType methodType, Class<?> c, int instanceFieldIndex
+		MethodType methodType, Class<?> c, short instanceFieldIndex
 	) {
 		super(methodType, c, instanceFieldIndex);
 	}

@@ -13,7 +13,7 @@ static void init_jvm_mh_getter() {
 
 	mh_getter_constructor = mh_getter_class->declared_instance_methods().find(
 		c_string{"<init>"},
-		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;I)V"}
+		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V"}
 	);
 
 	mh_getter_class->declared_instance_methods().find(
@@ -23,7 +23,9 @@ static void init_jvm_mh_getter() {
 			reference mh,
 			[[maybe_unused]] nuint args_beginning
 		) -> void {
-			uint32 index = mh->get<int32>(mh_class_member_index_position);
+			instance_field_index index {
+				mh->get<uint16>(mh_class_member_index_position)
+			};
 
 			reference& refc_ref
 				= mh->get<reference>(mh_class_member_class_position);

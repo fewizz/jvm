@@ -14,6 +14,6 @@ static void init_jvm_mh_class_member() {
 
 	mh_class_member_index_position
 		= mh_class_member_class->instance_field_position(
-			c_string{"memberIndex_"}, c_string{"I"}
+			c_string{"memberIndex_"}, c_string{"S"}
 		);
 }

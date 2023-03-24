@@ -8,7 +8,7 @@ public class Static extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Static(
-		MethodType methodType, Class<?> c, int declaredStaticMethodIndex
+		MethodType methodType, Class<?> c, short declaredStaticMethodIndex
 	) {
 		super(methodType, c, declaredStaticMethodIndex);
 	}

@@ -14,7 +14,7 @@
 struct _class;
 struct reference;
 
-struct object : layout_view_extension<object> {
+struct object : layout_view_extension<object, instance_field_index> {
 private:
 	uint32 references_ = 0;
 	optional<_class&> class_{};
@@ -29,7 +29,7 @@ private:
 	void unsafe_decrease_reference_count_without_destroing();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object>;
+	friend layout_view_extension<object, instance_field_index>;
 
 	inline const ::layout& layout_for_view() {
 		return class_->instance_layout();

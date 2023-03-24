@@ -8,7 +8,7 @@ public class Virtual extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Virtual(
-		MethodType methodType, Class<?> c, int declaredStaticMethodIndex
+		MethodType methodType, Class<?> c, short declaredStaticMethodIndex
 	) {
 		super(methodType, c, declaredStaticMethodIndex);
 	}

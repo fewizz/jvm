@@ -13,7 +13,8 @@ inline _class::_class(
 	posix::memory_for_range_of<field>   declared_fields,
 	posix::memory_for_range_of<method>  declared_methods,
 	is_array_class                      is_array,
-	is_primitive_class                  is_primitive
+	is_primitive_class                  is_primitive,
+	reference loader
 ) :
 	::constants          { move(constants)              },
 	::trampolines        { (uint16) ::constants::size() },
@@ -130,7 +131,8 @@ inline _class::_class(
 			}.try_find_index_of(m.name(), m.descriptor());
 			// declared instance method overrides super instance method
 			if(index_of_overriden) {
-				methods.emplace_at(index_of_overriden.get(), &m);
+				uint16 index = uint16{ index_of_overriden.get() };
+				methods.emplace_at(index, &m);
 			}
 			else {
 				methods.emplace_back(&m);
@@ -146,6 +148,7 @@ inline _class::_class(
 	declared_static_layout_ { declared_static_fields() },
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },
+	loader               { move(loader) },
 	mutex_ { posix::create_mutex(mutex_attribute_recursive) },
 	declared_static_fields_data_ {
 		posix::allocate_memory_for<uint8>(

@@ -21,7 +21,10 @@
 #include <class_file/constant.hpp>
 
 struct _class :
-	layout_view_extension<_class>, // for constants
+	layout_view_extension< // for static fields
+		_class,
+		declared_static_field_index
+	>,
 	constants,
 	trampolines,
 	bootstrap_methods
@@ -54,6 +57,7 @@ private:
 
 	const is_array_class is_array_;
 	const is_primitive_class is_primitive_;
+	reference loader;
 	body<posix::mutex> mutex_;
 
 	// mutable state:
@@ -80,13 +84,26 @@ public:
 		posix::memory_for_range_of<field>,
 		posix::memory_for_range_of<method>,
 		is_array_class,
-		is_primitive_class
+		is_primitive_class,
+		reference loader = {}
 	);
 
 	_class(_class&&) = delete;
 	_class(const _class&) = delete;
 	_class& operator = (_class&&) = delete;
 	_class& operator = (const _class&) = delete;
+
+	inline const field& operator[](instance_field_index index) const;
+	inline       field& operator[](instance_field_index index);
+
+	inline const method& operator[](instance_method_index index) const;
+	inline       method& operator[](instance_method_index index);
+
+	inline const method& operator[](declared_instance_method_index index) const;
+	inline       method& operator[](declared_instance_method_index index);
+
+	inline const method& operator[](declared_static_method_index index) const;
+	inline       method& operator[](declared_static_method_index index);
 
 	class_file::access_flags access_flags() const { return access_flags_; }
 
@@ -122,7 +139,7 @@ public:
 	inline void destruct_declared_static_fields_values();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object>;
+	friend layout_view_extension<object, instance_field_index>;
 
 	const ::layout& layout_for_view() const {
 		return declared_static_layout_;
@@ -131,7 +148,12 @@ public:
 		return declared_static_fields_data_.as_span().iterator();
 	}
 	inline auto fields_view_for_layout_view() const {
-		return declared_static_fields_.as_span().dereference_view();
+		return find_by_name_and_descriptor_view<
+			decltype(declared_static_fields_.as_span().dereference_view()),
+			declared_static_field_index
+		> {
+			declared_static_fields_.as_span().dereference_view()
+		};
 	}
 	//
 
@@ -156,40 +178,61 @@ public:
 		return declared_fields_.as_span();
 	}
 	auto declared_methods() {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_methods_.as_span()),
+			declared_method_index
+		> {
 			declared_methods_.as_span()
 		};
 	}
 
 	auto declared_static_fields() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_static_fields_.as_span().dereference_view()),
+			declared_static_field_index
+		> {
 			declared_static_fields_.as_span().dereference_view()
 		};
 	}
 	auto instance_fields() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(instance_fields_.as_span().dereference_view()),
+			instance_field_index
+		> {
 			instance_fields_.as_span().dereference_view()
 		};
 	}
 
 	auto declared_static_methods() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_static_methods_.as_span().dereference_view()),
+			declared_static_method_index
+		> {
 			declared_static_methods_.as_span().dereference_view()
 		};
 	}
 
 	auto declared_instance_methods() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_instance_methods_.as_span().dereference_view()),
+			declared_instance_method_index
+		> {
 			declared_instance_methods_.as_span().dereference_view()
 		};
 	}
 	auto declared_instance_fields() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_instance_fields_.as_span().dereference_view()),
+			declared_instance_field_index
+		> {
 			declared_instance_fields_.as_span().dereference_view()
 		};
 	}
 	auto instance_methods() const {
-		return find_by_name_and_descriptor_view {
+		return find_by_name_and_descriptor_view<
+			decltype(instance_methods_.as_span().dereference_view()),
+			instance_method_index
+		> {
 			instance_methods_.as_span().dereference_view()
 		};
 	}
@@ -233,7 +276,7 @@ public:
 		class_file::constant::interface_method_ref ref
 	);
 
-	field_index_and_stack_size
+	instance_field_index_and_stack_size
 	get_resolved_instance_field_index(
 		class_file::constant::field_ref_index ref_index
 	);

@@ -5,6 +5,7 @@
 #include "class.hpp"
 #include "define/class.hpp"
 #include "define/array_class.hpp"
+#include "decl/lib/java/lang/class_loader.hpp"
 
 #include <range.hpp>
 
@@ -20,8 +21,9 @@ inline _class& load_class(Name&& name) {
 
 		range{ name }.view_copied_elements_on_stack([&](auto on_stack) {
 			print::out(on_stack);
-			print::out("\n");
 		});
+
+		print::out(" by bootstrap loader\n");
 	}
 
 	if(range{ name }.starts_with('[')) {
@@ -42,7 +44,7 @@ inline _class& load_class(Name&& name) {
 				if(read == 0) break;
 				read_total += read;
 			}
-			return define_class(move(data));
+			return define_class(move(data), reference{});
 		}
 	);
 }

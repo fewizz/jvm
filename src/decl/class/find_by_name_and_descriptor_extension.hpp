@@ -1,9 +1,11 @@
 #pragma once
 
 #include "./has_name_and_descriptor_equal_to.hpp"
+#include "./member_index.hpp"
 #include <posix/abort.hpp>
+#include <print/print.hpp>
 
-template<typename Type>
+template<typename Type, typename IndexType>
 struct find_by_name_and_descriptor_extension {
 private:
 	decltype(auto) derived() const {
@@ -22,10 +24,16 @@ public:
 	}
 
 	template<basic_range Name, basic_range Descriptor>
-	auto try_find_index_of(Name&& name, Descriptor&& descriptor) {
-		return derived().try_find_index_of_last_satisfying(
+	optional<IndexType> try_find_index_of(
+		Name&& name, Descriptor&& descriptor
+	) {
+		auto possible_index = derived().try_find_index_of_last_satisfying(
 			has_name_and_descriptor_equal_to{ name, descriptor }
 		);
+		if(!possible_index.has_value()) {
+			return {};
+		}
+		return { possible_index.get() };
 	}
 
 	template<basic_range Name, basic_range Descriptor>
@@ -36,19 +44,23 @@ public:
 	}
 
 	template<basic_range Name, basic_range Descriptor>
-	auto find_index_of(Name&& name, Descriptor&& descriptor) {
+	IndexType find_index_of(Name&& name, Descriptor&& descriptor) {
 		return try_find_index_of(
 			forward<Name>(name), forward<Descriptor>(descriptor)
-		).if_has_no_value([] { posix::abort(); }).get();
+		).if_has_no_value([&] {
+			print::err("couldn't find class member with name \"", name, "\"");
+			posix::abort();
+		}).get();
 	}
 
 };
 
-template<basic_range Range>
+template<basic_range Range, typename IndexType = class_member_index>
 struct find_by_name_and_descriptor_view :
-	range_extensions<find_by_name_and_descriptor_view<Range>>,
+	range_extensions<find_by_name_and_descriptor_view<Range, IndexType>>,
 	find_by_name_and_descriptor_extension<
-		find_by_name_and_descriptor_view<Range>
+		find_by_name_and_descriptor_view<Range, IndexType>,
+		IndexType
 	>
 {
 private:
@@ -64,8 +76,31 @@ public:
 	auto sentinel() const { return range_sentinel(range_); }
 	auto sentinel()       { return range_sentinel(range_); }
 
-};
+	// TODO overwrite other way
+	decltype(auto) operator [] (IndexType index) const {
+		return range_[uint16{ index }];
+	}
+	decltype(auto) operator [] (IndexType index)       {
+		return range_[uint16{ index }];
+	}
 
-template<basic_range Range>
-find_by_name_and_descriptor_view(Range&&)
-	-> find_by_name_and_descriptor_view<Range>;
+	template<typename Handler>
+	void for_each_index(Handler handler) const {
+		range_.for_each_index([&](auto index) {
+			handler(IndexType{(uint16)index});
+		});
+	}
+
+	template<typename Predicate>
+	optional<IndexType>
+	try_find_index_of_first_satisfying(Predicate&& predicate) const {
+		auto possible_index = range_.try_find_index_of_first_satisfying(
+			forward<Predicate>(predicate)
+		);
+		if(!possible_index.has_value()) {
+			return {};
+		}
+		return {(uint16)possible_index.get()};
+	}
+
+};

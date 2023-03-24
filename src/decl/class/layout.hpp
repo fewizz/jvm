@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./member_index.hpp"
 #include "../field.hpp"
 #include "../reference.hpp"
 
@@ -112,8 +113,8 @@ struct layout {
 		return ending_;
 	}
 
-	slot slot_for_field_index(nuint index) const {
-		return field_index_to_slot_.as_span()[index];
+	slot slot_for_field_index(field_member_index index) const {
+		return field_index_to_slot_.as_span()[uint16{ index }];
 	}
 
 };

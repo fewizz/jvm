@@ -11,7 +11,7 @@ static void init_jvm_mh_static() {
 
 	mh_static_constructor = mh_static_class->declared_instance_methods().find(
 		c_string{"<init>"},
-		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;I)V"}
+		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V"}
 	);
 
 	mh_static_class->declared_instance_methods().find(
@@ -21,13 +21,15 @@ static void init_jvm_mh_static() {
 			reference ths,
 			[[maybe_unused]] nuint args_beginning
 		) -> void {
-			uint32 index = ths->get<int32>(mh_class_member_index_position);
+			declared_static_method_index method_index {
+				ths->get<uint16>(mh_class_member_index_position)
+			};
 			reference& class_ref
 				= ths->get<reference>(mh_class_member_class_position);
 
 			_class& c = class_from_class_instance(class_ref);
 
-			execute(c.declared_static_methods()[index]);
+			execute(c[method_index]);
 		}
 	);
 }

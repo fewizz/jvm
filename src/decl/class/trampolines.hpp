@@ -14,17 +14,17 @@ struct static_field;
 
 struct class_and_declared_static_field_index {
 	_class& _class;
-	uint16 field_index;
+	declared_static_field_index field_index;
 };
 
-struct field_index_and_stack_size {
-	uint16 field_index;
+struct instance_field_index_and_stack_size {
+	instance_field_index field_index;
 	uint8 stack_size;
 };
 
 using trampoline = optional<
 	class_and_declared_static_field_index,
-	field_index_and_stack_size,
+	instance_field_index_and_stack_size,
 	reference, _class&, method&,
 	instance_method_index, instance_field_index
 >;

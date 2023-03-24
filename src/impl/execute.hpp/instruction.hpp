@@ -1253,7 +1253,7 @@ struct execute_instruction {
 			return handle_thrown();
 		}
 
-		field_index_and_stack_size field_index_and_stack_size
+		instance_field_index_and_stack_size field_index_and_stack_size
 			= c.get_resolved_instance_field_index(x.index);
 		ref->view(
 			field_index_and_stack_size.field_index,
@@ -1277,7 +1277,7 @@ struct execute_instruction {
 			print::out(class_name, ".", name, "\n");
 		}
 
-		field_index_and_stack_size field_index_and_stack_size
+		instance_field_index_and_stack_size field_index_and_stack_size
 			= c.get_resolved_instance_field_index(x.index);
 		
 		reference ref = move(stack.get<reference>(

@@ -24,7 +24,7 @@ static reference lookup_find_getter(
 	_class& field_c = class_from_class_instance(field_type_inst);
 
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		nuint index
+		instance_field_index index
 			= c.instance_fields().find_index_of(
 				name_utf8, field_c.descriptor()
 			);
@@ -35,7 +35,7 @@ static reference lookup_find_getter(
 		execute(
 			mh_getter_constructor.get(),
 			result, // this
-			method_type, c_inst, (int32)index
+			method_type, c_inst, uint16{ index }
 		);
 		return result;
 	});
@@ -45,7 +45,7 @@ static reference lookup_find_virtual(
 	object& c_inst, object& name, object& mt
 ) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		nuint index =
+		instance_method_index index =
 			class_from_class_instance(c_inst)
 			.instance_methods().find_index_of(
 				name_utf8,
@@ -56,7 +56,7 @@ static reference lookup_find_virtual(
 		execute(
 			mh_virtual_constructor.get(),
 			result, // this
-			mt, c_inst, (int32)index
+			mt, c_inst, uint16{ index }
 		);
 		return result;
 	});
@@ -64,7 +64,7 @@ static reference lookup_find_virtual(
 
 static reference lookup_find_static(object& cls, object& name, object& mt) {
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		nuint index =
+		declared_static_method_index index =
 			class_from_class_instance(cls)
 			.declared_static_methods().find_index_of(
 				name_utf8,
@@ -75,7 +75,7 @@ static reference lookup_find_static(object& cls, object& name, object& mt) {
 		execute(
 			mh_static_constructor.get(),
 			result, // this
-			mt, cls, (int32)index
+			mt, cls, uint16{ index }
 		);
 		return result;
 	});
@@ -96,10 +96,11 @@ static reference lookup_find_special(
 			current, receiver, resolved_method
 		);
 
-		optional<nuint> possible_index = m._class().instance_methods()
-			.try_find_index_of_first_satisfying([&](method& m0) {
-				return &m0 == &m;
-			});
+		optional<instance_method_index> possible_index
+			= m._class().instance_methods()
+				.try_find_index_of_first_satisfying([&](method& m0) {
+					return &m0 == &m;
+				});
 
 		possible_index.if_has_no_value(posix::abort);
 
@@ -107,7 +108,7 @@ static reference lookup_find_special(
 		execute(
 			mh_special_constructor.get(),
 			result, // this
-			mt, m._class().instance(), (int32) possible_index.get()
+			mt, m._class().instance(), uint16{ possible_index.get() }
 		);
 		return result;
 	});
@@ -117,14 +118,15 @@ static reference lookup_find_constructor(
 	object& refc, object& mt
 ) {
 	_class& c = class_from_class_instance(refc);
-	nuint index = c.declared_instance_methods().find_index_of(
-		c_string{ "<init>" }, method_type_descriptor(mt)
-	);
+	declared_instance_method_index index
+		= c.declared_instance_methods().find_index_of(
+			c_string{ "<init>" }, method_type_descriptor(mt)
+		);
 	reference result = create_object(mh_constructor_class.get());
 	execute(
 		mh_constructor_constructor.get(),
 		result, // this,
-		mt, refc, (int32) index
+		mt, refc, uint16 { index }
 	);
 	return result;
 }

@@ -13,7 +13,7 @@ static void init_jvm_mh_special() {
 
 	mh_special_constructor = mh_special_class->declared_instance_methods().find(
 		c_string{"<init>"},
-		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;I)V"}
+		c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V"}
 	);
 
 	mh_special_class->declared_instance_methods().find(
@@ -23,7 +23,9 @@ static void init_jvm_mh_special() {
 			reference mh,
 			nuint args_beginning
 		) -> void {
-			uint32 index = mh->get<int32>(mh_class_member_index_position);
+			instance_method_index method_index {
+				mh->get<uint16>(mh_class_member_index_position)
+			};
 
 			reference& refc_ref
 				= mh->get<reference>(mh_class_member_class_position);
@@ -39,7 +41,7 @@ static void init_jvm_mh_special() {
 				thrown = create_wrong_method_type_exception();
 			}
 
-			execute(refc.instance_methods()[index]);
+			execute(refc[method_index]);
 		}
 	);
 }

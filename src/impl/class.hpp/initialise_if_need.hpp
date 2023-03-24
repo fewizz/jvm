@@ -22,11 +22,13 @@ inline void _class::initialise_if_need() {
 	}
 
 	// create declared static fields values
-	declared_static_fields().for_each_index([&](uint16 field_index) {
-		view_ptr(field_index, []<typename Type>(Type* ptr) {
-			new (ptr) Type();
-		});
-	});
+	declared_static_fields().for_each_index(
+		[&](declared_static_field_index field_index) {
+			view_ptr(field_index, []<typename Type>(Type* ptr) {
+				new (ptr) Type();
+			});
+		}
+	);
 
 	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
 	declared_methods()
