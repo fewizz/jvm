@@ -10,6 +10,7 @@
 
 #include <c_string.hpp>
 #include <range.hpp>
+#include <ranges.hpp>
 #include <span.hpp>
 
 static optional<method&> method_type_constructor;

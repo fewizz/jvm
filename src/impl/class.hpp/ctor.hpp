@@ -14,7 +14,7 @@ inline _class::_class(
 	posix::memory_for_range_of<method>  declared_methods,
 	is_array_class                      is_array,
 	is_primitive_class                  is_primitive,
-	reference loader
+	reference                           defining_loader
 ) :
 	::constants          { move(constants)              },
 	::trampolines        { (uint16) ::constants::size() },
@@ -148,7 +148,7 @@ inline _class::_class(
 	declared_static_layout_ { declared_static_fields() },
 	is_array_            { is_array                  },
 	is_primitive_        { is_primitive              },
-	loader               { move(loader) },
+	defining_loader_     { move(defining_loader) },
 	mutex_ { posix::create_mutex(mutex_attribute_recursive) },
 	declared_static_fields_data_ {
 		posix::allocate_memory_for<uint8>(

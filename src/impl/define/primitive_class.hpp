@@ -38,7 +38,7 @@ static inline _class& define_primitive_and_its_array_class(
 	_class& component_class = define_primitive_class(name, ch);
 
 	array<char, 2> array_class_name{ '[', ch };
-	_class& array_class = define_array_class(array_class_name);
+	_class& array_class = define_array_class(array_class_name, reference{});
 
 	array_class.component_class(component_class);
 	component_class.array_class(array_class);

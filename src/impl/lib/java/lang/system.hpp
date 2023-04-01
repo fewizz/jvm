@@ -2,7 +2,7 @@
 
 #include "decl/object.hpp"
 #include "decl/array.hpp"
-#include "decl/class/load.hpp"
+#include "decl/load_class.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/thrown.hpp"

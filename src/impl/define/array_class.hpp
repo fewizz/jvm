@@ -7,7 +7,7 @@
 #include <c_string.hpp>
 
 template<basic_range Name>
-inline _class& define_array_class(Name&& name) {
+inline _class& define_array_class(Name&& name, reference defining_loader) {
 	auto data = posix::allocate_memory_for<uint8>(name.size());
 	span<char> data_as_span{ (char*) data.iterator(), data.size() };
 	range{ name }.copy_to(data_as_span);
@@ -44,6 +44,7 @@ inline _class& define_array_class(Name&& name) {
 		move(declared_fields),
 		posix::memory_for_range_of<method>{},
 		is_array_class{ true },
-		is_primitive_class{ false }
+		is_primitive_class{ false },
+		move(defining_loader)
 	);
 }

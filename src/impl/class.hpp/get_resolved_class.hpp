@@ -18,6 +18,7 @@ inline _class& _class::get_resolved_class(
 
 	class_file::constant::_class cc = class_constant(class_index);
 	class_file::constant::utf8 name = utf8_constant(cc.name_index);
+	// note, _class& d = *this;
 	_class& c = resolve_class(*this, name);
 	trampoline(class_index) = c;
 	return c;

@@ -11,7 +11,8 @@
 
 static inline _class& define_class(
 	posix::memory_for_range_of<uint8> bytes,
-	reference loader
+	reference defining_loader,
+	reference initiating_loader
 ) {
 	class_file::reader magic_reader{ (uint8*) bytes.iterator() };
 
@@ -170,6 +171,7 @@ static inline _class& define_class(
 	descriptor[descriptor.size() - 1].construct((uint8)';');
 
 	return classes.emplace_back(
+		move(initiating_loader),
 		move(const_pool), move(bootstrap_methods),
 		move(bytes), access_flags,
 		this_class_name{ name },
@@ -181,6 +183,6 @@ static inline _class& define_class(
 		methods.move_storage_range(),
 		is_array_class{ false },
 		is_primitive_class{ false },
-		move(loader)
-	);
+		move(defining_loader)
+	)._class;
 }

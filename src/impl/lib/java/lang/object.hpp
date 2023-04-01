@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/object.hpp"
 
 #include "decl/class.hpp"
-#include "decl/class/load.hpp"
+#include "decl/load_class.hpp"
 #include "decl/object.hpp"
 #include "decl/native/environment.hpp"
 

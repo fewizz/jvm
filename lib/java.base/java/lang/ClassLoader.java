@@ -1,5 +1,7 @@
 package java.lang;
 
+import jvm.AppClassLoader;
+
 public abstract class ClassLoader {
 	private final ClassLoader parent_;
 	private final String name_;
@@ -14,7 +16,7 @@ public abstract class ClassLoader {
 	}
 
 	protected ClassLoader() {
-		this(null, null);
+		this(null, getSystemClassLoader());
 	}
 
 	public final ClassLoader getParent() {
@@ -86,4 +88,8 @@ public abstract class ClassLoader {
 	}
 
 	protected final native Class<?> findLoadedClass(String name);
+
+	public static ClassLoader getSystemClassLoader() {
+		return AppClassLoader.INSTANCE;
+	}
 }

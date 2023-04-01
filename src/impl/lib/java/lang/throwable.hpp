@@ -8,7 +8,7 @@
 #include "decl/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
 #include "decl/lib/java/lang/string.hpp"
-#include "decl/class/load.hpp"
+#include "decl/load_class.hpp"
 #include "decl/classes.hpp"
 
 static inline void init_java_lang_throwable() {

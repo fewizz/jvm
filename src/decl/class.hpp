@@ -57,7 +57,7 @@ private:
 
 	const is_array_class is_array_;
 	const is_primitive_class is_primitive_;
-	reference loader;
+	reference defining_loader_;
 	body<posix::mutex> mutex_;
 
 	// mutable state:
@@ -244,6 +244,10 @@ public:
 	}
 
 	reference instance();
+
+	reference defining_loader() {
+		return defining_loader_;
+	}
 
 	void array_class(_class& c)     { array_class_     = c; }
 	void component_class(_class& c) { component_class_ = c; }

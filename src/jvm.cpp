@@ -16,9 +16,21 @@ int main (int argc, const char** argv) {
 	}
 
 	// TODO replace with somethig more reliable
-	executable_path = argv[0];
+	executable_path = c_string_of_unknown_size{argv[0]}.sized();
 
-	//classes = posix::allocate_memory_for<_class>(65536);
+	// TODO replace with algo
+	lib_path = [] {
+		c_string_of_known_size exe = executable_path.get();
+		nuint last_slash = exe.size() - 1;
+
+		while(
+			last_slash >= 0 &&
+			(exe[last_slash] != '\\' && exe[last_slash] != '/')
+		){
+			--last_slash;
+		}
+		return c_string_of_known_size{ exe.begin(), last_slash };
+	}();
 
 	init_java_lang_object();
 
@@ -34,7 +46,7 @@ int main (int argc, const char** argv) {
 	int_class
 		= define_primitive_and_its_array_class(c_string{ "int" }, 'I');
 	long_class
-		= define_primitive_and_its_array_class(c_string{ "long"}, 'J');
+		= define_primitive_and_its_array_class(c_string{ "long" }, 'J');
 	float_class
 		= define_primitive_and_its_array_class(c_string{ "float" }, 'F');
 	double_class
@@ -53,7 +65,12 @@ int main (int argc, const char** argv) {
 
 	thread = create_thread();
 
-	_class& c = load_class(c_string{ argv[1] }.sized());
+	_class& app_cl_class = load_class(c_string{"jvm/AppClassLoader"});
+	reference app_cl_ref = create_object(app_cl_class);
+
+	auto main_class_name = c_string{ argv[1] }.sized();
+
+	_class& c = load_class(main_class_name, app_cl_ref);
 	method& m = c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }

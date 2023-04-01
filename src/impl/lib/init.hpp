@@ -39,6 +39,7 @@
 #include "./jvm/mh/special.hpp"
 #include "./jvm/mh/static.hpp"
 #include "./jvm/mh/virtual.hpp"
+#include "./jvm/app_class_loader.hpp"
 
 static inline void init_lib() {
 	init_java_io_file_descriptor();
@@ -78,4 +79,5 @@ static inline void init_lib() {
 	init_jvm_mh_special();
 	init_jvm_mh_static();
 	init_jvm_mh_virtual();
+	init_jvm_app_class_loader();
 }
