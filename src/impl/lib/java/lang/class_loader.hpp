@@ -4,7 +4,7 @@
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/thrown.hpp"
-#include "decl/define/class.hpp"
+#include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
 
 #include "classes.hpp"
@@ -47,13 +47,7 @@ static void init_java_lang_class_loader() {
 		_class& c = view_string_on_stack_as_utf8(
 			*name,
 			[&](auto name_utf8) -> _class& {
-				auto& m = classes.mutex();
-				m->lock();
-				on_scope_exit unlock_classes_mutex { [&] {
-					m->unlock();
-				}};
-
-				return define_class(name_utf8, move(data), *ths);
+				return classes.define_class(name_utf8, move(data), *ths);
 			}
 		);
 
@@ -82,35 +76,25 @@ static void init_java_lang_class_loader() {
 	).native_function((void*)+[](
 		native_environment*, object* ths, object* name
 	) -> object* {
-		auto& m = classes.mutex();
-		m->lock();
-		on_scope_exit unlock_classes_mutex { [&] {
-			m->unlock();
-		}};
-
-		optional<class_and_initiating_loaders&> possible_c_and_il
-			= view_string_on_stack_as_utf8(
-				*name,
-				[&](auto name_utf8) -> optional<class_and_initiating_loaders&> {
-					for(char& cp : name_utf8) {
-						if(cp == '.') cp = '/';
-					}
-					return classes.try_find_class_and_initiating_loaders(
-						name_utf8
-					);
+		optional<_class&> possible_c
+		= view_string_on_stack_as_utf8(
+			*name,
+			[&](auto name_utf8) -> optional<_class&> {
+				for(char& cp : name_utf8) {
+					if(cp == '.') cp = '/';
 				}
-			);
-		if(!possible_c_and_il.has_value()) {
-			return nullptr;
-		}
-		
-		class_and_initiating_loaders& c_and_il = possible_c_and_il.get();
 
-		bool recorded = c_and_il.loader_is_recorded_as_initiating(*ths);
-		if(!recorded) {
+				return classes.try_find_class_which_loading_was_initiated_by(
+					name_utf8,
+					*ths
+				);
+			}
+		);
+		if(possible_c.has_no_value()) {
 			return nullptr;
 		}
-		return & possible_c_and_il->_class.instance()
+
+		return & possible_c->instance()
 			.unsafe_release_without_destroing();
 	});
 }

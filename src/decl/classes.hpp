@@ -7,16 +7,19 @@
 #include "executable_path.hpp"
 #include "lib/java/lang/class_loader.hpp"
 #include "lib/java/lang/class.hpp"
+#include "lib/java/lang/object.hpp"
 #include "execute.hpp"
 #include "thrown.hpp"
 #include "primitives.hpp"
 #include "try_load_class_file_data_at.hpp"
+#include "class/bootstrap_methods.hpp"
 
 #include <list.hpp>
 #include <optional.hpp>
 #include <ranges.hpp>
 
 #include <posix/memory.hpp>
+#include <class_file/reader.hpp>
 
 struct class_and_initiating_loaders {
 	_class _class;
@@ -56,20 +59,20 @@ struct class_and_initiating_loaders {
 static struct classes :
 	private list<posix::memory_for_range_of<class_and_initiating_loaders>>
 {
+private:
 	using base_type = list<
 		posix::memory_for_range_of<class_and_initiating_loaders>
 	>;
 	using base_type::base_type;
 
 	body<posix::mutex> mutex_ = posix::create_mutex(mutex_attribute_recursive);
+public:
 
 	~classes() {
 		for(class_and_initiating_loaders& c : *this) {
 			c._class.destruct_declared_static_fields_values();
 		}
 	}
-
-	body<posix::mutex>& mutex() { return mutex_; }
 
 	template<basic_range Name>
 	_class& load_class_by_bootstrap_class_loader(Name&& name) {
@@ -119,6 +122,7 @@ static struct classes :
 		}).get();
 	}
 
+private:
 	void mark_class_loader_as_initiating_for_class(_class& c, reference cl) {
 		for(auto& c_and_cl : *this) {
 			if(&c_and_cl._class == &c) {
@@ -128,39 +132,25 @@ static struct classes :
 		}
 		posix::abort();
 	}
-
-	template<basic_range Name>
-	optional<class_and_initiating_loaders&>
-	try_find_class_and_initiating_loaders(Name&& name) {
-		optional<class_and_initiating_loaders&> res
-			= this->try_find_first_satisfying(
-				[&](class_and_initiating_loaders& c_and_l) {
-					bool same_name = c_and_l._class.name()
-						.has_equal_size_and_elements(name);
-
-					return same_name;
-				}
-			);
-		
-		if(res.has_value()) {
-			return { res.get() };
-		}
-		return {};
-	}
+public:
 
 	template<basic_range Name>
 	optional<_class&> try_find_class_which_loading_was_initiated_by(
 		Name&& name, reference class_loader
 	) {
+		mutex_->lock();
+		on_scope_exit unlock_classes_mutex { [&] {
+			mutex_->unlock();
+		}};
+
 		optional<class_and_initiating_loaders&> possible_c_and_il
 			= this->try_find_first_satisfying(
 				[&](class_and_initiating_loaders& c_and_l) {
-					bool same_name = c_and_l._class.name()
-						.has_equal_size_and_elements(name);
+					bool same_name =
+						c_and_l._class.name().has_equal_size_and_elements(name);
 					
-					bool cl_is_initiating
-						= c_and_l
-						.loader_is_recorded_as_initiating(class_loader);
+					bool cl_is_initiating =
+						c_and_l.loader_is_recorded_as_initiating(class_loader);
 
 					return same_name && cl_is_initiating;
 				}
@@ -196,6 +186,19 @@ static struct classes :
 		Name&& name, reference l_ref
 	);
 
+	template<basic_range Name>
+	_class& define_class(
+		Name&& n,
+		posix::memory_for_range_of<uint8> bytes,
+		reference defining_loader // L
+	);
+
+	template<basic_range Name>
+	_class& define_array_class(Name&& name, reference defining_loader);
+
+	template<basic_range Name>
+	_class& define_primitive_class(Name&& name, char ch);
+
 } classes{ posix::allocate_memory_for<class_and_initiating_loaders>(65536) };
 
 /* The process of loading and creating the nonarray class or interface C denoted
@@ -204,10 +207,9 @@ template<basic_range Name>
 _class& classes::load_non_array_class_by_bootstrap_class_loader(
 	Name&& name
 ) {
-	auto& m = mutex();
-	m->lock();
+	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
-		m->unlock();
+		mutex_->unlock();
 	}};
 
 	/* First, the Java Virtual Machine determines whether the bootstrap class
@@ -272,10 +274,9 @@ _class& classes::load_non_array_class_by_user_class_loader(
 ) {
 	_class& l_c = l_ref._class();
 
-	auto& m = mutex();
-	m->lock();
+	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
-		m->unlock();
+		mutex_->unlock();
 	}};
 
 	/* First, the Java Virtual Machine determines whether L has already been
@@ -342,10 +343,9 @@ template<basic_range Name>
 _class& classes::load_array_class(
 	Name&& name, reference l_ref
 ) {
-	auto& m = mutex();
-	m->lock();
+	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
-		m->unlock();
+		mutex_->unlock();
 	}};
 
 	/* First, the Java Virtual Machine determines whether L has already been
@@ -423,4 +423,492 @@ _class& classes::load_array_class(
 	// TODO
 
 	return c;
+}
+
+/* The following steps are used to derive a nonarray class or interface C
+   denoted by N from a purported representation in class file format using the
+   class loader L. */
+template<basic_range Name>
+_class& classes::define_class(
+	Name&& n,
+	posix::memory_for_range_of<uint8> bytes,
+	reference defining_loader // L
+) {
+	mutex_->lock();
+	on_scope_exit unlock_classes_mutex { [&] {
+		mutex_->unlock();
+	}};
+
+	/* 1. First, the Java Virtual Machine determines whether L has already been
+	      recorded as an initiating loader of a class or interface denoted by N.
+	      If so, this derivation attempt is invalid and derivation throws a
+	      LinkageError. */
+	{
+		optional<_class&> c
+			= try_find_class_which_loading_was_initiated_by(
+				n,
+				defining_loader
+			);
+		if(c.has_value()) {
+			// TODO throw LinkageError
+			posix::abort();
+		}
+	}
+
+	/* 2. Otherwise, the Java Virtual Machine attempts to parse the purported
+	      representation. The purported representation may not in fact be a
+	      valid representation of C, so derivation must detect the following
+	      problems: */
+
+	/*    * If the purported representation is not a ClassFile structure
+	        (§4.1, §4.8), derivation throws a ClassFormatError. */
+
+	/*    * Otherwise, if the purported representation is not of a supported
+	        major or minor version (§4.1), derivation throws an
+	        UnsupportedClassVersionError. */
+
+	/*    * Otherwise, if the purported representation does not actually
+	        represent a class or interface named N, derivation throws a
+	        NoClassDefFoundError.
+	        This occurs when the purported representation has either a
+	        this_class item which specifies a name other than N, or an
+	        access_flags item which has the ACC_MODULE flag set. */
+
+	class_file::reader magic_reader{ (uint8*) bytes.iterator() };
+
+	auto [magic_exists, version_reader] =
+		magic_reader.read_and_check_and_get_version_reader();
+
+	if(!magic_exists) {
+		posix::abort();
+	}
+
+	auto [version, constant_pool_reader] =
+		version_reader.read_and_get_constant_pool_reader();
+
+	uint16 constants_count = constant_pool_reader.read_count();
+	::list const_pool_raw {
+		posix::allocate_memory_for<::constant>(constants_count)
+	};
+
+	auto access_flags_reader {
+		constant_pool_reader.read_and_get_access_flags_reader(
+			[&]<typename Type>(Type x) {
+				if constexpr(same_as<class_file::constant::unknown, Type>) {
+					posix::abort();
+				}
+				else {
+					const_pool_raw.emplace_back(x);
+				}
+			}
+		)
+	};
+
+	constants const_pool = const_pool_raw.move_storage_range();
+
+	auto [access_flags, this_class_reader] {
+		access_flags_reader.read_and_get_this_class_reader()
+	};
+	auto [this_class_index, super_class_reader] {
+		this_class_reader.read_and_get_super_class_reader()
+	};
+	auto [super_class_index, interfaces_reader] {
+		super_class_reader.read_and_get_interfaces_reader()
+	};
+
+	/* 3. If C has a direct superclass, the symbolic reference from C to its
+	      direct superclass is resolved using the algorithm of §5.4.3.1. Note
+	      that if C is an interface it must have Object as its direct
+	      superclass, which must already have been loaded. Only Object has no
+	      direct superclass. */
+	optional<_class&> super;
+
+	if(super_class_index > 0) {
+		class_file::constant::_class super_class_constant {
+			const_pool.class_constant(super_class_index)
+		};
+		class_file::constant::utf8 super_class_name {
+			const_pool.utf8_constant(super_class_constant.name_index)
+		};
+		_class& super_class = load_non_array_class(
+			super_class_name, defining_loader
+		);
+		// TODO access control
+		super = super_class;
+	}
+
+	/* 4. If C has any direct superinterfaces, the symbolic references from C to
+	      its direct superinterfaces are resolved using the algorithm of
+	      §5.4.3.1. */
+	::list interfaces = posix::allocate_memory_for<_class*>(
+		interfaces_reader.read_count()
+	);
+
+	auto fields_reader =
+		interfaces_reader.read_and_get_fields_reader(
+			[&](class_file::constant::interface_index interface_index) {
+				class_file::constant::_class c =
+					const_pool.class_constant(interface_index);
+				class_file::constant::utf8 interface_name =
+					const_pool.utf8_constant(c.name_index);
+				_class& interface = load_non_array_class(
+					interface_name, defining_loader
+				);
+				// TODO access control
+				interfaces.emplace_back(&interface);
+			}
+		);
+	
+	uint16 fields_count = fields_reader.read_count();
+
+	::list fields {
+		posix::allocate_memory_for<field>(fields_count)
+	};
+
+	auto methods_reader = fields_reader.read_and_get_methods_reader(
+		[&](auto field_reader) {
+			auto [access_flags, name_index_reader] {
+				field_reader.read_access_flags_and_get_name_index_reader()
+			};
+			auto [name_index, descriptor_index_reader] {
+				name_index_reader.read_and_get_descriptor_index_reader()
+			};
+			auto [descriptor_index, attributes_reader] {
+				descriptor_index_reader.read_and_get_attributes_reader()
+			};
+			auto it = attributes_reader.read_and_get_advanced_iterator(
+				[&](auto name_index) {
+					return const_pool.utf8_constant(name_index);
+				},
+				[&]<typename Type>(Type) {
+				}
+			);
+			class_file::constant::utf8 name =
+				const_pool.utf8_constant(name_index);
+			class_file::constant::utf8 descriptor =
+				const_pool.utf8_constant(descriptor_index);
+			fields.emplace_back(access_flags, name, descriptor);
+			return it;
+		}
+	);
+
+	::list methods {
+		posix::allocate_memory_for<method>(methods_reader.read_count())
+	};
+
+	auto read_method_and_get_advaned_iterator = []<typename Iterator>(
+		constants& const_pool, class_file::method::reader<Iterator> reader
+	) -> tuple<method, Iterator> {
+		auto [access_flags, name_index_reader] {
+			reader.read_access_flags_and_get_name_index_reader()
+		};
+		auto [name_index, descriptor_index_reader] {
+			name_index_reader.read_and_get_descriptor_index_reader()
+		};
+		auto [desc_index, attributes_reader] {
+			descriptor_index_reader.read_and_get_attributes_reader()
+		};
+
+		code_or_native_function_ptr code_or_native_function {
+			optional<native_function_ptr>()
+		};
+
+		posix::memory_for_range_of<
+			class_file::attribute::code::exception_handler
+		> exception_handlers{};
+
+		posix::memory_for_range_of<
+			tuple<uint16, class_file::line_number>
+		> line_numbers{};
+
+		auto mapper = [&](auto name_index) {
+			return const_pool.utf8_constant(name_index);
+		};
+
+		Iterator it = attributes_reader.read_and_get_advanced_iterator(
+			mapper, [&]<typename Type>(Type reader) {
+
+			using namespace class_file;
+
+			if constexpr (Type::attribute_type == attribute::type::code) {
+				using namespace attribute::code;
+				Type max_stack_reader = reader;
+
+				auto [max_stack, max_locals_reader]
+					= max_stack_reader.read_and_get_max_locals_reader();
+				auto [max_locals, code_reader]
+					= max_locals_reader.read_and_get_code_reader();
+
+				auto code_span = code_reader.read_as_span();
+				auto exception_table_reader
+					= code_reader.skip_and_get_exception_table_reader();
+
+				code_or_native_function = ::code {
+					code_span, max_stack, max_locals
+				};
+
+				::list exception_handlers_list {
+					posix::allocate_memory_for<
+						class_file::attribute::code::exception_handler
+					>(exception_table_reader.read_count())
+				};
+
+				auto attributes_reader
+					= exception_table_reader.read_and_get_attributes_reader(
+					[&](exception_handler eh) {
+						exception_handlers_list.emplace_back(eh);
+						return loop_action::next;
+					}
+				);
+
+				attributes_reader.read_and_get_advanced_iterator(
+					mapper,
+					[&]<typename CodeAttributeType>(
+						CodeAttributeType reader
+					) {
+						using namespace class_file;
+
+						if constexpr (
+							CodeAttributeType::attribute_type ==
+							attribute::type::line_numbers
+						) {
+							CodeAttributeType count_reader = reader;
+							auto [count, line_numbers_reader]
+								= count_reader
+								.read_and_get_line_numbers_reader();
+							
+							::list line_numbers_list {
+								posix::allocate_memory_for<
+									tuple<uint16, class_file::line_number>
+								>(count)
+							};
+
+							line_numbers_reader.read_and_get_advanced_iterator(
+								count,
+								[&](
+									uint16 start_pc,
+									class_file::line_number ln
+								) {
+									line_numbers_list.emplace_back(
+										start_pc,
+										ln
+									);
+								}
+							);
+							line_numbers
+								= line_numbers_list.move_storage_range();
+						}
+					}
+				);
+
+				exception_handlers
+					= exception_handlers_list.move_storage_range();
+			}
+		});
+
+		class_file::constant::utf8 name = const_pool.utf8_constant(name_index);
+		class_file::constant::utf8 desc = const_pool.utf8_constant(desc_index);
+
+		return {
+			method {
+				access_flags,
+				name,
+				desc,
+				code_or_native_function,
+				move(exception_handlers),
+				move(line_numbers)
+			},
+			it
+		};
+	};
+
+	auto attributes_reader = methods_reader.read_and_get_attributes_reader(
+		[&](auto method_reader) {
+			auto [m, it] = read_method_and_get_advaned_iterator(
+				const_pool, method_reader
+			);
+			methods.emplace_back(move(m));
+			return it;
+		}
+	);
+
+	bootstrap_methods bootstrap_methods{};
+	class_file::constant::utf8 source_file{};
+
+	auto read_bootstap_methods = [](auto reader) -> ::bootstrap_methods {
+		auto [count, bootstrap_methods_reader] {
+			reader.read_count_and_get_methods_reader()
+		};
+
+		::list bootstrap_methods_raw {
+			posix::allocate_memory_for<bootstrap_method>(count)
+		};
+
+		bootstrap_methods_reader.read(
+			count,
+			[&](auto method_reader) {
+				auto [reference_index, arguments_count_reader] {
+					method_reader
+						.read_reference_index_and_get_arguments_count_reader()
+				};
+				auto [arguments_count, arguments_reader] {
+					arguments_count_reader.read_and_get_arguments_reader()
+				};
+
+				::list arguments_indices_raw {
+					posix::allocate_memory_for<
+						class_file::constant::index
+					>(arguments_count)
+				};
+
+				arguments_reader.read(
+					arguments_count,
+					[&](class_file::constant::index index) {
+						arguments_indices_raw.emplace_back(index);
+					}
+				);
+
+				bootstrap_methods_raw.emplace_back(
+					reference_index, arguments_indices_raw.move_storage_range()
+				);
+			}
+		);
+
+		return ::bootstrap_methods {
+			bootstrap_methods_raw.move_storage_range()
+		};
+	};
+
+	attributes_reader.read_and_get_advanced_iterator(
+		[&](auto attribute_name_index) {
+			return const_pool.utf8_constant(attribute_name_index);
+		},
+		[&]<typename Type>(Type attribute_reader) {
+			if constexpr(
+				Type::attribute_type ==
+				class_file::attribute::type::bootstrap_methods
+			) {
+				bootstrap_methods = read_bootstap_methods(attribute_reader);
+			}
+			if constexpr(
+				Type::attribute_type == class_file::attribute::type::source_file
+			) {
+				Type index_reader = attribute_reader;
+				auto [utf8_index, it]
+					= index_reader.read_and_get_advanced_iterator();
+				
+				source_file = const_pool.utf8_constant(utf8_index);
+			}
+		}
+	);
+
+	class_file::constant::_class this_class_constant {
+		const_pool.class_constant(this_class_index)
+	};
+	class_file::constant::utf8 name {
+		const_pool.utf8_constant(this_class_constant.name_index)
+	};
+
+	auto descriptor = posix::allocate_memory_for<uint8>(name.size() + 2);
+	name.copy_to(
+		span{ (char*) descriptor.iterator() + 1, descriptor.size() - 2 }
+	);
+	descriptor[0].construct((uint8)'L');
+	descriptor[descriptor.size() - 1].construct((uint8)';');
+
+	/* If no exception is thrown in steps 1-4, then derivation of the class or
+	   interface C succeeds. The Java Virtual Machine marks C to have L as its
+	   defining loader, records that L is an initiating loader of C (§5.3.4),
+	   and creates C in the method area (§2.5.4). */
+	return emplace_back(
+		move(const_pool), move(bootstrap_methods),
+		move(bytes), access_flags,
+		this_class_name{ name },
+		move(descriptor),
+		source_file,
+		super,
+		interfaces.move_storage_range(),
+		fields.move_storage_range(),
+		methods.move_storage_range(),
+		is_array_class{ false },
+		is_primitive_class{ false },
+		move(defining_loader)
+	);
+}
+
+template<basic_range Name>
+_class& classes::define_array_class(
+	Name&& name, reference defining_loader
+) {
+	mutex_->lock();
+	on_scope_exit unlock_classes_mutex { [&] {
+		mutex_->unlock();
+	}};
+
+	auto data = posix::allocate_memory_for<uint8>(name.size());
+	span<char> data_as_span{ (char*) data.iterator(), data.size() };
+	range{ name }.copy_to(data_as_span);
+
+	posix::memory_for_range_of<field> declared_fields {
+		posix::allocate_memory_for<field>(2)
+	};
+
+	// ptr to data
+	declared_fields[0].construct(
+		class_file::access_flags{ class_file::access_flag::_private },
+		class_file::constant::utf8{ nullptr, 0 },
+		class_file::constant::utf8{ c_string{ "J" } }
+	);
+	// length
+	declared_fields[1].construct(
+		class_file::access_flags{ class_file::access_flag::_private },
+		class_file::constant::utf8{ nullptr, 0 },
+		class_file::constant::utf8{ c_string{ "I" } }
+	);
+
+	auto descriptor = posix::allocate_memory_for<uint8>(range_size(name));
+	name.copy_to(span{ (char*) descriptor.iterator(), range_size(descriptor) });
+
+	return emplace_back(
+		constants{}, bootstrap_methods{},
+		move(data),
+		class_file::access_flags{ class_file::access_flag::_public },
+		this_class_name { data_as_span },
+		move(descriptor),
+		class_file::constant::utf8{},
+		object_class.get(),
+		posix::memory_for_range_of<_class*>{},
+		move(declared_fields),
+		posix::memory_for_range_of<method>{},
+		is_array_class{ true },
+		is_primitive_class{ false },
+		move(defining_loader)
+	);
+}
+
+template<basic_range Name>
+_class& classes::define_primitive_class(Name&& name, char ch) {
+	// should be called at the beginning, no lock needed
+
+	auto data = posix::allocate_memory_for<uint8>(name.size());
+	span<char> data_span{ (char*) data.iterator(), data.size() };
+	range{ name }.copy_to(data_span);
+
+	auto descriptor = posix::allocate_memory_for<uint8>(1);
+	descriptor[0].construct((uint8)ch);
+
+	return emplace_back(
+		constants{}, bootstrap_methods{},
+		move(data),
+		class_file::access_flags{ class_file::access_flag::_public },
+		this_class_name{ data_span },
+		move(descriptor),
+		class_file::constant::utf8{},
+		object_class,
+		posix::memory_for_range_of<_class*>{},
+		posix::memory_for_range_of<field>{},
+		posix::memory_for_range_of<method>{},
+		is_array_class{ false },
+		is_primitive_class{ true }
+	);
 }

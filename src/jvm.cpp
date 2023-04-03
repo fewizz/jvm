@@ -1,7 +1,6 @@
 #include "decl/classes.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/execution/thread.hpp"
-#include "decl/define/primitive_class.hpp"
 #include "decl/executable_path.hpp"
 
 #include "impl/impl.hpp"
@@ -34,7 +33,23 @@ int main (int argc, const char** argv) {
 
 	init_java_lang_object();
 
-	void_class = define_primitive_class(c_string{ "void"    }, 'V');
+	void_class = classes.define_primitive_class(c_string{ "void"    }, 'V');
+
+	auto define_primitive_and_its_array_class = []<basic_range Name>(
+		Name&& name, char ch
+	) ->_class& {
+		_class& component_class = classes.define_primitive_class(name, ch);
+
+		array<char, 2> array_class_name{ '[', ch };
+		_class& array_class
+			= classes.define_array_class(array_class_name, reference{});
+
+		array_class.component_class(component_class);
+		component_class.array_class(array_class);
+
+		return component_class;
+	};
+
 	bool_class
 		= define_primitive_and_its_array_class(c_string{ "boolean" }, 'Z');
 	byte_class

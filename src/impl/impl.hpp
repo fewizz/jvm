@@ -1,7 +1,4 @@
 #include "./class.hpp/impl.hpp"
-#include "./define/array_class.hpp"
-#include "./define/class.hpp/impl.hpp"
-#include "./define/primitive_class.hpp"
 #include "./execute.hpp/impl.hpp"
 #include "./lib/init.hpp"
 #include "./native/call.hpp/impl.hpp"
