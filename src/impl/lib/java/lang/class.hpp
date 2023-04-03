@@ -13,7 +13,9 @@ static inline _class& class_from_class_instance(object& class_instance) {
 }
 
 static inline void init_java_lang_class() {
-	class_class = classes.find_or_load(c_string{ "java/lang/Class" });
+	class_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Class" }
+	);
 	class_ptr_field_position = class_class->instance_field_position(
 		c_string{ "ptr_" }, c_string{ "J" }
 	);

@@ -98,7 +98,7 @@ static reference create_method_type(
 }
 
 static void init_java_lang_invoke_method_type() {
-	method_type_class = classes.find_or_load(
+	method_type_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/invoke/MethodType" }
 	);
 

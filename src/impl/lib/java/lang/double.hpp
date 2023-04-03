@@ -6,7 +6,9 @@
 #include <posix/math.hpp>
 
 static inline void init_java_lang_double() {
-	_class& double_class = classes.find_or_load(c_string{ "java/lang/Double" });
+	_class& double_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Double" }
+	);
 
 	double_class.declared_methods().find(
 		c_string{ "doubleToRawLongBits" }, c_string{ "(D)J" }

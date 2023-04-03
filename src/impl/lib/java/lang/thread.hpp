@@ -65,7 +65,10 @@ static void* thread_start(void* arg) {
 }
 
 inline void init_java_lang_thread() {
-	thread_class = load_class(c_string{ "java/lang/Thread" });
+	thread_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Thread" }
+	);
+
 	thread_runnable_field_position
 		= thread_class->instance_field_position(
 			c_string{ "runnable_" }, c_string{ "Ljava/lang/Runnable;" }

@@ -9,7 +9,9 @@
 #include "decl/thrown.hpp"
 
 static void init_jvm_mh_constructor() {
-	mh_constructor_class = classes.find_or_load(c_string{"jvm/mh/Constructor"});
+	mh_constructor_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{"jvm/mh/Constructor"}
+	);
 
 	mh_constructor_constructor =
 		mh_constructor_class->declared_instance_methods().find(

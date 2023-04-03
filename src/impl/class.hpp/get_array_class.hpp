@@ -4,17 +4,30 @@
 #include <range.hpp>
 
 inline _class& _class::get_array_class() {
-	// array class for primitives are passed by constructor,
-	// no special handling needed
-	posix::abort(); // TODO
-	/*mutex_->lock();
+	mutex_->lock();
 	if(!array_class_.has_value()) {
-		auto array_class_name = ranges {
-			array{ '[' }, descriptor(), array{ ';' }
-		}.concat_view();
-		array_class_ = classes.find_or_load_by_bootstrap_classloader(array_class_name);
+
+		if(is_primitive()) {
+			auto array_class_name = ranges {
+				array{ '[' }, descriptor()
+			}.concat_view();
+
+			array_class_ = classes.load_array_class(
+				array_class_name, defining_loader_
+			);
+		}
+		else {
+			auto array_class_name = ranges {
+				array{ '[' }, descriptor(), array{ ';' }
+			}.concat_view();
+
+			array_class_ = classes.load_array_class(
+				array_class_name, defining_loader_
+			);
+		}
+
 		array_class_->component_class_ = *this;
 	}
 	mutex_->unlock();
-	return array_class_.get();*/
+	return array_class_.get();
 }

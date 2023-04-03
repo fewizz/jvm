@@ -6,7 +6,6 @@
 #include "./lib/init.hpp"
 #include "./native/call.hpp/impl.hpp"
 #include "./reference.hpp"
-#include "./load_class.hpp"
 #include "./method.hpp"
 #include "./field.hpp"
 #include "./object.hpp"

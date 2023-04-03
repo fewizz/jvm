@@ -3,7 +3,7 @@
 #include "classes.hpp"
 
 static void init_jvm_mh_class_member() {
-	mh_class_member_class = classes.find_or_load(
+	mh_class_member_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{"jvm/mh/ClassMember"}
 	);
 

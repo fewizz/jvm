@@ -14,9 +14,10 @@ inline reference create_index_of_of_bounds_exception() {
 }
 
 inline void init_java_lang_index_of_of_bounds_exception() {
-	index_of_of_bounds_exception_class = classes.find_or_load(
-		c_string{ "java/lang/IndexOutOfBoundsException" }
-	);
+	index_of_of_bounds_exception_class
+		= classes.load_class_by_bootstrap_class_loader(
+			c_string{ "java/lang/IndexOutOfBoundsException" }
+		);
 
 	index_of_of_bounds_exception_constructor =
 		index_of_of_bounds_exception_class.get()

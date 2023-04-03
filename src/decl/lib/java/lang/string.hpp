@@ -46,4 +46,27 @@ inline decltype(auto) view_string_on_stack_as_utf8(
 static inline reference create_string(span<uint16> data);
 
 template<basic_range String>
-static reference create_string_from_utf8(String&& str_utf8);
+reference create_string_from_utf8(String&& str_utf8) {
+	auto it  = range_iterator(str_utf8);
+	auto end = range_sentinel(str_utf8);
+	nuint units = 0;
+	while(it != end) {
+		auto result = utf8::decoder{}(it);
+		if(result.is_unexpected()) {
+			print::err("invalid sequence\n");
+			posix::abort();
+		}
+		auto cp = result.get_expected();
+		units += utf16::encoder{}.units(cp);
+	}
+
+	span<uint16> data = posix::allocate_raw_memory_of<uint16>(units);
+	uint8* data_it = (uint8*) data.iterator();
+	it = range_iterator(str_utf8);
+	while(it != end) {
+		auto cp = utf8::decoder{}( it );
+		utf16::encoder{}(cp.get_expected(), data_it);
+	}
+
+	return create_string(data);
+}

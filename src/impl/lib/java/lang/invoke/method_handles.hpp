@@ -8,7 +8,7 @@
 #include "decl/lib/java/lang/invoke/method_handles_lookup.hpp"
 
 static void init_java_lang_invoke_method_handles() {
-	_class& c = classes.find_or_load(
+	_class& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{"java/lang/invoke/MethodHandles"}
 	);
 

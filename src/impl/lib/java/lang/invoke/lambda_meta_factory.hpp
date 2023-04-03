@@ -9,8 +9,9 @@ static optional<_class&> lambda_meta_factory_class;
 
 static void init_java_lang_invoke_lambda_meta_factory() {
 
-	lambda_meta_factory_class =
-		classes.find_or_load(c_string{ "java/lang/invoke/LambdaMetaFactory" });
+	lambda_meta_factory_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/invoke/LambdaMetaFactory" }
+	);
 
 	lambda_meta_factory_class->declared_methods().find(
 		c_string{ "metafactory" },

@@ -15,9 +15,10 @@ inline reference create_null_pointer_exception() {
 }
 
 inline void init_java_lang_null_pointer_exception() {
-	null_pointer_exception_class = classes.find_or_load(
-		c_string{ "java/lang/NullPointerException" }
-	);
+	null_pointer_exception_class
+		= classes.load_class_by_bootstrap_class_loader(
+			c_string{ "java/lang/NullPointerException" }
+		);
 
 	null_pointer_exception_constructor =
 		null_pointer_exception_class

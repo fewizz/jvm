@@ -7,9 +7,10 @@
 static layout::position file_output_stream_fd_field_position;
 
 static inline void init_java_io_file_output_stream() {
-	_class& file_output_stream_class = classes.find_or_load(
-		c_string{ "java/io/FileOutputStream" }
-	);
+	_class& file_output_stream_class
+		= classes.load_class_by_bootstrap_class_loader(
+			c_string{ "java/io/FileOutputStream" }
+		);
 
 	file_output_stream_fd_field_position =
 		file_output_stream_class.instance_field_position(

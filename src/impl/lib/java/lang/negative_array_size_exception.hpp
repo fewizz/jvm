@@ -15,9 +15,10 @@ static inline reference create_negative_array_size_exception() {
 }
 
 inline void init_java_lang_negative_array_size_exception() {
-	negative_array_size_exception_class = classes.find_or_load(
-		c_string{ "java/lang/NegativeArraySizeException" }
-	);
+	negative_array_size_exception_class
+		= classes.load_class_by_bootstrap_class_loader(
+			c_string{ "java/lang/NegativeArraySizeException" }
+		);
 
 	negative_array_size_exception_constructor =
 		negative_array_size_exception_class

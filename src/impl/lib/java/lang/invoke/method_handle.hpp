@@ -8,7 +8,7 @@
 #include <class_file/constant.hpp>
 
 inline void init_java_lang_invoke_method_handle() {
-	method_handle_class = classes.find_or_load(
+	method_handle_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/invoke/MethodHandle" }
 	);
 

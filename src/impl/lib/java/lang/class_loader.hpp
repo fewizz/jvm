@@ -5,11 +5,15 @@
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/thrown.hpp"
 #include "decl/define/class.hpp"
+#include "decl/native/environment.hpp"
 
 #include "classes.hpp"
 
 static void init_java_lang_class_loader() {
-	_class& c = classes.find_or_load(c_string{"java/lang/ClassLoader"});
+	_class& c = classes.load_class_by_bootstrap_class_loader(
+		c_string{"java/lang/ClassLoader"}
+	);
+
 	class_loader_load_class_method_index
 		= c.instance_methods().find_index_of(
 			c_string{"loadClass"},
@@ -19,8 +23,11 @@ static void init_java_lang_class_loader() {
 	c.declared_instance_methods().find(
 		c_string{"defineClass"},
 		c_string{"(Ljava/lang/String;[BII)Ljava/lang/Class;"}
-	).native_function((void*)+[](object* ths, object* b, int32 off, int32 len)
-		-> object*
+	).native_function((void*)+[](
+		native_environment*,
+		object* ths, object* name, object* b, int32 off, int32 len
+	)
+	-> object*
 	{
 		if(b == nullptr) {
 			thrown = create_null_pointer_exception();
@@ -37,15 +44,18 @@ static void init_java_lang_class_loader() {
 		auto data = posix::allocate_memory_for<uint8>(bytes.size());
 		bytes.copy_to(data.as_span());
 
-		_class& c = [&]() -> _class& {
-			auto& m = classes.mutex();
-			m->lock();
-			on_scope_exit unlock_classes_mutex { [&] {
-				m->unlock();
-			}};
+		_class& c = view_string_on_stack_as_utf8(
+			*name,
+			[&](auto name_utf8) -> _class& {
+				auto& m = classes.mutex();
+				m->lock();
+				on_scope_exit unlock_classes_mutex { [&] {
+					m->unlock();
+				}};
 
-			return define_class(move(data), *ths);
-		}();
+				return define_class(name_utf8, move(data), *ths);
+			}
+		);
 
 		return & c.instance().unsafe_release_without_destroing();
 	});
@@ -53,14 +63,14 @@ static void init_java_lang_class_loader() {
 	c.declared_static_methods().find(
 		c_string{ "loadClassJVM" },
 		c_string{ "(Ljava/lang/String;)Ljava/lang/Class;" }
-	).native_function((void*)+[](object* name) -> object* {
+	).native_function((void*)+[](native_environment*, object* name) -> object* {
 		_class& c = view_string_on_stack_as_utf8(
 			*name,
 			[](auto name_utf8) -> _class& {
 				for(char& cp : name_utf8) {
 					if(cp == '.') cp = '/';
 				}
-				return load_class_by_bootstrap_class_loader(name_utf8);
+				return classes.load_class_by_bootstrap_class_loader(name_utf8);
 			}
 		);
 		return & c.instance().unsafe_release_without_destroing();
@@ -69,7 +79,9 @@ static void init_java_lang_class_loader() {
 	c.declared_instance_methods().find(
 		c_string{ "findLoadedClass" },
 		c_string{ "(Ljava/lang/String;)Ljava/lang/Class;" }
-	).native_function((void*)+[](object* ths, object* name) -> object* {
+	).native_function((void*)+[](
+		native_environment*, object* ths, object* name
+	) -> object* {
 		auto& m = classes.mutex();
 		m->lock();
 		on_scope_exit unlock_classes_mutex { [&] {

@@ -1,10 +1,10 @@
 #include "decl/classes.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/execution/thread.hpp"
-#include "impl/impl.hpp"
+#include "decl/define/primitive_class.hpp"
+#include "decl/executable_path.hpp"
 
-#include "define/primitive_class.hpp"
-#include "executable_path.hpp"
+#include "impl/impl.hpp"
 
 #include <posix/default_unhandled.cpp>
 #include <print/print.hpp>
@@ -65,12 +65,14 @@ int main (int argc, const char** argv) {
 
 	thread = create_thread();
 
-	_class& app_cl_class = load_class(c_string{"jvm/AppClassLoader"});
+	_class& app_cl_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{"jvm/AppClassLoader"}
+	);
 	reference app_cl_ref = create_object(app_cl_class);
 
 	auto main_class_name = c_string{ argv[1] }.sized();
 
-	_class& c = load_class(main_class_name, app_cl_ref);
+	_class& c = classes.load_class(main_class_name, app_cl_ref);
 	method& m = c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }

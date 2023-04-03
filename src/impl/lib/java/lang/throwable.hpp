@@ -8,12 +8,13 @@
 #include "decl/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
 #include "decl/lib/java/lang/string.hpp"
-#include "decl/load_class.hpp"
 #include "decl/classes.hpp"
 
 static inline void init_java_lang_throwable() {
 
-	throwable_class = classes.find_or_load(c_string{ "java/lang/Throwable" });
+	throwable_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Throwable" }
+	);
 
 	throwable_stack_trace_field_position =
 		throwable_class->instance_field_position(

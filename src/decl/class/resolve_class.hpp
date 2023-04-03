@@ -2,6 +2,7 @@
 
 #include "class.hpp"
 #include "classes.hpp"
+
 #include <range.hpp>
 
 /* To resolve an unresolved symbolic reference from D to a class or interface C
@@ -12,7 +13,7 @@ inline _class& resolve_class(_class& d, Name&& name) {
 	      or interface denoted by N. This class or interface is C. The details
 	      of the process are given in §5.3. */
 	reference defining_loader = d.defining_loader();
-	_class& c = load_class(name, defining_loader);
+	_class& c = classes.load_class(name, defining_loader);
 	/*    Any exception that can be thrown as a result of failure to load and
 	      thereby create C can thus be thrown as a result of failure of class
 	      and interface resolution.*/ // TODO
@@ -34,7 +35,7 @@ inline _class& resolve_class(_class& d, Name&& name) {
 			auto element_name = iterator_and_sentinel {
 				name.iterator() + dimensionality + 1, // skip 'L'
 				name.sentinel() - 1 // ';'
-			};
+			}.as_range();
 			resolve_class(c, element_name);
 		}
 	}
@@ -42,6 +43,3 @@ inline _class& resolve_class(_class& d, Name&& name) {
 	      (§5.4.4). */ // TODO
 	return c;
 }
-
-template<basic_range Name>
-inline _class& resolve_class([[maybe_unused]]_class& d, Name&& name) {

@@ -3,7 +3,7 @@
 #include "decl/native/environment.hpp"
 
 static void init_java_lang_void() {
-	classes.find_or_load(c_string{ "java/lang/Void" })
+	classes.load_class_by_bootstrap_class_loader(c_string{ "java/lang/Void" })
 	.declared_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(

@@ -5,7 +5,9 @@
 #include <bit_cast.hpp>
 
 static inline void init_java_lang_float() {
-	_class& c = classes.find_or_load(c_string{ "java/lang/Float" });
+	_class& c = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Float" }
+	);
 
 	c.declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}

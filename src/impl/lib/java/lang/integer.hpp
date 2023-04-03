@@ -6,8 +6,9 @@
 #include <number.hpp>
 
 static void init_java_lang_integer() {
-	_class& integer_class
-		= classes.find_or_load(c_string{ "java/lang/Integer" });
+	_class& integer_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/Integer" }
+	);
 
 	integer_class.declared_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }

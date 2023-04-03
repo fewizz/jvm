@@ -5,8 +5,9 @@
 #include "decl/lib/java/lang/negative_array_size_exception.hpp"
 
 static void init_java_lang_reflect_array() {
-	classes.find_or_load(c_string{ "java/lang/reflect/Array" })
-	.declared_methods().find(
+	classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/reflect/Array" }
+	).declared_methods().find(
 		c_string{ "newInstance" },
 		c_string{ "(Ljava/lang/Class;I)Ljava/lang/Object;" }
 	).native_function(

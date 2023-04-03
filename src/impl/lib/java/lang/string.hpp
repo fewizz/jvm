@@ -27,34 +27,11 @@ inline nuint string_utf8_length(object& str) {
 	return utf8_length;
 }
 
-template<basic_range String>
-static reference create_string_from_utf8(String&& str_utf8) {
-	auto it  = range_iterator(str_utf8);
-	auto end = range_sentinel(str_utf8);
-	nuint units = 0;
-	while(it != end) {
-		auto result = utf8::decoder{}(it);
-		if(result.is_unexpected()) {
-			print::err("invalid sequence\n");
-			posix::abort();
-		}
-		auto cp = result.get_expected();
-		units += utf16::encoder{}.units(cp);
-	}
-
-	span<uint16> data = posix::allocate_raw_memory_of<uint16>(units);
-	uint8* data_it = (uint8*) data.iterator();
-	it = range_iterator(str_utf8);
-	while(it != end) {
-		auto cp = utf8::decoder{}( it );
-		utf16::encoder{}(cp.get_expected(), data_it);
-	}
-
-	return create_string(data);
-}
-
 static inline void init_java_lang_string() {
-	string_class = classes.find_or_load(c_string{ "java/lang/String" });
+	string_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/String" }
+	);
+
 	string_value_field_position = string_class->instance_field_position(
 		c_string{ "value_" }, c_string{ "[C" }
 	);

@@ -132,7 +132,7 @@ static reference lookup_find_constructor(
 }
 
 static void init_java_lang_invoke_method_handles_lookup() {
-	method_handles_lookup_class = classes.find_or_load(
+	method_handles_lookup_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/invoke/MethodHandles$Lookup" }
 	);
 

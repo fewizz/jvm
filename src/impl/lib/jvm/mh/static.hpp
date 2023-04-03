@@ -7,7 +7,9 @@
 #include "decl/execute.hpp"
 
 static void init_jvm_mh_static() {
-	mh_static_class = classes.find_or_load(c_string{"jvm/mh/Static"});
+	mh_static_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{"jvm/mh/Static"}
+	);
 
 	mh_static_constructor = mh_static_class->declared_instance_methods().find(
 		c_string{"<init>"},

@@ -30,7 +30,7 @@ inline _class& _class::get_component_class() {
 			iterator_and_sentinel {
 				n.iterator() + 1, n.sentinel()
 			}.as_range();
-		component_class_ = classes.find_or_load_by_bootstrap_classloader(component_name);
+		component_class_ = load_class_by_bootstrap_class_loader(component_name);
 		component_class_->array_class_ = *this;
 	}
 	return component_class_.get();*/

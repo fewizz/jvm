@@ -9,7 +9,9 @@
 #include "decl/thrown.hpp"
 
 static void init_jvm_mh_special() {
-	mh_special_class = classes.find_or_load(c_string{"jvm/mh/Special"});
+	mh_special_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{"jvm/mh/Special"}
+	);
 
 	mh_special_constructor = mh_special_class->declared_instance_methods().find(
 		c_string{"<init>"},

@@ -7,7 +7,7 @@
 extern "C" [[ noreturn ]] void exit(int exit_code);
 
 static inline void init_java_lang_runtime() {
-	_class& runtime_class = classes.find_or_load(
+	_class& runtime_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/Runtime" }
 	);
 

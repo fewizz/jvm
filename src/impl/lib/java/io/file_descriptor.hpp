@@ -4,9 +4,10 @@
 #include <posix/io.hpp>
 
 static void init_java_io_file_descriptor() {
-	_class& file_descriptor_class = classes.find_or_load(
-		c_string{ "java/io/FileDescriptor" }
-	);
+	_class& file_descriptor_class
+		= classes.load_class_by_bootstrap_class_loader(
+			c_string{ "java/io/FileDescriptor" }
+		);
 
 	file_descriptor_class.declared_methods().find(
 		c_string{ "stderr_fd" }, c_string{ "()I" }

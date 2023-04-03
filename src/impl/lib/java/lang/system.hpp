@@ -2,7 +2,6 @@
 
 #include "decl/object.hpp"
 #include "decl/array.hpp"
-#include "decl/load_class.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/thrown.hpp"
@@ -14,7 +13,9 @@
 
 static inline void init_java_lang_system() {
 
-	system_class = classes.find_or_load(c_string{ "java/lang/System" });
+	system_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{ "java/lang/System" }
+	);
 
 	system_class->declared_methods().find(
 		c_string{ "arraycopy" },
