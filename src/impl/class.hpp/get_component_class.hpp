@@ -4,18 +4,16 @@
 #include <iterator_and_sentinel.hpp>
 
 inline _class& _class::get_component_class() {
-	posix::abort();
-
-	// TODO
 	// component class for primitives are passed by constructor,
 	// no special handling needed
-	/*mutex_->lock();
+	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();
 	}};
 
 	if(!component_class_.has_value()) {
-		if(!is_array()) {
+		posix::abort(); // TODO
+		/*if(!is_array()) {
 			posix::abort();
 		}
 		auto n = name();
@@ -31,7 +29,7 @@ inline _class& _class::get_component_class() {
 				n.iterator() + 1, n.sentinel()
 			}.as_range();
 		component_class_ = load_class_by_bootstrap_class_loader(component_name);
-		component_class_->array_class_ = *this;
+		component_class_->array_class_ = *this;*/
 	}
-	return component_class_.get();*/
+	return component_class_.get();
 }

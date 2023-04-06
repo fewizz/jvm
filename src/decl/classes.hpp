@@ -8,11 +8,12 @@
 #include "lib/java/lang/class_loader.hpp"
 #include "lib/java/lang/class.hpp"
 #include "lib/java/lang/object.hpp"
+#include "lib/java/lang/class_not_found_exception.hpp"
 #include "execute.hpp"
-#include "thrown.hpp"
 #include "primitives.hpp"
 #include "try_load_class_file_data_at.hpp"
 #include "class/bootstrap_methods.hpp"
+#include "object.hpp"
 
 #include <list.hpp>
 #include <optional.hpp>
@@ -38,17 +39,17 @@ struct class_and_initiating_loaders {
 		initiating_loaders.emplace_back(_class.defining_loader());
 	}
 
-	void record_as_initiating(reference ref) {
-		if(loader_is_recorded_as_initiating(ref)) {
+	void record_as_initiating(object* cl) {
+		if(loader_is_recorded_as_initiating(cl)) {
 			print::err("class-loader is already recorded as initiating\n");
 			posix::abort();
 		}
-		initiating_loaders.emplace_back(move(ref));
+		initiating_loaders.emplace_back(*cl);
 	}
 
-	bool loader_is_recorded_as_initiating(reference ref) const {
+	bool loader_is_recorded_as_initiating(object* cl) const {
 		for(reference& l : initiating_loaders) {
-			if(l.object_ptr() == ref.object_ptr()) {
+			if(l.object_ptr() == cl) {
 				return true;
 			}
 		}
@@ -74,56 +75,8 @@ public:
 		}
 	}
 
-	template<basic_range Name>
-	_class& load_class_by_bootstrap_class_loader(Name&& name) {
-		return range{name}.starts_with('[') ?
-			load_array_class(forward<Name>(name), reference{})
-			:
-			load_non_array_class_by_bootstrap_class_loader(
-				forward<Name>(name)
-			);
-	}
-
-	template<basic_range Name>
-	_class& load_non_array_class(Name&& name, reference l_ref) {
-		return l_ref.is_null() ?
-			load_non_array_class_by_bootstrap_class_loader(
-				forward<Name>(name)
-			)
-			:
-			load_non_array_class_by_user_class_loader(
-				forward<Name>(name), move(l_ref)
-			);
-	}
-
-	template<basic_range Name>
-	_class& load_class(Name&& name, reference class_loader) {
-		if(range{name}.starts_with('[')) {
-			return load_array_class(forward<Name>(name), move(class_loader));
-		}
-
-		return class_loader.is_null() ?
-			load_non_array_class_by_bootstrap_class_loader(
-				forward<Name>(name)
-			)
-			:
-			load_non_array_class_by_user_class_loader(
-				forward<Name>(name), move(class_loader)
-			);
-	}
-
-	template<basic_range Name>
-	_class& find_or_load(Name&& name) {
-		optional<_class&> c = try_find(name);
-		return c.set_if_has_no_value([&]() -> _class& {
-			return load_class_by_bootstrap_class_loader(
-				name
-			);
-		}).get();
-	}
-
 private:
-	void mark_class_loader_as_initiating_for_class(_class& c, reference cl) {
+	void mark_class_loader_as_initiating_for_class(_class& c, object* cl) {
 		for(auto& c_and_cl : *this) {
 			if(&c_and_cl._class == &c) {
 				c_and_cl.record_as_initiating(cl);
@@ -136,7 +89,7 @@ public:
 
 	template<basic_range Name>
 	optional<_class&> try_find_class_which_loading_was_initiated_by(
-		Name&& name, reference class_loader
+		Name&& name, object* class_loader
 	) {
 		mutex_->lock();
 		on_scope_exit unlock_classes_mutex { [&] {
@@ -172,39 +125,129 @@ public:
 	}
 
 	template<basic_range Name>
-	_class& load_non_array_class_by_bootstrap_class_loader(
+	expected<_class&, reference>
+	try_load_non_array_class_by_bootstrap_class_loader(
 		Name&& name
 	);
 
 	template<basic_range Name>
-	_class& load_non_array_class_by_user_class_loader(
-		Name&& name, reference l_ref
+	_class& load_non_array_class_by_bootstrap_class_loader(Name&& name) {
+		expected<_class&, reference> result
+			= try_load_non_array_class_by_bootstrap_class_loader(
+				forward<Name>(name)
+			);
+		if(result.is_unexpected()) {
+			print::err(
+				"couldn't load non-array class ", name,
+				" by bootstrap class-loader\n"
+			);
+			posix::abort();
+		}
+		return result.get_expected();
+	}
+
+	template<basic_range Name>
+	expected<_class&, reference>
+	try_load_non_array_class_by_user_class_loader(
+		Name&& name, object* l_ref
+	);
+
+	template<basic_range Name>
+	expected<_class&, reference> try_load_array_class(
+		Name&& name, object* l_ref
 	);
 
 	template<basic_range Name>
 	_class& load_array_class(
-		Name&& name, reference l_ref
-	);
+		Name&& name, object* l_ref
+	) {
+		expected<_class&, reference> r = try_load_array_class(
+			forward<Name>(name), move(l_ref)
+		);
+		if(r.is_unexpected()) {
+			print::err("couldn't load array class ", name, "\n");
+			posix::abort();
+		}
+		return r.get_expected();
+	}
 
 	template<basic_range Name>
-	_class& define_class(
+	expected<_class&, reference> try_define_class(
 		Name&& n,
 		posix::memory_for_range_of<uint8> bytes,
-		reference defining_loader // L
+		object* defining_loader // L
 	);
 
 	template<basic_range Name>
-	_class& define_array_class(Name&& name, reference defining_loader);
+	_class& define_array_class(Name&& name, object* defining_loader);
 
 	template<basic_range Name>
 	_class& define_primitive_class(Name&& name, char ch);
+
+	template<basic_range Name>
+	expected<_class&, reference>
+	try_load_class_by_bootstrap_class_loader(Name&& name) {
+		return range{name}.starts_with('[') ?
+			try_load_array_class(forward<Name>(name), nullptr)
+			:
+			try_load_non_array_class_by_bootstrap_class_loader(
+				forward<Name>(name)
+			);
+	}
+
+	template<basic_range Name>
+	_class& load_class_by_bootstrap_class_loader(Name&& name) {
+		expected<_class&, reference> result
+			= try_load_class_by_bootstrap_class_loader(forward<Name>(name));
+		if(result.is_unexpected()) {
+			print::err(
+				"couldn't load class ", name,
+				" by bootstrap class-loader\n"
+			);
+			posix::abort();
+		}
+		return result.get_expected();
+	}
+
+	template<basic_range Name>
+	expected<_class&, reference>
+	try_load_non_array_class(Name&& name, object* l_ref) {
+		return l_ref == nullptr ?
+			try_load_non_array_class_by_bootstrap_class_loader(
+				forward<Name>(name)
+			)
+			:
+			try_load_non_array_class_by_user_class_loader(
+				forward<Name>(name), move(l_ref)
+			);
+	}
+
+	template<basic_range Name>
+	expected<_class&, reference>
+	try_load_class(Name&& name, object* class_loader) {
+		if(range{name}.starts_with('[')) {
+			return try_load_array_class(
+				forward<Name>(name), class_loader
+			);
+		}
+
+		return class_loader == nullptr ?
+			try_load_non_array_class_by_bootstrap_class_loader(
+				forward<Name>(name)
+			)
+			:
+			try_load_non_array_class_by_user_class_loader(
+				forward<Name>(name), class_loader
+			);
+	}
 
 } classes{ posix::allocate_memory_for<class_and_initiating_loaders>(65536) };
 
 /* The process of loading and creating the nonarray class or interface C denoted
 by N using the bootstrap class loader is as follows. */
 template<basic_range Name>
-_class& classes::load_non_array_class_by_bootstrap_class_loader(
+expected<_class&, reference>
+classes::try_load_non_array_class_by_bootstrap_class_loader(
 	Name&& name
 ) {
 	mutex_->lock();
@@ -218,7 +261,7 @@ _class& classes::load_non_array_class_by_bootstrap_class_loader(
 	   loading or creation is necessary. */
 	optional<_class&> loaded_class
 		= try_find_class_which_loading_was_initiated_by(
-			name, reference{}
+			name, nullptr
 		);
 	
 	if(loaded_class.has_value()) {
@@ -254,25 +297,31 @@ _class& classes::load_non_array_class_by_bootstrap_class_loader(
 		});
 
 	if(!possible_data.has_value()) {
-		print::err(
-			"couldn't find class file ", name,
-			" by bootstrap class-loader\n"
+		expected<reference, reference> possible_cnfe
+			= try_create_class_not_found_exception();
+		return move(
+			possible_cnfe.is_unexpected() ?
+			possible_cnfe.get_unexpected() :
+			possible_cnfe.get_expected()
 		);
-		posix::abort();
 	}
 
 	auto data = move(possible_data.get());
 
-	return define_class(forward<Name>(name), move(data), reference{});
+	return try_define_class(forward<Name>(name), move(data), nullptr);
 }
 
 /* The process of loading and creating the nonarray class or interface C denoted
    by N using a user-defined class loader L is as follows. */
 template<basic_range Name>
-_class& classes::load_non_array_class_by_user_class_loader(
-	Name&& name, reference l_ref
+expected<_class&, reference>
+classes::try_load_non_array_class_by_user_class_loader(
+	Name&& name, object* l_ref
 ) {
-	_class& l_c = l_ref._class();
+	if(l_ref == nullptr) {
+		posix::abort();
+	}
+	_class& l_c = l_ref->_class();
 
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -303,15 +352,18 @@ _class& classes::load_non_array_class_by_user_class_loader(
 
 	/* Otherwise, the Java Virtual Machine invokes the loadClass method of class
 	   ClassLoader on L, passing the name N of a class or interface. */
-	reference name_ref = create_string_from_utf8(name);
+	expected<reference, reference> possible_name_ref
+		= try_create_string_from_utf8(name);
+	if(possible_name_ref.is_unexpected()) {
+		return unexpected{ move(possible_name_ref.get_unexpected()) };
+	}
+	reference name_ref = move(possible_name_ref.get_expected());
 	method& load_method = l_c[class_loader_load_class_method_index];
-	execute(load_method, l_ref, name_ref);
-	if(!thrown.is_null()) {
-		print::err(
-			"exception was thrown while "
-			"loading class by user class-loader\n"
-		);
-		posix::abort();
+
+	optional<reference> possible_exception
+		= try_execute(load_method, reference{*l_ref}, name_ref);
+	if(possible_exception.has_value()) {
+		return move(possible_exception.get());
 	}
 
 	/* If the invocation of loadClass on L has a result, then: */
@@ -326,13 +378,19 @@ _class& classes::load_non_array_class_by_user_class_loader(
 	_class& c = class_from_class_instance(resulting_class_ref);
 
 	if(!c.name().has_equal_size_and_elements(name)) {
+		print::err(
+			"loaded class name is ", c.name(),
+			", but should be ", name, "\n"
+		);
 		posix::abort(); // TODO
 	}
 
 	/* Otherwise, the result is the created class or interface C. The Java
 	   Virtual Machine records that L is an initiating loader of C (§5.3.4).
 	   The process of loading and creating C succeeds. */
-	mark_class_loader_as_initiating_for_class(c, l_ref);
+	if(c.defining_loader().object_ptr() != l_ref) {
+		mark_class_loader_as_initiating_for_class(c, l_ref);
+	}
 	return c;
 }
 
@@ -340,8 +398,8 @@ _class& classes::load_non_array_class_by_user_class_loader(
    N in association with the class loader L. L may be either the bootstrap class
    loader or a user-defined class loader. */
 template<basic_range Name>
-_class& classes::load_array_class(
-	Name&& name, reference l_ref
+expected<_class&, reference> classes::try_load_array_class(
+	Name&& name, object* l_ref
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -355,9 +413,14 @@ _class& classes::load_array_class(
 	
 	optional<_class&> loaded_class
 		= try_find_class_which_loading_was_initiated_by(name, l_ref);
-	
+
 	if(loaded_class.has_value()) {
 		return loaded_class.get();
+	}
+
+	if(info) {
+		tabs();
+		print::out("loading array class ", name, "\n");
 	}
 
 	/* Otherwise, the following steps are performed to create C: */
@@ -372,22 +435,27 @@ _class& classes::load_array_class(
 
 	bool component_is_reference = component_is_array || component_is_class;
 
-	_class& component_class = [&]() -> _class& {
+	expected<_class&, reference> possible_component_class = [&]()
+	-> expected<_class&, reference> {
 		if(component_is_reference) {
 			auto iter = name.iterator() + 1;
-			nuint size = name.size();
+			nuint size = name.size() - 1;
 
 			if(component_is_class) {
+				++iter; // skip L
+				--size;
+
 				--size; // skip ';'
 			}
 
-			_class& component_class = iterator_and_sentinel {
-				iter, iter + size
-			}.as_range().view_copied_elements_on_stack([&](auto cn) -> _class& {
-				return load_class(cn, l_ref);
-			});
+			expected<_class&, reference> possible_component_class
+				= iterator_and_sentinel {
+					iter, iter + size
+				}.as_range().view_copied_elements_on_stack([&](auto cn) {
+					return try_load_class(cn, l_ref);
+				});
 
-			return component_class;
+			return possible_component_class;
 		}
 
 		switch (component_type) {
@@ -403,18 +471,41 @@ _class& classes::load_array_class(
 		}
 	}();
 
+	if(possible_component_class.is_unexpected()) {
+		return { move(possible_component_class.get_unexpected()) };
+	}
+
+	_class& component_class = possible_component_class.get_expected();
+
 	/* 2. The Java Virtual Machine creates a new array class with the indicated
 	      component type and number of dimensions. */
 	/*    If the component type is a reference type, the Java Virtual Machine
 	      marks C to have the defining loader of the component type as its
 	      defining loader. Otherwise, the Java Virtual Machine marks C to have
 	      the bootstrap class loader as its defining loader.*/
-	_class& c = define_array_class(name, component_class.defining_loader());
+
+	object* defining_class_loader
+		= component_class.defining_loader().object_ptr();
+
+	optional<class_and_initiating_loaders&> c_and_l =
+		try_find_first_satisfying([&](class_and_initiating_loaders& c_and_il) {
+			_class& c = c_and_il._class;
+			return
+				c.name().has_equal_size_and_elements(name) &&
+				c.defining_loader().object_ptr() == defining_class_loader;
+		}
+	);
+
+	_class& c = c_and_l.has_value() ?
+		c_and_l.get()._class :
+		define_array_class(name, defining_class_loader);
 
 	/*    In any case, the Java Virtual Machine then records that L is an
 	      initiating loader for C (§5.3.4). */
 	
-	mark_class_loader_as_initiating_for_class(c, l_ref);
+	if(component_class.defining_loader().object_ptr() != l_ref) {
+		mark_class_loader_as_initiating_for_class(c, l_ref);
+	}
 
 	/*    If the component type is a reference type, the accessibility of the
 	      array class is determined by the accessibility of its component type
@@ -429,10 +520,10 @@ _class& classes::load_array_class(
    denoted by N from a purported representation in class file format using the
    class loader L. */
 template<basic_range Name>
-_class& classes::define_class(
+expected<_class&, reference> classes::try_define_class(
 	Name&& n,
 	posix::memory_for_range_of<uint8> bytes,
-	reference defining_loader // L
+	object* defining_loader // L
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -530,11 +621,15 @@ _class& classes::define_class(
 		class_file::constant::utf8 super_class_name {
 			const_pool.utf8_constant(super_class_constant.name_index)
 		};
-		_class& super_class = load_non_array_class(
-			super_class_name, defining_loader
-		);
+		expected<_class&, reference> possible_super_class
+			= try_load_non_array_class(
+				super_class_name, defining_loader
+			);
+		if(possible_super_class.is_unexpected()) {
+			return { possible_super_class.get_unexpected() };
+		}
 		// TODO access control
-		super = super_class;
+		super = possible_super_class.get_expected();
 	}
 
 	/* 4. If C has any direct superinterfaces, the symbolic references from C to
@@ -544,20 +639,36 @@ _class& classes::define_class(
 		interfaces_reader.read_count()
 	);
 
+	reference thrown;
+
 	auto fields_reader =
 		interfaces_reader.read_and_get_fields_reader(
-			[&](class_file::constant::interface_index interface_index) {
+			[&](class_file::constant::interface_index interface_index)
+			{
+				if(!thrown.is_null()) {
+					return;
+				}
+
 				class_file::constant::_class c =
 					const_pool.class_constant(interface_index);
 				class_file::constant::utf8 interface_name =
 					const_pool.utf8_constant(c.name_index);
-				_class& interface = load_non_array_class(
-					interface_name, defining_loader
-				);
+				expected<_class&, reference> possible_interface
+					= try_load_non_array_class(
+						interface_name, defining_loader
+					);
+				if(possible_interface.is_unexpected()) {
+					thrown = possible_interface.get_unexpected();
+					return;
+				}
 				// TODO access control
-				interfaces.emplace_back(&interface);
+				interfaces.emplace_back(&possible_interface.get_expected());
 			}
 		);
+	
+	if(!thrown.is_null()) {
+		return { thrown };
+	}
 	
 	uint16 fields_count = fields_reader.read_count();
 
@@ -832,13 +943,13 @@ _class& classes::define_class(
 		methods.move_storage_range(),
 		is_array_class{ false },
 		is_primitive_class{ false },
-		move(defining_loader)
+		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
 	);
 }
 
 template<basic_range Name>
 _class& classes::define_array_class(
-	Name&& name, reference defining_loader
+	Name&& name, object* defining_loader
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -882,7 +993,7 @@ _class& classes::define_array_class(
 		posix::memory_for_range_of<method>{},
 		is_array_class{ true },
 		is_primitive_class{ false },
-		move(defining_loader)
+		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
 	);
 }
 

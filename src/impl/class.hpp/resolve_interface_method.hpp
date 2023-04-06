@@ -5,13 +5,21 @@
 
 #include <loop_action.hpp>
 
-method& _class::resolve_interface_method(
+expected<method&, reference> _class::try_resolve_interface_method(
 	class_file::constant::interface_method_ref ref
 ) {
 	/* "To resolve an unresolved symbolic reference from D to an interface
 	    method in an interface C, the symbolic reference to C given by the
 	    interface method reference is first resolved (§5.4.3.1)." */
-	_class& c = get_resolved_class(ref.interface_index);
+	expected<_class&, reference> possible_c
+		= try_get_resolved_class(ref.interface_index);
+	
+	if(possible_c.is_unexpected()) {
+		return { possible_c.get_unexpected() };
+	}
+
+	_class& c = possible_c.get_expected();
+
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
 	auto descriptor = utf8_constant(nat.descriptor_index);

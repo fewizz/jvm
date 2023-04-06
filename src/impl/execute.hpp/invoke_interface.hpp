@@ -6,7 +6,7 @@
 
 #include <print/print.hpp>
 
-inline void invoke_interface(
+[[nodiscard]] inline optional<reference> try_invoke_interface(
 	class_file::constant::interface_method_ref_index ref_index, _class& c
 ) {
 
@@ -26,7 +26,14 @@ inline void invoke_interface(
 		print::out("invoke_interface ", class_name, ".", name, desc, "\n");
 	}
 
-	method& resolved_method = c.resolve_interface_method(method_ref_info);
+	expected<method&, reference> possible_resolved_method
+		= c.try_resolve_interface_method(method_ref_info);
+	
+	if(possible_resolved_method.is_unexpected()) {
+		return move(possible_resolved_method.get_unexpected());
+	}
+
+	method& resolved_method = possible_resolved_method.get_expected();
 
 	uint8 args_count = resolved_method.parameters_count();
 	++args_count; // this
@@ -45,5 +52,5 @@ inline void invoke_interface(
 		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
 	}};
 
-	execute(m);
+	return try_execute(m);
 }

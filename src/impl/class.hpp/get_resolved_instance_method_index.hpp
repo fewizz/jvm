@@ -5,7 +5,7 @@
 
 #include <loop_action.hpp>
 
-inline method& _class::get_resolved_method(
+inline expected<method&, reference> _class::try_get_resolved_method(
 	class_file::constant::method_ref_index ref_index
 ) {
 	mutex_->lock();
@@ -23,7 +23,13 @@ inline method& _class::get_resolved_method(
 	namespace cc = class_file::constant;
 
 	cc::method_ref method_ref = method_ref_constant(ref_index);
-	method& m = resolve_method(method_ref);
+	expected<method&, reference> possible_m = try_resolve_method(method_ref);
+	if(possible_m.is_unexpected()) {
+		return { possible_m.get_unexpected() };
+	}
+
+	method& m = possible_m.get_expected();
+
 	trampoline(ref_index) = m;
 	return m;
 }

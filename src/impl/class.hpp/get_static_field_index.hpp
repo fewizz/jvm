@@ -3,7 +3,8 @@
 
 #include <class_file/constant.hpp>
 
-inline class_and_declared_static_field_index _class::get_static_field_index(
+inline expected<class_and_declared_static_field_index, reference>
+_class::try_get_static_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
 	mutex_->lock();
@@ -27,8 +28,19 @@ inline class_and_declared_static_field_index _class::get_static_field_index(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_resolved_class(field_ref.class_index);
-	c.initialise_if_need();
+	expected<_class&, reference> possible_c
+		= try_get_resolved_class(field_ref.class_index);
+	
+	if(possible_c.is_unexpected()) {
+		return { possible_c.get_unexpected() };
+	}
+
+	_class& c = possible_c.get_expected();
+
+	optional<reference> possible_throwable = c.try_initialise_if_need();
+	if(possible_throwable.has_value()) {
+		return move(possible_throwable.get());
+	}
 
 	declared_static_field_index index =
 		c.declared_static_fields().try_find_index_of(name, desc)

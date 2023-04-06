@@ -5,8 +5,8 @@
 
 #include <tuple.hpp>
 
-inline instance_field_index_and_stack_size
-_class::get_resolved_instance_field_index(
+inline expected<instance_field_index_and_stack_size, reference>
+_class::try_get_resolved_instance_field_index(
 	class_file::constant::field_ref_index ref_index
 ) {
 	mutex_->lock();
@@ -30,7 +30,14 @@ _class::get_resolved_instance_field_index(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_resolved_class(field_ref.class_index);
+	expected<_class&, reference> possible_c
+		= try_get_resolved_class(field_ref.class_index);
+	
+	if(possible_c.is_unexpected()) {
+		return { possible_c.get_unexpected() };
+	}
+
+	_class& c = possible_c.get_expected();
 
 	instance_field_index field_index =
 		c.instance_fields().try_find_index_of(name, desc)

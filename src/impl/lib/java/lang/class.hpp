@@ -4,6 +4,7 @@
 #include "decl/object.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/string.hpp"
 
 #include <c_string.hpp>
@@ -34,9 +35,14 @@ static inline void init_java_lang_class() {
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> object* {
 			_class& c = class_from_class_instance(*ths);
-			return &
-				create_string_from_utf8(c.name())
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_string
+				= try_create_string_from_utf8(c.name());
+			if(possible_string.is_unexpected()) {
+				thrown_in_native = move(possible_string.get_unexpected());
+				return nullptr;
+			}
+			reference string = move(possible_string.get_expected());
+			return & string.unsafe_release_without_destroing();
 		}
 	);
 }

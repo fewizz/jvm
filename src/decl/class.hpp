@@ -129,7 +129,7 @@ public:
 	_class& get_array_class();
 	_class& get_component_class();
 
-	void initialise_if_need();
+	[[nodiscard]] optional<reference> try_initialise_if_need();
 
 	const ::layout& instance_layout() const { return instance_layout_; }
 	const ::layout& declared_static_layout() const {
@@ -252,44 +252,45 @@ public:
 	void array_class(_class& c)     { array_class_     = c; }
 	void component_class(_class& c) { component_class_ = c; }
 
-	reference get_string(
+	[[nodiscard]] expected<reference, reference> try_get_string(
 		class_file::constant::string_index string_index
 	);
 
-	_class& get_resolved_class(
+	[[nodiscard]] expected<_class&, reference> try_get_resolved_class(
 		class_file::constant::class_index string_index
 	);
 
-	reference get_resolved_method_handle(
+	[[nodiscard]] expected<reference, reference> try_get_resolved_method_handle(
 		class_file::constant::method_handle_index index
 	);
 
-	reference get_resolved_call_site(
+	[[nodiscard]] expected<reference, reference> try_get_resolved_call_site(
 		class_file::constant::invoke_dynamic_index index
 	);
 
-	method& get_resolved_method(
+	[[nodiscard]] expected<method&, reference> try_get_resolved_method(
 		class_file::constant::method_ref_index ref_index
 	);
 
-	method& resolve_method(
+	[[nodiscard]] expected<method&, reference> try_resolve_method(
 		class_file::constant::method_ref
 	);
 
-	method& resolve_interface_method(
+	[[nodiscard]] expected<method&, reference> try_resolve_interface_method(
 		class_file::constant::interface_method_ref ref
 	);
 
-	instance_field_index_and_stack_size
-	get_resolved_instance_field_index(
+	[[nodiscard]] expected<instance_field_index_and_stack_size, reference>
+	try_get_resolved_instance_field_index(
 		class_file::constant::field_ref_index ref_index
 	);
 
-	method& get_static_method(
+	[[nodiscard]] expected<method&, reference> try_get_static_method(
 		class_file::constant::method_ref_index ref_index
 	);
 
-	class_and_declared_static_field_index get_static_field_index(
+	[[nodiscard]] expected<class_and_declared_static_field_index, reference>
+	try_get_static_field_index(
 		class_file::constant::field_ref_index ref_index
 	);
 

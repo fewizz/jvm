@@ -13,6 +13,7 @@
 #include "./java/lang/array_store_exception.hpp"
 #include "./java/lang/class_cast_exception.hpp"
 #include "./java/lang/class_loader.hpp"
+#include "./java/lang/class_not_found_exception.hpp"
 #include "./java/lang/class.hpp"
 #include "./java/lang/cloneable.hpp"
 #include "./java/lang/double.hpp"
@@ -55,6 +56,7 @@ static inline void init_lib() {
 	init_java_lang_array_store_exception();
 	init_java_lang_class_cast_exception();
 	init_java_lang_class_loader();
+	init_java_lang_class_not_found_exception();
 	init_java_lang_class();
 	init_java_lang_cloneable();
 	init_java_lang_double();

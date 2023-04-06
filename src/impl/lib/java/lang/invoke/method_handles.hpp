@@ -5,6 +5,8 @@
 #include "decl/execution/latest_context.hpp"
 #include "decl/execute.hpp"
 #include "decl/object.hpp"
+#include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/invoke/method_handles_lookup.hpp"
 
 static void init_java_lang_invoke_method_handles() {
@@ -16,11 +18,17 @@ static void init_java_lang_invoke_method_handles() {
 		c_string{"lookup"},
 		c_string{"()Ljava/lang/invoke/MethodHandles$Lookup;"}
 	).native_function(
-		(void*)+[]() -> object* {
+		(void*)+[](native_environment*) -> object* {
 			execution_context& prev_exe_context
 				= latest_execution_context->previous.get();
 
-			reference lookup = create_object(method_handles_lookup_class.get());
+			expected<reference, reference> possible_lookup
+				= try_create_object(method_handles_lookup_class.get());
+			if(possible_lookup.is_unexpected()) {
+				thrown_in_native = move(possible_lookup.get_unexpected());
+				return nullptr;
+			}
+			reference lookup = move(possible_lookup.get_expected());
 			stack.emplace_back(lookup); // this
 
 			_class& caller_class = prev_exe_context.method._class();
@@ -30,7 +38,11 @@ static void init_java_lang_invoke_method_handles() {
 				= method_handles_lookup_class->declared_methods()
 				.find(c_string{"<init>"}, c_string{"(Ljava/lang/Class;)V"});
 			
-			execute(constructor);
+			optional<reference> possible_throwable = try_execute(constructor);
+			if(possible_throwable.has_value()) {
+				thrown_in_native = move(possible_throwable.get());
+				return nullptr;
+			}
 
 			return & lookup.unsafe_release_without_destroing();
 		}

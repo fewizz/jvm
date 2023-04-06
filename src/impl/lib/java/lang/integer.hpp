@@ -1,6 +1,7 @@
 #include "decl/classes.hpp"
 #include "decl/primitives.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/string.hpp"
 
 #include <number.hpp>
@@ -52,9 +53,18 @@ static void init_java_lang_integer() {
 				}
 			);
 
-			return &
-				create_string_from_utf8(span{ digits_array, digits_count })
-				.unsafe_release_without_destroing();
+			span string_data{ digits_array, digits_count };
+			expected<reference, reference> possible_string
+				= try_create_string_from_utf8(string_data);
+
+			if(possible_string.is_unexpected()) {
+				thrown_in_native = possible_string.get_unexpected();
+				return nullptr;
+			}
+
+			reference string = move(possible_string.get_expected());
+
+			return & string.unsafe_release_without_destroing();
 		}
 	);
 

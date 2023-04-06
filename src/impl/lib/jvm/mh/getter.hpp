@@ -6,7 +6,6 @@
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 #include "decl/execute.hpp"
-#include "decl/thrown.hpp"
 
 static void init_jvm_mh_getter() {
 	mh_getter_class = classes.load_class_by_bootstrap_class_loader(
@@ -24,7 +23,7 @@ static void init_jvm_mh_getter() {
 		(void*)+[](
 			reference mh,
 			[[maybe_unused]] nuint args_beginning
-		) -> void {
+		) -> optional<reference> {
 			instance_field_index index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
@@ -40,7 +39,13 @@ static void init_jvm_mh_getter() {
 				obj_ref._class().is_sub_of(refc);
 			
 			if(!valid) {
-				thrown = create_wrong_method_type_exception();
+				expected<reference, reference> possible_wmte
+					= try_create_wrong_method_type_exception();
+				return move(
+					possible_wmte.is_unexpected() ?
+					possible_wmte.get_unexpected() :
+					possible_wmte.get_expected()
+				);
 			}
 
 			obj_ref->view(
@@ -49,6 +54,8 @@ static void init_jvm_mh_getter() {
 					stack.emplace_back(field_value);
 				}
 			);
+
+			return {};
 		}
 	);
 }

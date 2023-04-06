@@ -10,7 +10,6 @@
 #include "lib/java/lang/index_out_of_bounds_exception.hpp"
 
 #include "./ldc.hpp"
-#include "./thrown.hpp"
 #include "./invoke_dynamic.hpp"
 #include "./invoke_interface.hpp"
 #include "./invoke_special.hpp"
@@ -36,12 +35,13 @@ struct execute_instruction {
 
 	const nuint locals_begin;
 	const nuint stack_begin;
+	reference& thrown;
 
-	loop_action handle_thrown() {
-		if(thrown.is_null()) {
-			return loop_action::next;
+	[[nodiscard]] loop_action handle_thrown(reference thrown) {
+		if(info) {
+			tabs();
+			print::out("handling ", thrown._class().name(), "\n");
 		}
-
 		_class& thrown_class = thrown->_class();
 
 		auto& exception_handlers = m.exception_handlers();
@@ -55,7 +55,17 @@ struct execute_instruction {
 				continue;
 			}
 
-			_class& catch_class = c.get_resolved_class(handler.catch_type);
+			expected<_class&, reference> possible_catch_class
+				= c.try_get_resolved_class(handler.catch_type);
+			
+			if(possible_catch_class.is_unexpected()) {
+				print::err(
+					"couldn't load catch class while handling throwable\n"
+				);
+				posix::abort();
+			}
+
+			_class& catch_class = possible_catch_class.get_expected();
 
 			bool same = &thrown_class == &catch_class;
 			bool subclass = thrown_class.is_sub_of(catch_class);
@@ -70,7 +80,12 @@ struct execute_instruction {
 			stack.emplace_back(move(thrown));
 			return loop_action::next;
 		}
+		if(info) {
+			tabs();
+			print::out("didn't find any exception handlers\n");
+		}
 		stack.pop_back_until(locals_begin);
+		this->thrown = move(thrown);
 		return loop_action::stop;
 	}
 
@@ -79,13 +94,23 @@ struct execute_instruction {
 		int32 element_index = stack.pop_back<int32>();
 		reference array_ref = stack.pop_back<reference>();
 		if(array_ref.is_null()) {
-			thrown = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
-			thrown = create_index_of_of_bounds_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_ioobe
+				= try_create_index_of_of_bounds_exception();
+			return handle_thrown(move(
+				possible_ioobe.is_unexpected() ?
+				possible_ioobe.get_unexpected() :
+				possible_ioobe.get_expected()
+			));
 		}
 		E* ptr = array_data<E>(array_ref);
 		handler(ptr[element_index]);
@@ -171,13 +196,17 @@ struct execute_instruction {
 		}
 		stack.emplace_back(int32{ x.value });
 	}
-	void operator () (
+	loop_action operator () (
 		same_as_any<
 			class_file::attribute::code::instruction::ldc,
 			class_file::attribute::code::instruction::ldc_w
 		> auto x
 	) {
-		::ldc(x.index, c);
+		optional<reference> possible_throwable = ::try_ldc(x.index, c);
+		if(possible_throwable.has_value()) {
+			return handle_thrown(possible_throwable.get());
+		}
+		return loop_action::next;
 	}
 	void operator () (class_file::attribute::code::instruction::ldc_2_w x) {
 		::ldc_2_w(x.index, c);
@@ -1190,7 +1219,7 @@ struct execute_instruction {
 		stack.pop_back_until(locals_begin);
 		return loop_action::stop;
 	}
-	void operator () (instr::get_static x) {
+	loop_action operator () (instr::get_static x) {
 		namespace cc = class_file::constant;
 		if(info) {
 			tabs(); print::out("get_static ");
@@ -1203,8 +1232,19 @@ struct execute_instruction {
 			cc::utf8 name = c.utf8_constant(nat.name_index);
 			print::out(class_name, ".", name, " @", stack.size(), "\n");
 		}
+
+		expected<class_and_declared_static_field_index, reference>
+		possible_class_and_field_index
+			= c.try_get_static_field_index(x.index);
+		
+		if(possible_class_and_field_index.is_unexpected()) {
+			return handle_thrown(
+				move(possible_class_and_field_index.get_unexpected())
+			);
+		}
+
 		class_and_declared_static_field_index class_and_field_index
-			= c.get_static_field_index(x.index);
+			= possible_class_and_field_index.get_expected();
 		
 		class_and_field_index._class.view(
 			class_and_field_index.field_index,
@@ -1212,8 +1252,9 @@ struct execute_instruction {
 				stack.emplace_back(field_value);
 			}
 		);
+		return loop_action::next;
 	}
-	void operator () (instr::put_static x) {
+	loop_action operator () (instr::put_static x) {
 		namespace cc = class_file::constant;
 		if(info) {
 			tabs(); print::out("put_static ");
@@ -1224,14 +1265,26 @@ struct execute_instruction {
 			cc::utf8 name = c.utf8_constant(nat.name_index);
 			print::out(name, "\n");
 		}
+		expected<class_and_declared_static_field_index, reference>
+		possible_class_and_field_index
+			= c.try_get_static_field_index(x.index);
+		
+		if(possible_class_and_field_index.is_unexpected()) {
+			return handle_thrown(
+				move(possible_class_and_field_index.get_unexpected())
+			);
+		}
+
 		class_and_declared_static_field_index class_and_field_index
-			= c.get_static_field_index(x.index);
+			= possible_class_and_field_index.get_expected();
+
 		class_and_field_index._class.view(
 			class_and_field_index.field_index,
 			[]<typename FieldType>(FieldType& field_value) {
 				field_value = stack.pop_back<FieldType>();
 			}
 		);
+		return loop_action::next;
 	}
 	loop_action operator () (instr::get_field x) {
 		namespace cc = class_file::constant;
@@ -1249,12 +1302,28 @@ struct execute_instruction {
 
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			thrown = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
+		}
+
+		expected<instance_field_index_and_stack_size, reference>
+		possible_field_index_and_stack_size
+			= c.try_get_resolved_instance_field_index(x.index);
+
+		if(possible_field_index_and_stack_size.is_unexpected()) {
+			return handle_thrown(
+				move(possible_field_index_and_stack_size.get_unexpected())
+			);
 		}
 
 		instance_field_index_and_stack_size field_index_and_stack_size
-			= c.get_resolved_instance_field_index(x.index);
+			= possible_field_index_and_stack_size.get_expected();
+
 		ref->view(
 			field_index_and_stack_size.field_index,
 			[&](auto& field_value) {
@@ -1277,15 +1346,30 @@ struct execute_instruction {
 			print::out(class_name, ".", name, "\n");
 		}
 
+		expected<instance_field_index_and_stack_size, reference>
+		possible_field_index_and_stack_size
+			= c.try_get_resolved_instance_field_index(x.index);
+
+		if(possible_field_index_and_stack_size.is_unexpected()) {
+			return handle_thrown(
+				move(possible_field_index_and_stack_size.get_unexpected())
+			);
+		}
+
 		instance_field_index_and_stack_size field_index_and_stack_size
-			= c.get_resolved_instance_field_index(x.index);
-		
+			= possible_field_index_and_stack_size.get_expected();
+
 		reference ref = move(stack.get<reference>(
 			stack.size() - 1 - field_index_and_stack_size.stack_size
 		));
 		if(ref.is_null()) {
-			thrown = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
 		ref->view(
 			field_index_and_stack_size.field_index,
@@ -1297,28 +1381,53 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	loop_action operator () (instr::invoke_virtual x) {
-		::invoke_virtual(x.index, c);
-		return handle_thrown();
+		optional<reference> possible_throwable
+			= ::try_invoke_virtual(x.index, c);
+		
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
 	loop_action operator () (
 		class_file::attribute::code::instruction::invoke_special x
 	) {
-		::invoke_special(x.index, c);
-		return handle_thrown();
+		optional<reference> possible_throwable
+			= ::try_invoke_special(x.index, c);
+
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
 	loop_action operator () (instr::invoke_static x) {
-		::invoke_static(x.index, c);
-		return handle_thrown();
+		optional<reference> possible_throwable
+			= ::try_invoke_static(x.index, c);
+
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
 	loop_action operator () (instr::invoke_interface x) {
-		::invoke_interface(x.index, c);
-		return handle_thrown();
+		optional<reference> possible_throwable
+			= ::try_invoke_interface(x.index, c);
+
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
 	loop_action operator () (instr::invoke_dynamic x) {
-		::invoke_dynamic(x.index, c);
-		return handle_thrown();
+		optional<reference> possible_throwable
+			= ::try_invoke_dynamic(x.index, c);
+
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
-	void operator () (instr::_new x) {
+	loop_action operator () (instr::_new x) {
 		if(info) {
 			tabs(); print::out("new ");
 			class_file::constant::utf8 name = c.utf8_constant(
@@ -1326,14 +1435,39 @@ struct execute_instruction {
 			);
 			print::out(name, " @", stack.size(), "\n");
 		}
-		_class& c0 = c.get_resolved_class(x.index);
-		stack.emplace_back(create_object(c0));
+		expected<_class&, reference> possible_c0
+			= c.try_get_resolved_class(x.index);
+		
+		if(possible_c0.is_unexpected()) {
+			return handle_thrown(move(possible_c0.get_unexpected()));
+		}
+
+		_class& c0 = possible_c0.get_expected();
+		expected<reference, reference> possible_ref = try_create_object(c0);
+		if(possible_ref.is_unexpected()) {
+			return handle_thrown(move(possible_ref.get_unexpected()));
+		}
+		reference ref = move(possible_ref.get_expected());
+		stack.emplace_back(move(ref));
+		return loop_action::next;
 	}
-	void operator () (instr::new_array x) {
-		::new_array(/* c, */ x.type);
+	loop_action operator () (instr::new_array x) {
+		optional<reference> possible_throwable
+			= ::try_new_array(/* c, */ x.type);
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
-	void operator () (instr::a_new_array x) {
-		_class& element_class = c.get_resolved_class(x.index);
+	loop_action operator () (instr::a_new_array x) {
+		expected<_class&, reference> possible_element_class
+			= c.try_get_resolved_class(x.index);
+		
+		if(possible_element_class.is_unexpected()) {
+			return handle_thrown(move(possible_element_class.get_unexpected()));
+		}
+
+		_class& element_class = possible_element_class.get_expected();
 
 		if(info) {
 			tabs(); print::out("a_new_array ");
@@ -1342,15 +1476,29 @@ struct execute_instruction {
 		}
 
 		int32 count = stack.pop_back<int32>();
-		auto ref = create_array_of(element_class, count);
+		expected<reference, reference> possible_ref
+			= try_create_array_of(element_class, count);
+
+		if(possible_ref.is_unexpected()) {
+			return handle_thrown(move(possible_ref.get_unexpected()));
+		}
+
+		reference ref = move(possible_ref.get_expected());
+
 		stack.emplace_back(move(ref));
+		return loop_action::next;
 	}
 	loop_action operator () (instr::array_length) {
 		if(info) { tabs(); print::out("array_length\n"); }
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			thrown = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
 		stack.emplace_back(int32{ ::array_length(ref) });
 		return loop_action::next;
@@ -1360,23 +1508,41 @@ struct execute_instruction {
 
 		reference ref = move(stack.pop_back<reference>());
 		if(ref.is_null()) {
-			ref = create_null_pointer_exception();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
-		thrown = move(ref);
-		return handle_thrown();
+		return handle_thrown(move(ref));
 	}
 	loop_action operator () (instr::check_cast x) {
-		::check_cast(c, x.index);
-		return handle_thrown();
+		optional<reference> possible_throwable = ::try_check_cast(c, x.index);
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
-	void operator () (instr::instance_of x) {
-		::instance_of(c, x.index);
+	loop_action operator () (instr::instance_of x) {
+		optional<reference> possible_throwable
+			= ::try_check_instance_of(c, x.index);
+		if(possible_throwable.has_value()) {
+			return handle_thrown(move(possible_throwable.get()));
+		}
+		return loop_action::next;
 	}
 	loop_action operator () (instr::monitor_enter) {
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			ref = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
 		ref->lock();
 		return loop_action::next;
@@ -1384,8 +1550,13 @@ struct execute_instruction {
 	loop_action operator () (instr::monitor_exit) {
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			ref = create_null_pointer_exception();
-			return handle_thrown();
+			expected<reference, reference> possible_npe
+				= try_create_null_pointer_exception();
+			return handle_thrown(move(
+				possible_npe.is_unexpected() ?
+				possible_npe.get_unexpected() :
+				possible_npe.get_expected()
+			));
 		}
 		ref->unlock();
 		return loop_action::next;

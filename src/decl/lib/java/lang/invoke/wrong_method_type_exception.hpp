@@ -8,12 +8,23 @@
 
 static optional<method&> wrong_method_type_exception_constructor;
 
-inline reference create_wrong_method_type_exception() {
-	reference ref = create_object(
+inline expected<reference, reference> try_create_wrong_method_type_exception() {
+	expected<reference, reference> possible_ref = try_create_object(
 		wrong_method_type_exception_constructor->_class()
 	);
+
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+
+	reference ref = move(possible_ref.get_expected());
 	
-	execute(wrong_method_type_exception_constructor.get(), ref);
+	optional<reference> possible_throwable
+		= try_execute(wrong_method_type_exception_constructor.get(), ref);
+	
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
 
 	return ref;
 }

@@ -4,7 +4,7 @@
 
 #include <class_file/constant.hpp>
 
-inline void ldc(
+inline optional<reference> try_ldc(
 	class_file::constant::index const_index, _class& c
 ) {
 	if(info) {
@@ -16,21 +16,36 @@ inline void ldc(
 		stack.emplace_back(int32 {
 			constant.get_same_as<class_file::constant::_int>().value
 		});
+		return {};
 	} else
 	if(constant.is_same_as<class_file::constant::_float>()) {
 		stack.emplace_back(float {
 			constant.get_same_as<class_file::constant::_float>().value
 		});
+		return {};
 	} else
 	if(constant.is_same_as<class_file::constant::string>()) {
-		stack.emplace_back(c.get_string(
-			class_file::constant::string_index{ const_index }
-		));
+		expected<reference, reference> possible_string =
+			c.try_get_string(
+				class_file::constant::string_index{ const_index }
+			);
+		if(possible_string.is_unexpected()) {
+			return move(possible_string.get_unexpected());
+		}
+		stack.emplace_back(move(possible_string.get_expected()));
+		return {};
 	} else
 	if(constant.is_same_as<class_file::constant::_class>()) {
-		stack.emplace_back(c.get_resolved_class(
-			class_file::constant::class_index{ const_index }
-		).instance());
+		expected<_class&, reference> possible_c
+			= c.try_get_resolved_class(
+				class_file::constant::class_index{ const_index }
+			);
+		
+		if(possible_c.is_unexpected()) {
+			return move(possible_c.get_unexpected());
+		}
+		stack.emplace_back(possible_c.get_expected().instance());
+		return {};
 	}
 	else {
 		print::err("unknown constant\n");

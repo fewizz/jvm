@@ -11,7 +11,14 @@ inline reference _class::instance() {
 	}};
 
 	if(instance_.is_null()) {
-		instance_ = create_object(class_class.get());
+		expected<reference, reference> possible_c
+			= try_create_object(class_class.get());
+		if(possible_c.is_unexpected()) {
+			print::err("couldn't create ", name(), "class instance\n");
+			posix::abort();
+		}
+
+		instance_ = move(possible_c.get_expected());
 		instance_->set<int64>(class_ptr_field_position, (int64) this);
 	}
 	return instance_;

@@ -14,7 +14,7 @@
 #include <list.hpp>
 #include <storage.hpp>
 
-inline reference _class::get_resolved_call_site(
+inline expected<reference, reference> _class::try_get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
 	mutex_->lock();
@@ -39,7 +39,14 @@ inline reference _class::get_resolved_call_site(
 		);
 	/* The bootstrap method handle is resolved (§5.4.3.5) to obtain a reference
 	   to an instance of java.lang.invoke.MethodHandle. */
-	reference mh = get_resolved_method_handle(bm.method_handle_index);
+	expected<reference, reference> possible_mh
+		= try_get_resolved_method_handle(bm.method_handle_index);
+	
+	if(possible_mh.is_unexpected()) {
+		return unexpected{ move(possible_mh.get_unexpected()) };
+	}
+
+	reference mh = move(possible_mh.get_expected());
 
 	/* If R is a symbolic reference to a dynamically-computed call site, then it
 	   gives a method descriptor. */
@@ -54,7 +61,12 @@ inline reference _class::get_resolved_call_site(
 	   if by resolution of an unresolved symbolic reference to a method type
 	   (§5.4.3.5) with the same parameter and return types as the method
 	   descriptor. */
-	reference mt = resolve_method_type(*this, descriptor);
+	expected<reference, reference> possible_mt
+		= try_resolve_method_type(*this, descriptor);
+	if(possible_mt.is_unexpected()) {
+		return unexpected{ move(possible_mt.get_unexpected()) };
+	}
+	reference mt = move(possible_mt.get_expected());
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
@@ -64,12 +76,25 @@ inline reference _class::get_resolved_call_site(
 	   java.lang.invoke.MethodHandles.Lookup for the class in which R occurs,
 	   produced as if by invocation of the lookup method of
 	   java.lang.invoke.MethodHandles. */
-	stack.emplace_back(create_object(method_handles_lookup_class.get()));
+	expected<reference, reference> possible_lookup
+		= try_create_object(method_handles_lookup_class.get());
+	if(possible_lookup.is_unexpected()) {
+		return unexpected{ move(possible_lookup.get_unexpected()) };
+	}
+
+	stack.emplace_back(move(possible_lookup.get_expected()));
 	++args_count_stack;
 
 	/* The first component of the array is set to a reference to an instance of
 	   String that denotes N, the unqualified name given by R. */
-	stack.emplace_back(create_string_from_utf8(name));
+	expected<reference, reference> possible_name_ref
+		= try_create_string_from_utf8(name);
+	
+	if(possible_name_ref.is_unexpected()) {
+		return move(possible_name_ref.get_unexpected());
+	}
+
+	stack.emplace_back(move(possible_name_ref.get_expected()));
 	++args_count_stack;
 
 	/* The second component of the array is set to the reference to an instance
@@ -88,13 +113,21 @@ inline reference _class::get_resolved_call_site(
 	   application-specific metadata to the bootstrap method. Each static
 	   argument A is resolved, in the order given by R, as follows: */
 	for(class_file::constant::index index : bm.arguments_indices.as_span()) {
+		reference thrown{};
+
 		constant(index).view([&]<typename Type>(Type v) {
 			/* If A is a string constant, then a reference to its instance of
 			   class String is obtained. */
 			if constexpr(same_as<Type, class_file::constant::string>) {
-				stack.emplace_back(
-					get_string((class_file::constant::string_index) index)
-				);
+				expected<reference, reference> possible_string =
+					try_get_string((class_file::constant::string_index) index);
+				
+				if(possible_string.is_unexpected()) {
+					thrown = move(possible_string.get_unexpected());
+					return;
+				}
+
+				stack.emplace_back(move(possible_string.get_expected()));
 				++args_count_stack;
 			}
 			/* If A is a numeric constant, then a reference to an instance of
@@ -105,25 +138,40 @@ inline reference _class::get_resolved_call_site(
 			{
 				class_file::constant::utf8 descriptor
 					= utf8_constant(v.descriptor_index);
-				stack.emplace_back(
-					resolve_method_type(*this, descriptor)
-				);
+				expected<reference, reference> possible_mt
+					= try_resolve_method_type(*this, descriptor);
+				
+				if(possible_mt.is_unexpected()) {
+					thrown = move(possible_mt.get_unexpected());
+					return;
+				}
+				stack.emplace_back(move(possible_mt.get_expected()));
 				++args_count_stack;
 			}
 			else if constexpr(
 				same_as<Type, class_file::constant::method_handle>
 			) {
-				stack.emplace_back(
-					get_resolved_method_handle(
+				expected<reference, reference> possible_mh
+					= try_get_resolved_method_handle(
 						class_file::constant::method_handle_index{ index }
-					)
-				);
+					);
+				
+				if(possible_mh.is_unexpected()) {
+					thrown = move(possible_mh.get_unexpected());
+					return;
+				}
+
+				stack.emplace_back(move(possible_mh.get_expected()));
 				++args_count_stack;
 			}
 			else {
 				posix::abort();
 			}
 		});
+
+		if(!thrown.is_null()) {
+			return unexpected{ move(thrown) };
+		}
 	}
 
 	/* The bootstrap method handle is invoked, as if by the invocation

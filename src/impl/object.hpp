@@ -100,8 +100,12 @@ inline void object::unsafe_decrease_reference_count_without_destroing() {
 	--references_;
 }
 
-inline reference create_object(_class& c) {
-	c.initialise_if_need();
+inline expected<reference, reference> try_create_object(_class& c) {
+	optional<reference> possible_throwable = c.try_initialise_if_need();
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
+
 	object* ptr = posix::allocate_raw_memory_of<object>(1).iterator();
 	new(ptr) object(c);
 	return { *ptr };

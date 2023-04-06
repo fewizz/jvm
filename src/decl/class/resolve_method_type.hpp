@@ -11,8 +11,10 @@ resolution occurs of unresolved symbolic references to classes and interfaces
 (§5.4.3.1) whose names correspond to the types given in the method descriptor
 (§4.3.3) */
 template<basic_range Descriptor>
-inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
-	auto get_class = [&]<typename Type>(Type t) -> _class& {
+inline expected<reference, reference>
+try_resolve_method_type(_class& d, Descriptor&& descriptor) {
+	auto get_class = [&]<typename Type>(Type t)
+	-> expected<_class&, reference> {
 		if constexpr(same_as<Type, class_file::v>) {
 			return void_class.get();
 		}
@@ -41,10 +43,10 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 			return bool_class.get();
 		}
 		else if constexpr(same_as<Type, class_file::object>) {
-			return resolve_class(d, t);
+			return try_resolve_class(d, t);
 		}
 		else if constexpr(same_as<Type, class_file::array>) {
-			return resolve_class(d, t);
+			return try_resolve_class(d, t);
 		}
 	};
 
@@ -60,17 +62,31 @@ inline reference resolve_method_type(_class& d, Descriptor&& descriptor) {
 		parameters_count = 0;
 		_class* ret_class;
 
+		reference thrown{};
 		class_file::method_descriptor::try_read_parameter_and_return_types(
 			descriptor.iterator(),
 			[&]<typename ParamType>(ParamType p) {
-				params_classes[parameters_count++] = &get_class(p);
+				expected<_class&, reference> possible_c = get_class(p);
+				if(possible_c.is_unexpected()) {
+					thrown = move(possible_c.get_unexpected());
+					return;
+				}
+				_class& c = possible_c.get_expected();
+				params_classes[parameters_count++] = &c;
 			},
 			[&]<typename ReturnType>(ReturnType r) {
-				ret_class = &get_class(r);
+				if(!thrown.is_null()) return;
+				expected<_class&, reference> possible_c = get_class(r);
+				if(possible_c.is_unexpected()) {
+					thrown = move(possible_c.get_unexpected());
+					return;
+				}
+				_class& c = possible_c.get_expected();
+				ret_class = &c;
 			},
 			[](auto) { posix::abort(); }
 		);
-		return create_method_type(
+		return try_create_method_type(
 			*ret_class,
 			span<_class&>{ params_classes, parameters_count },
 			descriptor

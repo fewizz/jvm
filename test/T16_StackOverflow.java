@@ -1,5 +1,3 @@
-package test;
-
 public class T16_StackOverflow {
 
 	static void recursive(int arg0, int arg1, int arg2, int arg3, int arg4) {

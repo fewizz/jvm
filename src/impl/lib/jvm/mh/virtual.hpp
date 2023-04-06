@@ -6,7 +6,6 @@
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 #include "decl/execute.hpp"
-#include "decl/thrown.hpp"
 
 static void init_jvm_mh_virtual() {
 	mh_virtual_class = classes.load_class_by_bootstrap_class_loader(
@@ -21,7 +20,9 @@ static void init_jvm_mh_virtual() {
 	mh_virtual_class->declared_instance_methods().find(
 		c_string{"invokeExactPtr"}, c_string{"()V"}
 	).native_function(
-		(void*)+[](reference mh, nuint args_beginning) -> void {
+		(void*)+[](reference mh, nuint args_beginning)
+		-> optional<reference>
+		{
 			instance_method_index method_index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
@@ -37,11 +38,16 @@ static void init_jvm_mh_virtual() {
 				obj_ref->_class().is_sub_of(refc);
 
 			if(!valid) {
-				thrown = create_wrong_method_type_exception();
-				return;
+				expected<reference, reference> possible_wmte
+					= try_create_wrong_method_type_exception();
+				return move(
+					possible_wmte.is_unexpected() ?
+					possible_wmte.get_unexpected() :
+					possible_wmte.get_expected()
+				);
 			}
 
-			execute(obj_ref._class()[method_index]);
+			return try_execute(obj_ref._class()[method_index]);
 		}
 	);
 }

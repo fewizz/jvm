@@ -49,20 +49,24 @@ public abstract class ClassLoader {
 		String name,
 		boolean resolve
 	) throws ClassNotFoundException {
-		/* Invoke findLoadedClass(String) to check if the class has already been
-		   loaded. */
+		/* 1. Invoke findLoadedClass(String) to check if the class has already
+		      been loaded. */
 		Class<?> c = this.findLoadedClass(name);
 
 		if(c == null) {
-			/* Invoke the loadClass method on the parent class loader. If the
-			   parent is null the class loader built into the virtual machine is
-			   used, instead. */
-			c = parent_ != null ?
-				parent_.loadClass(name) :
-				loadClassJVM(name);
+			/* 2. Invoke the loadClass method on the parent class loader. If the
+			      parent is null the class loader built into the virtual machine
+			      is used, instead. */
+			try {
+				c = parent_ != null ?
+					parent_.loadClass(name) :
+					loadClassJVM(name);
+			} catch(ClassNotFoundException e) {
+				// Nope
+			}
 		}
 
-		/* Invoke the findClass(String) method to find the class. */
+		/* 3. Invoke the findClass(String) method to find the class. */
 		if(c == null) c = this.findClass(name);
 
 		/* Throws: ClassNotFoundException - If the class could not be found */

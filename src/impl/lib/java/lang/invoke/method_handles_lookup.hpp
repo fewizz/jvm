@@ -12,6 +12,7 @@
 #include "decl/classes.hpp"
 #include "decl/class/resolve_method.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/execute.hpp"
 
 #include <range.hpp>
@@ -29,14 +30,32 @@ static reference lookup_find_getter(
 				name_utf8, field_c.descriptor()
 			);
 
-		reference method_type = create_method_type(field_c, span<_class&>{});
+		expected<reference, reference> possible_method_type
+			= try_create_method_type(field_c, span<_class&>{});
 		
-		reference result = create_object(mh_getter_class.get());
-		execute(
+		if(possible_method_type.is_unexpected()) {
+			thrown_in_native = move(possible_method_type.get_unexpected());
+			return reference{};
+		}
+
+		reference method_type = move(possible_method_type.get_expected());
+		
+		expected<reference, reference> possible_result
+			= try_create_object(mh_getter_class.get());
+		if(possible_result.is_unexpected()) {
+			thrown_in_native = move(possible_result.get_unexpected());
+			return reference{};
+		}
+		reference result = move(possible_result.get_expected());
+		optional<reference> possible_thrown = try_execute(
 			mh_getter_constructor.get(),
 			result, // this
 			method_type, c_inst, uint16{ index }
 		);
+		if(possible_thrown.has_value()) {
+			thrown_in_native = move(possible_thrown.get());
+			return reference{};
+		}
 		return result;
 	});
 }
@@ -52,12 +71,22 @@ static reference lookup_find_virtual(
 				method_type_descriptor(mt)
 			);
 
-		reference result = create_object(mh_virtual_class.get());
-		execute(
+		expected<reference, reference> possible_result
+			= try_create_object(mh_virtual_class.get());
+		if(possible_result.is_unexpected()) {
+			thrown_in_native = move(possible_result.get_unexpected());
+			return reference{};
+		}
+		reference result = move(possible_result.get_expected());
+		optional<reference> possible_thrown = try_execute(
 			mh_virtual_constructor.get(),
 			result, // this
 			mt, c_inst, uint16{ index }
 		);
+		if(possible_thrown.has_value()) {
+			thrown_in_native = move(possible_thrown.get());
+			return reference{};
+		}
 		return result;
 	});
 }
@@ -71,12 +100,22 @@ static reference lookup_find_static(object& cls, object& name, object& mt) {
 				method_type_descriptor(mt)
 			);
 		
-		reference result = create_object(mh_static_class.get());
-		execute(
+		expected<reference, reference> possible_result
+			= try_create_object(mh_static_class.get());
+		if(possible_result.is_unexpected()) {
+			thrown_in_native = move(possible_result.get_unexpected());
+			return reference{};
+		}
+		reference result = move(possible_result.get_expected());
+		optional<reference> possible_thrown = try_execute(
 			mh_static_constructor.get(),
 			result, // this
 			mt, cls, uint16{ index }
 		);
+		if(possible_thrown.has_value()) {
+			thrown_in_native = move(possible_thrown.get());
+			return reference{};
+		}
 		return result;
 	});
 }
@@ -104,12 +143,22 @@ static reference lookup_find_special(
 
 		possible_index.if_has_no_value(posix::abort);
 
-		reference result = create_object(mh_special_class.get());
-		execute(
+		expected<reference, reference> possible_result
+			= try_create_object(mh_special_class.get());
+		if(possible_result.is_unexpected()) {
+			thrown_in_native = move(possible_result.get_unexpected());
+			return reference{};
+		}
+		reference result = move(possible_result.get_expected());
+		optional<reference> possible_thrown = try_execute(
 			mh_special_constructor.get(),
 			result, // this
 			mt, m._class().instance(), uint16{ possible_index.get() }
 		);
+		if(possible_thrown.has_value()) {
+			thrown_in_native = move(possible_thrown.get());
+			return reference{};
+		}
 		return result;
 	});
 }
@@ -122,12 +171,23 @@ static reference lookup_find_constructor(
 		= c.declared_instance_methods().find_index_of(
 			c_string{ "<init>" }, method_type_descriptor(mt)
 		);
-	reference result = create_object(mh_constructor_class.get());
-	execute(
+	expected<reference, reference> possible_result
+		= try_create_object(mh_constructor_class.get());
+	if(possible_result.is_unexpected()) {
+		thrown_in_native = move(possible_result.get_unexpected());
+		return reference{};
+	}
+	reference result = move(possible_result.get_expected());
+
+	optional<reference> possible_thrown = try_execute(
 		mh_constructor_constructor.get(),
 		result, // this,
 		mt, refc, uint16 { index }
 	);
+	if(possible_thrown.has_value()) {
+		thrown_in_native = move(possible_thrown.get());
+		return reference{};
+	}
 	return result;
 }
 

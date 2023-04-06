@@ -8,12 +8,19 @@
 /* To resolve an unresolved symbolic reference from D to a class or interface C
    denoted by N, the following steps are performed: */
 template<basic_range Name>
-inline _class& resolve_class(_class& d, Name&& name) {
+inline expected<_class&, reference> try_resolve_class(_class& d, Name&& name) {
 	/* 1. The defining loader of D is used to load and thereby create a class
 	      or interface denoted by N. This class or interface is C. The details
 	      of the process are given in §5.3. */
 	reference defining_loader = d.defining_loader();
-	_class& c = classes.load_class(name, defining_loader);
+	expected<_class&, reference> possible_c
+		= classes.try_load_class(name, defining_loader.object_ptr());
+
+	if(possible_c.is_unexpected()) {
+		return { possible_c.get_unexpected() };
+	}
+	_class& c = possible_c.get_expected();
+	
 	/*    Any exception that can be thrown as a result of failure to load and
 	      thereby create C can thus be thrown as a result of failure of class
 	      and interface resolution.*/ // TODO
@@ -36,7 +43,11 @@ inline _class& resolve_class(_class& d, Name&& name) {
 				name.iterator() + dimensionality + 1, // skip 'L'
 				name.sentinel() - 1 // ';'
 			}.as_range();
-			resolve_class(c, element_name);
+			expected<_class&, reference> possible_c
+				= try_resolve_class(c, element_name);
+			if(possible_c.is_unexpected()) {
+				return unexpected{ move(possible_c.get_unexpected()) };
+			}
 		}
 	}
 	/* 3. Finally, access control is applied for the access from D to C

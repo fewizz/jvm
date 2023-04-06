@@ -4,6 +4,7 @@
 #include "decl/object.hpp"
 #include "decl/array.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/execute.hpp"
@@ -19,32 +20,56 @@ template<
 	range_of<_class&> ParamClasses,
 	range_of_decayed<char> Descriptor
 >
-static reference create_method_type(
+[[nodiscard]]inline expected<reference, reference> try_create_method_type(
 	_class& ret_class,
 	ParamClasses&& params_classes,
 	Descriptor&& descriptor
 ) {
-	reference params_array_ref = create_array_of(
-		class_class->get_array_class(),
-		range_size(params_classes)
-	);
+	expected<reference, reference> possible_params_array_ref
+		= try_create_array_of(
+			class_class->get_array_class(),
+			range_size(params_classes)
+		);
+	if(possible_params_array_ref.is_unexpected()) {
+		return unexpected{ move(possible_params_array_ref.get_unexpected()) };
+	}
+	reference params_array_ref = move(possible_params_array_ref.get_expected());
 
 	params_classes
 		.transform_view([](_class& c) { return c.instance(); })
 		.copy_to(array_as_span<reference>(params_array_ref));
 
-	reference descriptor_ref = create_byte_array(range_size(descriptor));
+	expected<reference, reference> possible_descriptor_ref
+		= try_create_byte_array(range_size(descriptor));
+	
+	if(possible_descriptor_ref.is_unexpected()) {
+		return unexpected{ move(possible_descriptor_ref.get_unexpected()) };
+	}
+
+	reference descriptor_ref = move(possible_descriptor_ref.get_expected());
+
 	descriptor.copy_to(array_as_span<uint8>(descriptor_ref));
 
-	reference result = create_object(method_type_class.get());
+	expected<reference, reference> possible_result
+		= try_create_object(method_type_class.get());
+	
+	if(possible_result.is_unexpected()) {
+		return unexpected{ move(possible_result.get_unexpected()) };
+	}
 
-	execute(
+	reference result = move(possible_result.get_expected());
+
+	optional<reference> possible_throwable = try_execute(
 		method_type_constructor.get(),
 		result,
 		ret_class.instance(),
 		params_array_ref,
 		descriptor_ref
 	);
+
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
 
 	return result;
 }
@@ -80,7 +105,7 @@ static decltype(auto) method_type_view_descriptor_utf8(
 }
 
 template<range_of<_class&> ParamClasses>
-static reference create_method_type(
+[[nodiscard]] expected<reference, reference> try_create_method_type(
 	_class& ret_class,
 	ParamClasses&& params_classes
 ) {
@@ -88,7 +113,7 @@ static reference create_method_type(
 		ret_class,
 		params_classes,
 		[&](auto desc) {
-			return create_method_type(
+			return try_create_method_type(
 				ret_class,
 				forward<ParamClasses>(params_classes),
 				desc
@@ -139,15 +164,29 @@ static void init_java_lang_invoke_method_type() {
 					return class_from_class_instance(class_ref);
 				});
 
-			return & method_type_view_descriptor_utf8(
+			expected<reference, reference> possible_result
+			= method_type_view_descriptor_utf8(
 				class_from_class_instance(*ret_class),
 				params,
-				[](auto destriptor) {
-					reference array = create_byte_array(destriptor.size());
+				[](auto destriptor) -> expected<reference, reference> {
+					expected<reference, reference> possible_array
+						= try_create_byte_array(destriptor.size());
+					if(possible_array.is_unexpected()) {
+						return unexpected {
+							move(possible_array.get_unexpected())
+						};
+					}
+					reference array = move(possible_array.get_expected());
 					destriptor.copy_to(array_as_span<char>(array));
 					return array;
 				}
-			).unsafe_release_without_destroing();
+			);
+			if(possible_result.is_unexpected()) {
+				thrown_in_native = move(possible_result.get_unexpected());
+				return nullptr;
+			}
+			reference result = move(possible_result.get_expected());
+			return & result.unsafe_release_without_destroing();
 		}
 	);
 }

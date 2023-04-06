@@ -42,10 +42,18 @@ static inline span<Type> array_as_span(object& o) {
 }
 
 template<typename Type>
-static inline reference create_array_by_class(
+static inline expected<reference, reference> try_create_array_by_class(
 	_class& array_class, int32 length
 ) {
-	reference ref = create_object(array_class);
+	expected<reference, reference> possible_ref
+		= try_create_object(array_class);
+	
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+
+	reference ref = move(possible_ref.get_expected());
+
 	array_length(ref, length);
 	Type* data = (Type*) posix::allocate_raw_zeroed_memory_of<Type>(
 		length
@@ -54,41 +62,49 @@ static inline reference create_array_by_class(
 	return ref;
 }
 
-static inline reference create_array_of(
+static inline expected<reference, reference> try_create_array_of(
 	_class& element_class, int32 length
 ) {
 	_class& array_class = element_class.get_array_class();
-	return create_array_by_class<reference>(array_class, length);
+	return try_create_array_by_class<reference>(array_class, length);
 }
 
-static inline reference create_bool_array(int32 length) {
-	return create_array_by_class<bool>(bool_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_bool_array(int32 length) {
+	return try_create_array_by_class<bool>(bool_array_class.get(), length);
 }
 
-static inline reference create_byte_array(int32 length) {
-	return create_array_by_class<int8>(byte_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_byte_array(int32 length) {
+	return try_create_array_by_class<int8>(byte_array_class.get(), length);
 }
 
-static inline reference create_short_array(int32 length) {
-	return create_array_by_class<int16>(short_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_short_array(int32 length) {
+	return try_create_array_by_class<int16>(short_array_class.get(), length);
 }
 
-static inline reference create_char_array(int32 length) {
-	return create_array_by_class<uint16>(char_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_char_array(int32 length) {
+	return try_create_array_by_class<uint16>(char_array_class.get(), length);
 }
 
-static inline reference create_int_array(int32 length) {
-	return create_array_by_class<int32>(int_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_int_array(int32 length) {
+	return try_create_array_by_class<int32>(int_array_class.get(), length);
 }
 
-static inline reference create_float_array(int32 length) {
-	return create_array_by_class<float>(float_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_float_array(int32 length) {
+	return try_create_array_by_class<float>(float_array_class.get(), length);
 }
 
-static inline reference create_long_array(int32 length) {
-	return create_array_by_class<int64>(long_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_long_array(int32 length) {
+	return try_create_array_by_class<int64>(long_array_class.get(), length);
 }
 
-static inline reference create_double_array(int32 length) {
-	return create_array_by_class<double>(double_array_class.get(), length);
+static inline expected<reference, reference>
+try_create_double_array(int32 length) {
+	return try_create_array_by_class<double>(double_array_class.get(), length);
 }

@@ -5,7 +5,7 @@
 #include "decl/method.hpp"
 #include "decl/object.hpp"
 
-inline void invoke_static(
+inline optional<reference> try_invoke_static(
 	class_file::constant::method_ref_index ref_index, _class& c
 ) {
 	namespace cc = class_file::constant;
@@ -25,14 +25,21 @@ inline void invoke_static(
 		print::out(class_name, ".", method_name, method_desc, "\n");
 	}
 
-	method& m = c.get_static_method(ref_index);
+	expected<method&, reference> possible_m
+		= c.try_get_static_method(ref_index);
+	
+	if(possible_m.is_unexpected()) {
+		return move(possible_m.get_unexpected());
+	}
+
+	method& m = possible_m.get_expected();
 
 	if(m.access_flags().super_or_synchronized) {
 		c.instance()->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(m.access_flags().super_or_synchronized) c.instance()->lock();
+		if(m.access_flags().super_or_synchronized) c.instance()->unlock();
 	}};
 
-	execute(m);
+	return try_execute(m);
 }

@@ -43,10 +43,12 @@ inline decltype(auto) view_string_on_stack_as_utf8(
 	);
 }
 
-static inline reference create_string(span<uint16> data);
+[[nodiscard]] inline expected<reference, reference>
+try_create_string(span<uint16> data);
 
 template<basic_range String>
-reference create_string_from_utf8(String&& str_utf8) {
+[[nodiscard]] expected<reference, reference>
+try_create_string_from_utf8(String&& str_utf8) {
 	auto it  = range_iterator(str_utf8);
 	auto end = range_sentinel(str_utf8);
 	nuint units = 0;
@@ -68,5 +70,5 @@ reference create_string_from_utf8(String&& str_utf8) {
 		utf16::encoder{}(cp.get_expected(), data_it);
 	}
 
-	return create_string(data);
+	return try_create_string(data);
 }

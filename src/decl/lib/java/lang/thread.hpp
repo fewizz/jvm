@@ -5,5 +5,5 @@
 inline optional<_class&> thread_class;
 inline layout::position thread_runnable_field_position;
 
-inline reference create_thread();
-inline reference create_thread(reference runnable);
+inline expected<reference, reference> try_create_thread();
+inline expected<reference, reference> try_create_thread(reference runnable);

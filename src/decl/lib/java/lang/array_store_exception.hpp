@@ -2,4 +2,5 @@
 
 #include "decl/reference.hpp"
 
-static reference create_array_store_exception();
+[[nodiscard]] inline expected<reference, reference>
+try_create_array_store_exception();

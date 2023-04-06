@@ -23,7 +23,7 @@ private:
 
 	friend reference;
 
-	friend reference create_object(_class& c);
+	friend expected<reference, reference> try_create_object(_class& c);
 	void on_reference_added();
 	void on_reference_removed();
 	void unsafe_decrease_reference_count_without_destroing();
@@ -71,4 +71,4 @@ public:
 
 };
 
-inline reference create_object(_class& c);
+inline expected<reference, reference> try_create_object(_class& c);

@@ -22,7 +22,7 @@ static void init_jvm_mh_static() {
 		(void*)+[](
 			reference ths,
 			[[maybe_unused]] nuint args_beginning
-		) -> void {
+		) -> optional<reference> {
 			declared_static_method_index method_index {
 				ths->get<uint16>(mh_class_member_index_position)
 			};
@@ -31,7 +31,7 @@ static void init_jvm_mh_static() {
 
 			_class& c = class_from_class_instance(class_ref);
 
-			execute(c[method_index]);
+			return try_execute(c[method_index]);
 		}
 	);
 }

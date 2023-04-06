@@ -3,7 +3,7 @@
 
 #include <c_string.hpp>
 
-inline void _class::initialise_if_need() {
+inline optional<reference> _class::try_initialise_if_need() {
 	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();
@@ -12,13 +12,18 @@ inline void _class::initialise_if_need() {
 	if(
 		initialisation_state_ != initialisation_state::not_started
 	) {
-		return;
+		return {};
 	}
 
 	initialisation_state_ = initialisation_state::pending;
 
 	if(has_super()) {
-		super().initialise_if_need();
+		optional<reference> possible_throwable
+			= super().try_initialise_if_need();
+
+		if(possible_throwable.has_value()) {
+			return move(possible_throwable.get());
+		}
 	}
 
 	// create declared static fields values
@@ -31,11 +36,15 @@ inline void _class::initialise_if_need() {
 	);
 
 	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
-	declared_methods()
-		.try_find(c_string{ "<clinit>" }, c_string{ "()V" })
-		.if_has_value([](method& clinit) {
-			execute(clinit);
-		});
+	optional<method&> possible_method = declared_methods()
+		.try_find(c_string{ "<clinit>" }, c_string{ "()V" });
+	
+	if(possible_method.has_value()) {
+		method& clinit = possible_method.get();
+		return try_execute(clinit);
+	}
 
 	initialisation_state_ = initialisation_state::done;
+
+	return {};
 }

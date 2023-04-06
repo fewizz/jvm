@@ -1,5 +1,3 @@
-package test;
-
 import java.util.Hashtable;
 
 class T18_HashTable {

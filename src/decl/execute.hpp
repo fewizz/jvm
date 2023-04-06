@@ -3,21 +3,21 @@
 #include "execution/stack.hpp"
 #include "method.hpp"
 
-static void execute(method& m);
+[[nodiscard]] static optional<reference> try_execute(method& m);
 
 template<typename... Args>
-inline void execute(method& m, Args&&... args) {
+[[nodiscard]] optional<reference> try_execute(method& m, Args&&... args) {
 	(stack.emplace_back(forward<Args>(args)), ...);
-	execute(m);
+	return try_execute(m);
 }
 
 template<basic_range StackType>
-inline void invoke_dynamic(
+[[nodiscard]] inline optional<reference> try_invoke_dynamic(
 	class_file::constant::invoke_dynamic_index ref_index, _class& c
 );
 
 template<basic_range StackType>
-inline void invoke_static(
+[[nodiscard]] inline optional<reference> try_invoke_static(
 	class_file::constant::method_ref_index ref_index, _class& c
 );
 

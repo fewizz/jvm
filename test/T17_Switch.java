@@ -1,5 +1,3 @@
-package test;
-
 class T17_Switch {
 
 	static float f(int i) {

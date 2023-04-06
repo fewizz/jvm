@@ -3,14 +3,21 @@
 #include "decl/class.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/class_cast_exception.hpp"
-#include "decl/thrown.hpp"
 #include "decl/execution/info.hpp"
 #include "decl/execution/stack.hpp"
 
 #include <loop_action.hpp>
 
-inline void check_cast(_class& c, class_file::constant::class_index index) {
-	_class& t = c.get_resolved_class(index);
+inline optional<reference>
+try_check_cast(_class& c, class_file::constant::class_index index) {
+	expected<_class&, reference> possible_t = c.try_get_resolved_class(index);
+	
+	if(possible_t.is_unexpected()) {
+		return possible_t.get_unexpected();
+	}
+
+	_class& t = possible_t.get_expected();
+
 	if(info) {
 		tabs();
 		print::out("check_cast ", t.name(), "\n");
@@ -18,7 +25,7 @@ inline void check_cast(_class& c, class_file::constant::class_index index) {
 
 	reference& ref = stack.back<reference>();
 	if(ref.is_null()) {
-		return;
+		return {};
 	}
 	
 	struct cast {
@@ -70,6 +77,14 @@ inline void check_cast(_class& c, class_file::constant::class_index index) {
 	    type, the operand stack is unchanged; otherwise, the checkcast
 	    instruction throws a ClassCastException." */
 	if(!cast{}(s, t)) {
-		thrown = create_class_cast_exception();
+		expected<reference, reference> possible_exception
+			= try_create_class_cast_exception();
+		return move(
+			possible_exception.is_unexpected() ?
+			possible_exception.get_unexpected() :
+			possible_exception.get_expected()
+		);
 	}
+
+	return {};
 }

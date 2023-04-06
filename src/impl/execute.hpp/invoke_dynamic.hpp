@@ -8,7 +8,7 @@
 
 #include <print/print.hpp>
 
-inline void invoke_dynamic(
+[[nodiscard]] inline optional<reference> try_invoke_dynamic(
 	class_file::constant::invoke_dynamic_index ref_index, _class& c
 ) {
 	namespace cc = class_file::constant;
@@ -34,7 +34,12 @@ inline void invoke_dynamic(
 	   java.lang.invoke.CallSite. The instance of java.lang.invoke.CallSite is
 	   considered "bound" to this specific invokedynamic instruction. */
 	// In our case, CallSite is bound to constant table entry
-	reference call_site = c.get_resolved_call_site(ref_index);
+	expected<reference, reference> possible_call_site
+		= c.try_get_resolved_call_site(ref_index);
+	
+	if(possible_call_site.is_unexpected()) {
+		return move(possible_call_site.get_unexpected());
+	}
 
 	print::err("unimplemented\n");
 	posix::abort();

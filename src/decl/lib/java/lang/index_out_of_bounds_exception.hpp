@@ -9,4 +9,5 @@
 static optional<_class&> index_of_of_bounds_exception_class;
 static optional<method&> index_of_of_bounds_exception_constructor;
 
-reference create_index_of_of_bounds_exception();
+[[nodiscard]] inline expected<reference, reference>
+try_create_index_of_of_bounds_exception();

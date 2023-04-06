@@ -1,6 +1,7 @@
 #pragma once
 
 #include <integer.hpp>
+#include <expected.hpp>
 #include <posix/memory.hpp>
 
 struct object;
@@ -10,7 +11,7 @@ struct reference {
 private:
 	object* obj_ptr_ = nullptr;
 
-	friend reference create_object(_class& c);
+	friend expected<reference, reference> try_create_object(_class& c);
 
 	void reset();
 
@@ -56,3 +57,5 @@ public:
 	operator const ::object& () const { return *object_ptr(); }
 	operator       ::object& ()       { return *object_ptr(); }
 };
+
+static inline reference nullptr_ref{};

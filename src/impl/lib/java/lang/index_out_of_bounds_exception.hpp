@@ -4,13 +4,20 @@
 #include "decl/object.hpp"
 #include "decl/classes.hpp"
 
-inline reference create_index_of_of_bounds_exception() {
+[[nodiscard]] inline expected<reference, reference>
+try_create_index_of_of_bounds_exception() {
 	_class& c = index_of_of_bounds_exception_class.get();
 	method& m = index_of_of_bounds_exception_constructor.get();
-	reference o = create_object(c);
-	stack.emplace_back(o);
-	execute(m);
-	return move(o);
+	expected<reference, reference> possible_ref = try_create_object(c);
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+	reference ref = move(possible_ref.get_expected());
+	optional<reference> possible_throwable = try_execute(m, ref);
+	if(possible_throwable.has_value()) {
+		return unexpected{ possible_throwable.get() };
+	}
+	return ref;
 }
 
 inline void init_java_lang_index_of_of_bounds_exception() {

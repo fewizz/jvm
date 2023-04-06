@@ -5,4 +5,5 @@
 
 inline _class& get_stack_overflow_error_class();
 
-inline reference create_stack_overflow_error();
+[[nodiscard]] inline expected<reference, reference>
+try_create_stack_overflow_error();

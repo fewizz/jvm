@@ -18,11 +18,12 @@ inline void init_java_lang_invoke_method_handle() {
 		);
 }
 
-inline void method_handle_invoke_exact(reference mh_ref, nuint args_beginning) {
+inline optional<reference>
+method_handle_invoke_exact(reference mh_ref, nuint args_beginning) {
 	method& m = mh_ref->_class().instance_methods()
 		[method_handle_invoke_exact_ptr_index];
 
 	void* ptr0 = m.native_function();
-	using f = void(*)(reference mh_ref, nuint args_beginning);
-	((f)ptr0)(move(mh_ref), args_beginning);
+	using f = optional<reference>(*)(reference mh_ref, nuint args_beginning);
+	return ((f)ptr0)(move(mh_ref), args_beginning);
 }

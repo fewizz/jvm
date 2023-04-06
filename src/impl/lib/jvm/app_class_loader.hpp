@@ -3,6 +3,7 @@
 #include "decl/classes.hpp"
 #include "decl/try_load_class_file_data_at.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 
 static void init_jvm_app_class_loader() {
 	_class& c = classes.load_class_by_bootstrap_class_loader(
@@ -31,9 +32,18 @@ static void init_jvm_app_class_loader() {
 						= move(possible_data.get());
 
 					{
-						_class& c = classes.define_class(
-							name_utf8, move(data), *ths
-						);
+						expected<_class&, reference> possible_c
+							= classes.try_define_class(
+								name_utf8, move(data), ths
+							);
+						if(possible_c.is_unexpected()) {
+							thrown_in_native = move(
+								possible_c.get_unexpected()
+							);
+						}
+
+						_class& c = possible_c.get_expected();
+
 						return & c.instance()
 							.unsafe_release_without_destroing();
 					}

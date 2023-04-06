@@ -4,7 +4,7 @@
 #include "decl/array.hpp"
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
-#include "decl/thrown.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/array_store_exception.hpp"
 #include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
@@ -32,7 +32,13 @@ static inline void init_java_lang_system() {
 			   destination array is not modified.
 			*/
 			if(src == nullptr || dst == nullptr) {
-				thrown = create_null_pointer_exception();
+				expected<reference, reference> possible_npe
+					= try_create_null_pointer_exception();
+				thrown_in_native = move(
+					possible_npe.is_unexpected() ?
+					possible_npe.get_unexpected() :
+					possible_npe.get_expected()
+				);
 				return;
 			}
 			// TODO case when src == dst
@@ -48,7 +54,13 @@ static inline void init_java_lang_system() {
 				// The dest argument refers to an object that is not an array.
 				!dst->_class().is_array()
 			) {
-				thrown = create_array_store_exception();
+				expected<reference, reference> possible_ase
+					= try_create_array_store_exception();
+				thrown_in_native = move(
+					possible_ase.is_unexpected() ?
+					possible_ase.get_unexpected() :
+					possible_ase.get_expected()
+				);
 				return;
 			}
 
@@ -73,7 +85,13 @@ static inline void init_java_lang_system() {
 				   a primitive component type. */
 				src_is_primitive != dst_is_primitive
 			) {
-				thrown = create_array_store_exception();
+				expected<reference, reference> possible_ase
+					= try_create_array_store_exception();
+				thrown_in_native = move(
+					possible_ase.is_unexpected() ?
+					possible_ase.get_unexpected() :
+					possible_ase.get_expected()
+				);
 				return;
 			}
 
@@ -94,7 +112,13 @@ static inline void init_java_lang_system() {
 				// destination array.
 				dst_pos + len > array_length(*dst)
 			) {
-				thrown = create_index_of_of_bounds_exception();
+				expected<reference, reference> possible_ioobe
+					= try_create_index_of_of_bounds_exception();
+				thrown_in_native = move(
+					possible_ioobe.is_unexpected() ?
+					possible_ioobe.get_unexpected() :
+					possible_ioobe.get_expected()
+				);
 				return;
 			}
 
@@ -159,7 +183,13 @@ static inline void init_java_lang_system() {
 					   arrays have component types that are reference types.) */
 					bool assignable = sc.is(dc) || sc.is_sub_of(dc);
 					if(!assignable) {
-						thrown = create_array_store_exception();
+						expected<reference, reference> possible_ase
+							= try_create_array_store_exception();
+						thrown_in_native = move(
+							possible_ase.is_unexpected() ?
+							possible_ase.get_unexpected() :
+							possible_ase.get_expected()
+						);
 						return;
 					}
 				}

@@ -8,7 +8,7 @@
 
 #include <loop_action.hpp>
 
-inline void invoke_special(
+inline optional<reference> try_invoke_special(
 	class_file::constant::method_ref_index ref_index, _class& current
 ) {
 	namespace cc = class_file::constant;
@@ -29,9 +29,23 @@ inline void invoke_special(
 		print::out(class_name, ".", method_name, method_desc, "\n");
 	}
 
-	method& resolved_method = current.get_resolved_method(ref_index);
-	_class& referenced_class
-		= current.get_resolved_class(method_ref.class_index);
+	expected<method&, reference> possible_resolved_method
+		= current.try_get_resolved_method(ref_index);
+
+	if(possible_resolved_method.is_unexpected()) {
+		return move(possible_resolved_method.get_unexpected());
+	}
+
+	method& resolved_method = possible_resolved_method.get_expected();
+
+	expected<_class&, reference> possible_referenced_class
+		= current.try_get_resolved_class(method_ref.class_index);
+	
+	if(possible_referenced_class.is_unexpected()) {
+		return move(possible_referenced_class.get_unexpected());
+	}
+
+	_class& referenced_class = possible_referenced_class.get_expected();
 
 	method& m = select_method_for_invoke_special(
 		current, referenced_class, resolved_method
@@ -49,5 +63,5 @@ inline void invoke_special(
 		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
 	}};
 
-	execute(m);
+	return try_execute(m);
 }

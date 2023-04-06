@@ -3,7 +3,6 @@
 #include "decl/class.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/class_cast_exception.hpp"
-#include "decl/thrown.hpp"
 #include "decl/execution/info.hpp"
 #include "decl/execution/stack.hpp"
 
@@ -11,8 +10,15 @@
 
 #include <print/print.hpp>
 
-inline void instance_of(_class& c, class_file::constant::class_index index) {
-	_class& t = c.get_resolved_class(index);
+inline optional<reference> try_check_instance_of(
+	_class& c, class_file::constant::class_index index
+) {
+	expected<_class&, reference> possible_t = c.try_get_resolved_class(index);
+	if(possible_t.is_unexpected()) {
+		return { possible_t.get_unexpected() };
+	}
+
+	_class& t = possible_t.get_expected();
 	
 	if(info) {
 		tabs();
@@ -91,4 +97,5 @@ inline void instance_of(_class& c, class_file::constant::class_index index) {
 	}
 
 	stack.emplace_back(result);
+	return {};
 }

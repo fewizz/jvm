@@ -12,7 +12,7 @@ inline layout::position
 static span<const char> method_type_descriptor(object& mt);
 
 template<range_of<_class&> ParamClasses>
-static reference create_method_type(
+[[nodiscard]] inline expected<reference, reference> try_create_method_type(
 	_class& ret_class,
 	ParamClasses&& params_classes
 );

@@ -1,6 +1,7 @@
 #include "decl/lib/java/lang/throwable.hpp"
 
 #include "decl/native/environment.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/execution/latest_context.hpp"
 #include "decl/execute.hpp"
 #include "decl/array.hpp"
@@ -25,7 +26,7 @@ static inline void init_java_lang_throwable() {
 	throwable_class->declared_instance_methods()
 	.find(
 		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }
-	).native_function((void*)+[](native_environment*, object* ths) {
+	).native_function((void*)+[](native_environment*, object* ths) -> object* {
 		// lets skip constructors/fillInStackTrace frames
 		execution_context* ctx_begin = latest_execution_context.ptr();
 		auto this_class_name = ths->_class().name();
@@ -58,22 +59,53 @@ static inline void init_java_lang_throwable() {
 
 		nuint frames_count = ctx_begin->frames_until_end();
 
-		reference ste_array = create_array_of(
+		expected<reference, reference> possible_ste_array = try_create_array_of(
 			stack_trace_element_class.get(), frames_count
 		);
+		if(possible_ste_array.is_unexpected()) {
+			thrown_in_native = move(possible_ste_array.get_unexpected());
+			return nullptr;
+		}
+		reference ste_array = move(possible_ste_array.get_expected());
 
 		execution_context* ctx = ctx_begin;
 
 		for(reference& frame : array_as_span<reference>(ste_array)) {
-			reference ste = create_object(stack_trace_element_class.get());
+			expected<reference, reference> possible_ste
+				= try_create_object(stack_trace_element_class.get());
+		
+			if(possible_ste.is_unexpected()) {
+				thrown_in_native = move(possible_ste.get_unexpected());
+				return nullptr;
+			}
+
+			reference ste = move(possible_ste.get_expected());
+
 			stack.emplace_back(ste);
 			
-			reference class_name = create_string_from_utf8(
-				ctx->method._class().name()
-			);
-			reference method_name = create_string_from_utf8(
-				ctx->method.name()
-			);
+			expected<reference, reference> possible_class_name
+				= try_create_string_from_utf8(
+					ctx->method._class().name()
+				);
+			
+			if(possible_class_name.is_unexpected()) {
+				thrown_in_native = move(possible_class_name.get_unexpected());
+				return nullptr;
+			}
+			reference class_name = move(possible_class_name.get_expected());
+
+			expected<reference, reference> possible_method_name
+				= try_create_string_from_utf8(
+					ctx->method.name()
+				);
+
+			if(possible_method_name.is_unexpected()) {
+				thrown_in_native = move(possible_method_name.get_unexpected());
+				return nullptr;
+			}
+
+			reference method_name = move(possible_method_name.get_expected());
+
 			stack.emplace_back(move(class_name));
 			stack.emplace_back(move(method_name));
 
@@ -84,11 +116,20 @@ static inline void init_java_lang_throwable() {
 				line_number = -2;
 			}
 			else if(ctx->method._class().has_source_file()) {
-				file_name = create_string_from_utf8(
-					ctx->method._class().source_file()
-				);
+				expected<reference, reference> possible_file_name
+					= try_create_string_from_utf8(
+						ctx->method._class().source_file()
+					);
+				if(possible_file_name.is_unexpected()) {
+					thrown_in_native
+						= move(possible_file_name.get_unexpected());
+					return nullptr;
+				}
+				file_name = move(possible_file_name.get_expected());
+
 				uint32 pc =
 					ctx->instruction_ptr - ctx->method.code().iterator();
+
 				for(
 					auto start_pc_and_line_number :
 					ctx->method.line_numbers().as_span()
@@ -103,7 +144,12 @@ static inline void init_java_lang_throwable() {
 
 			stack.emplace_back(file_name);
 			stack.emplace_back<int32>(line_number);
-			execute(stack_trace_element_constructor.get());
+			optional<reference> possible_throwable
+				= try_execute(stack_trace_element_constructor.get());
+			if(possible_throwable.has_value()) {
+				thrown_in_native = move(possible_throwable.get());
+				return nullptr;
+			}
 
 			frame = move(ste);
 			ctx = ctx->previous.ptr();

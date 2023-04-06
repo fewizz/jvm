@@ -6,43 +6,68 @@
 #include "native/environment.hpp"
 #include "execution/stack.hpp"
 #include "execution/thread.hpp"
-#include "thrown.hpp"
 #include "execute.hpp"
 
 #include <posix/thread.hpp>
 
-inline reference create_thread() {
-	reference ref = create_object(thread_class.get());
+inline expected<reference, reference> try_create_thread() {
+	expected<reference, reference> possible_ref
+		= try_create_object(thread_class.get());
+	
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+
+	reference ref = move(possible_ref.get_expected());
+
 	method& constructor = ref._class().instance_methods().find(
 		c_string{ "<init>" }, c_string{ "()V" }
 	);
 	stack.emplace_back(ref);
-	execute(constructor);
+	optional<reference> possible_throwable = try_execute(constructor);
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
+
 	return ref;
 }
 
-inline reference create_thread(reference runnable) {
-	reference ref = create_object(thread_class.get());
+inline expected<reference, reference> try_create_thread(reference runnable) {
+	expected<reference, reference> possible_ref
+		= try_create_object(thread_class.get());
+	
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+
+	reference ref = move(possible_ref.get_expected());
+
 	method& constructor = ref._class().instance_methods().find(
 		c_string{ "<init>" }, c_string{ "(Ljava/lang/Runnable;)V" }
 	);
 	stack.emplace_back(ref);
 	stack.emplace_back(move(runnable));
-	execute(constructor);
+	optional<reference> possible_throwable = try_execute(constructor);
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
+
 	return ref;
 }
 
-static void on_thread_exit() {
-	if(!thrown.is_null()) {
-		reference thrown0 = move(thrown);
-		print::err("unhandled throwable\n");
+static void on_thread_exit(optional<reference> possible_throwable) {
+	if(possible_throwable.has_value()) {
+		reference thrown0 = move(possible_throwable.get());
+		print::err("unhandled throwable: \n");
 
 		method& print_stack_trace = thrown0->_class().instance_methods().find(
 			c_string{ "printStackTrace" }, c_string{ "()V" }
 		);
 
-		stack.emplace_back(thrown0);
-		execute(print_stack_trace);
+		optional<reference> death = try_execute(print_stack_trace, thrown0);
+		if(death.has_value()) {
+			posix::abort();
+		}
 	}
 	thread = reference{};
 }
@@ -55,11 +80,12 @@ static void* thread_start(void* arg) {
 		= thread->get<reference>(thread_runnable_field_position);
 	stack.emplace_back(runnable);
 	
-	execute(runnable->_class().declared_instance_methods().find(
-		c_string{ "run" }, c_string{ "()V" }
-	));
+	optional<reference> possible_throwable
+		= try_execute(runnable->_class().declared_instance_methods().find(
+			c_string{ "run" }, c_string{ "()V" }
+		));
 
-	on_thread_exit();
+	on_thread_exit(move(possible_throwable));
 
 	return nullptr;
 }

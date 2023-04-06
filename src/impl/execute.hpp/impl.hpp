@@ -1,6 +1,5 @@
 #include "decl/execute.hpp"
 
-#include "./thrown.hpp"
 #include "./instruction.hpp"
 
 #include "./select_method.hpp"
@@ -10,6 +9,7 @@
 #include "execution/context.hpp"
 #include "execution/latest_context.hpp"
 #include "native/call.hpp"
+#include "native/thrown.hpp"
 #include "class.hpp"
 #include "lib/java/lang/stack_overflow_error.hpp"
 
@@ -19,7 +19,7 @@
 
 #include <print/print.hpp>
 
-static void execute(method& m) {
+static optional<reference> try_execute(method& m) {
 	_class& c = m._class();
 	if(info) {
 		tabs();
@@ -30,6 +30,17 @@ static void execute(method& m) {
 	on_scope_exit bring_tab_back {
 		[] { if(info) { --tab; } }
 	};
+
+	on_scope_exit print_finish { [&] {
+		if(info) {
+			tabs();
+			print::out(
+				"finishing executing: ",
+				c.name(), ".", m.name(), m.descriptor(),
+				"\n"
+			);
+		}
+	}};
 
 	execution_context ctx {
 		m,
@@ -52,7 +63,19 @@ static void execute(method& m) {
 		}
 		native_function_ptr ptr = m.native_function();
 		native_interface_call(ptr, m);
-		return;
+
+		if(!thrown_in_native.is_null()) {
+			if(info) {
+				tabs();
+				print::out(
+					"uncatched exception ",
+					thrown_in_native._class().name(),
+					"\n"
+				);
+			}
+			return move(thrown_in_native);
+		}
+		return {};
 	}
 
 	if(m.code().iterator() == nullptr) {
@@ -76,8 +99,14 @@ static void execute(method& m) {
 		nuint max_possible_stack_end = stack_begin + m.code().max_stack * 2;
 		if(max_possible_stack_end > stack.capacity()) {
 			stack.pop_back_until(locals_begin);
-			thrown = create_stack_overflow_error();
-			return;
+			expected<reference, reference> possible_soe
+				= try_create_stack_overflow_error();
+
+			return move(
+				possible_soe.is_unexpected() ?
+				possible_soe.get_unexpected() :
+				possible_soe.get_expected()
+			);
 		}
 	}
 
@@ -91,6 +120,8 @@ static void execute(method& m) {
 
 	const uint8* instruction_ptr = m.code().iterator();
 	const uint8* instruction_end_ptr = m.code().sentinel();
+
+	reference thrown;
 
 	while(instruction_ptr < instruction_end_ptr) {
 		const uint8* next_instruction_ptr = instruction_ptr;
@@ -113,7 +144,8 @@ static void execute(method& m) {
 					// TODO
 					.next_instruction_ptr = (const uint8*&)next_instruction_ptr,
 					.locals_begin = locals_begin,
-					.stack_begin = stack_begin
+					.stack_begin = stack_begin,
+					.thrown = thrown
 				};
 
 				if constexpr(
@@ -123,6 +155,7 @@ static void execute(method& m) {
 				}
 				else {
 					instr_exe(instruction);
+
 					return loop_action::next;
 				}
 			}
@@ -130,4 +163,10 @@ static void execute(method& m) {
 
 		if(action == loop_action::stop) break;
 	}
+
+	if(!thrown.is_null()) {
+		return thrown;
+	}
+
+	return {};
 }

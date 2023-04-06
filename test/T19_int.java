@@ -1,5 +1,3 @@
-package test;
-
 public class T19_int {
 
 	public static void main(String... args) {

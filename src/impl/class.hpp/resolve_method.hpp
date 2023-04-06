@@ -7,13 +7,17 @@
 
 #include <loop_action.hpp>
 
-inline method& _class::resolve_method(
+inline expected<method&, reference> _class::try_resolve_method(
 	class_file::constant::method_ref ref
 ) {
 	/* "To resolve an unresolved symbolic reference from D to a method in a
 	    class C, the symbolic reference to C given by the method reference is
 	    first resolved (§5.4.3.1)" */
-	_class& c = get_resolved_class(ref.class_index);
+	expected<_class&, reference> possible_c
+		= try_get_resolved_class(ref.class_index);
+	
+	_class& c = possible_c.get_expected();
+
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
 	auto descriptor = utf8_constant(nat.descriptor_index);

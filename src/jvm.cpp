@@ -42,7 +42,7 @@ int main (int argc, const char** argv) {
 
 		array<char, 2> array_class_name{ '[', ch };
 		_class& array_class
-			= classes.define_array_class(array_class_name, reference{});
+			= classes.define_array_class(array_class_name, nullptr);
 
 		array_class.component_class(component_class);
 		component_class.array_class(array_class);
@@ -78,16 +78,38 @@ int main (int argc, const char** argv) {
 
 	init_lib();
 
-	thread = create_thread();
+	auto on_exit = [&](optional<reference> possible_thrown){
+		bool there_was_unhandled_exception = possible_thrown.has_value();
+		on_thread_exit(possible_thrown);
+		return there_was_unhandled_exception ? -1 : 0;
+	};
+
+	expected<reference, reference> possible_thread = try_create_thread();
+	if(possible_thread.is_unexpected()) {
+		return on_exit(move(possible_thread.get_unexpected()));
+	}
 
 	_class& app_cl_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{"jvm/AppClassLoader"}
 	);
-	reference app_cl_ref = create_object(app_cl_class);
+	expected<reference, reference> possible_app_cl_ref
+		= try_create_object(app_cl_class);
+	if(possible_app_cl_ref.is_unexpected()) {
+		return on_exit(move(possible_app_cl_ref.get_unexpected()));
+	}
+
+	reference app_cl_ref = move(possible_app_cl_ref.get_expected());
 
 	auto main_class_name = c_string{ argv[1] }.sized();
 
-	_class& c = classes.load_class(main_class_name, app_cl_ref);
+	expected<_class&, reference> possible_c
+		= classes.try_load_class(main_class_name, app_cl_ref.object_ptr());
+
+	if(possible_c.is_unexpected()) {
+		return on_exit(move(possible_c.get_unexpected()));
+	}
+
+	_class& c = possible_c.get_expected();
 	method& m = c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }
@@ -96,12 +118,16 @@ int main (int argc, const char** argv) {
 		posix::abort();
 	}).get();
 
-	reference args_array = create_array_of(string_class.get(), 0);
+	expected<reference, reference> possible_args_array
+		= try_create_array_of(string_class.get(), 0);
+
+	if(possible_args_array.is_unexpected()) {
+		return on_exit(move(possible_args_array.get_unexpected()));
+	}
+
+	reference args_array = move(possible_args_array.get_unexpected());
+
 	stack.emplace_back(args_array);
-	execute(m);
 
-	bool there_was_unhandled_exception = !thrown.is_null();
-	on_thread_exit();
-
-	return there_was_unhandled_exception ? -1 : 0;
+	return on_exit(try_execute(m));
 }

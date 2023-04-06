@@ -3,7 +3,7 @@
 
 #include <class_file/constant.hpp>
 
-inline method& _class::get_static_method(
+inline expected<method&, reference> _class::try_get_static_method(
 	class_file::constant::method_ref_index ref_index
 ) {
 	mutex_->lock();
@@ -27,12 +27,23 @@ inline method& _class::get_static_method(
 	cc::utf8 name = utf8_constant(nat.name_index);
 	cc::utf8 desc = utf8_constant(nat.descriptor_index);
 
-	_class& c = get_resolved_class(method_ref.class_index);
+	expected<_class&, reference> possible_c
+		= try_get_resolved_class(method_ref.class_index);
+
+	if(possible_c.is_unexpected()) {
+		return { possible_c.get_unexpected() };
+	}
+
+	_class& c = possible_c.get_expected();
+
 	method& m = c.declared_static_methods().find(name, desc);
 	/* "On successful resolution of the method, the class or interface that
 	    declared the resolved method is initialized (§5.5) if that class or
 	    interface has not already been initialized." */
-	c.initialise_if_need();
+	optional<reference> possible_throwable = c.try_initialise_if_need();
+	if(possible_throwable.has_value()) {
+		return move(possible_throwable.get());
+	}
 	trampoline(ref_index) = m;
 	return m;
 }

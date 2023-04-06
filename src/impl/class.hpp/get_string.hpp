@@ -7,7 +7,7 @@
 
 #include <posix/abort.hpp>
 
-inline reference _class::get_string(
+inline expected<reference, reference> _class::try_get_string(
 	class_file::constant::string_index string_index
 ) {
 	mutex_->lock();
@@ -25,9 +25,13 @@ inline reference _class::get_string(
 	class_file::constant::string string = string_constant(string_index);
 	class_file::constant::utf8 text_utf8 = utf8_constant(string.string_index);
 
-	::reference utf16_string_ref {
-		create_string_from_utf8(text_utf8)
-	};
+	expected<::reference, ::reference> possible_utf16_string_ref
+		= try_create_string_from_utf8(text_utf8);
+	
+	if(possible_utf16_string_ref.is_unexpected()) {
+		return unexpected{ move(possible_utf16_string_ref.get_unexpected()) };
+	}
+	reference utf16_string_ref = move(possible_utf16_string_ref.get_expected());
 
 	trampoline(string_index) = utf16_string_ref;
 

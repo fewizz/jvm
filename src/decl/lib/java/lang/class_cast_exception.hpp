@@ -2,4 +2,5 @@
 
 #include "decl/reference.hpp"
 
-static reference create_class_cast_exception();
+[[nodiscard]] inline expected<reference, reference>
+try_create_class_cast_exception();

@@ -10,11 +10,28 @@
 #include <unicode/utf16.hpp>
 #include <unicode/utf8.hpp>
 
-static inline reference create_string(span<uint16> data) {
-	reference data_ref = create_char_array(data.size());
+[[nodiscard]] inline expected<reference, reference>
+try_create_string(span<uint16> data) {
+	expected<reference, reference> possible_data_ref
+		= try_create_char_array(data.size());
+	
+	if(possible_data_ref.is_unexpected()) {
+		return unexpected{ move(possible_data_ref.get_unexpected()) };
+	}
+	reference data_ref = move(possible_data_ref.get_expected());
+
 	array_data(data_ref, data.iterator());
 	array_length(data_ref, data.size());
-	reference string_ref = create_object(string_class.get());
+
+	expected<reference, reference> possible_string_ref
+		= try_create_object(string_class.get());
+	
+	if(possible_string_ref.is_unexpected()) {
+		return unexpected{ move(possible_string_ref.get_unexpected()) };
+	}
+
+	reference string_ref = move(possible_string_ref.get_expected());
+
 	string_ref->set(string_value_field_position, move(data_ref));
 	return string_ref;
 }

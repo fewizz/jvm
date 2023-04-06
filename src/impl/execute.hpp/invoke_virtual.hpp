@@ -3,13 +3,12 @@
 #include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/object.hpp"
-#include "decl/thrown.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 
 #include <class_file/constant.hpp>
 
-inline void invoke_virtual(
+[[nodiscard]] inline optional<reference> try_invoke_virtual(
 	class_file::constant::method_ref_index ref_index, _class& c
 ) {
 	namespace cf = class_file;
@@ -55,15 +54,24 @@ inline void invoke_virtual(
 		}
 
 		if(name.has_equal_size_and_elements(c_string{ "invokeExact" })) {
-			method_handle_invoke_exact(move(mh_ref), args_beginning_positoin);
+			return method_handle_invoke_exact(
+				move(mh_ref), args_beginning_positoin
+			);
 		} else {
 			posix::abort();
 		}
 
-		return;
+		return {};
 	}
 
-	method& resolved_method = c.get_resolved_method(ref_index);
+	expected<method&, reference> possible_resolved_method
+		= c.try_get_resolved_method(ref_index);
+	
+	if(possible_resolved_method.is_unexpected()) {
+		return move(possible_resolved_method.get_unexpected());
+	}
+
+	method& resolved_method = possible_resolved_method.get_expected();
 
 	uint8 args_stack_count = resolved_method.parameters_stack_size();
 
@@ -71,8 +79,13 @@ inline void invoke_virtual(
 	reference obj_ref = stack.get<reference>(stack.size() - args_stack_count);
 
 	if(obj_ref.is_null()) {
-		thrown = create_null_pointer_exception();
-		return;
+		expected<reference, reference> possible_npe
+			= try_create_null_pointer_exception();
+		return { move(
+			possible_npe.is_unexpected() ?
+			possible_npe.get_unexpected() :
+			possible_npe.get_expected()
+		) };
 	}
 
 	/* "Let C be the class of objectref. A method is selected with respect to C
@@ -86,5 +99,5 @@ inline void invoke_virtual(
 		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
 	}};
 
-	execute(m);
+	return try_execute(m);
 }

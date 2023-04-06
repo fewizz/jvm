@@ -4,7 +4,7 @@
 
 #include <class_file/constant.hpp>
 
-inline reference _class::get_resolved_method_handle(
+inline expected<reference, reference> _class::try_get_resolved_method_handle(
 	class_file::constant::method_handle_index index
 ) {
 	mutex_->lock();
@@ -28,11 +28,18 @@ inline reference _class::get_resolved_method_handle(
 			class_file::constant::method_ref ref = method_ref_constant(
 				(class_file::constant::method_ref_index) mh.reference_index
 			);
-			_class& c = get_resolved_class(ref.class_index);
+			expected<_class&, reference> possible_c
+				= try_get_resolved_class(ref.class_index);
+			if(possible_c.is_unexpected()) {
+				return possible_c.get_unexpected();
+			}
+			
+			_class& c = possible_c.get_expected();
+
 			auto nat = name_and_type_constant(ref.name_and_type_index);
 			auto name = utf8_constant(nat.name_index);
 			auto desc = utf8_constant(nat.descriptor_index);
-			method& m = c.declared_methods().find(name, desc);
+			[[maybe_unused]]method& m = c.declared_methods().find(name, desc);
 			posix::abort();
 			//return create_method_handle_invoke_static(m);
 		}
