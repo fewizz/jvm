@@ -17,9 +17,9 @@ try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 
 	expected<handle<posix::file>, posix::error> possible_file
 		= null_terminated.view_copied_elements_on_stack(
-			[&](span<const char> on_stack) {
+			[&](span<char> on_stack) {
 				return posix::try_open_file(
-					c_string{ on_stack.iterator() },
+					on_stack,
 					posix::file_access_mode::binary_read
 				);
 			}

@@ -79,9 +79,8 @@ int main (int argc, const char** argv) {
 	init_lib();
 
 	auto on_exit = [&](optional<reference> possible_thrown){
-		bool there_was_unhandled_exception = possible_thrown.has_value();
 		on_thread_exit(possible_thrown);
-		return there_was_unhandled_exception ? -1 : 0;
+		return possible_thrown.has_value() ? -1 : 0;
 	};
 
 	expected<reference, reference> possible_thread = try_create_thread();

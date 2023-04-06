@@ -79,7 +79,7 @@ static void* thread_start(void* arg) {
 	reference& runnable
 		= thread->get<reference>(thread_runnable_field_position);
 	stack.emplace_back(runnable);
-	
+
 	optional<reference> possible_throwable
 		= try_execute(runnable->_class().declared_instance_methods().find(
 			c_string{ "run" }, c_string{ "()V" }

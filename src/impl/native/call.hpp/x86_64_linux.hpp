@@ -101,10 +101,14 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		register __m128 arg_6_f asm("xmm6") = f_regs[6];
 		register __m128 arg_7_f asm("xmm7") = f_regs[7];
 
+		register uint64* stack_beginning asm("r11")  = stack_storage;
+		register void* function_ptr asm("r12") = ptr;
+
 		void* rsp_beginning = nullptr;
 
 		asm volatile(
-				"movq %%rsp, %[rsp_beginning]\n"
+				"movq %%rsp, %%rax\n"
+				"movq %%rax, %[rsp_beginning]\n"
 				// alignment to 16
 				"movq %[stack_remaining], %%rax\n"
 				"salq $3, %%rax\n" // rax * 8
@@ -124,21 +128,22 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 				"callq *%[function_ptr]\n"
 				"movq %[rsp_beginning], %%rsp\n"
 			:
-				"+r"(result),
-				[rsp_beginning]"+m"(rsp_beginning),
+				"=r"(result),
 				"+r"(arg_1), "+r"(arg_0), "+r"(arg_2),
 				"+r"(arg_3), "+r"(arg_4), "+r"(arg_5),
 				"+r"(arg_0_f), "+r"(arg_1_f), "+r"(arg_2_f), "+r"(arg_3_f),
 				"+r"(arg_4_f), "+r"(arg_5_f), "+r"(arg_6_f), "+r"(arg_7_f),
+				[rsp_beginning]"=m"(rsp_beginning),
 				[stack_remaining]"+r"(stack_remaining)
 			:
-				[stack_beginning]"m"(stack_storage),
-				[function_ptr]"m"(ptr)
-			: "r10", "memory", "cc"
+				[stack_beginning]"r"(stack_beginning),
+				[function_ptr]"r"(function_ptr)
+			: "r10", "r13", "r13", "r14", "r15", "memory", "cc"
 		);
 	}
 
-	m.return_type().view(
+	one_of_descriptor_return_types ret_type = m.return_type();
+	ret_type.view(
 		[&]<typename Type>(Type) {
 			if constexpr(same_as<Type, class_file::v>) {
 				stack.pop_back_until(jstack_begin);
