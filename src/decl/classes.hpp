@@ -5,6 +5,7 @@
 
 #include "execution/info.hpp"
 #include "executable_path.hpp"
+#include "lib/java/lang/string.hpp"
 #include "lib/java/lang/class_loader.hpp"
 #include "lib/java/lang/class.hpp"
 #include "lib/java/lang/object.hpp"

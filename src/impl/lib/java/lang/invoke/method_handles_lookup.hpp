@@ -18,177 +18,102 @@
 #include <range.hpp>
 #include <span.hpp>
 
-static reference lookup_find_getter(
+static expected<reference, reference> try_lookup_find_getter(
 	object& c_inst, object& name, object& field_type_inst
 ) {
 	_class& c = class_from_class_instance(c_inst);
 	_class& field_c = class_from_class_instance(field_type_inst);
 
-	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		instance_field_index index
-			= c.instance_fields().find_index_of(
+	instance_field_index index =
+		view_string_on_stack_as_utf8(name, [&](auto name_utf8)  {
+			return c.instance_fields().find_index_of(
 				name_utf8, field_c.descriptor()
 			);
+		});
 
-		expected<reference, reference> possible_method_type
-			= try_create_method_type(field_c, span<_class&>{});
-		
-		if(possible_method_type.is_unexpected()) {
-			thrown_in_native = move(possible_method_type.get_unexpected());
-			return reference{};
-		}
+	expected<reference, reference> possible_mt
+		= try_create_method_type(field_c, span<_class&>{});
+	
+	if(possible_mt.is_unexpected()) {
+		return unexpected{ move(possible_mt.get_unexpected()) };
+	}
 
-		reference method_type = move(possible_method_type.get_expected());
-		
-		expected<reference, reference> possible_result
-			= try_create_object(mh_getter_class.get());
-		if(possible_result.is_unexpected()) {
-			thrown_in_native = move(possible_result.get_unexpected());
-			return reference{};
-		}
-		reference result = move(possible_result.get_expected());
-		optional<reference> possible_thrown = try_execute(
-			mh_getter_constructor.get(),
-			result, // this
-			method_type, c_inst, uint16{ index }
-		);
-		if(possible_thrown.has_value()) {
-			thrown_in_native = move(possible_thrown.get());
-			return reference{};
-		}
-		return result;
-	});
+	reference mt = move(possible_mt.get_expected());
+
+	return try_create_getter_mh(move(mt), c, index);
 }
 
-static reference lookup_find_virtual(
+static expected<reference, reference> try_lookup_find_virtual(
 	object& c_inst, object& name, object& mt
 ) {
-	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		instance_method_index index =
-			class_from_class_instance(c_inst)
-			.instance_methods().find_index_of(
+	method& m
+		= view_string_on_stack_as_utf8(name, [&](auto name_utf8) -> method& {
+			return
+				class_from_class_instance(c_inst)
+				.instance_methods().find(
+					name_utf8,
+					method_type_descriptor(mt)
+				);
+		});
+
+	return try_create_virtual_mh(mt, m);
+}
+
+static expected<reference, reference>
+try_lookup_find_static(object& cls, object& name, object& mt) {
+	method& m
+		= view_string_on_stack_as_utf8(name, [&](auto name_utf8) -> method& {
+			return class_from_class_instance(cls)
+			.declared_static_methods().find(
 				name_utf8,
 				method_type_descriptor(mt)
 			);
+		});
 
-		expected<reference, reference> possible_result
-			= try_create_object(mh_virtual_class.get());
-		if(possible_result.is_unexpected()) {
-			thrown_in_native = move(possible_result.get_unexpected());
-			return reference{};
-		}
-		reference result = move(possible_result.get_expected());
-		optional<reference> possible_thrown = try_execute(
-			mh_virtual_constructor.get(),
-			result, // this
-			mt, c_inst, uint16{ index }
-		);
-		if(possible_thrown.has_value()) {
-			thrown_in_native = move(possible_thrown.get());
-			return reference{};
-		}
-		return result;
-	});
+	return try_create_static_mh(mt, m);
 }
 
-static reference lookup_find_static(object& cls, object& name, object& mt) {
-	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
-		declared_static_method_index index =
-			class_from_class_instance(cls)
-			.declared_static_methods().find_index_of(
-				name_utf8,
-				method_type_descriptor(mt)
-			);
-		
-		expected<reference, reference> possible_result
-			= try_create_object(mh_static_class.get());
-		if(possible_result.is_unexpected()) {
-			thrown_in_native = move(possible_result.get_unexpected());
-			return reference{};
-		}
-		reference result = move(possible_result.get_expected());
-		optional<reference> possible_thrown = try_execute(
-			mh_static_constructor.get(),
-			result, // this
-			mt, cls, uint16{ index }
-		);
-		if(possible_thrown.has_value()) {
-			thrown_in_native = move(possible_thrown.get());
-			return reference{};
-		}
-		return result;
-	});
-}
-
-static reference lookup_find_special(
+static expected<reference, reference> try_lookup_find_special(
 	object& refc, object& name, object& mt, object& special_caller
 ) {
-	return view_string_on_stack_as_utf8(name, [&](auto name_utf8) -> reference {
+	return view_string_on_stack_as_utf8(name, [&](auto name_utf8)
+	-> expected<reference, reference>
+	{
 		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
 		_class& receiver = class_from_class_instance(refc);
 		_class& current = class_from_class_instance(special_caller);
-		method& resolved_method =
-			::resolve_method(receiver, name_utf8, method_type_descriptor(mt));
+		expected<method&, reference> possible_resolved_method =
+			try_resolve_method(receiver, name_utf8, method_type_descriptor(mt));
+		
+		if(possible_resolved_method.is_unexpected()) {
+			return unexpected {
+				move(possible_resolved_method.get_unexpected())
+			};
+		}
+
+		method& resolved_method = possible_resolved_method.get_expected();
+
 		method& m = select_method_for_invoke_special(
 			current, receiver, resolved_method
 		);
 
-		optional<instance_method_index> possible_index
-			= m._class().instance_methods()
-				.try_find_index_of_first_satisfying([&](method& m0) {
-					return &m0 == &m;
-				});
-
-		possible_index.if_has_no_value(posix::abort);
-
-		expected<reference, reference> possible_result
-			= try_create_object(mh_special_class.get());
-		if(possible_result.is_unexpected()) {
-			thrown_in_native = move(possible_result.get_unexpected());
-			return reference{};
-		}
-		reference result = move(possible_result.get_expected());
-		optional<reference> possible_thrown = try_execute(
-			mh_special_constructor.get(),
-			result, // this
-			mt, m._class().instance(), uint16{ possible_index.get() }
+		return try_create_special_mh(
+			mt, m
 		);
-		if(possible_thrown.has_value()) {
-			thrown_in_native = move(possible_thrown.get());
-			return reference{};
-		}
-		return result;
 	});
 }
 
-static reference lookup_find_constructor(
+static expected<reference, reference> try_lookup_find_constructor(
 	object& refc, object& mt
 ) {
 	_class& c = class_from_class_instance(refc);
-	declared_instance_method_index index
-		= c.declared_instance_methods().find_index_of(
+	method& m
+		= c.declared_instance_methods().find(
 			c_string{ "<init>" }, method_type_descriptor(mt)
 		);
-	expected<reference, reference> possible_result
-		= try_create_object(mh_constructor_class.get());
-	if(possible_result.is_unexpected()) {
-		thrown_in_native = move(possible_result.get_unexpected());
-		return reference{};
-	}
-	reference result = move(possible_result.get_expected());
-
-	optional<reference> possible_thrown = try_execute(
-		mh_constructor_constructor.get(),
-		result, // this,
-		mt, refc, uint16 { index }
-	);
-	if(possible_thrown.has_value()) {
-		thrown_in_native = move(possible_thrown.get());
-		return reference{};
-	}
-	return result;
+	return try_create_constructor_mh(mt, m);
 }
 
 static void init_java_lang_invoke_method_handles_lookup() {
@@ -211,9 +136,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* c
 		) -> object* {
-			return &
-				lookup_find_getter(*cls, *name, *c)
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_mh
+				= try_lookup_find_getter(*cls, *name, *c);
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
 		}
 	);
 
@@ -232,9 +162,15 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
-			return &
-				lookup_find_virtual(*cls, *name, *mt)
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_mh
+				= try_lookup_find_virtual(*cls, *name, *mt);
+
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
 		}
 	);
 
@@ -253,9 +189,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
-			return &
-				lookup_find_static(*cls, *name, *mt)
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_mh
+				= try_lookup_find_static(*cls, *name, *mt);
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
 		}
 	);
 
@@ -273,9 +214,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* mt
 		) -> object* {
-			return &
-				lookup_find_constructor(*cls, *mt)
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_mh
+				= try_lookup_find_constructor(*cls, *mt);
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
 		}
 	);
 
@@ -295,9 +241,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt, object* caller
 		) -> object* {
-			return &
-				lookup_find_special(*cls, *name, *mt, *caller)
-				.unsafe_release_without_destroing();
+			expected<reference, reference> possible_mh
+				= try_lookup_find_special(*cls, *name, *mt, *caller);
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
 		}
 	);
 }

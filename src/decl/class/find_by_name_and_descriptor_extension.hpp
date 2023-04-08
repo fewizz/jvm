@@ -53,6 +53,21 @@ public:
 		}).get();
 	}
 
+	optional<IndexType> try_find_index_of(auto& value) {
+		return derived().try_find_index_of_first_satisfying([&](auto& value0) {
+			return &value0 == &value;
+		});
+	}
+
+	IndexType find_index_of(auto& value) {
+		optional<IndexType> possible = try_find_index_of(value);
+		if(possible.has_no_value()) {
+			print::err("couldn't find class member");
+			posix::abort();
+		}
+		return possible.get();
+	}
+
 };
 
 template<basic_range Range, typename IndexType = class_member_index>

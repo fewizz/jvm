@@ -1,9 +1,12 @@
 #include "class.hpp"
 #include "field.hpp"
+#include "decl/class/resolve_field.hpp"
+#include "decl/lib/java/lang/incompatible_class_change_error.hpp"
 
 #include <class_file/constant.hpp>
 
 #include <tuple.hpp>
+#include <optional.hpp>
 
 inline expected<instance_field_index_and_stack_size, reference>
 _class::try_get_resolved_instance_field_index(
@@ -21,32 +24,40 @@ _class::try_get_resolved_instance_field_index(
 		return t.get_same_as<instance_field_index_and_stack_size>();
 	}
 
-	namespace cc = class_file::constant;
-
-	cc::field_ref field_ref = field_ref_constant(ref_index);
-	cc::name_and_type nat = name_and_type_constant(
-		field_ref.name_and_type_index
-	);
-	cc::utf8 name = utf8_constant(nat.name_index);
-	cc::utf8 desc = utf8_constant(nat.descriptor_index);
-
-	expected<_class&, reference> possible_c
-		= try_get_resolved_class(field_ref.class_index);
+	expected<field&, reference> possible_resolved_field
+		= try_resolve_field(*this, ref_index);
 	
-	if(possible_c.is_unexpected()) {
-		return { possible_c.get_unexpected() };
+	if(possible_resolved_field.is_unexpected()) {
+		return unexpected{ move(possible_resolved_field.get_unexpected()) };
 	}
 
-	_class& c = possible_c.get_expected();
+	field& resolved_field = possible_resolved_field.get_expected();
+	
+	if(resolved_field.is_static()) {
+		expected<reference, reference> possible_icce
+			= try_create_incompatible_class_change_error();
+		return unexpected { move(
+			possible_icce.is_unexpected() ?
+			possible_icce.get_unexpected() :
+			possible_icce.get_expected()
+		)};
+	}
 
-	instance_field_index field_index =
-		c.instance_fields().try_find_index_of(name, desc)
-		.if_has_no_value([]{ posix::abort(); })
-		.get();
+	optional<instance_field_index> possible_index
+		= resolved_field._class().instance_fields()
+		.try_find_index_of_first_satisfying([&](field& f) {
+			return &f == &resolved_field;
+		});
+	
+	if(possible_index.has_no_value()) {
+		posix::abort();
+	}
+
+	instance_field_index index = possible_index.get();
 
 	instance_field_index_and_stack_size result {
-		.field_index = field_index,
-		.stack_size = c[field_index].stack_size
+		index,
+		resolved_field.stack_size
 	};
 
 	trampoline(ref_index) = result;

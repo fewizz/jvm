@@ -18,10 +18,12 @@
 #include "./java/lang/cloneable.hpp"
 #include "./java/lang/double.hpp"
 #include "./java/lang/float.hpp"
+#include "./java/lang/incompatible_class_change_error.hpp"
 #include "./java/lang/index_out_of_bounds_exception.hpp"
 #include "./java/lang/integer.hpp"
 #include "./java/lang/long.hpp"
 #include "./java/lang/negative_array_size_exception.hpp"
+#include "./java/lang/no_such_method_error.hpp"
 #include "./java/lang/null_pointer_exception.hpp"
 #include "./java/lang/object.hpp"
 #include "./java/lang/stack_overflow_error.hpp"
@@ -37,7 +39,10 @@
 #include "./jvm/mh/class_member.hpp"
 #include "./jvm/mh/constructor.hpp"
 #include "./jvm/mh/getter.hpp"
+#include "./jvm/mh/setter.hpp"
 #include "./jvm/mh/special.hpp"
+#include "./jvm/mh/static_getter.hpp"
+#include "./jvm/mh/static_setter.hpp"
 #include "./jvm/mh/static.hpp"
 #include "./jvm/mh/virtual.hpp"
 #include "./jvm/app_class_loader.hpp"
@@ -65,6 +70,7 @@ static inline void init_lib() {
 	init_java_lang_integer();
 	init_java_lang_long();
 	init_java_lang_negative_array_size_exception();
+	init_java_lang_no_such_method_error();
 	init_java_lang_null_pointer_exception();
 	init_java_lang_runtime();
 	init_java_lang_stack_trace_element();
@@ -78,7 +84,10 @@ static inline void init_lib() {
 	init_jvm_mh_class_member();
 	init_jvm_mh_constructor();
 	init_jvm_mh_getter();
+	init_jvm_mh_setter();
 	init_jvm_mh_special();
+	init_jvm_mh_static_getter();
+	init_jvm_mh_static_setter();
 	init_jvm_mh_static();
 	init_jvm_mh_virtual();
 	init_jvm_app_class_loader();

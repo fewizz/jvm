@@ -11,48 +11,18 @@
 #include <posix/thread.hpp>
 
 inline expected<reference, reference> try_create_thread() {
-	expected<reference, reference> possible_ref
-		= try_create_object(thread_class.get());
-	
-	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
-	}
-
-	reference ref = move(possible_ref.get_expected());
-
-	method& constructor = ref._class().instance_methods().find(
+	method& constructor = thread_class->instance_methods().find(
 		c_string{ "<init>" }, c_string{ "()V" }
 	);
-	stack.emplace_back(ref);
-	optional<reference> possible_throwable = try_execute(constructor);
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-
-	return ref;
+	
+	return try_create_object(constructor);
 }
 
 inline expected<reference, reference> try_create_thread(reference runnable) {
-	expected<reference, reference> possible_ref
-		= try_create_object(thread_class.get());
-	
-	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
-	}
-
-	reference ref = move(possible_ref.get_expected());
-
-	method& constructor = ref._class().instance_methods().find(
+	method& constructor = thread_class->instance_methods().find(
 		c_string{ "<init>" }, c_string{ "(Ljava/lang/Runnable;)V" }
 	);
-	stack.emplace_back(ref);
-	stack.emplace_back(move(runnable));
-	optional<reference> possible_throwable = try_execute(constructor);
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-
-	return ref;
+	return try_create_object(constructor, move(runnable));
 }
 
 static void on_thread_exit(optional<reference> possible_throwable) {

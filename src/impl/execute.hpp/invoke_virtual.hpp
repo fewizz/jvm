@@ -36,9 +36,7 @@
 		class_file::method_descriptor::reader reader{ desc.iterator() };
 		reader.try_read_parameter_types_and_get_return_type_reader(
 		[&]<typename ParamType>(ParamType) {
-				args_count_stack += 
-					same_as_any<ParamType, class_file::j, class_file::d> ?
-					2 : 1;
+				args_count_stack += descriptor_type_stack_size<ParamType>;
 			},
 			[](auto) { posix::abort(); }
 		);

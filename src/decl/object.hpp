@@ -71,4 +71,27 @@ public:
 
 };
 
-inline expected<reference, reference> try_create_object(_class& c);
+[[nodiscard]] inline expected<reference, reference>
+try_create_object(_class& c);
+
+template<typename... Args>
+[[nodiscard]] inline expected<reference, reference>
+try_create_object(method& m, Args&&... args) {
+	expected<reference, reference> possible_ref
+		= try_create_object(m._class());
+	
+	if(possible_ref.is_unexpected()) {
+		return unexpected{ move(possible_ref.get_unexpected()) };
+	}
+
+	reference ref = move(possible_ref.get_expected());
+	
+	optional<reference> possible_throwable
+		= try_execute(m, ref, forward<Args>(args)...);
+	
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
+
+	return ref;
+}

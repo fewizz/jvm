@@ -9,7 +9,6 @@
 #include "execution/context.hpp"
 #include "execution/latest_context.hpp"
 #include "native/call.hpp"
-#include "native/thrown.hpp"
 #include "class.hpp"
 #include "lib/java/lang/stack_overflow_error.hpp"
 
@@ -62,19 +61,23 @@ static optional<reference> try_execute(method& m) {
 			posix::abort();
 		}
 		native_function_ptr ptr = m.native_function();
-		native_interface_call(ptr, m);
 
-		if(!thrown_in_native.is_null()) {
+		optional<reference> possible_throwable
+			= try_native_interface_call(ptr, m);
+
+		if(possible_throwable.has_value()) {
+			reference thrown = possible_throwable.get();
 			if(info) {
 				tabs();
 				print::out(
 					"uncatched exception ",
-					thrown_in_native._class().name(),
+					thrown._class().name(),
 					"\n"
 				);
 			}
-			return move(thrown_in_native);
+			return move(thrown);
 		}
+
 		return {};
 	}
 

@@ -8,7 +8,8 @@
 /* To resolve an unresolved symbolic reference from D to a class or interface C
    denoted by N, the following steps are performed: */
 template<basic_range Name>
-inline expected<_class&, reference> try_resolve_class(_class& d, Name&& name) {
+[[nodiscard]] inline expected<_class&, reference>
+try_resolve_class(_class& d, Name&& name) {
 	/* 1. The defining loader of D is used to load and thereby create a class
 	      or interface denoted by N. This class or interface is C. The details
 	      of the process are given in §5.3. */
@@ -53,4 +54,46 @@ inline expected<_class&, reference> try_resolve_class(_class& d, Name&& name) {
 	/* 3. Finally, access control is applied for the access from D to C
 	      (§5.4.4). */ // TODO
 	return c;
+}
+
+template<class_file::descriptor_type Type>
+[[nodiscard]] inline expected<_class&, reference> try_resolve_class_from_type(
+	_class& d, Type type
+) {
+	if constexpr(same_as<Type, class_file::v>) {
+		return void_class.get();
+	}
+	if constexpr(same_as<Type, class_file::b>) {
+		return byte_class.get();
+	}
+	if constexpr(same_as<Type, class_file::c>) {
+		return char_class.get();
+	}
+	if constexpr(same_as<Type, class_file::d>) {
+		return double_class.get();
+	}
+	if constexpr(same_as<Type, class_file::f>) {
+		return float_class.get();
+	}
+	if constexpr(same_as<Type, class_file::i>) {
+		return int_class.get();
+	}
+	if constexpr(same_as<Type, class_file::j>) {
+		return long_class.get();
+	}
+	if constexpr(same_as<Type, class_file::s>) {
+		return short_class.get();
+	}
+	if constexpr(same_as<Type, class_file::z>) {
+		return bool_class.get();
+	}
+	else if constexpr(same_as<Type, class_file::object>) {
+		return try_resolve_class(d, type);
+	}
+	else if constexpr(same_as<Type, class_file::array>) {
+		return try_resolve_class(d, type);
+	}
+	else {
+		posix::abort();
+	}
 }

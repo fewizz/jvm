@@ -50,28 +50,21 @@ template<
 
 	descriptor.copy_to(array_as_span<uint8>(descriptor_ref));
 
-	expected<reference, reference> possible_result
-		= try_create_object(method_type_class.get());
+	expected<reference, reference> possible_mt
+		= try_create_object(
+			method_type_constructor.get(),
+			ret_class.instance(),
+			move(params_array_ref),
+			move(descriptor_ref)
+		);
 	
-	if(possible_result.is_unexpected()) {
-		return unexpected{ move(possible_result.get_unexpected()) };
+	if(possible_mt.is_unexpected()) {
+		return unexpected{ move(possible_mt.get_unexpected()) };
 	}
 
-	reference result = move(possible_result.get_expected());
+	reference mt = move(possible_mt.get_expected());
 
-	optional<reference> possible_throwable = try_execute(
-		method_type_constructor.get(),
-		result,
-		ret_class.instance(),
-		params_array_ref,
-		descriptor_ref
-	);
-
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-
-	return result;
+	return mt;
 }
 
 template<

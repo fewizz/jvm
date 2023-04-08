@@ -175,7 +175,12 @@ public:
 	);
 
 	auto declared_fields() {
-		return declared_fields_.as_span();
+		return find_by_name_and_descriptor_view<
+			decltype(declared_fields_.as_span()),
+			declared_field_index
+		> {
+			declared_fields_.as_span()
+		};
 	}
 	auto declared_methods() {
 		return find_by_name_and_descriptor_view<
@@ -276,9 +281,25 @@ public:
 		class_file::constant::method_ref
 	);
 
+	[[nodiscard]] expected<method&, reference> try_resolve_method(
+		class_file::constant::method_ref_index index
+	) {
+		class_file::constant::method_ref method_ref
+			= method_ref_constant(index);
+		return try_resolve_method(method_ref);
+	}
+
 	[[nodiscard]] expected<method&, reference> try_resolve_interface_method(
 		class_file::constant::interface_method_ref ref
 	);
+
+	[[nodiscard]] expected<method&, reference> try_resolve_interface_method(
+		class_file::constant::interface_method_ref_index index
+	) {
+		class_file::constant::interface_method_ref method_ref
+			= interface_method_ref_constant(index);
+		return try_resolve_interface_method(method_ref);
+	}
 
 	[[nodiscard]] expected<instance_field_index_and_stack_size, reference>
 	try_get_resolved_instance_field_index(

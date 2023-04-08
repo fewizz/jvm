@@ -70,7 +70,7 @@ inline _class::_class(
 	}()},
 	declared_instance_fields_ { [&] {
 		nuint count =
-			this->declared_fields().size() -
+			this->declared_fields_.size() -
 			range_size(declared_static_fields());
 		::list fields = posix::allocate_memory_for<field*>(count);
 		for(field& f : this->declared_fields()) {

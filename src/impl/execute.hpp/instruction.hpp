@@ -1311,18 +1311,17 @@ struct execute_instruction {
 			));
 		}
 
-		expected<instance_field_index_and_stack_size, reference>
-		possible_field_index_and_stack_size
+		expected<instance_field_index_and_stack_size, reference> possible_field
 			= c.try_get_resolved_instance_field_index(x.index);
 
-		if(possible_field_index_and_stack_size.is_unexpected()) {
+		if(possible_field.is_unexpected()) {
 			return handle_thrown(
-				move(possible_field_index_and_stack_size.get_unexpected())
+				move(possible_field.get_unexpected())
 			);
 		}
 
 		instance_field_index_and_stack_size field_index_and_stack_size
-			= possible_field_index_and_stack_size.get_expected();
+			= possible_field.get_expected();
 
 		ref->view(
 			field_index_and_stack_size.field_index,

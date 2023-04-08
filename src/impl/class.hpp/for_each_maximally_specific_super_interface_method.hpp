@@ -33,7 +33,14 @@ inline void _class::for_each_maximally_specific_super_interface_instance_method(
 				// declared in a subinterface of I."
 				// thus, not searching in farther superinterfaces
 				if(m.has_value()) {
-					action = handler(m.get());
+					if constexpr(
+						same_as<decltype(handler(m.get())), loop_action>
+					) {
+						action = handler(m.get());
+					}
+					else {
+						action = loop_action::next;
+					}
 				}
 				// search in superinterfaces
 				else {

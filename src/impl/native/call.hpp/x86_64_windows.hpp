@@ -5,6 +5,7 @@
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
 #include "decl/execution/info.hpp"
+#include "decl/native/thrown.hpp"
 
 #include <class_file/descriptor/method_reader.hpp>
 #include <overloaded.hpp>
@@ -16,7 +17,8 @@
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-inline void native_interface_call(native_function_ptr ptr, method& m) {
+inline optional<reference>
+try_native_interface_call(native_function_ptr ptr, method& m) {
 	nuint jstack_begin = stack.size() - m.parameters_stack_size();
 
 	uint64 i_regs[4]{};
@@ -78,12 +80,6 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		}.then([&]{ ++arg; }));
 	}
 
-	if(info) {
-		tabs();
-		print::out("native function call:\n");
-		++tab;
-	}
-
 	register uint64 result asm("rax") = 0;
 	register __m128 arg_0_f asm("xmm0") = f_regs[0];
 	{
@@ -100,8 +96,12 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 
 		void* rsp_beginning = nullptr;
 
+		register uint64* stack_beginning asm("r11")  = stack_storage;
+		register void* function_ptr asm("r12") = ptr;
+
 		asm volatile(
-				"movq %%rsp, %[rsp_beginning]\n"
+				"movq %%rsp, %%rax\n"
+				"movq %%rax, %[rsp_beginning]\n"
 				// alignment to 16
 				"movq %[stack_remaining], %%rax\n"
 				"salq $3, %%rax\n" // rax * 8
@@ -121,21 +121,20 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 				"callq *%[function_ptr]\n"
 				"movq %[rsp_beginning], %%rsp\n"
 			:
-				"+r"(result),
-				[rsp_beginning]"+m"(rsp_beginning),
+				"=r"(result),
 				"+r"(arg_1), "+r"(arg_0), "+r"(arg_2), "+r"(arg_3),
 				"+r"(arg_0_f), "+r"(arg_1_f), "+r"(arg_2_f), "+r"(arg_3_f),
+				[rsp_beginning]"=m"(rsp_beginning),
 				[stack_remaining]"+r"(stack_remaining)
 			:
-				[stack_beginning]"m"(stack_storage),
-				[function_ptr]"m"(ptr)
-			: "r10", "r11", "r12", "r13", "r14", "r15",
-			  "memory", "cc"
+				[stack_beginning]"r"(stack_beginning),
+				[function_ptr]"r"(function_ptr)
+			: "r10", "r13", "r14", "r15", "memory", "cc"
 		);
 	}
 
-	if(info) {
-		--tab;
+	if(!thrown_in_native.is_null()) {
+		return move(thrown_in_native);
 	}
 
 	m.return_type().view(
@@ -182,6 +181,8 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 			}
 		}
 	);
+
+	return {};
 }
 
 #endif

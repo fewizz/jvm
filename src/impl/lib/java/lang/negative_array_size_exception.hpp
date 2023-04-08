@@ -6,20 +6,9 @@
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_negative_array_size_exception() {
-	_class& c = negative_array_size_exception_class.get();
 	method& m = negative_array_size_exception_constructor.get();
 
-	expected<reference, reference> possible_ref = try_create_object(c);
-	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
-	}
-	reference ref = move(possible_ref.get_expected());
-	optional<reference> possible_throwable = try_execute(m, ref);
-
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-	return ref;
+	return try_create_object(m);
 }
 
 inline void init_java_lang_negative_array_size_exception() {

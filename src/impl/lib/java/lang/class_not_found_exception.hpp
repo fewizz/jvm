@@ -17,17 +17,5 @@ try_create_class_not_found_exception() {
 		c_string{"<init>"}, c_string{"()V"}
 	);
 
-	expected<reference, reference> possible_reference =
-		try_create_object(c);
-	
-	if(possible_reference.is_unexpected()) {
-		return unexpected{ move(possible_reference.get_unexpected()) };
-	}
-
-	reference ref = move(possible_reference.get_expected());
-	optional<reference> possible_throwable = try_execute(m, ref);
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-	return ref;
+	return try_create_object(m);
 }

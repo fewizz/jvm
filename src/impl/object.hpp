@@ -100,7 +100,8 @@ inline void object::unsafe_decrease_reference_count_without_destroing() {
 	--references_;
 }
 
-inline expected<reference, reference> try_create_object(_class& c) {
+[[nodiscard]] inline expected<reference, reference>
+try_create_object(_class& c) {
 	optional<reference> possible_throwable = c.try_initialise_if_need();
 	if(possible_throwable.has_value()) {
 		return unexpected{ move(possible_throwable.get()) };

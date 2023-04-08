@@ -27,15 +27,6 @@ try_create_stack_overflow_error() {
 	method& m = c.declared_methods().find(
 		c_string{ "<init>" }, c_string{ "()V" }
 	);
-	expected<reference, reference> possible_ref = try_create_object(c);
-	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
-	}
-	reference ref = move(possible_ref.get_expected());
-	optional<reference> possible_throwable = try_execute(m, ref);
-	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
-	}
-
-	return ref;
+	
+	return try_create_object(m);
 }

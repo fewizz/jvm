@@ -4,6 +4,7 @@
 
 #include "decl/execute.hpp"
 #include "decl/method.hpp"
+#include "decl/native/thrown.hpp"
 
 #include <numbers.hpp>
 
@@ -14,7 +15,8 @@
 typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
 typedef double __m128d __attribute__((__vector_size__(16), __aligned__(16)));
 
-inline void native_interface_call(native_function_ptr ptr, method& m) {
+inline optional<reference>
+try_native_interface_call(native_function_ptr ptr, method& m) {
 	nuint jstack_begin = stack.size() - m.parameters_stack_size();
 
 	uint64 i_regs[6]{};
@@ -142,8 +144,11 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 		);
 	}
 
-	one_of_descriptor_return_types ret_type = m.return_type();
-	ret_type.view(
+	if(!thrown_in_native.is_null()) {
+		return move(thrown_in_native);
+	}
+
+	m.return_type().view(
 		[&]<typename Type>(Type) {
 			if constexpr(same_as<Type, class_file::v>) {
 				stack.pop_back_until(jstack_begin);
@@ -188,6 +193,8 @@ inline void native_interface_call(native_function_ptr ptr, method& m) {
 			}
 		}
 	);
+
+	return {};
 }
 
 #endif

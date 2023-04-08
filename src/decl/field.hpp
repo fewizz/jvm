@@ -1,7 +1,7 @@
 #pragma once
 
 #include "./class/member.hpp"
-#include "./descriptor_types.hpp"
+#include "./descriptor.hpp"
 
 #include <class_file/descriptor/type.hpp>
 

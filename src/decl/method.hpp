@@ -3,7 +3,7 @@
 #include "./method/code.hpp"
 #include "./parameters_count.hpp"
 #include "./class/member.hpp"
-#include "./descriptor_types.hpp"
+#include "./descriptor.hpp"
 
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
@@ -35,7 +35,6 @@ using code_or_native_function_ptr =
 using exception_handlers = list<
 	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
 >;
-
 
 struct method : class_member {
 private:
@@ -102,15 +101,7 @@ public:
 		}
 		for(one_of_descriptor_parameter_types t : parameter_types_list) {
 			t.view([&]<typename Type>(Type) {
-				if constexpr(
-					same_as<Type, class_file::j> ||
-					same_as<Type, class_file::d>
-				) {
-					parameters_stack_size_ += 2;
-				}
-				else {
-					parameters_stack_size_ += 1;
-				}
+				parameters_stack_size_ += descriptor_type_stack_size<Type>;
 			});
 		}
 		parameter_types_ = parameter_types_list.move_storage_range();

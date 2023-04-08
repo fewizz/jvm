@@ -22,20 +22,7 @@ static void init_java_lang_array_store_exception() {
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_array_store_exception() {
-	expected<reference, reference> possible_ref
-		= try_create_object(array_store_exception_class.get());
-	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
-	}
-
-	reference ref = move(possible_ref.get_expected());
-	stack.emplace_back(ref);
-	optional<reference> possible_throwable
-		= try_execute(array_store_exception_constructor.get());
-	
-	if(possible_throwable.has_value()) {
-		return unexpected{ possible_throwable.get() };
-	}
-
-	return ref;
+	return try_create_object(
+		array_store_exception_constructor.get()
+	);
 }

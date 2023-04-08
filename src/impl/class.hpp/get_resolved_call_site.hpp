@@ -14,9 +14,16 @@
 #include <list.hpp>
 #include <storage.hpp>
 
+/* To resolve an unresolved symbolic reference R to a dynamically-computed
+   constant or call site, there are three tasks. First, R is examined to
+   determine which code will serve as its bootstrap method, and which arguments
+   will be passed to that code. Second, the arguments are packaged into an array
+   and the bootstrap method is invoked. Third, the result of the bootstrap
+   method is validated, and used as the result of resolution. */
 inline expected<reference, reference> _class::try_get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
+
 	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();
@@ -32,13 +39,14 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 	class_file::constant::invoke_dynamic invoke_dynamic
 		= invoke_dynamic_constant(index);
 	
-	/* R gives a symbolic reference to a bootstrap method handle. */
+	/* The first task involves the following steps: */
+	/* 1. R gives a symbolic reference to a bootstrap method handle. */
 	bootstrap_method& bm
 		= bootstrap_methods::as_span().operator [] (
 			invoke_dynamic.bootstrap_method_attr_index
 		);
-	/* The bootstrap method handle is resolved (§5.4.3.5) to obtain a reference
-	   to an instance of java.lang.invoke.MethodHandle. */
+	/*    The bootstrap method handle is resolved (§5.4.3.5) to obtain a
+	      reference to an instance of java.lang.invoke.MethodHandle. */
 	expected<reference, reference> possible_mh
 		= try_get_resolved_method_handle(bm.method_handle_index);
 	
