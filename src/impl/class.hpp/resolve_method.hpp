@@ -30,22 +30,8 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 
 	if(only_one_method_with_same_name) {
 		method& m = *methods_with_same_name.iterator();
-
-		bool c_is_mh_or_vh =
-			&c == method_handle_class.ptr() ||
-			&c == var_handle_class.ptr();
 		
-		bool param_is_object_array =
-			descriptor.starts_with(c_string{"(([Ljava/lang/Object;))"});
-		
-		bool varargs_and_native_flags_set =
-			m.access_flags().varargs &&
-			m.access_flags().native;
-		
-		bool is_signature_polymorphic =
-			c_is_mh_or_vh &&
-			param_is_object_array &&
-			varargs_and_native_flags_set;
+		bool is_signature_polymorphic = m.is_signature_polymorphic();
 		
 		if(is_signature_polymorphic) {
 			reference thrown;
@@ -130,19 +116,17 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	        method that does not have its ACC_ABSTRACT flag set, then this
 	        method is chosen and method lookup succeeds. */
 	if(!m.has_value()) {
-		nuint mssim_count = 0;
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
 			[&](method& m0) {
 				if(!m0.access_flags().abstract) {
-					if(mssim_count == 0) {
-						m = m0;
-					}
-					else {
+					if(m.has_value()) { // more than one
 						m = {};
+						return loop_action::stop;
 					}
-					++mssim_count;
+					m = m0;
 				}
+				return loop_action::next;
 			}
 		);
 	}
@@ -191,12 +175,12 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 inline expected<method&, reference> _class::try_resolve_method(
 	class_file::constant::method_ref ref
 ) {
-	/* "To resolve an unresolved symbolic reference from D to a method in a
-	    class C, the symbolic reference to C given by the method reference is
-	    first resolved (§5.4.3.1)" */
+	/* To resolve an unresolved symbolic reference from D to a method in a
+	   class C, the symbolic reference to C given by the method reference is
+	   first resolved (§5.4.3.1) */
 	expected<_class&, reference> possible_c
 		= try_get_resolved_class(ref.class_index);
-	
+
 	_class& c = possible_c.get_expected();
 
 	auto nat = name_and_type_constant(ref.name_and_type_index);

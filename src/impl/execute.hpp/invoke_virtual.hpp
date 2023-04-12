@@ -8,29 +8,11 @@
 
 #include <class_file/constant.hpp>
 
+template<basic_range Desriptor>
 [[nodiscard]] inline optional<reference> try_invoke_virtual(
-	class_file::constant::method_ref_index ref_index, _class& c
+	method& resolved_method, Desriptor&& desc
 ) {
-	namespace cf = class_file;
-	namespace cc = cf::constant;
-
-	cc::method_ref method_ref { c.method_ref_constant(ref_index) };
-	cc::name_and_type nat =
-			c.name_and_type_constant(method_ref.name_and_type_index);
-	cc::utf8 desc = c.utf8_constant(nat.descriptor_index);
-	cc::utf8 name = c.utf8_constant(nat.name_index);
-
-	cc::_class _c { c.class_constant(method_ref.class_index) };
-	cc::utf8 class_name = c.utf8_constant(_c.name_index);
-
-	if(info) {
-		tabs();
-		print::out("invoke_virtual ", class_name, ".", name, desc, "\n");
-	}
-
-	if(class_name.has_equal_size_and_elements(
-		c_string{ "java/lang/invoke/MethodHandle" }
-	)) {
+	if(resolved_method.is_signature_polymorphic()) {
 		nuint args_count_stack = 0;
 
 		class_file::method_descriptor::reader reader{ desc.iterator() };
@@ -51,7 +33,10 @@
 			--args_beginning_positoin;
 		}
 
-		if(name.has_equal_size_and_elements(c_string{ "invokeExact" })) {
+		if(
+			resolved_method.name()
+			.has_equal_size_and_elements(c_string{ "invokeExact" })
+		) {
 			return method_handle_invoke_exact(
 				move(mh_ref), args_beginning_positoin
 			);
@@ -61,15 +46,6 @@
 
 		return {};
 	}
-
-	expected<method&, reference> possible_resolved_method
-		= c.try_get_resolved_method(ref_index);
-	
-	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
-	}
-
-	method& resolved_method = possible_resolved_method.get_expected();
 
 	uint8 args_stack_count = resolved_method.parameters_stack_size();
 
@@ -98,4 +74,30 @@
 	}};
 
 	return try_execute(m);
+}
+
+[[nodiscard]] inline optional<reference> try_invoke_virtual(
+	_class& d, class_file::constant::method_ref_index ref_index
+) {
+	namespace cf = class_file;
+	namespace cc = cf::constant;
+
+	cc::method_ref method_ref = d.method_ref_constant(ref_index);
+	cc::name_and_type nat =
+			d.name_and_type_constant(method_ref.name_and_type_index);
+	cc::utf8 desc = d.utf8_constant(nat.descriptor_index);
+	cc::utf8 name = d.utf8_constant(nat.name_index);
+
+	cc::_class _c { d.class_constant(method_ref.class_index) };
+	cc::utf8 class_name = d.utf8_constant(_c.name_index);
+
+	expected<method&, reference> possible_resolved_method
+		= d.try_get_resolved_method(ref_index);
+	
+	if(possible_resolved_method.is_unexpected()) {
+		return move(possible_resolved_method.get_unexpected());
+	}
+
+	method& resolved_method = possible_resolved_method.get_expected();
+	return try_invoke_virtual(resolved_method, desc);
 }

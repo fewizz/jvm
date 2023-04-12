@@ -157,4 +157,6 @@ public:
 
 	bool is_instance_initialisation() const;
 
+	bool is_signature_polymorphic() const;
+
 };

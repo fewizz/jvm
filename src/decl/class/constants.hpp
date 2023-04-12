@@ -59,6 +59,10 @@ public:
 		return constant<class_file::constant::utf8>(index);
 	}
 
+	auto operator [] (class_file::constant::utf8_index index) const {
+		return utf8_constant(index);
+	}
+
 	auto int_constant(class_file::constant::int_index index) const {
 		return constant<class_file::constant::_int>(index);
 	}
@@ -79,6 +83,10 @@ public:
 		return constant<class_file::constant::_class>(index);
 	}
 
+	auto operator [] (class_file::constant::class_index index) const {
+		return class_constant(index);
+	}
+
 	auto string_constant(class_file::constant::string_index index) const {
 		return constant<class_file::constant::string>(index);
 	}
@@ -93,16 +101,30 @@ public:
 		return constant<class_file::constant::method_ref>(index);
 	}
 
+	auto operator [] (class_file::constant::method_ref_index index) const {
+		return method_ref_constant(index);
+	}
+
 	auto interface_method_ref_constant(
 		class_file::constant::interface_method_ref_index index
 	) const {
 		return constant<class_file::constant::interface_method_ref>(index);
 	}
 
+	auto operator [] (
+		class_file::constant::interface_method_ref_index index
+	) const {
+		return interface_method_ref_constant(index);
+	}
+
 	auto name_and_type_constant(
 		class_file::constant::name_and_type_index index
 	) const {
 		return constant<class_file::constant::name_and_type>(index);
+	}
+
+	auto operator [] (class_file::constant::name_and_type_index index) const {
+		return name_and_type_constant(index);
 	}
 
 	auto method_handle_constant(
@@ -115,6 +137,38 @@ public:
 		class_file::constant::invoke_dynamic_index index
 	) const {
 		return constant<class_file::constant::invoke_dynamic>(index);
+	}
+
+	template<typename Handler>
+	decltype(auto) view_method_or_interface_method_constant_index(
+		class_file::constant::method_or_interface_method_ref_index index,
+		Handler&& handler
+	) {
+		::constant c = constant(index);
+		if(c.is_same_as<class_file::constant::method_ref>()) {
+			return handler(
+				class_file::constant::method_ref_index{ index }
+			);
+		}
+		if(c.is_same_as<class_file::constant::interface_method_ref>()) {
+			return handler(
+				class_file::constant::interface_method_ref_index{ index }
+			);
+		}
+		posix::abort(); // impossible
+	}
+
+	template<typename Handler>
+	decltype(auto) view_method_or_interface_method_constant(
+		class_file::constant::method_or_interface_method_ref_index index,
+		Handler&& handler
+	) {
+		return view_method_or_interface_method_constant_index(
+			index,
+			[&](auto index) {
+				return handler((*this)[index]);
+			}
+		);
 	}
 
 };

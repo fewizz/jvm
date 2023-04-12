@@ -105,6 +105,8 @@ public:
 	inline const method& operator[](declared_static_method_index index) const;
 	inline       method& operator[](declared_static_method_index index);
 
+	using constants::operator [];
+
 	class_file::access_flags access_flags() const { return access_flags_; }
 
 	this_class_name name() const { return this_name_; }
@@ -273,8 +275,18 @@ public:
 		class_file::constant::invoke_dynamic_index index
 	);
 
-	[[nodiscard]] expected<method&, reference> try_get_resolved_method(
-		class_file::constant::method_ref_index ref_index
+	template<typename Verifier>
+	[[nodiscard]] expected<method&, reference>
+	try_get_resolved_method(
+		class_file::constant::method_ref_index ref_index,
+		Verifier&& verifier
+	);
+
+	template<typename Verifier>
+	[[nodiscard]] expected<method&, reference>
+	try_get_resolved_interface_method(
+		class_file::constant::interface_method_ref_index ref_index,
+		Verifier&& verifier
 	);
 
 	[[nodiscard]] expected<method&, reference> try_resolve_method(
@@ -306,7 +318,7 @@ public:
 		class_file::constant::field_ref_index ref_index
 	);
 
-	[[nodiscard]] expected<method&, reference> try_get_static_method(
+	[[nodiscard]] expected<method&, reference> try_get_resolved_static_method(
 		class_file::constant::method_ref_index ref_index
 	);
 
@@ -315,13 +327,78 @@ public:
 		class_file::constant::field_ref_index ref_index
 	);
 
+	/* A maximally-specific superinterface method of a class or interface C for
+	   a particular method name and descriptor is any method for which all of
+	   the following are true:
+	   * The method is declared in a superinterface (direct or indirect) of C.
+	   * The method is declared with the specified name and descriptor.
+	   * The method has neither its ACC_PRIVATE flag nor its ACC_STATIC
+	     flag set.
+	   * Where the method is declared in interface I, there exists no other
+	     maximally-specific superinterface method of C with the specified name
+	     and descriptor that is declared in a subinterface of I. */
 	template<typename Name, typename Descriptor, typename Handler>
 	void for_each_maximally_specific_super_interface_instance_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
-	);
+	) {
+		auto search_for_method = [&](_class& c) -> optional<method&> {
+			for(method& m : c.declared_instance_methods()) {
+				if(
+					has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
+					!m.access_flags()._private
+				) {
+					return m;
+				}
+			}
+			return {};
+		};
+		struct recursive {
+			loop_action operator()(
+				Handler&& handler, decltype(search_for_method) search, _class& c
+			) {
+				for(_class& super_i : c.declared_interfaces()) {
+					loop_action handlers_action;
+
+					optional<method&> m = search(super_i);
+
+					if(m.has_value()) {
+						if constexpr(
+							same_as<decltype(handler(m.get())), loop_action>
+						) {
+							handlers_action = handler(m.get());
+						}
+						else {
+							handlers_action = loop_action::next;
+						}
+					}
+					// search in superinterfaces
+					else {
+						handlers_action = recursive{}(
+							forward<Handler>(handler), search, super_i
+						);
+					}
+
+					switch (handlers_action) {
+						case loop_action::stop: return loop_action::stop;
+						case loop_action::next: continue;
+					}
+				}
+				return loop_action::next;
+			}
+		};
+		recursive{}(forward<Handler>(handler), search_for_method, *this);
+	}
 
 	template<typename Handler>
-	void for_each_super_interface(Handler&& handler);
+	void for_each_super_interface(Handler&& handler) {
+		for(_class& i : declared_interfaces()) {
+			loop_action action = handler(i);
+			switch (action) {
+				case loop_action::stop: return;
+				case loop_action::next: continue;
+			}
+		}
+	}
 
 	bool is_sub_of(_class& other) const {
 		if(has_super()) {
