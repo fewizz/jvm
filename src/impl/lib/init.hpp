@@ -25,6 +25,7 @@
 #include "./java/lang/integer.hpp"
 #include "./java/lang/long.hpp"
 #include "./java/lang/negative_array_size_exception.hpp"
+#include "./java/lang/no_such_field_error.hpp"
 #include "./java/lang/no_such_method_error.hpp"
 #include "./java/lang/null_pointer_exception.hpp"
 #include "./java/lang/object.hpp"
@@ -72,6 +73,7 @@ static inline void init_lib() {
 	init_java_lang_integer();
 	init_java_lang_long();
 	init_java_lang_negative_array_size_exception();
+	init_java_lang_no_such_field_error();
 	init_java_lang_no_such_method_error();
 	init_java_lang_null_pointer_exception();
 	init_java_lang_runtime();

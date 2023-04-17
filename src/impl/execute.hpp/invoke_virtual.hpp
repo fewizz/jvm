@@ -60,18 +60,17 @@ template<basic_range Desriptor>
 	/* Otherwise, if objectref is null, the invokevirtual instruction throws a
 	   NullPointerException. */
 	if(obj_ref.is_null()) {
-		expected<reference, reference> possible_npe
-			= try_create_null_pointer_exception();
-		return move(possible_npe.get());
+		return try_create_null_pointer_exception().get();
 	}
 
 	/* Let C be the class of objectref. A method is selected with respect to C
 	   and the resolved method (§5.4.6). This is the method to be invoked. */
 	_class& c = obj_ref._class();
-	optional<method&> possible_m = try_select_method(c, resolved_method);
+	optional<method&> possible_selected_method
+		= try_select_method(c, resolved_method);
 
 	/* Otherwise, if no method is selected, */
-	if(!possible_m.has_value()) {
+	if(!possible_selected_method.has_value()) {
 		nuint maximally_specific_count = 0;
 		c.for_each_maximally_specific_super_interface_instance_method(
 			resolved_method.name(), resolved_method.descriptor(),
@@ -85,28 +84,22 @@ template<basic_range Desriptor>
 		   that match the resolved method's name and descriptor and are not
 		   abstract, invokevirtual throws an IncompatibleClassChangeError */
 		if(maximally_specific_count > 1) {
-			expected<reference, reference> possible_icce
-				= try_create_incompatible_class_change_error();
-			return move(possible_icce.get());
+			return try_create_incompatible_class_change_error().get();
 		}
 		/* and there are no maximally-specific superinterface methods of C that
 		   match the resolved method's name and descriptor and are not abstract,
 		   invokevirtual throws an AbstractMethodError. */
 		else {
-			expected<reference, reference> possible_ame
-				= try_create_abstract_method_error();
-			return move(possible_ame.get());
+			return try_create_abstract_method_error().get();
 		}
 	}
 
-	method& m = possible_m.get();
+	method& selected_method = possible_selected_method.get();
 
 	/* If the selected method is abstract, invokevirtual throws an
 	   AbstractMethodError. */
-	if(m.is_abstract()) {
-		expected<reference, reference> possible_ame
-			= try_create_abstract_method_error();
-		return move(possible_ame.get());
+	if(selected_method.is_abstract()) {
+		return try_create_abstract_method_error().get();
 	}
 
 	/* Otherwise, if the selected method is native and the code that implements
@@ -116,14 +109,16 @@ template<basic_range Desriptor>
 	/* If the method to be invoked is synchronized, the monitor associated with
 	   objectref is entered or reentered as if by execution of a monitorenter
 	   instruction (§monitorenter) in the current thread. */
-	if(m.is_synchronized()) {
+	if(selected_method.is_synchronized()) {
 		obj_ref->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(m.is_synchronized()) obj_ref->unlock();
+		if(selected_method.is_synchronized()) {
+			obj_ref->unlock();
+		}
 	}};
 
-	return try_execute(m);
+	return try_execute(selected_method);
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_virtual(
@@ -138,8 +133,8 @@ template<basic_range Desriptor>
 	cc::utf8 desc = d.utf8_constant(nat.descriptor_index);
 	cc::utf8 name = d.utf8_constant(nat.name_index);
 
-	cc::_class _c { d.class_constant(method_ref.class_index) };
-	cc::utf8 class_name = d.utf8_constant(_c.name_index);
+	cc::_class c = d.class_constant(method_ref.class_index);
+	cc::utf8 class_name = d.utf8_constant(c.name_index);
 
 	expected<method&, reference> possible_resolved_method
 		= d.try_get_resolved_method(
@@ -149,9 +144,7 @@ template<basic_range Desriptor>
 				   the invokevirtual instruction throws an
 				   IncompatibleClassChangeError. */
 				if(m.is_static()) {
-					expected<reference, reference> possible_icce
-						= try_create_incompatible_class_change_error();
-					return move(possible_icce.get());
+					return try_create_incompatible_class_change_error().get();
 				}
 
 				/* Otherwise, if the resolved method is signature polymorphic

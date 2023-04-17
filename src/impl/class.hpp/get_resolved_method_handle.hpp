@@ -89,7 +89,6 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			/* 1 */
 			expected<field&, reference> possible_r
 				= try_resolve_field(
-					*this,
 					(class_file::constant::field_ref_index) r
 				);
 			if(possible_r.is_unexpected()) {

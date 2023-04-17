@@ -1397,22 +1397,24 @@ struct execute_instruction {
 		_class& d = c;
 
 		if(info) {
-			class_file::constant::method_ref method_ref
-				= d.method_ref_constant(x.index);
-
-			class_file::constant::name_and_type nat
-				= d.name_and_type_constant(method_ref.name_and_type_index);
-			
-			class_file::constant::utf8 desc
-				= d.utf8_constant(nat.descriptor_index);
-			tabs(); print::out("invoke_special ");
-			class_file::constant::_class c
-				= d.class_constant(method_ref.class_index);
-			class_file::constant::utf8 c_name
-				= d.utf8_constant(c.name_index);
-			class_file::constant::utf8
-				name = d.utf8_constant(nat.name_index);
-			print::out(c_name, ".", name, desc, "\n");
+			d.view_method_or_interface_method_constant(
+				x.index, [&](auto method_ref) {
+					class_file::constant::name_and_type nat
+						= d.name_and_type_constant(
+							method_ref.name_and_type_index
+						);
+					class_file::constant::utf8 desc
+						= d.utf8_constant(nat.descriptor_index);
+					tabs(); print::out("invoke_special ");
+					class_file::constant::_class c
+						= d.class_constant(method_ref.class_index);
+					class_file::constant::utf8 c_name
+						= d.utf8_constant(c.name_index);
+					class_file::constant::utf8
+						name = d.utf8_constant(nat.name_index);
+					print::out(c_name, ".", name, desc, "\n");
+				}
+			);
 		}
 
 		optional<reference> possible_throwable

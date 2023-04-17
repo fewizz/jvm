@@ -340,6 +340,18 @@ public:
 		return try_resolve_interface_method(method_ref);
 	}
 
+	[[nodiscard]] expected<field&, reference> try_resolve_field(
+		class_file::constant::field_ref
+	);
+
+	[[nodiscard]] expected<field&, reference> try_resolve_field(
+		class_file::constant::field_ref_index index
+	) {
+		class_file::constant::field_ref field_ref
+			= field_ref_constant(index);
+		return try_resolve_field(field_ref);
+	}
+
 	[[nodiscard]] expected<instance_field_index_and_stack_size, reference>
 	try_get_resolved_instance_field_index(
 		class_file::constant::field_ref_index ref_index

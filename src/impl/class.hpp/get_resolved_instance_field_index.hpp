@@ -25,7 +25,7 @@ _class::try_get_resolved_instance_field_index(
 	}
 
 	expected<field&, reference> possible_resolved_field
-		= try_resolve_field(*this, ref_index);
+		= try_resolve_field(ref_index);
 	
 	if(possible_resolved_field.is_unexpected()) {
 		return unexpected{ move(possible_resolved_field.get_unexpected()) };

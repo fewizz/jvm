@@ -22,17 +22,13 @@
 	/* Otherwise, if objectref is null, the invokeinterface instruction throws
 	   a NullPointerException. */
 	if(obj_ref.is_null()) {
-		expected<reference, reference> possible_npe
-			= try_create_null_pointer_exception();
-		return move(possible_npe.get());
+		return try_create_null_pointer_exception().get();
 	}
 
 	/* Otherwise, if the class of objectref does not implement the resolved
 	   interface, invokeinterface throws an IncompatibleClassChangeError. */
 	if(!obj_ref._class().is_implementing(resolved_interface_method._class())) {
-		expected<reference, reference> possible_icce
-			= try_create_incompatible_class_change_error();
-		return move(possible_icce.get());
+		return try_create_incompatible_class_change_error().get();
 	}
 
 	/* Let C be the class of objectref. A method is selected with respect to C
@@ -58,17 +54,13 @@
 		   that match the resolved method's name and descriptor and are not
 		   abstract, invokeinterface throws an IncompatibleClassChangeError */
 		if(maximally_specific_count > 1) {
-			expected<reference, reference> possible_icce
-				= try_create_incompatible_class_change_error();
-			return move(possible_icce.get());
+			return try_create_incompatible_class_change_error().get();
 		}
 		/* and there are no maximally-specific superinterface methods of C that
 		   match the resolved method's name and descriptor and are not abstract,
 		   invokeinterface throws an AbstractMethodError. */
 		else {
-			expected<reference, reference> possible_ame
-				= try_create_abstract_method_error();
-			return move(possible_ame.get());
+			return try_create_abstract_method_error().get();
 		}
 	}
 
@@ -77,17 +69,13 @@
 	/* Otherwise, if the selected method is neither public nor private,
 	   invokeinterface throws an IllegalAccessError. */
 	if(!selected_method.is_public() || !selected_method.is_private()) {
-		expected<reference, reference> possible_iae
-			= try_create_illegal_access_error();
-		return move(possible_iae.get());
+		return try_create_illegal_access_error().get();
 	}
 
 	/* Otherwise, if the selected method is abstract, invokeinterface throws an
 	   AbstractMethodError. */
 	if(selected_method.is_abstract()) {
-		expected<reference, reference> possible_ame
-			= try_create_abstract_method_error();
-		return move(possible_ame.get());
+		return try_create_abstract_method_error().get();
 	}
 
 	/* Otherwise, if the selected method is native and the code that implements

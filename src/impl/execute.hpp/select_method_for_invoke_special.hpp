@@ -18,10 +18,10 @@ inline optional<method&> select_method_for_invoke_special(
 		!referenced_class.is_interface() &&
 		 referenced_class.is_sub_of(current);// &&
 		/*    "The ACC_SUPER flag is set for the class file (§4.1)." */
-		/*    always set: "In Java SE 8 and above, the Java Virtual Machine
-		      considers the ACC_SUPER flag to be set in every class file,
-		      regardless of the actual value of the flag in the class file and
-		      the version of the class file" */
+		/*     always set: "In Java SE 8 and above, the Java Virtual Machine
+		       considers the ACC_SUPER flag to be set in every class file,
+		       regardless of the actual value of the flag in the class file and
+		       the version of the class file" */
 
 	_class& c =
 		c_is_direct_super_class ? current.super() :
