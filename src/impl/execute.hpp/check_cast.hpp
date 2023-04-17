@@ -79,11 +79,7 @@ try_check_cast(_class& c, class_file::constant::class_index index) {
 	if(!cast{}(s, t)) {
 		expected<reference, reference> possible_exception
 			= try_create_class_cast_exception();
-		return move(
-			possible_exception.is_unexpected() ?
-			possible_exception.get_unexpected() :
-			possible_exception.get_expected()
-		);
+		return move(possible_exception.get());
 	}
 
 	return {};

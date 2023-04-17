@@ -4,7 +4,7 @@
 
 #include <loop_action.hpp>
 
-inline method& select_method_for_invoke_special(
+inline optional<method&> select_method_for_invoke_special(
 	_class& current, _class& referenced_class, method& resolved_method
 ) {
 	/* "If all of the following are true, let C be the direct superclass of
@@ -73,9 +73,5 @@ inline method& select_method_for_invoke_special(
 		);
 	}
 
-	if(!m.has_value()) {
-		posix::abort();
-	}
-
-	return m.get();
+	return m;
 }

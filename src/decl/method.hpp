@@ -159,4 +159,6 @@ public:
 
 	bool is_signature_polymorphic() const;
 
+	bool can_override(method&) const;
+
 };

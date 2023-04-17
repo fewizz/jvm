@@ -113,20 +113,47 @@ public:
 	span<char> descriptor() const {
 		return ::span{ (char*) descriptor_.iterator(), descriptor_.size() };
 	}
+
+	span<const char> package() const {
+		optional<uint16> possible_slash_index
+			= name().try_find_index_of_last_satisfying([](char ch) {
+				return ch == '/';
+			});
+		if(possible_slash_index.has_value()) {
+			uint16 slash_index = possible_slash_index.get();
+			uint16 beginning_offset = slash_index + 1;
+			uint16 new_size = name().size() - beginning_offset;
+			return { name().iterator() + beginning_offset, new_size };
+		}
+		else {
+			return {};
+		}
+	}
+
 	const _class& super() const { return super_.get(); }
 	      _class& super()       { return super_.get(); }
 	bool has_super() const { return super_.has_value(); }
+
+	const _class* ptr() const & { return this; }
+	      _class* ptr()       & { return this; }
 
 	class_file::constant::utf8 source_file() const { return source_file_; }
 	bool has_source_file() const { return source_file_.iterator() != nullptr; }
 
 	bool is_interface() const { return access_flags_.interface; }
+	bool is_public() const { return access_flags_._public; }
+	bool is_protected() const { return access_flags_._protected; }
+	bool is_private() const { return access_flags_._private; }
+
+	bool has_default_access() const {
+		return !is_public() && !is_protected() && !is_private();
+	}
 
 	bool is_array() const { return is_array_; }
 	bool is_primitive() const { return is_primitive_; }
 	bool is_not_primitive() const { return !is_primitive_; }
 	bool is_reference() const { return !is_primitive_; }
-	bool is(const _class& c) const { return &c == this; }
+	bool is(const _class& c) const { return c.ptr() == this; }
 
 	_class& get_array_class();
 	_class& get_component_class();

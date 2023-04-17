@@ -17,11 +17,7 @@ static void init_java_lang_reflect_array() {
 			if(len < 0) {
 				expected<reference, reference> possible_nase
 					= try_create_negative_array_size_exception();
-				thrown_in_native = move(
-					possible_nase.is_unexpected() ?
-					possible_nase.get_unexpected() :
-					possible_nase.get_expected()
-				);
+				thrown_in_native = move(possible_nase.get());
 				return nullptr;
 			}
 			_class& c = class_from_class_instance(*component_type);

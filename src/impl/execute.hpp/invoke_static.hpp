@@ -49,11 +49,7 @@ inline optional<reference> try_invoke_static(
 			expected<reference, reference> possible_icce
 				= try_create_incompatible_class_change_error();
 
-			return move(
-				possible_icce.is_unexpected() ?
-				possible_icce.get_expected() :
-				possible_icce.get_unexpected()
-			);
+			return move(possible_icce.get());
 		}
 
 		/* On successful resolution of the method, the class or interface that

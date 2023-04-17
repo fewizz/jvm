@@ -74,19 +74,20 @@ try_lookup_find_static(object& cls, object& name, object& mt) {
 }
 
 static expected<reference, reference> try_lookup_find_special(
-	object& refc, object& name, object& mt, object& special_caller
+	[[maybe_unused]]object& refc, object& name, [[maybe_unused]] object& mt, [[maybe_unused]] object& special_caller
 ) {
-	return view_string_on_stack_as_utf8(name, [&](auto name_utf8)
+	return view_string_on_stack_as_utf8(name, [&]([[maybe_unused]] auto name_utf8)
 	-> expected<reference, reference>
 	{
-		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
+		posix::abort();
+		/*if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
 		_class& receiver = class_from_class_instance(refc);
 		_class& current = class_from_class_instance(special_caller);
 		expected<method&, reference> possible_resolved_method =
 			try_resolve_method(receiver, name_utf8, method_type_descriptor(mt));
-		
+
 		if(possible_resolved_method.is_unexpected()) {
 			return unexpected {
 				move(possible_resolved_method.get_unexpected())
@@ -95,13 +96,16 @@ static expected<reference, reference> try_lookup_find_special(
 
 		method& resolved_method = possible_resolved_method.get_expected();
 
-		method& m = select_method_for_invoke_special(
+		optional<method&> possible_m = select_method_for_invoke_special(
 			current, receiver, resolved_method
 		);
+		if(!possible_m.has_value()) {
+			posix::abort();
+		}
 
 		return try_create_special_mh(
 			mt, m
-		);
+		);*/
 	});
 }
 

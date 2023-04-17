@@ -34,11 +34,7 @@ static inline void init_java_lang_system() {
 			if(src == nullptr || dst == nullptr) {
 				expected<reference, reference> possible_npe
 					= try_create_null_pointer_exception();
-				thrown_in_native = move(
-					possible_npe.is_unexpected() ?
-					possible_npe.get_unexpected() :
-					possible_npe.get_expected()
-				);
+				thrown_in_native = move(possible_npe.get());
 				return;
 			}
 			// TODO case when src == dst
@@ -56,11 +52,7 @@ static inline void init_java_lang_system() {
 			) {
 				expected<reference, reference> possible_ase
 					= try_create_array_store_exception();
-				thrown_in_native = move(
-					possible_ase.is_unexpected() ?
-					possible_ase.get_unexpected() :
-					possible_ase.get_expected()
-				);
+				thrown_in_native = move(possible_ase.get());
 				return;
 			}
 
@@ -87,11 +79,7 @@ static inline void init_java_lang_system() {
 			) {
 				expected<reference, reference> possible_ase
 					= try_create_array_store_exception();
-				thrown_in_native = move(
-					possible_ase.is_unexpected() ?
-					possible_ase.get_unexpected() :
-					possible_ase.get_expected()
-				);
+				thrown_in_native = move(possible_ase.get());
 				return;
 			}
 
@@ -114,11 +102,7 @@ static inline void init_java_lang_system() {
 			) {
 				expected<reference, reference> possible_ioobe
 					= try_create_index_of_of_bounds_exception();
-				thrown_in_native = move(
-					possible_ioobe.is_unexpected() ?
-					possible_ioobe.get_unexpected() :
-					possible_ioobe.get_expected()
-				);
+				thrown_in_native = move(possible_ioobe.get());
 				return;
 			}
 
@@ -185,11 +169,7 @@ static inline void init_java_lang_system() {
 					if(!assignable) {
 						expected<reference, reference> possible_ase
 							= try_create_array_store_exception();
-						thrown_in_native = move(
-							possible_ase.is_unexpected() ?
-							possible_ase.get_unexpected() :
-							possible_ase.get_expected()
-						);
+						thrown_in_native = move(possible_ase.get());
 						return;
 					}
 				}

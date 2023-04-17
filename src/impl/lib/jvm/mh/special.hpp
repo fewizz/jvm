@@ -41,11 +41,7 @@ static void init_jvm_mh_special() {
 			if(!valid) {
 				expected<reference, reference> possible_wmte
 					= try_create_wrong_method_type_exception();
-				return move(
-					possible_wmte.is_unexpected() ?
-					possible_wmte.get_unexpected() :
-					possible_wmte.get_expected()
-				);
+				return move(possible_wmte.get());
 			}
 
 			return try_execute(refc[method_index]);

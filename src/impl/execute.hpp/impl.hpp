@@ -105,11 +105,7 @@ static optional<reference> try_execute(method& m) {
 			expected<reference, reference> possible_soe
 				= try_create_stack_overflow_error();
 
-			return move(
-				possible_soe.is_unexpected() ?
-				possible_soe.get_unexpected() :
-				possible_soe.get_expected()
-			);
+			return move(possible_soe.get());
 		}
 	}
 

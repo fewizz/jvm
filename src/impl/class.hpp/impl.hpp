@@ -1,4 +1,5 @@
 #include "./ctor.hpp"
+#include "./access_control.hpp"
 #include "./destruct_declared_static_fields_values.hpp"
 #include "./get_array_class.hpp"
 #include "./get_component_class.hpp"

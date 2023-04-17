@@ -36,11 +36,7 @@ _class::try_get_resolved_instance_field_index(
 	if(resolved_field.is_static()) {
 		expected<reference, reference> possible_icce
 			= try_create_incompatible_class_change_error();
-		return unexpected { move(
-			possible_icce.is_unexpected() ?
-			possible_icce.get_unexpected() :
-			possible_icce.get_expected()
-		)};
+		return unexpected { move(possible_icce.get()) };
 	}
 
 	optional<instance_field_index> possible_index

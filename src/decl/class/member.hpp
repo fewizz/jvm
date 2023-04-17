@@ -4,6 +4,7 @@
 #include <class_file/constant.hpp>
 
 #include <optional.hpp>
+#include <range.hpp>
 
 struct _class;
 
@@ -42,8 +43,32 @@ public:
 		return access_flags_;
 	}
 
-	bool is_static() const {
-		return access_flags()._static;
+	bool is_static() const { return access_flags()._static; }
+	bool is_synchronized() const { return access_flags().super_or_synchronized;}
+	bool is_native() const { return access_flags().native; }
+
+	bool is_public() const { return access_flags()._public; }
+	bool is_protected() const { return access_flags()._protected; }
+	bool is_private() const { return access_flags().super_or_synchronized; }
+
+	bool has_default_access() const {
+		return !is_public() && !is_protected() && !is_private();
+	}
+
+	span<const char> package() const {
+		optional<uint16> possible_slash_index
+			= name().try_find_index_of_last_satisfying([](char ch) {
+				return ch == '/';
+			});
+		if(possible_slash_index.has_value()) {
+			uint16 slash_index = possible_slash_index.get();
+			uint16 beginning_offset = slash_index + 1;
+			uint16 new_size = name().size() - beginning_offset;
+			return { name().iterator() + beginning_offset, new_size };
+		}
+		else {
+			return {};
+		}
 	}
 
 };

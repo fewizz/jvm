@@ -96,21 +96,13 @@ struct execute_instruction {
 		if(array_ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
 			expected<reference, reference> possible_ioobe
 				= try_create_index_of_of_bounds_exception();
-			return handle_thrown(move(
-				possible_ioobe.is_unexpected() ?
-				possible_ioobe.get_unexpected() :
-				possible_ioobe.get_expected()
-			));
+			return handle_thrown(move(possible_ioobe.get()));
 		}
 		E* ptr = array_data<E>(array_ref);
 		handler(ptr[element_index]);
@@ -1304,11 +1296,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 
 		expected<instance_field_index_and_stack_size, reference> possible_field
@@ -1364,11 +1352,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		ref->view(
 			field_index_and_stack_size.field_index,
@@ -1575,11 +1559,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		stack.emplace_back(int32{ ::array_length(ref) });
 		return loop_action::next;
@@ -1591,11 +1571,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		return handle_thrown(move(ref));
 	}
@@ -1619,11 +1595,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		ref->lock();
 		return loop_action::next;
@@ -1633,11 +1605,7 @@ struct execute_instruction {
 		if(ref.is_null()) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			return handle_thrown(move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			));
+			return handle_thrown(move(possible_npe.get()));
 		}
 		ref->unlock();
 		return loop_action::next;

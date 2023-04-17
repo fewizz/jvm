@@ -27,10 +27,10 @@ template<basic_range StackType>
     the stack, and (ii) a method that was previously resolved by the
     instruction. The rules to select a method with respect to a class or
     interface C and a method mR are as follows:" */
-method& select_method(
+optional<method&> try_select_method(
 	_class& c, method& mr
 );
 
-method& select_method_for_invoke_special(
+optional<method&> select_method_for_invoke_special(
 	_class& current, _class& referenced_class, method& resolved_method
 );

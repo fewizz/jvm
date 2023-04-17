@@ -12,7 +12,10 @@ inline optional<reference> try_invoke_special(
 	class_file::constant::method_ref_index ref_index, _class& current
 ) {
 	expected<method&, reference> possible_resolved_method
-		= current.try_get_resolved_method(ref_index);
+		= current.try_get_resolved_method(
+			ref_index,
+			[](method&) -> optional<reference> { return {}; }
+		);
 
 	if(possible_resolved_method.is_unexpected()) {
 		return move(possible_resolved_method.get_unexpected());
@@ -33,9 +36,14 @@ inline optional<reference> try_invoke_special(
 
 	_class& referenced_class = possible_referenced_class.get_expected();
 
-	method& m = select_method_for_invoke_special(
+	optional<method&> possible_m = select_method_for_invoke_special(
 		current, referenced_class, resolved_method
 	);
+	if(!possible_m.has_value()) {
+		posix::abort();
+	}
+
+	method& m = possible_m.get();
 
 	// copy, so object and it's lock may not be destroyed
 	reference obj_ref = stack.get<reference>(

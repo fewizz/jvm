@@ -5,6 +5,8 @@
 #include "decl/object.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
+#include "decl/lib/java/lang/incompatible_class_change_error.hpp"
+#include "decl/lib/java/lang/abstract_method_error.hpp"
 
 #include <class_file/constant.hpp>
 
@@ -47,25 +49,73 @@ template<basic_range Desriptor>
 		return {};
 	}
 
+	/* If the resolved method is not signature polymorphic (§2.9.3), then the
+	   invokevirtual instruction proceeds as follows. */
+
 	uint8 args_stack_count = resolved_method.parameters_stack_size();
 
 	// copy, so object and it's lock may not be destroyed
 	reference obj_ref = stack.get<reference>(stack.size() - args_stack_count);
 
+	/* Otherwise, if objectref is null, the invokevirtual instruction throws a
+	   NullPointerException. */
 	if(obj_ref.is_null()) {
 		expected<reference, reference> possible_npe
 			= try_create_null_pointer_exception();
-		return { move(
-			possible_npe.is_unexpected() ?
-			possible_npe.get_unexpected() :
-			possible_npe.get_expected()
-		) };
+		return move(possible_npe.get());
 	}
 
-	/* "Let C be the class of objectref. A method is selected with respect to C
-	and the resolved method (§5.4.6). This is the method to be invoked." */
-	method& m = select_method(obj_ref->_class(), resolved_method);
+	/* Let C be the class of objectref. A method is selected with respect to C
+	   and the resolved method (§5.4.6). This is the method to be invoked. */
+	_class& c = obj_ref._class();
+	optional<method&> possible_m = try_select_method(c, resolved_method);
 
+	/* Otherwise, if no method is selected, */
+	if(!possible_m.has_value()) {
+		nuint maximally_specific_count = 0;
+		c.for_each_maximally_specific_super_interface_instance_method(
+			resolved_method.name(), resolved_method.descriptor(),
+			[&](method& m) {
+				if(!m.access_flags().abstract) {
+					++maximally_specific_count;
+				}
+			}
+		);
+		/* and there are multiple maximally-specific superinterface methods of C
+		   that match the resolved method's name and descriptor and are not
+		   abstract, invokevirtual throws an IncompatibleClassChangeError */
+		if(maximally_specific_count > 1) {
+			expected<reference, reference> possible_icce
+				= try_create_incompatible_class_change_error();
+			return move(possible_icce.get());
+		}
+		/* and there are no maximally-specific superinterface methods of C that
+		   match the resolved method's name and descriptor and are not abstract,
+		   invokevirtual throws an AbstractMethodError. */
+		else {
+			expected<reference, reference> possible_ame
+				= try_create_abstract_method_error();
+			return move(possible_ame.get());
+		}
+	}
+
+	method& m = possible_m.get();
+
+	/* If the selected method is abstract, invokevirtual throws an
+	   AbstractMethodError. */
+	if(m.access_flags().abstract) {
+		expected<reference, reference> possible_ame
+			= try_create_abstract_method_error();
+		return move(possible_ame.get());
+	}
+
+	/* Otherwise, if the selected method is native and the code that implements
+	   the method cannot be bound, invokevirtual throws an
+	   UnsatisfiedLinkError. */ // TODO
+
+	/* If the method to be invoked is synchronized, the monitor associated with
+	   objectref is entered or reentered as if by execution of a monitorenter
+	   instruction (§monitorenter) in the current thread. */
 	if(m.access_flags().super_or_synchronized) {
 		obj_ref->lock();
 	}
@@ -92,7 +142,37 @@ template<basic_range Desriptor>
 	cc::utf8 class_name = d.utf8_constant(_c.name_index);
 
 	expected<method&, reference> possible_resolved_method
-		= d.try_get_resolved_method(ref_index);
+		= d.try_get_resolved_method(
+			ref_index,
+			[](method& m) -> optional<reference> {
+				/* Otherwise, if the resolved method is a class (static) method,
+				   the invokevirtual instruction throws an
+				   IncompatibleClassChangeError. */
+				if(m.is_static()) {
+					expected<reference, reference> possible_icce
+						= try_create_incompatible_class_change_error();
+					return move(possible_icce.get());
+				}
+
+				/* Otherwise, if the resolved method is signature polymorphic
+				   and declared in the java.lang.invoke.MethodHandle class, then
+				   during resolution of the method type derived from the
+				   descriptor in the symbolic reference to the method, any of
+				   the exceptions pertaining to method type resolution
+				   (§5.4.3.5) can be thrown. */
+				// TODO
+
+				/* Otherwise, if the resolved method is signature polymorphic
+				   and declared in the java.lang.invoke.VarHandle class, then
+				   any linking exception that may arise from invocation of the
+				   invoker method handle can be thrown. No linking exceptions
+				   are thrown from invocation of the valueFromMethodName,
+				   accessModeType, and varHandleExactInvoker methods. */
+				// TODO
+
+				return {};
+			}
+		);
 	
 	if(possible_resolved_method.is_unexpected()) {
 		return move(possible_resolved_method.get_unexpected());

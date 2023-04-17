@@ -32,11 +32,7 @@ static void init_java_lang_class_loader() {
 		if(b == nullptr) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			thrown_in_native = move(
-				possible_npe.is_unexpected() ?
-				possible_npe.get_unexpected() :
-				possible_npe.get_expected()
-			);
+			thrown_in_native = move(possible_npe.get());
 			return nullptr;
 		}
 
@@ -45,11 +41,7 @@ static void init_java_lang_class_loader() {
 		if(off < 0 || len < 0 || (uint32)(off + len) > bytes.size()) {
 			expected<reference, reference> possible_ioobe
 				= try_create_index_of_of_bounds_exception();
-			thrown_in_native = move(
-				possible_ioobe.is_unexpected() ?
-				possible_ioobe.get_unexpected() :
-				possible_ioobe.get_expected()
-			);
+			thrown_in_native = move(possible_ioobe.get());
 			return nullptr;
 		}
 

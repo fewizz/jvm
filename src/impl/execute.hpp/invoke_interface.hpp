@@ -5,6 +5,8 @@
 #include "decl/execution/info.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
+#include "decl/lib/java/lang/illegal_access_error.hpp"
+#include "decl/lib/java/lang/abstract_method_error.hpp"
 
 #include <print/print.hpp>
 
@@ -22,11 +24,7 @@
 	if(obj_ref.is_null()) {
 		expected<reference, reference> possible_npe
 			= try_create_null_pointer_exception();
-		return move(
-			possible_npe.is_unexpected() ?
-			possible_npe.get_unexpected() :
-			possible_npe.get_expected()
-		);
+		return move(possible_npe.get());
 	}
 
 	/* Otherwise, if the class of objectref does not implement the resolved
@@ -34,25 +32,82 @@
 	if(!obj_ref._class().is_implementing(resolved_interface_method._class())) {
 		expected<reference, reference> possible_icce
 			= try_create_incompatible_class_change_error();
-		return move(
-			possible_icce.is_unexpected() ?
-			possible_icce.get_unexpected() :
-			possible_icce.get_expected()
-		);
+		return move(possible_icce.get());
 	}
 
 	/* Let C be the class of objectref. A method is selected with respect to C
 	   and the resolved method (§5.4.6). This is the method to be invoked. */
-	method& m = select_method(obj_ref->_class(), resolved_interface_method);
+	_class& c = obj_ref._class();
+	optional<method&> possible_selected_method
+		= try_select_method(c, resolved_interface_method);
+	
+	/* Otherwise, if no method is selected,  */
+	if(!possible_selected_method.has_value()) {
+		nuint maximally_specific_count = 0;
 
-	if(m.access_flags().super_or_synchronized) {
+		c.for_each_maximally_specific_super_interface_instance_method(
+			resolved_interface_method.name(),
+			resolved_interface_method.descriptor(),
+			[&](method& m) {
+				if(!m.access_flags().abstract) {
+					++maximally_specific_count;
+				}
+			}
+		);
+		/* and there are multiple maximally-specific superinterface methods of C
+		   that match the resolved method's name and descriptor and are not
+		   abstract, invokeinterface throws an IncompatibleClassChangeError */
+		if(maximally_specific_count > 1) {
+			expected<reference, reference> possible_icce
+				= try_create_incompatible_class_change_error();
+			return move(possible_icce.get());
+		}
+		/* and there are no maximally-specific superinterface methods of C that
+		   match the resolved method's name and descriptor and are not abstract,
+		   invokeinterface throws an AbstractMethodError. */
+		else {
+			expected<reference, reference> possible_ame
+				= try_create_abstract_method_error();
+			return move(possible_ame.get());
+		}
+	}
+
+	method& selected_method = possible_selected_method.get();
+
+	/* Otherwise, if the selected method is neither public nor private,
+	   invokeinterface throws an IllegalAccessError. */
+	if(
+		!selected_method.access_flags()._public ||
+		!selected_method.access_flags()._private)
+	{
+		expected<reference, reference> possible_iae
+			= try_create_illegal_access_error();
+		return move(possible_iae.get());
+	}
+
+	/* Otherwise, if the selected method is abstract, invokeinterface throws an
+	   AbstractMethodError. */
+	if(selected_method.access_flags().abstract) {
+		expected<reference, reference> possible_ame
+			= try_create_abstract_method_error();
+		return move(possible_ame.get());
+	}
+
+	/* Otherwise, if the selected method is native and the code that implements
+	   the method cannot be bound, invokeinterface throws an
+	   UnsatisfiedLinkError. */
+	// TODO
+
+	if(selected_method.access_flags().super_or_synchronized) {
 		obj_ref->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
+		if(selected_method.access_flags().super_or_synchronized) {
+			obj_ref->unlock();
+		}
 	}};
 
-	return try_execute(m);
+	return try_execute(selected_method);
 }
 
 // c is resolved from d
@@ -94,11 +149,7 @@ template<basic_range Name, basic_range Desriptor>
 			if(resolved_method.is_static()) {
 				expected<reference, reference> possible_icce
 					= try_create_incompatible_class_change_error();
-				return move(
-					possible_icce.is_unexpected() ?
-					possible_icce.get_unexpected() :
-					possible_icce.get_expected()
-				);
+				return move(possible_icce.get());
 			}
 			return {};
 		}

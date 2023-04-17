@@ -300,11 +300,7 @@ classes::try_load_non_array_class_by_bootstrap_class_loader(
 	if(!possible_data.has_value()) {
 		expected<reference, reference> possible_cnfe
 			= try_create_class_not_found_exception();
-		return move(
-			possible_cnfe.is_unexpected() ?
-			possible_cnfe.get_unexpected() :
-			possible_cnfe.get_expected()
-		);
+		return move(possible_cnfe.get());
 	}
 
 	auto data = move(possible_data.get());
@@ -644,7 +640,7 @@ expected<_class&, reference> classes::try_define_class(
 
 	auto fields_reader =
 		interfaces_reader.read_and_get_fields_reader(
-			[&](class_file::constant::interface_index interface_index)
+			[&](class_file::constant::class_index interface_index)
 			{
 				if(!thrown.is_null()) {
 					return;

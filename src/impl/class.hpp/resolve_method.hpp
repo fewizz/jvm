@@ -1,9 +1,12 @@
 #include "decl/class/resolve_method.hpp"
+
 #include "decl/method.hpp"
 #include "decl/class.hpp"
 #include "decl/class/has_name_and_descriptor_equal_to.hpp"
+#include "decl/class/access_control.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
+#include "decl/lib/java/lang/illegal_access_error.hpp"
 #include "decl/lib/java/lang/no_such_method_error.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/var_handle.hpp"
@@ -73,8 +76,8 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 		return m.get();
 	}
 
-	/*    "Otherwise, if C has a superclass, step 2 of method resolution is
-	       recursively invoked on the direct superclass of C." */
+	/*    Otherwise, if C has a superclass, step 2 of method resolution is
+	      recursively invoked on the direct superclass of C. */
 	if(c.has_super()) {
 		return try_method_resolution_step_2(c.super(), name, descriptor);
 	}
@@ -85,17 +88,13 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 /* symbolic reference from D to a method in a class C is already resolved */
 template<basic_range Name, basic_range Descriptor>
 [[nodiscard]] expected<method&, reference>
-try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
+try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	/* 1. If C is an interface, method resolution throws an
-	   IncompatibleClassChangeError. */
+	      IncompatibleClassChangeError. */
 	if(c.is_interface()) {
 		expected<reference, reference> possible_icce
 			= try_create_incompatible_class_change_error();
-		return unexpected{ move(
-			possible_icce.is_unexpected() ?
-			possible_icce.get_unexpected() :
-			possible_icce.get_expected()
-		)};
+		return unexpected{ move(possible_icce.get()) };
 	}
 
 	/* 2. Otherwise, method resolution attempts to locate the referenced method
@@ -107,7 +106,7 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 		return unexpected{ move(m_or_throwable.get_unexpected()) };
 	}
 
-	optional<method&> m = m_or_throwable.get_expected();
+	optional<method&> possible_m = m_or_throwable.get_expected();
 
 	/* 3. Otherwise, method resolution attempts to locate the referenced method
 	      in the superinterfaces of the specified class C: */
@@ -115,16 +114,16 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	        and descriptor specified by the method reference include exactly one
 	        method that does not have its ACC_ABSTRACT flag set, then this
 	        method is chosen and method lookup succeeds. */
-	if(!m.has_value()) {
+	if(!possible_m.has_value()) {
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
 			[&](method& m0) {
 				if(!m0.access_flags().abstract) {
-					if(m.has_value()) { // more than one
-						m = {};
+					if(possible_m.has_value()) { // more than one
+						possible_m = {};
 						return loop_action::stop;
 					}
-					m = m0;
+					possible_m = m0;
 				}
 				return loop_action::next;
 			}
@@ -135,15 +134,14 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 	      and descriptor specified by the method reference that has neither
 	      its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	      arbitrarily chosen and method lookup succeeds. */
-	if(!m.has_value()) {
+	if(!possible_m.has_value()) {
 		c.for_each_super_interface([&](_class& i) {
 			for(method& m0 : i.declared_methods()) {
 				if(
 					has_name_and_descriptor_equal_to{ name, descriptor }(m0) &&
-					!m0.access_flags()._private &&
-					!m0.access_flags()._static
+					!m0.is_private() && !m0.is_static()
 				) {
-					m = m0;
+					possible_m = m0;
 					return loop_action::stop;
 				}
 			}
@@ -153,23 +151,28 @@ try_resolve_method(_class& c, Name&& name, Descriptor&& descriptor) {
 
 	//    Otherwise, method lookup fails.
 	/* If method lookup failed, method resolution throws a NoSuchMethodError. */
-	if(!m.has_value()) {
+	if(!possible_m.has_value()) {
 		expected<reference, reference> possible_nsme
 			= try_create_no_such_method_error();
-		return unexpected{ move(
-			possible_nsme.is_unexpected() ?
-			possible_nsme.get_unexpected() :
-			possible_nsme.get_expected()
-		)};
+		return unexpected{ move(possible_nsme.get()) };
 	}
 
+	method& m = possible_m.get();
 
-	// TODO
 	/* Otherwise, method lookup succeeded. Access control is applied for the
 	   access from D to the method which is the result of method lookup
 	   (§5.4.4). */
-	
-	return m.get();
+	optional<reference> possible_error = access_control(d, m);
+	if(possible_error.has_value()) {
+		/* - If access control failed, method resolution fails for the same
+		     reason. */
+		return unexpected { move( possible_error.get() )};
+	}
+
+	/* - Otherwise, access control succeeded. Loading constraints are imposed,
+	     as follows. */ // TODO
+
+	return m;
 }
 
 inline expected<method&, reference> _class::try_resolve_method(
@@ -186,5 +189,5 @@ inline expected<method&, reference> _class::try_resolve_method(
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
 	auto descriptor = utf8_constant(nat.descriptor_index);
-	return ::try_resolve_method(c, name, descriptor);
+	return ::try_resolve_method(*this, c, name, descriptor);
 }
