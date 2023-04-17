@@ -68,7 +68,7 @@ access_control(_class& d, class_member& r) {
 	/* * R is private and is declared by a class or interface C that belongs to
 	     the same nest as D, according to the nestmate test below. */
 	bool r_is_private =
-		r.access_flags()._private &&
+		r.is_private() &&
 		r._class().is(c); // TODO, temporaly
 
 	bool accessible =

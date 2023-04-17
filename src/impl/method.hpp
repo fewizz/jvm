@@ -27,8 +27,8 @@ inline bool method::is_signature_polymorphic() const {
 		descriptor().starts_with(c_string{"(([Ljava/lang/Object;))"});
 	
 	bool varargs_and_native_flags_set =
-		access_flags().varargs &&
-		access_flags().native;
+		has_variable_number_of_arguments() &&
+		is_native();
 
 	return
 		c_is_mh_or_vh &&
@@ -48,14 +48,14 @@ inline bool method::can_override(method& ma) const {
 		mc.descriptor().has_equal_size_and_elements(ma.descriptor());
 	
 	/* * mC is not marked ACC_PRIVATE. */
-	bool mc_isnt_private = !mc.access_flags()._private;
+	bool mc_isnt_private = !mc.is_private();
 
 	/* * One of the following is true: */
 	bool third_requirement = [&]() -> bool {
 		/* * mA is marked ACC_PUBLIC. */
-		bool ma_is_public = ma.access_flags()._public;
+		bool ma_is_public = ma.is_public();
 		/* * mA is marked ACC_PROTECTED. */
-		bool ma_is_protected = ma.access_flags()._protected;
+		bool ma_is_protected = ma.is_protected();
 		/* * mA is marked neither ACC_PUBLIC nor ACC_PROTECTED nor ACC_PRIVATE,
 		     and either (a) the declaration of mA appears in the same run-time
 		     package as the declaration of mC, or (b) if mA is declared in a
@@ -63,7 +63,7 @@ inline bool method::can_override(method& ma) const {
 		     method mB declared in a class B such that C is a subclass of B and
 		     B is a subclass of A and mC can override mB and mB can override
 		     mA. */
-		bool ma_is_private = ma.access_flags()._private;
+		bool ma_is_private = ma.is_private();
 		const ::_class& a = ma._class();
 		const ::_class& c = mc._class();
 		bool thrird = !ma_is_public && !ma_is_protected && !ma_is_private && (
@@ -73,7 +73,7 @@ inline bool method::can_override(method& ma) const {
 
 				const ::_class* b_ptr = &c.super();
 
-				while(&b_ptr->super() != &a) {
+				while(!b_ptr->super().is(a)) {
 					optional<::method&> m
 						= b_ptr->declared_instance_methods()
 						.try_find(ma.name(), ma.descriptor());

@@ -372,7 +372,7 @@ public:
 			for(method& m : c.declared_instance_methods()) {
 				if(
 					has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
-					!m.access_flags()._private
+					!m.is_private()
 				) {
 					return m;
 				}

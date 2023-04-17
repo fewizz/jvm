@@ -117,13 +117,13 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	if(!possible_m.has_value()) {
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
-			[&](method& m0) {
-				if(!m0.access_flags().abstract) {
+			[&](method& m) {
+				if(!m.is_abstract()) {
 					if(possible_m.has_value()) { // more than one
 						possible_m = {};
 						return loop_action::stop;
 					}
-					possible_m = m0;
+					possible_m = m;
 				}
 				return loop_action::next;
 			}
@@ -136,12 +136,12 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	      arbitrarily chosen and method lookup succeeds. */
 	if(!possible_m.has_value()) {
 		c.for_each_super_interface([&](_class& i) {
-			for(method& m0 : i.declared_methods()) {
+			for(method& m : i.declared_methods()) {
 				if(
-					has_name_and_descriptor_equal_to{ name, descriptor }(m0) &&
-					!m0.is_private() && !m0.is_static()
+					has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
+					!m.is_private() && !m.is_static()
 				) {
-					possible_m = m0;
+					possible_m = m;
 					return loop_action::stop;
 				}
 			}

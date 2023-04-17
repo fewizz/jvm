@@ -49,7 +49,7 @@
 			resolved_interface_method.name(),
 			resolved_interface_method.descriptor(),
 			[&](method& m) {
-				if(!m.access_flags().abstract) {
+				if(!m.is_abstract()) {
 					++maximally_specific_count;
 				}
 			}
@@ -76,10 +76,7 @@
 
 	/* Otherwise, if the selected method is neither public nor private,
 	   invokeinterface throws an IllegalAccessError. */
-	if(
-		!selected_method.access_flags()._public ||
-		!selected_method.access_flags()._private)
-	{
+	if(!selected_method.is_public() || !selected_method.is_private()) {
 		expected<reference, reference> possible_iae
 			= try_create_illegal_access_error();
 		return move(possible_iae.get());
@@ -87,7 +84,7 @@
 
 	/* Otherwise, if the selected method is abstract, invokeinterface throws an
 	   AbstractMethodError. */
-	if(selected_method.access_flags().abstract) {
+	if(selected_method.is_abstract()) {
 		expected<reference, reference> possible_ame
 			= try_create_abstract_method_error();
 		return move(possible_ame.get());
@@ -98,11 +95,11 @@
 	   UnsatisfiedLinkError. */
 	// TODO
 
-	if(selected_method.access_flags().super_or_synchronized) {
+	if(selected_method.is_synchronized()) {
 		obj_ref->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(selected_method.access_flags().super_or_synchronized) {
+		if(selected_method.is_synchronized()) {
 			obj_ref->unlock();
 		}
 	}};

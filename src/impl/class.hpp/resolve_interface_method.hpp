@@ -49,7 +49,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
 			[&](method& m0) {
-				if(!m0.access_flags().abstract) {
+				if(!m0.is_abstract()) {
 					if(possible_m.has_value()) { // more than one
 						possible_m = {};
 						return loop_action::stop;

@@ -76,7 +76,7 @@ template<basic_range Desriptor>
 		c.for_each_maximally_specific_super_interface_instance_method(
 			resolved_method.name(), resolved_method.descriptor(),
 			[&](method& m) {
-				if(!m.access_flags().abstract) {
+				if(!m.is_abstract()) {
 					++maximally_specific_count;
 				}
 			}
@@ -103,7 +103,7 @@ template<basic_range Desriptor>
 
 	/* If the selected method is abstract, invokevirtual throws an
 	   AbstractMethodError. */
-	if(m.access_flags().abstract) {
+	if(m.is_abstract()) {
 		expected<reference, reference> possible_ame
 			= try_create_abstract_method_error();
 		return move(possible_ame.get());
@@ -116,11 +116,11 @@ template<basic_range Desriptor>
 	/* If the method to be invoked is synchronized, the monitor associated with
 	   objectref is entered or reentered as if by execution of a monitorenter
 	   instruction (§monitorenter) in the current thread. */
-	if(m.access_flags().super_or_synchronized) {
+	if(m.is_synchronized()) {
 		obj_ref->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
+		if(m.is_synchronized()) obj_ref->unlock();
 	}};
 
 	return try_execute(m);

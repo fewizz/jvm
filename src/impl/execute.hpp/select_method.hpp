@@ -13,7 +13,7 @@ inline optional<method&> try_select_method(
 	_class& c, method& mr
 ) {
 	/* 1. If mR is marked ACC_PRIVATE, then it is the selected method. */
-	if(mr.access_flags()._private) {
+	if(mr.is_private()) {
 		return mr;
 	}
 	/* 2. Otherwise, the selected method is determined by the following
@@ -49,20 +49,20 @@ inline optional<method&> try_select_method(
 	/*   • Otherwise, the maximally-specific superinterface methods of C are
 	       determined (§5.4.3.3). If exactly one matches mR's name and
 	       descriptor and is not abstract, then it is the selected method. */
-	optional<method&> m;
+	optional<method&> possible_m;
 	c.for_each_maximally_specific_super_interface_instance_method(
 		mr.name(), mr.descriptor(),
-		[&](method& m0) {
-			if(!m0.access_flags().abstract) {
-				if(m.has_value()) {
-					m = {};
+		[&](method& m) {
+			if(!m.is_abstract()) {
+				if(possible_m.has_value()) {
+					possible_m = {};
 					return loop_action::stop;
 				}
-				m = m0;
+				possible_m = m;
 			}
 			return loop_action::next;
 		}
 	);
 	
-	return m;
+	return possible_m;
 }

@@ -9,7 +9,7 @@
 struct _class;
 
 struct class_member {
-private:
+protected:
 	optional<_class&> class_;
 	const class_file::access_flags access_flags_;
 	const class_file::constant::utf8 name_;
@@ -43,13 +43,11 @@ public:
 		return access_flags_;
 	}
 
-	bool is_static() const { return access_flags()._static; }
-	bool is_synchronized() const { return access_flags().super_or_synchronized;}
-	bool is_native() const { return access_flags().native; }
+	bool is_static() const { return access_flags_._static; }
 
-	bool is_public() const { return access_flags()._public; }
-	bool is_protected() const { return access_flags()._protected; }
-	bool is_private() const { return access_flags().super_or_synchronized; }
+	bool is_public() const { return access_flags_._public; }
+	bool is_protected() const { return access_flags_._protected; }
+	bool is_private() const { return access_flags_.super_or_synchronized; }
 
 	bool has_default_access() const {
 		return !is_public() && !is_protected() && !is_private();

@@ -26,11 +26,11 @@ inline optional<reference> try_invoke_static(method& resolved_method) {
 		return move(init_error.get());
 	}
 
-	if(resolved_method.access_flags().super_or_synchronized) {
+	if(resolved_method.is_synchronized()) {
 		resolved_method._class().instance()->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(resolved_method.access_flags().super_or_synchronized) {
+		if(resolved_method.is_synchronized()) {
 			resolved_method._class().instance()->unlock();
 		}
 	}};

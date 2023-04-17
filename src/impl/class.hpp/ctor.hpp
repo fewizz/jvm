@@ -41,13 +41,13 @@ inline _class::_class(
 	declared_static_fields_ { [&] {
 		nuint count  = 0;
 		for(field& f : this->declared_fields()) {
-			if(f.access_flags()._static) {
+			if(f.is_static()) {
 				++count;
 			}
 		}
 		::list fields = posix::allocate_memory_for<field*>(count);
 		for(field& f : this->declared_fields()) {
-			if(f.access_flags()._static) {
+			if(f.is_static()) {
 				fields.emplace_back(&f);
 			}
 		}
@@ -56,13 +56,13 @@ inline _class::_class(
 	declared_static_methods_ { [&] {
 		nuint count  = 0;
 		for(method& m : this->declared_methods()) {
-			if(m.access_flags()._static) {
+			if(m.is_static()) {
 				++count;
 			}
 		}
 		::list methods = posix::allocate_memory_for<method*>(count);
 		for(method& m : this->declared_methods()) {
-			if(m.access_flags()._static) {
+			if(m.is_static()) {
 				methods.emplace_back(&m);
 			}
 		}
@@ -74,7 +74,7 @@ inline _class::_class(
 			range_size(declared_static_fields());
 		::list fields = posix::allocate_memory_for<field*>(count);
 		for(field& f : this->declared_fields()) {
-			if(!f.access_flags()._static) {
+			if(!f.is_static()) {
 				fields.emplace_back(&f);
 			}
 		}
@@ -86,7 +86,7 @@ inline _class::_class(
 			range_size(declared_static_methods());
 		::list methods = posix::allocate_memory_for<method*>(count);
 		for(method& m : this->declared_methods()) {
-			if(!m.access_flags()._static) {
+			if(!m.is_static()) {
 				methods.emplace_back(&m);
 			}
 		}

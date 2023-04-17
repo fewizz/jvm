@@ -22,7 +22,6 @@ inline optional<method&> select_method_for_invoke_special(
 		      considers the ACC_SUPER flag to be set in every class file,
 		      regardless of the actual value of the flag in the class file and
 		      the version of the class file" */
-		//current.access_flags().super_or_synchronized;
 
 	_class& c =
 		c_is_direct_super_class ? current.super() :
@@ -42,30 +41,30 @@ inline optional<method&> select_method_for_invoke_special(
 	       class, and so forth, until a match is found or no further
 	       superclasses exist. If a match is found, then it is the method to be
 	       invoked." */
-	optional<method&> m = c.instance_methods().try_find(
+	optional<method&> possible_m = c.instance_methods().try_find(
 		resolved_method.name(), resolved_method.descriptor()
 	);
 
-	if(!m.has_value() && c.is_interface()) {
+	if(!possible_m.has_value() && c.is_interface()) {
 		/* "3. Otherwise, if C is an interface and the class Object contains a
 		    declaration of a public instance method with the same name and
 		    descriptor as the resolved method, then it is the method to be
 		    invoked." */
-		m = object_class->declared_instance_methods().try_find(
+		possible_m = object_class->declared_instance_methods().try_find(
 			resolved_method.name(), resolved_method.descriptor()
 		);
 	}
 
-	if(!m.has_value()) {
+	if(!possible_m.has_value()) {
 		/* "4. Otherwise, if there is exactly one maximally-specific method
 		    (§5.4.3.3) in the superinterfaces of C that matches the resolved
 		    method's name and descriptor and is not abstract, then it is the
 		    method to be invoked." */
 		c.for_each_maximally_specific_super_interface_instance_method(
 			resolved_method.name(), resolved_method.descriptor(),
-			[&](method& m0) {
-				if(!m0.access_flags().abstract) {
-					m = m0;
+			[&](method& m) {
+				if(!m.is_abstract()) {
+					possible_m = m;
 					return loop_action::stop;
 				}
 				return loop_action::next;
@@ -73,5 +72,5 @@ inline optional<method&> select_method_for_invoke_special(
 		);
 	}
 
-	return m;
+	return possible_m;
 }

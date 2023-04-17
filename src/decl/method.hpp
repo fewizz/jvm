@@ -128,8 +128,11 @@ public:
 		return line_numbers_;
 	}
 
-	bool is_native() const {
-		return access_flags().native;
+	bool is_native() const { return access_flags_.native; }
+	bool is_synchronized() const { return access_flags_.super_or_synchronized; }
+	bool is_abstract() const { return access_flags_.abstract; }
+	bool has_variable_number_of_arguments() const {
+		return access_flags_.varargs;
 	}
 
 	bool native_function_is_loaded() const {

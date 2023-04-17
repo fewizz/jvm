@@ -50,11 +50,11 @@ inline optional<reference> try_invoke_special(
 		stack.size() - m.parameters_stack_size()
 	);
 
-	if(m.access_flags().super_or_synchronized) {
+	if(m.is_synchronized()) {
 		obj_ref->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
-		if(m.access_flags().super_or_synchronized) obj_ref->unlock();
+		if(m.is_synchronized()) obj_ref->unlock();
 	}};
 
 	return try_execute(m);
