@@ -1,5 +1,7 @@
 #pragma once
 
+#include "./class/find_by_name_and_descriptor_extension.hpp"
+
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
@@ -60,13 +62,27 @@ public:
 			});
 		if(possible_slash_index.has_value()) {
 			uint16 slash_index = possible_slash_index.get();
-			uint16 beginning_offset = slash_index + 1;
-			uint16 new_size = name().size() - beginning_offset;
-			return { name().iterator() + beginning_offset, new_size };
+			return { name().iterator(), slash_index };
 		}
 		else {
 			return {};
 		}
+	}
+
+	template<basic_range Name, basic_range Descriptor>
+	bool has_name_and_descriptor_equal_to(
+		Name&& name, Descriptor&& desc
+	) const {
+		return
+			this->name().has_equal_size_and_elements(name) &&
+			this->descriptor().has_equal_size_and_elements(desc);
+	}
+
+	template<basic_range Name>
+	bool has_name_equal_to(
+		Name&& name
+	) const {
+		return this->name().has_equal_size_and_elements(name);
 	}
 
 };

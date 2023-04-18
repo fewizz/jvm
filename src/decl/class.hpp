@@ -121,9 +121,7 @@ public:
 			});
 		if(possible_slash_index.has_value()) {
 			uint16 slash_index = possible_slash_index.get();
-			uint16 beginning_offset = slash_index + 1;
-			uint16 new_size = name().size() - beginning_offset;
-			return { name().iterator() + beginning_offset, new_size };
+			return { name().iterator(), slash_index };
 		}
 		else {
 			return {};
@@ -383,7 +381,7 @@ public:
 		auto search_for_method = [&](_class& c) -> optional<method&> {
 			for(method& m : c.declared_instance_methods()) {
 				if(
-					has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
+					m.has_name_and_descriptor_equal_to(name, descriptor) &&
 					!m.is_private()
 				) {
 					return m;

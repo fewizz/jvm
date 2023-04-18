@@ -2,7 +2,6 @@
 
 #include "decl/method.hpp"
 #include "decl/class.hpp"
-#include "decl/class/has_name_and_descriptor_equal_to.hpp"
 #include "decl/class/access_control.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
@@ -138,7 +137,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 		c.for_each_super_interface([&](_class& i) {
 			for(method& m : i.declared_methods()) {
 				if(
-					has_name_and_descriptor_equal_to{ name, descriptor }(m) &&
+					m.has_name_and_descriptor_equal_to(name, descriptor) &&
 					!m.is_private() && !m.is_static()
 				) {
 					possible_m = m;

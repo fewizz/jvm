@@ -1,6 +1,7 @@
 #pragma once
 
-#include "./has_name_equal_to.hpp"
+#include <range.hpp>
+
 #include <posix/abort.hpp>
 
 template<typename Type>
@@ -12,16 +13,16 @@ public:
 
 	template<basic_range Name>
 	auto try_find(Name&& name) {
-		return derived().try_find_last_satisfying(
-			has_name_equal_to{ name }
-		);
+		return derived().try_find_last_satisfying([&](auto& member) {
+			member.has_name_equal_to(name);
+		});
 	}
 
 	template<basic_range Name>
 	auto try_find_index_of(Name&& name) {
-		return derived().try_find_index_of_last_satisfying(
-			has_name_equal_to{ name }
-		);
+		return derived().try_find_index_of_last_satisfying([&](auto& member) {
+			member.has_name_equal_to(name);
+		});
 	}
 
 	template<basic_range Name>

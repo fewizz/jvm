@@ -47,7 +47,7 @@ static inline expected<reference, reference> try_create_array_by_class(
 ) {
 	expected<reference, reference> possible_ref
 		= try_create_object(array_class);
-	
+
 	if(possible_ref.is_unexpected()) {
 		return unexpected{ move(possible_ref.get_unexpected()) };
 	}

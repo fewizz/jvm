@@ -21,6 +21,15 @@ template<basic_range StackType>
 	class_file::constant::method_ref_index ref_index, _class& c
 );
 
+[[nodiscard]] inline optional<reference> try_invoke_special(
+	_class& current_c, method& resolved_method
+);
+
+[[nodiscard]] inline optional<reference> try_invoke_special(
+	_class& current_c,
+	class_file::constant::method_or_interface_method_ref_index ref_index
+);
+
 // 5.4.6. Method Selection
 /* "During execution of an invokeinterface or invokevirtual instruction,
     a method is selected with respect to (i) the run-time type of the object on

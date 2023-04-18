@@ -1418,7 +1418,7 @@ struct execute_instruction {
 		}
 
 		optional<reference> possible_throwable
-			= ::try_invoke_special(x.index, c);
+			= ::try_invoke_special(c, x.index);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(move(possible_throwable.get()));

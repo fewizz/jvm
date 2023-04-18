@@ -74,21 +74,28 @@ public:
 [[nodiscard]] inline expected<reference, reference>
 try_create_object(_class& c);
 
+#include "execute.hpp"
+
 template<typename... Args>
 [[nodiscard]] inline expected<reference, reference>
-try_create_object(method& m, Args&&... args) {
+try_create_object(method& constructor, Args&&... args) {
 	expected<reference, reference> possible_ref
-		= try_create_object(m._class());
+		= try_create_object(constructor._class());
 	
 	if(possible_ref.is_unexpected()) {
 		return unexpected{ move(possible_ref.get_unexpected()) };
 	}
 
 	reference ref = move(possible_ref.get_expected());
-	
-	optional<reference> possible_throwable
-		= try_execute(m, ref, forward<Args>(args)...);
-	
+
+	stack.emplace_back(ref);
+
+	(stack.emplace_back(forward<Args>(args)), ...);
+
+	optional<reference> possible_throwable = try_invoke_special(
+		constructor._class(), constructor
+	);
+
 	if(possible_throwable.has_value()) {
 		return unexpected{ move(possible_throwable.get()) };
 	}

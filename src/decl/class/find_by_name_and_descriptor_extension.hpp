@@ -1,6 +1,5 @@
 #pragma once
 
-#include "./has_name_and_descriptor_equal_to.hpp"
 #include "./member_index.hpp"
 #include <posix/abort.hpp>
 #include <print/print.hpp>
@@ -18,9 +17,9 @@ public:
 
 	template<basic_range Name, basic_range Descriptor>
 	auto try_find(Name&& name, Descriptor&& descriptor) {
-		return derived().try_find_last_satisfying(
-			has_name_and_descriptor_equal_to{ name, descriptor }
-		);
+		return derived().try_find_last_satisfying([&](auto& member) {
+			return member.has_name_and_descriptor_equal_to(name, descriptor);
+		});
 	}
 
 	template<basic_range Name, basic_range Descriptor>
@@ -28,7 +27,9 @@ public:
 		Name&& name, Descriptor&& descriptor
 	) {
 		auto possible_index = derived().try_find_index_of_last_satisfying(
-			has_name_and_descriptor_equal_to{ name, descriptor }
+			[&](auto& mem) {
+				return mem.has_name_and_descriptor_equal_to(name, descriptor);
+			}
 		);
 		if(!possible_index.has_value()) {
 			return {};

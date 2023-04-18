@@ -1,6 +1,5 @@
 #include "decl/class.hpp"
 #include "decl/method.hpp"
-#include "decl/class/has_name_and_descriptor_equal_to.hpp"
 #include "decl/class/access_control.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
@@ -35,7 +34,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 			[&](method& m) {
 				return
 					m.is_public() && !m.is_static() &&
-					has_name_and_descriptor_equal_to{name, descriptor}(m);
+					m.has_name_and_descriptor_equal_to(name, descriptor);
 			}
 		);
 	}
@@ -70,7 +69,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 			for(method& m0 : i.declared_instance_methods()) {
 				if(
 					!m0.is_private() &&
-					has_name_and_descriptor_equal_to{ name, descriptor}(m0)
+					m0.has_name_and_descriptor_equal_to(name, descriptor)
 				) {
 					possible_m = m0;
 					return loop_action::stop;

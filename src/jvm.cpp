@@ -93,6 +93,7 @@ int main (int argc, const char** argv) {
 	);
 	expected<reference, reference> possible_app_cl_ref
 		= try_create_object(app_cl_class);
+
 	if(possible_app_cl_ref.is_unexpected()) {
 		return on_exit(move(possible_app_cl_ref.get_unexpected()));
 	}
