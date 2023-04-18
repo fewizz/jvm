@@ -298,9 +298,13 @@ classes::try_load_non_array_class_by_bootstrap_class_loader(
 		});
 
 	if(!possible_data.has_value()) {
-		expected<reference, reference> possible_cnfe
-			= try_create_class_not_found_exception();
-		return move(possible_cnfe.get());
+		expected<reference, reference> possible_name_ref
+			= try_create_string_from_utf8(name);
+		if(possible_name_ref.is_unexpected()) {
+			return move(possible_name_ref.get_unexpected());
+		}
+		reference name_ref = move(possible_name_ref.get_expected());
+		return try_create_class_not_found_exception(move(name_ref)).get();
 	}
 
 	auto data = move(possible_data.get());

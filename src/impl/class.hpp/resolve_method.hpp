@@ -16,7 +16,7 @@
       and its superclasses: */
 template<basic_range Name, basic_range Descriptor>
 inline expected<optional<method&>, reference> try_method_resolution_step_2(
-	_class& c, Name&& name, Descriptor&& descriptor
+	_class& d, _class& c, Name&& name, Descriptor&& descriptor
 ) {
 	/*    If C declares exactly one method with the name specified by the
 	      method reference, and the declaration is a signature polymorphic
@@ -32,7 +32,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 
 	if(only_one_method_with_same_name) {
 		method& m = *methods_with_same_name.iterator();
-		
+
 		bool is_signature_polymorphic = m.is_signature_polymorphic();
 		
 		if(is_signature_polymorphic) {
@@ -42,7 +42,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 				descriptor.iterator(),
 				[&]<typename ParamType>(ParamType p) {
 					expected<_class&, reference> possible_c
-						= try_resolve_class_from_type(c, p);
+						= try_resolve_class_from_type(d, p);
 					if(possible_c.is_unexpected()) {
 						thrown = move(possible_c.get_unexpected());
 						return;
@@ -51,7 +51,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 				[&]<typename ReturnType>(ReturnType r) {
 					if(!thrown.is_null()) return;
 					expected<_class&, reference> possible_c
-						= try_resolve_class_from_type(c, r);
+						= try_resolve_class_from_type(d, r);
 					if(possible_c.is_unexpected()) {
 						thrown = move(possible_c.get_unexpected());
 						return;
@@ -78,7 +78,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 	/*    Otherwise, if C has a superclass, step 2 of method resolution is
 	      recursively invoked on the direct superclass of C. */
 	if(c.has_super()) {
-		return try_method_resolution_step_2(c.super(), name, descriptor);
+		return try_method_resolution_step_2(d, c.super(), name, descriptor);
 	}
 
 	return optional<method&>{};
@@ -99,7 +99,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	/* 2. Otherwise, method resolution attempts to locate the referenced method
 	      in C and its superclasses: */
 	expected<optional<method&>, reference> m_or_throwable
-		= try_method_resolution_step_2(c, name, descriptor);
+		= try_method_resolution_step_2(d, c, name, descriptor);
 
 	if(m_or_throwable.is_unexpected()) {
 		return unexpected{ move(m_or_throwable.get_unexpected()) };

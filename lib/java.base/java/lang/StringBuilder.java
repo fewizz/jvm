@@ -27,11 +27,11 @@ public final class StringBuilder {
 	}
 
 	public StringBuilder append(char[] str) {
-		int remaining = buffer_.length - length_;
+		int remaining = this.buffer_.length - length_;
 		if(remaining < str.length) {
 			char prevBuffer[] = this.buffer_;
 
-			this.buffer_ = new char[str.length];
+			this.buffer_ = new char[this.buffer_.length + str.length];
 			System.arraycopy(
 				prevBuffer, 0, this.buffer_, 0, prevBuffer.length
 			);

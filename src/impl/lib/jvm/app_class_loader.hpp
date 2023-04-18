@@ -31,22 +31,22 @@ static void init_jvm_app_class_loader() {
 					posix::memory_for_range_of<unsigned char> data
 						= move(possible_data.get());
 
-					{
-						expected<_class&, reference> possible_c
-							= classes.try_define_class(
-								name_utf8, move(data), ths
-							);
-						if(possible_c.is_unexpected()) {
-							thrown_in_native = move(
-								possible_c.get_unexpected()
-							);
-						}
+					expected<_class&, reference> possible_c
+						= classes.try_define_class(
+							name_utf8, move(data), ths
+						);
 
-						_class& c = possible_c.get_expected();
-
-						return & c.instance()
-							.unsafe_release_without_destroing();
+					if(possible_c.is_unexpected()) {
+						thrown_in_native = move(
+							possible_c.get_unexpected()
+						);
+						return nullptr;
 					}
+
+					_class& c = possible_c.get_expected();
+
+					return & c.instance()
+						.unsafe_release_without_destroing();
 				}
 			);
 		}

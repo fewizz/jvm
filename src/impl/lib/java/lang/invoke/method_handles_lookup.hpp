@@ -4,6 +4,7 @@
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
+#include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/jvm/mh/getter.hpp"
 #include "decl/lib/jvm/mh/constructor.hpp"
 #include "decl/lib/jvm/mh/static.hpp"
@@ -74,19 +75,20 @@ try_lookup_find_static(object& cls, object& name, object& mt) {
 }
 
 static expected<reference, reference> try_lookup_find_special(
-	[[maybe_unused]]object& refc, object& name, [[maybe_unused]] object& mt, [[maybe_unused]] object& special_caller
+	object& refc, object& name, object& mt, object& special_caller
 ) {
-	return view_string_on_stack_as_utf8(name, [&]([[maybe_unused]] auto name_utf8)
+	return view_string_on_stack_as_utf8(name, [&](auto name_utf8)
 	-> expected<reference, reference>
 	{
-		posix::abort();
-		/*if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
+		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
-		_class& receiver = class_from_class_instance(refc);
-		_class& current = class_from_class_instance(special_caller);
+		_class& c = class_from_class_instance(refc);
+		_class& d = class_from_class_instance(special_caller);
 		expected<method&, reference> possible_resolved_method =
-			try_resolve_method(receiver, name_utf8, method_type_descriptor(mt));
+			try_resolve_method(
+				d, c, name_utf8, method_type_descriptor(mt)
+			);
 
 		if(possible_resolved_method.is_unexpected()) {
 			return unexpected {
@@ -96,16 +98,20 @@ static expected<reference, reference> try_lookup_find_special(
 
 		method& resolved_method = possible_resolved_method.get_expected();
 
-		optional<method&> possible_m = select_method_for_invoke_special(
-			current, receiver, resolved_method
-		);
-		if(!possible_m.has_value()) {
+		optional<method&> possible_selected_method
+			= select_method_for_invoke_special(
+				d, c, resolved_method
+			);
+
+		if(!possible_selected_method.has_value()) {
 			posix::abort();
 		}
 
+		method& selected_method = possible_selected_method.get();
+
 		return try_create_special_mh(
-			mt, m
-		);*/
+			mt, selected_method
+		);
 	});
 }
 
@@ -140,6 +146,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* c
 		) -> object* {
+			if(cls == nullptr || name == nullptr || c == nullptr) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
 			expected<reference, reference> possible_mh
 				= try_lookup_find_getter(*cls, *name, *c);
 			if(possible_mh.is_unexpected()) {
@@ -166,6 +176,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
+			if(cls == nullptr || name == nullptr || mt == nullptr) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
+
 			expected<reference, reference> possible_mh
 				= try_lookup_find_virtual(*cls, *name, *mt);
 
@@ -193,6 +208,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt
 		) -> object* {
+			if(cls == nullptr || name == nullptr || mt == nullptr) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
+
 			expected<reference, reference> possible_mh
 				= try_lookup_find_static(*cls, *name, *mt);
 			if(possible_mh.is_unexpected()) {
@@ -218,6 +238,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* mt
 		) -> object* {
+			if(cls == nullptr || mt == nullptr) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
+
 			expected<reference, reference> possible_mh
 				= try_lookup_find_constructor(*cls, *mt);
 			if(possible_mh.is_unexpected()) {
@@ -245,6 +270,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object* cls, object* name, object* mt, object* caller
 		) -> object* {
+			if(
+				cls == nullptr || name   == nullptr ||
+				mt  == nullptr || caller == nullptr
+			) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
+
 			expected<reference, reference> possible_mh
 				= try_lookup_find_special(*cls, *name, *mt, *caller);
 			if(possible_mh.is_unexpected()) {

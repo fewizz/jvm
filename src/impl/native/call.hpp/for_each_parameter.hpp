@@ -12,7 +12,8 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 
 	if(!m.is_static()) { // this
 		reference& r = stack.get<reference>(stack_at);
-		handler(r);
+		object* ptr = r.object_ptr();
+		handler(ptr);
 		stack_at += 1;
 	}
 
@@ -20,7 +21,8 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 		pt.view_type(overloaded {
 			[&]<same_as_any<class_file::object, class_file::array>> {
 				reference& r = stack.get<reference>(stack_at);
-				handler(r);
+				object* ptr = r.object_ptr();
+				handler(ptr);
 				stack_at += 1;
 			},
 			[&]<same_as<class_file::j>> {

@@ -1,4 +1,5 @@
 #include "decl/lib/java/lang/invoke/var_handle.hpp"
+
 #include "decl/classes.hpp"
 
 static void init_java_lang_invoke_var_handle() {

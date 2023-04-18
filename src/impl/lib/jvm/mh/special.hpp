@@ -24,7 +24,7 @@ static void init_jvm_mh_special() {
 			reference mh,
 			nuint args_beginning
 		) -> optional<reference> {
-			instance_method_index method_index {
+			declared_instance_method_index method_index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
@@ -39,9 +39,7 @@ static void init_jvm_mh_special() {
 				obj_ref._class().is_sub_of(refc);
 
 			if(!valid) {
-				expected<reference, reference> possible_wmte
-					= try_create_wrong_method_type_exception();
-				return move(possible_wmte.get());
+				return try_create_wrong_method_type_exception().get();
 			}
 
 			return try_execute(refc[method_index]);

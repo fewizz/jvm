@@ -13,12 +13,8 @@ public abstract class MethodHandle {
 		return methodType_;
 	}
 
-	public final Object invokeExact(Object... args) throws Throwable {
-		throw new Error();
-	}
+	public native final Object invokeExact(Object... args) throws Throwable;
 
-	public final Object invoke(Object... args) throws Throwable {
-		throw new Error();
-	}
+	public native final Object invoke(Object... args) throws Throwable;
 
 }

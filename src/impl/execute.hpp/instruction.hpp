@@ -1293,10 +1293,9 @@ struct execute_instruction {
 		}
 
 		reference ref = stack.pop_back<reference>();
+
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 
 		expected<instance_field_index_and_stack_size, reference> possible_field
@@ -1349,17 +1348,18 @@ struct execute_instruction {
 		reference ref = move(stack.get<reference>(
 			stack.size() - 1 - field_index_and_stack_size.stack_size
 		));
+
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
+
 		ref->view(
 			field_index_and_stack_size.field_index,
 			[&]<typename FieldType>(FieldType& field_value) {
 				field_value = stack.pop_back<FieldType>();
 			}
 		);
+
 		stack.pop_back<reference>();
 		return loop_action::next;
 	}

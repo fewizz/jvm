@@ -53,9 +53,9 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
 					(uint64) x;
 			}
-			else if constexpr(same_as<Type, reference>) {
+			else if constexpr(same_as<Type, object*>) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
-					(uint64) x.object_ptr();
+					(uint64) x;
 			}
 			else if constexpr(same_as<Type, int32> || same_as<Type, int64>) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =

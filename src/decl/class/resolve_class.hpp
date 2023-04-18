@@ -88,10 +88,16 @@ template<class_file::descriptor_type Type>
 		return bool_class.get();
 	}
 	else if constexpr(same_as<Type, class_file::object>) {
-		return try_resolve_class(d, type);
+		return try_resolve_class(
+			d,
+			type
+		);
 	}
 	else if constexpr(same_as<Type, class_file::array>) {
-		return try_resolve_class(d, type);
+		return try_resolve_class(
+			d,
+			type
+		);
 	}
 	else {
 		posix::abort();

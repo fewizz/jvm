@@ -8,6 +8,7 @@
 #include "./java/lang/invoke/method_handles.hpp"
 #include "./java/lang/invoke/method_handles_lookup.hpp"
 #include "./java/lang/invoke/method_type.hpp"
+#include "./java/lang/invoke/var_handle.hpp"
 #include "./java/lang/invoke/wrong_method_type_exception.hpp"
 #include "./java/lang/reflect/array.hpp"
 #include "./java/lang/abstract_method_error.hpp"
@@ -59,6 +60,7 @@ static inline void init_lib() {
 	init_java_lang_invoke_method_handles();
 	init_java_lang_invoke_method_handles_lookup();
 	init_java_lang_invoke_method_type();
+	init_java_lang_invoke_var_handle();
 	init_java_lang_invoke_wrong_method_type_exception();
 	init_java_lang_reflect_array();
 	init_java_lang_array_store_exception();

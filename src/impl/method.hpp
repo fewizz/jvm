@@ -20,11 +20,13 @@ inline bool method::is_signature_polymorphic() const {
 	const ::_class& c = _class();
 
 	bool c_is_mh_or_vh =
-		&c == method_handle_class.ptr() ||
-		&c == var_handle_class.ptr();
+		c.is(method_handle_class.get()) ||
+		c.is(var_handle_class.get());
 	
 	bool param_is_object_array =
-		descriptor().starts_with(c_string{"(([Ljava/lang/Object;))"});
+		descriptor().has_equal_size_and_elements(
+			c_string{"([Ljava/lang/Object;)Ljava/lang/Object;"}
+		);
 	
 	bool varargs_and_native_flags_set =
 		has_variable_number_of_arguments() &&

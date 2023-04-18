@@ -8,7 +8,7 @@ inline optional<method&> mh_special_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_special_mh(
-	reference mt, _class& c, instance_method_index index
+	reference mt, _class& c, declared_instance_method_index index
 ) {
 	return try_create_object(
 		mh_special_constructor.get(),
@@ -18,8 +18,8 @@ try_create_special_mh(
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_special_mh(reference mt, method& m) {
-	instance_method_index index = m._class()
-		.instance_methods().find_index_of(m);
+	declared_instance_method_index index = m._class()
+		.declared_instance_methods().find_index_of(m);
 
 	return try_create_special_mh(move(mt), m._class(), index);
 }
