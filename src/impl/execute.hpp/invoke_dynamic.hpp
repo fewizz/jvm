@@ -9,7 +9,7 @@
 #include <print/print.hpp>
 
 [[nodiscard]] inline optional<reference> try_invoke_dynamic(
-	class_file::constant::invoke_dynamic_index ref_index, _class& c
+	_class& c, class_file::constant::invoke_dynamic_index ref_index
 ) {
 	namespace cc = class_file::constant;
 

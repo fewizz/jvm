@@ -25,8 +25,7 @@
 	/* Otherwise, field lookup is applied recursively to the direct
 	   superinterfaces of the specified class or interface C. */
 	for(_class& i : c.declared_interfaces()) {
-		optional<field&> possible_f =
-			try_resolve_field0(i, name, desc);
+		optional<field&> possible_f = try_resolve_field0(i, name, desc);
 		if(possible_f.has_value()) {
 			return possible_f;
 		}
@@ -35,8 +34,7 @@
 	/* Otherwise, if C has a superclass S, field lookup is applied recursively
 	   to S. */
 	if(c.has_super()) {
-		optional<field&> possible_f =
-			try_resolve_field0(c.super(), name, desc);
+		optional<field&> possible_f = try_resolve_field0(c.super(), name, desc);
 		if(possible_f.has_value()) {
 			return possible_f;
 		}

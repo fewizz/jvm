@@ -50,6 +50,7 @@ public:
 	bool is_public() const { return access_flags_._public; }
 	bool is_protected() const { return access_flags_._protected; }
 	bool is_private() const { return access_flags_.super_or_synchronized; }
+	bool is_final() const { return access_flags_._final; }
 
 	bool has_default_access() const {
 		return !is_public() && !is_protected() && !is_private();

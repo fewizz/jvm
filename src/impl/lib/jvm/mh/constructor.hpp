@@ -25,16 +25,12 @@ static void init_jvm_mh_constructor() {
 			reference mh,
 			nuint args_beginning
 		) -> optional<reference> {
-			declared_instance_method_index method_index {
-				mh->get<uint16>(mh_class_member_index_position)
-			};
-			reference& refc_ref
+			reference& c_ref
 				= mh->get<reference>(mh_class_member_class_position);
-			_class& refc = class_from_class_instance(refc_ref);
+			_class& c = class_from_class_instance(c_ref);
 
-			method& constructor = refc[method_index];
 			expected<reference, reference> possible_result
-				= try_create_object(refc);
+				= try_create_object(c);
 
 			if(possible_result.is_unexpected()) {
 				return move(possible_result.get_unexpected());
@@ -44,10 +40,18 @@ static void init_jvm_mh_constructor() {
 
 			stack.insert_at(args_beginning, result);
 
-			optional<reference> possible_throwable = try_execute(constructor);
+			declared_instance_method_index method_index {
+				mh->get<uint16>(mh_class_member_index_position)
+			};
+			method& constructor = c[method_index];
+
+			optional<reference> possible_throwable
+				= try_invoke_special_selected(constructor);
+
 			if(possible_throwable.has_value()) {
 				return move(possible_throwable.get());
 			}
+
 			stack.emplace_back(result);
 			return {};
 		}

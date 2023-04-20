@@ -10,22 +10,8 @@
 
 #include <posix/memory.hpp>
 
-struct static_field;
-
-struct class_and_declared_static_field_index {
-	_class& _class;
-	declared_static_field_index field_index;
-};
-
-struct instance_field_index_and_stack_size {
-	instance_field_index field_index;
-	uint8 stack_size;
-};
-
 using trampoline = optional<
-	class_and_declared_static_field_index,
-	instance_field_index_and_stack_size,
-	reference, _class&, method&,
+	reference, _class&, method&, field&,
 	instance_method_index, instance_field_index
 >;
 

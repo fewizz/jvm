@@ -10,45 +10,10 @@
 
 #include <class_file/constant.hpp>
 
-template<basic_range Desriptor>
-[[nodiscard]] inline optional<reference> try_invoke_virtual(
-	method& resolved_method, Desriptor&& desc
+[[nodiscard]] inline optional<reference>
+try_invoke_virtual_resolved_non_polymorphic(
+	method& resolved_method
 ) {
-	if(resolved_method.is_signature_polymorphic()) {
-		nuint args_count_stack = 0;
-
-		class_file::method_descriptor::reader reader{ desc.iterator() };
-		reader.try_read_parameter_types_and_get_return_type_reader(
-		[&]<typename ParamType>(ParamType) {
-				args_count_stack += descriptor_type_stack_size<ParamType>;
-			},
-			[](auto) { posix::abort(); }
-		);
-
-		// reference to method handle is popped from stack
-		// before calling invoke[Exact]!
-		nuint args_beginning_positoin = stack.size() - args_count_stack;
-
-		reference mh_ref; {
-			nuint mh_ref_stack_position = args_beginning_positoin - 1;
-			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
-			--args_beginning_positoin;
-		}
-
-		if(
-			resolved_method.name()
-			.has_equal_size_and_elements(c_string{ "invokeExact" })
-		) {
-			return method_handle_invoke_exact(
-				move(mh_ref), args_beginning_positoin
-			);
-		} else {
-			posix::abort();
-		}
-
-		return {};
-	}
-
 	/* If the resolved method is not signature polymorphic (§2.9.3), then the
 	   invokevirtual instruction proceeds as follows. */
 
@@ -121,6 +86,48 @@ template<basic_range Desriptor>
 	return try_execute(selected_method);
 }
 
+template<basic_range Desriptor>
+[[nodiscard]] inline optional<reference> try_invoke_virtual_resolved(
+	method& resolved_method, Desriptor&& desc
+) {
+	if(resolved_method.is_signature_polymorphic()) {
+		nuint args_count_stack = 0;
+
+		class_file::method_descriptor::reader reader{ desc.iterator() };
+		reader.try_read_parameter_types_and_get_return_type_reader(
+		[&]<typename ParamType>(ParamType) {
+				args_count_stack += descriptor_type_stack_size<ParamType>;
+			},
+			[](auto) { posix::abort(); }
+		);
+
+		// reference to method handle is popped from stack
+		// before calling invoke[Exact]!
+		nuint args_beginning_positoin = stack.size() - args_count_stack;
+
+		reference mh_ref; {
+			nuint mh_ref_stack_position = args_beginning_positoin - 1;
+			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
+			--args_beginning_positoin;
+		}
+
+		if(
+			resolved_method.name()
+			.has_equal_size_and_elements(c_string{ "invokeExact" })
+		) {
+			return method_handle_invoke_exact(
+				move(mh_ref), args_beginning_positoin
+			);
+		} else {
+			posix::abort();
+		}
+
+		return {};
+	}
+
+	return try_invoke_virtual_resolved_non_polymorphic(resolved_method);
+}
+
 [[nodiscard]] inline optional<reference> try_invoke_virtual(
 	_class& d, class_file::constant::method_ref_index ref_index
 ) {
@@ -172,5 +179,5 @@ template<basic_range Desriptor>
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();
-	return try_invoke_virtual(resolved_method, desc);
+	return try_invoke_virtual_resolved(resolved_method, desc);
 }

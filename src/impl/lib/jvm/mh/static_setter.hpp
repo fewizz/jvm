@@ -24,20 +24,18 @@ static void init_jvm_mh_static_setter() {
 			reference mh,
 			[[maybe_unused]] nuint args_beginning
 		) -> optional<reference> {
+
+			reference& c_ref
+				= mh->get<reference>(mh_class_member_class_position);
+			_class& c = class_from_class_instance(c_ref);
+
 			declared_static_field_index index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
-			reference& refc_ref
-				= mh->get<reference>(mh_class_member_class_position);
-			_class& refc = class_from_class_instance(refc_ref);
+			field& resolved_field = c[index];
 
-			refc.view(
-				index,
-				[]<typename FieldType>(FieldType& field_value) {
-					field_value = stack.pop_back<FieldType>();
-				}
-			);
+			put_static_resolved(resolved_field);
 
 			return {};
 		}

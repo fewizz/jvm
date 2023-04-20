@@ -6,6 +6,7 @@
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/jvm/mh/getter.hpp"
+#include "decl/lib/jvm/mh/setter.hpp"
 #include "decl/lib/jvm/mh/constructor.hpp"
 #include "decl/lib/jvm/mh/static.hpp"
 #include "decl/lib/jvm/mh/virtual.hpp"
@@ -33,8 +34,8 @@ static expected<reference, reference> try_lookup_find_getter(
 		});
 
 	expected<reference, reference> possible_mt
-		= try_create_method_type(field_c, span<_class&>{});
-	
+		= try_create_method_type(field_c, span{&c});
+
 	if(possible_mt.is_unexpected()) {
 		return unexpected{ move(possible_mt.get_unexpected()) };
 	}
@@ -42,6 +43,35 @@ static expected<reference, reference> try_lookup_find_getter(
 	reference mt = move(possible_mt.get_expected());
 
 	return try_create_getter_mh(move(mt), c, index);
+}
+
+static expected<reference, reference> try_lookup_find_setter(
+	object& c_inst, object& name, object& field_type_inst
+) {
+	_class& c = class_from_class_instance(c_inst);
+	_class& field_c = class_from_class_instance(field_type_inst);
+
+	instance_field_index index =
+		view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
+			return c.instance_fields().find_index_of(
+				name_utf8, field_c.descriptor()
+			);
+		});
+
+	array arg_types{ &c, &field_c };
+
+	expected<reference, reference> possible_mt
+		= try_create_method_type(
+			void_class.get(), arg_types.dereference_view()
+		);
+
+	if(possible_mt.is_unexpected()) {
+		return unexpected{ move(possible_mt.get_unexpected()) };
+	}
+
+	reference mt = move(possible_mt.get_expected());
+
+	return try_create_setter_mh(move(mt), c, index);
 }
 
 static expected<reference, reference> try_lookup_find_virtual(
@@ -152,6 +182,36 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			}
 			expected<reference, reference> possible_mh
 				= try_lookup_find_getter(*cls, *name, *c);
+			if(possible_mh.is_unexpected()) {
+				thrown_in_native = move(possible_mh.get_unexpected());
+				return nullptr;
+			}
+			reference mh = move(possible_mh.get_expected());
+			return & mh.unsafe_release_without_destroing();
+		}
+	);
+
+	method_handles_lookup_class->declared_methods().find(
+		c_string{ "findSetter" },
+		c_string {
+			"("
+				"Ljava/lang/Class;"
+				"Ljava/lang/String;"
+				"Ljava/lang/Class;"
+			")"
+			"Ljava/lang/invoke/MethodHandle;"
+		}
+	).native_function(
+		(void*)+[](
+			native_environment*, object*,
+			object* cls, object* name, object* c
+		) -> object* {
+			if(cls == nullptr || name == nullptr || c == nullptr) {
+				thrown_in_native = try_create_null_pointer_exception().get();
+				return nullptr;
+			}
+			expected<reference, reference> possible_mh
+				= try_lookup_find_setter(*cls, *name, *c);
 			if(possible_mh.is_unexpected()) {
 				thrown_in_native = move(possible_mh.get_unexpected());
 				return nullptr;

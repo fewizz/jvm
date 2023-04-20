@@ -23,15 +23,24 @@ static void init_jvm_mh_static() {
 			reference ths,
 			[[maybe_unused]] nuint args_beginning
 		) -> optional<reference> {
+			reference& c_ref
+				= ths->get<reference>(mh_class_member_class_position);
+
+			_class& c = class_from_class_instance(c_ref);
+
+			// TODO
+			optional<reference> init_error = c.try_initialise_if_need();
+			if(init_error.has_value()) {
+				return move(init_error.get());
+			}
+
 			declared_static_method_index method_index {
 				ths->get<uint16>(mh_class_member_index_position)
 			};
-			reference& class_ref
-				= ths->get<reference>(mh_class_member_class_position);
 
-			_class& c = class_from_class_instance(class_ref);
+			method& resolved_method = c[method_index];
 
-			return try_execute(c[method_index]);
+			return try_invoke_static_resolved(resolved_method);
 		}
 	);
 }

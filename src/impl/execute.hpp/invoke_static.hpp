@@ -10,28 +10,16 @@
 
 #include <overloaded.hpp>
 
-inline optional<reference> try_invoke_static(method& resolved_method) {
-	/* A class or interface C may be initialized only as a result of: */
-	// ...
-	/* The execution of any one of the Java Virtual Machine instructions new,
-	   getstatic, putstatic, or invokestatic that references C
-	   ...
-	   Upon execution of a getstatic, putstatic, or invokestatic instruction,
-	   the class or interface to be initialized is the class or interface that
-	   declares the resolved field or method.
-	*/
-	optional<reference> init_error
-		= resolved_method._class().try_initialise_if_need();
-	if(init_error.has_value()) {
-		return move(init_error.get());
-	}
+[[nodiscard]] inline optional<reference>
+try_invoke_static_resolved(method& resolved_method) {
+	_class& c = resolved_method._class();
 
 	if(resolved_method.is_synchronized()) {
-		resolved_method._class().instance()->lock();
+		c.instance()->lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
 		if(resolved_method.is_synchronized()) {
-			resolved_method._class().instance()->unlock();
+			c.instance()->unlock();
 		}
 	}};
 
@@ -99,5 +87,5 @@ inline optional<reference> try_invoke_static(
 
 	method& resolved_method = possible_resolved_method.get_expected();
 
-	return try_invoke_static(resolved_method);
+	return try_invoke_static_resolved(resolved_method);
 }

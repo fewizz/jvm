@@ -29,16 +29,13 @@ static void init_jvm_mh_static_getter() {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
-			reference& refc_ref
+			reference& c_ref
 				= mh->get<reference>(mh_class_member_class_position);
-			_class& refc = class_from_class_instance(refc_ref);
+			_class& c = class_from_class_instance(c_ref);
 
-			refc.view(
-				index,
-				[]<typename FieldType>(FieldType& field_value) {
-					stack.emplace_back(field_value);
-				}
-			);
+			field& resolved_field = c[index];
+
+			get_static_resolved(resolved_field);
 
 			return {};
 		}

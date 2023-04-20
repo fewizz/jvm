@@ -1,10 +1,11 @@
 #include "decl/lib/jvm/mh/setter.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/object.hpp"
+#include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
+#include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/execute.hpp"
 
 static void init_jvm_mh_setter() {
@@ -24,32 +25,22 @@ static void init_jvm_mh_setter() {
 			reference mh,
 			[[maybe_unused]] nuint args_beginning
 		) -> optional<reference> {
+			reference& c_ref
+				= mh->get<reference>(mh_class_member_class_position);
+			_class& c = class_from_class_instance(c_ref);
+
 			instance_field_index index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
-			reference& refc_ref
-				= mh->get<reference>(mh_class_member_class_position);
-			_class& refc = class_from_class_instance(refc_ref);
+			field& resolved_field = c[index];
 
-			reference obj_ref = stack.pop_at<reference>(args_beginning);
-
-			bool valid =
-				obj_ref._class().is(refc) ||
-				obj_ref._class().is_sub_of(refc);
+			optional<reference> possible_throwable
+				= try_put_field_resolved(resolved_field);
 			
-			if(!valid) {
-				expected<reference, reference> possible_wmte
-					= try_create_wrong_method_type_exception();
-				return move(possible_wmte.get());
+			if(possible_throwable.has_value()) {
+				return move(possible_throwable.get());
 			}
-
-			obj_ref->view(
-				index,
-				[]<typename FieldType>(FieldType& field_value) {
-					field_value = stack.pop_back<FieldType>();
-				}
-			);
 
 			return {};
 		}

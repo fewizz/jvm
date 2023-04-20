@@ -19,6 +19,10 @@ public class MethodHandles {
 			Class<?> refc, String name, Class<?> type
 		) throws NoSuchFieldException, IllegalAccessException;
 
+		public native MethodHandle findSetter(
+			Class<?> refc, String name, Class<?> type
+		) throws NoSuchFieldException, IllegalAccessException;
+
 		public native MethodHandle findStatic(
 			Class<?> refc, String name, MethodType type
 		) throws NoSuchMethodException, IllegalAccessException;

@@ -14,15 +14,12 @@
 #include <overloaded.hpp>
 #include <optional.hpp>
 
-[[nodiscard]] inline optional<reference> try_invoke_special(
-	_class& current_c, method& resolved_method
+[[nodiscard]] inline optional<reference> try_invoke_special_selected(
+	method& selected_method
 ) {
-
-	_class& referenced_class = resolved_method._class();
-
 	// copy, so object and it's lock may not be destroyed
 	reference obj_ref = stack.get<reference>(
-		stack.size() - resolved_method.parameters_stack_size()
+		stack.size() - selected_method.parameters_stack_size()
 	);
 
 	/* Otherwise, if objectref is null, the invokespecial instruction throws a
@@ -30,6 +27,39 @@
 	if(obj_ref.is_null()) {
 		return try_create_null_pointer_exception().get();
 	}
+
+	/* Otherwise, if step 1, step 2, or step 3 of the lookup procedure */
+	if(!selected_method._class().is_interface()) {
+		/* selects an abstract method, invokespecial throws an
+		   AbstractMethodError. */
+		if(selected_method.is_abstract()) {
+			return try_create_abstract_method_error().get();
+		}
+		/* selects a native method and the code that implements the method
+		   cannot be bound, invokespecial throws an UnsatisfiedLinkError.*/
+		// TODO
+	}
+
+	/* If the method is synchronized, the monitor associated with objectref is
+	   entered or reentered as if by execution of a monitorenter instruction
+	   (§monitorenter) in the current thread. */
+	if(selected_method.is_synchronized()) {
+		obj_ref->lock();
+	}
+	on_scope_exit unlock_if_synchronized { [&] {
+		if(selected_method.is_synchronized()) {
+			obj_ref->unlock();
+		}
+	}};
+
+	return try_execute(selected_method);
+}
+
+[[nodiscard]] inline optional<reference> try_invoke_special_resolved(
+	_class& current_c, method& resolved_method
+) {
+
+	_class& referenced_class = resolved_method._class();
 
 	optional<method&> possible_selected_method
 		= select_method_for_invoke_special(
@@ -66,31 +96,7 @@
 
 	method& selected_method = possible_selected_method.get();
 
-	/* Otherwise, if step 1, step 2, or step 3 of the lookup procedure */
-	if(!selected_method._class().is_interface()) {
-		/* selects an abstract method, invokespecial throws an
-		   AbstractMethodError. */
-		if(selected_method.is_abstract()) {
-			return try_create_abstract_method_error().get();
-		}
-		/* selects a native method and the code that implements the method
-		   cannot be bound, invokespecial throws an UnsatisfiedLinkError.*/
-		// TODO
-	}
-
-	/* If the method is synchronized, the monitor associated with objectref is
-	   entered or reentered as if by execution of a monitorenter instruction
-	   (§monitorenter) in the current thread. */
-	if(selected_method.is_synchronized()) {
-		obj_ref->lock();
-	}
-	on_scope_exit unlock_if_synchronized { [&] {
-		if(selected_method.is_synchronized()) {
-			obj_ref->unlock();
-		}
-	}};
-
-	return try_execute(selected_method);
+	return try_invoke_special_selected(selected_method);
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_special(
@@ -155,5 +161,5 @@
 
 	method& resolved_method = possible_resolved_method.get_expected();
 
-	return try_invoke_special(current_c, resolved_method);
+	return try_invoke_special_resolved(current_c, resolved_method);
 }

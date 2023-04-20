@@ -5,6 +5,18 @@
 #include "./select_method.hpp"
 #include "./select_method_for_invoke_special.hpp"
 
+#include "./invoke_dynamic.hpp"
+#include "./invoke_interface.hpp"
+#include "./invoke_special.hpp"
+#include "./invoke_static.hpp"
+#include "./invoke_virtual.hpp"
+
+#include "./get_field.hpp"
+#include "./put_field.hpp"
+
+#include "./get_static.hpp"
+#include "./put_static.hpp"
+
 #include "execution/info.hpp"
 #include "execution/context.hpp"
 #include "execution/latest_context.hpp"

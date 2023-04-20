@@ -4,16 +4,20 @@
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/var_handle.hpp"
 
-/* "A method is an instance initialization method
-    if all of the following are true:" */
+/* A method is an instance initialization method
+   if all of the following are true: */
 inline bool method::is_instance_initialisation() const {
 	return
-		/* "It is defined in a class (not an interface)." */
+		/* It is defined in a class (not an interface). */
 		!_class().is_interface() &&
-		/* "It has the special name <init>." */
+		/* It has the special name <init>. */
 		name().has_equal_size_and_elements(c_string{ "<init>" }) &&
-		/* "It is void (§4.3.3)." */
+		/* It is void (§4.3.3). */
 		is_void();
+}
+
+inline bool method::is_class_initialisation() const {
+	return name().has_equal_size_and_elements(c_string{ "<clinit>" });
 }
 
 inline bool method::is_signature_polymorphic() const {

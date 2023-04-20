@@ -96,6 +96,9 @@ public:
 	inline const field& operator[](instance_field_index index) const;
 	inline       field& operator[](instance_field_index index);
 
+	inline const field& operator[](declared_static_field_index index) const;
+	inline       field& operator[](declared_static_field_index index);
+
 	inline const method& operator[](instance_method_index index) const;
 	inline       method& operator[](instance_method_index index);
 
@@ -350,18 +353,11 @@ public:
 		return try_resolve_field(field_ref);
 	}
 
-	[[nodiscard]] expected<instance_field_index_and_stack_size, reference>
-	try_get_resolved_instance_field_index(
-		class_file::constant::field_ref_index ref_index
-	);
-
-	[[nodiscard]] expected<method&, reference> try_get_resolved_static_method(
-		class_file::constant::method_ref_index ref_index
-	);
-
-	[[nodiscard]] expected<class_and_declared_static_field_index, reference>
-	try_get_static_field_index(
-		class_file::constant::field_ref_index ref_index
+	template<typename Verifier>
+	[[nodiscard]] expected<field&, reference>
+	try_get_resolved_field(
+		class_file::constant::field_ref_index ref_index,
+		Verifier&& verifier
 	);
 
 	/* A maximally-specific superinterface method of a class or interface C for

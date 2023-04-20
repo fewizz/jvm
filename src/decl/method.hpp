@@ -160,6 +160,8 @@ public:
 
 	bool is_instance_initialisation() const;
 
+	bool is_class_initialisation() const;
+
 	bool is_signature_polymorphic() const;
 
 	bool can_override(method&) const;

@@ -92,8 +92,8 @@ try_create_object(method& constructor, Args&&... args) {
 
 	(stack.emplace_back(forward<Args>(args)), ...);
 
-	optional<reference> possible_throwable = try_invoke_special(
-		constructor._class(), constructor
+	optional<reference> possible_throwable = try_invoke_special_selected(
+		constructor
 	);
 
 	if(possible_throwable.has_value()) {
