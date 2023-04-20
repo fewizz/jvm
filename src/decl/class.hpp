@@ -14,6 +14,7 @@
 #include "./class/find_by_name_and_descriptor_extension.hpp"
 
 #include "./reference.hpp"
+#include "./primitives.hpp"
 
 #include "mutex_attribute_recursive.hpp"
 
@@ -455,5 +456,37 @@ public:
 		}
 		return false;
 	}
+
+	template<typename Handler>
+	decltype(auto) view_raw_type(Handler&& handler) {
+		if(is_reference()) {
+			return handler.template operator()<reference>();
+		}
+		else {
+			if(is(bool_class.get())) {
+				return handler.template operator()<bool>();
+			} else
+			if(is(byte_class.get())) {
+				return handler.template operator()<int8>();
+			} else
+			if(is(short_class.get())) {
+				return handler.template operator()<int16>();
+			} else
+			if(is(char_class.get())) {
+				return handler.template operator()<uint16>();
+			} else
+			if(is(int_class.get())) {
+				return handler.template operator()<int32>();
+			} else
+			if(is(long_class.get())) {
+				return handler.template operator()<int64>();
+			} else
+			if(is(float_class.get())) {
+				return handler.template operator()<float>();
+			} else {
+				return handler.template operator()<double>();
+			}
+		}
+	};
 
 };

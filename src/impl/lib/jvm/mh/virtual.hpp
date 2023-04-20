@@ -20,7 +20,7 @@ static void init_jvm_mh_virtual() {
 	mh_virtual_class->declared_instance_methods().find(
 		c_string{"invokeExactPtr"}, c_string{"()V"}
 	).native_function(
-		(void*)+[](reference mh, nuint args_beginning)
+		(void*)+[](reference mh, [[maybe_unused]] nuint args_beginning)
 		-> optional<reference>
 		{
 			reference& c_ref

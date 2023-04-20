@@ -1405,6 +1405,24 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	loop_action operator () (instr::invoke_dynamic x) {
+		if(info) {
+			/* The run-time constant pool entry at the index must be a symbolic
+			reference to a dynamically-computed call site (§5.1) */
+			class_file::constant::invoke_dynamic ref
+				= c.invoke_dynamic_constant(x.index);
+			class_file::constant::name_and_type nat
+				= c.name_and_type_constant(ref.name_and_type_index);
+			class_file::constant::utf8 name
+				= c.utf8_constant(nat.name_index);
+			class_file::constant::utf8 desc
+				= c.utf8_constant(nat.descriptor_index);
+			tabs();
+			print::out(
+				"invoke_dynamic #", ref.bootstrap_method_attr_index, " ",
+				name, desc, "\n"
+			);
+		}
+
 		optional<reference> possible_throwable
 			= ::try_invoke_dynamic(c, x.index);
 
@@ -1497,6 +1515,12 @@ struct execute_instruction {
 		return handle_thrown(move(ref));
 	}
 	loop_action operator () (instr::check_cast x) {
+		if(info) {
+			class_file::constant::_class c_info = c[x.index];
+			class_file::constant::utf8 name = c[c_info.name_index];
+			tabs();
+			print::out("check_cast ", name, "\n");
+		}
 		optional<reference> possible_throwable = ::try_check_cast(c, x.index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(move(possible_throwable.get()));

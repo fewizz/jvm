@@ -13,6 +13,9 @@
 #include "./java/lang/reflect/array.hpp"
 #include "./java/lang/abstract_method_error.hpp"
 #include "./java/lang/array_store_exception.hpp"
+#include "./java/lang/boolean.hpp"
+#include "./java/lang/byte.hpp"
+#include "./java/lang/character.hpp"
 #include "./java/lang/class_cast_exception.hpp"
 #include "./java/lang/class_loader.hpp"
 #include "./java/lang/class_not_found_exception.hpp"
@@ -32,6 +35,7 @@
 #include "./java/lang/object.hpp"
 #include "./java/lang/stack_overflow_error.hpp"
 #include "./java/lang/runtime.hpp"
+#include "./java/lang/short.hpp"
 #include "./java/lang/stack_trace_element.hpp"
 #include "./java/lang/string.hpp"
 #include "./java/lang/system.hpp"
@@ -64,6 +68,9 @@ static inline void init_lib() {
 	init_java_lang_invoke_wrong_method_type_exception();
 	init_java_lang_reflect_array();
 	init_java_lang_array_store_exception();
+	init_java_lang_boolean();
+	init_java_lang_byte();
+	init_java_lang_character();
 	init_java_lang_class_cast_exception();
 	init_java_lang_class_loader();
 	init_java_lang_class_not_found_exception();
@@ -79,6 +86,7 @@ static inline void init_lib() {
 	init_java_lang_no_such_method_error();
 	init_java_lang_null_pointer_exception();
 	init_java_lang_runtime();
+	init_java_lang_short();
 	init_java_lang_stack_trace_element();
 	init_java_lang_string();
 	init_java_lang_system();

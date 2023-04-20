@@ -29,6 +29,12 @@ static void init_jvm_mh_static_setter() {
 				= mh->get<reference>(mh_class_member_class_position);
 			_class& c = class_from_class_instance(c_ref);
 
+			optional<reference> optional_throwable
+				= c.try_initialise_if_need();//TODO
+			if(optional_throwable.has_value()) {
+				return move(optional_throwable.get());
+			}
+
 			declared_static_field_index index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};

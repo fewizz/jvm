@@ -12,6 +12,9 @@ template<typename... Args>
 	return try_execute(m);
 }
 
+// s - class type of objectref, t - resolved class
+inline bool can_cast(_class& s, _class& t);
+
 // invoke_dynamic
 
 template<basic_range StackType>

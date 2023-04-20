@@ -56,8 +56,8 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 
 	reference mh = move(possible_mh.get_expected());
 
-	/* If R is a symbolic reference to a dynamically-computed call site, then it
-	   gives a method descriptor. */
+	/* 2. If R is a symbolic reference to a dynamically-computed call site, then
+	      it gives a method descriptor. */
 	class_file::constant::name_and_type nat
 		= name_and_type_constant(invoke_dynamic.name_and_type_index);
 	class_file::constant::utf8 descriptor
@@ -191,5 +191,6 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 	reference result = stack.pop_back<reference>();
 
 	trampoline(index) = result;
+
 	return move(result);
 }

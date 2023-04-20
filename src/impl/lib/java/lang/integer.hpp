@@ -1,3 +1,5 @@
+#include "decl/lib/java/lang/integer.hpp"
+
 #include "decl/classes.hpp"
 #include "decl/primitives.hpp"
 #include "decl/native/environment.hpp"
@@ -7,11 +9,15 @@
 #include <number.hpp>
 
 static void init_java_lang_integer() {
-	_class& integer_class = classes.load_class_by_bootstrap_class_loader(
+	java_lang_integer_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/Integer" }
 	);
 
-	integer_class.declared_methods().find(
+	java_lang_integer_constructor =
+		java_lang_integer_class->declared_instance_methods()
+		.find(c_string{"<init>"}, c_string{"(I)V"});
+
+	java_lang_integer_class->declared_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
@@ -19,7 +25,7 @@ static void init_java_lang_integer() {
 		}
 	);
 
-	integer_class.declared_methods().find(
+	java_lang_integer_class->declared_methods().find(
 		c_string{ "toString" }, c_string{ "(II)Ljava/lang/String;" }
 	).native_function(
 		(void*)+[](native_environment*, int32 value, int32 radix) -> object* {
