@@ -4,6 +4,7 @@
 #include "decl/descriptor.hpp"
 #include "decl/primitives.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
+#include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/lib/java/lang/object.hpp"
 
 #include "decl/lib/java/lang/boolean.hpp"
@@ -24,7 +25,7 @@ inline instance_method_index method_handle_invoke_exact_ptr_index;
 inline layout::position method_handle_method_type_field_position;
 
 [[nodiscard]] inline optional<reference>
-method_handle_invoke_exact(reference mh_ref, nuint args_beginning);
+method_handle_try_invoke_exact(reference mh_ref, nuint args_beginning);
 
 template<typename T0, typename T1>
 [[nodiscard]] inline bool method_handle_is_type_convertible(
@@ -83,6 +84,32 @@ template<typename T0, typename T1>
 			);
 		});
 	});
+}
+
+[[nodiscard]] inline bool method_handle_are_types_convertible(
+	object& new_mt,
+	object& ori_mt
+) {
+	_class& new_ret = method_type_return_type(new_mt);
+	_class& ori_ret = method_type_return_type(ori_mt);
+
+	auto new_params = method_type_parameter_types_view(new_mt);
+	auto ori_params = method_type_parameter_types_view(ori_mt);
+
+	if(new_params.size() != ori_params.size()) {
+		return false;
+	}
+
+	for(nuint i = 0; i < new_params.size(); ++i) {
+		_class& new_p = new_params[i];
+		_class& ori_p = ori_params[i];
+
+		if(!method_handle_is_type_convertible(new_p, ori_p)) {
+			return false;
+		}
+	}
+
+	return method_handle_is_type_convertible(ori_ret, new_ret);
 }
 
 template<typename T0, typename T1>
@@ -146,7 +173,7 @@ method_handle_try_convert_and_save_on_stack(
 
 [[nodiscard]] inline optional<reference>
 method_handle_try_convert_return_value_and_save_on_stack(
-	_class& ori_ret, _class& new_ret
+	_class& new_ret, _class& ori_ret
 ) {
 	bool ori_is_void = ori_ret.is(void_class.get());
 	bool new_is_void = new_ret.is(void_class.get());
@@ -240,5 +267,54 @@ method_handle_try_convert_arguments_on_stack(
 		forward<NewArgs>(new_args),
 		forward<OriArgs>(ori_args),
 		size
+	);
+}
+
+[[nodiscard]] inline optional<reference> method_handle_try_invoke_checked(
+	object& ori_mh, object& new_mt, object& ori_mt, nuint args_beginning
+) {
+	_class& new_ret = method_type_return_type(new_mt);
+	_class& ori_ret = method_type_return_type(ori_mt);
+
+	auto new_params = method_type_parameter_types_view(new_mt);
+	auto ori_params = method_type_parameter_types_view(ori_mt);
+
+	optional<reference> possible_throwable
+		= method_handle_try_convert_arguments_on_stack(
+			new_params, ori_params
+		);
+	if(possible_throwable.has_value()) {
+		return move(possible_throwable.get());
+	}
+
+	possible_throwable
+		= method_handle_try_invoke_exact(ori_mh, args_beginning);
+	
+	if(possible_throwable.has_value()) {
+		return move(possible_throwable.get());
+	}
+
+	possible_throwable
+		= method_handle_try_convert_return_value_and_save_on_stack(
+			new_ret, ori_ret
+		);
+
+	return {};
+}
+
+[[nodiscard]] inline optional<reference>
+method_handle_try_invoke(
+	reference mh_ref, reference new_mt, nuint args_beginning
+) {
+	reference& ori_mt = mh_ref->get<reference>(
+		method_handle_method_type_field_position
+	);
+
+	if(!method_handle_are_types_convertible(ori_mt, new_mt)) {
+		return try_create_wrong_method_type_exception().get();
+	}
+
+	return method_handle_try_invoke_checked(
+		mh_ref, new_mt, ori_mt, args_beginning
 	);
 }

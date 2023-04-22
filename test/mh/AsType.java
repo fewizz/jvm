@@ -29,9 +29,20 @@ public class AsType {
 		float result = (float) newMh.invokeExact(
 			Integer.valueOf(1), (short) 2, 3
 		);
-		if(result != (float)(1 + 2 + (int)(float)3)) {
+
+		int resultShouldBe = (float)(1 + 2 + (int)(float)3);
+
+		if(result != resultShouldBe) {
 			System.exit(1);
 		}
+
+		result = (float) mh.invoke(Integer.valueOf(1), (short) 2, 3);
+
+		if(result != resultShouldBe) {
+			System.exit(2);
+		}
+
+
 
 	}
 

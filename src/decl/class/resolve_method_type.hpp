@@ -11,7 +11,7 @@ resolution occurs of unresolved symbolic references to classes and interfaces
 (§5.4.3.1) whose names correspond to the types given in the method descriptor
 (§4.3.3) */
 template<basic_range Descriptor>
-inline expected<reference, reference>
+[[nodiscard]] inline expected<reference, reference>
 try_resolve_method_type(_class& d, Descriptor&& descriptor) {
 	bool method_descriptor = descriptor.size() > 0 && descriptor[0] == '(';
 	if(!method_descriptor) {

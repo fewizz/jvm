@@ -37,7 +37,6 @@ static void init_jvm_mh_adapter() {
 			object& new_mt = new_mh->get<reference>(
 				method_handle_method_type_field_position
 			);
-			_class& new_ret = method_type_return_type(new_mt);
 
 			object& ori_mh = new_mh->get<reference>(
 				jvm_mh_adapter_original_field_position
@@ -45,25 +44,8 @@ static void init_jvm_mh_adapter() {
 			object& ori_mt = ori_mh.get<reference>(
 				method_handle_method_type_field_position
 			);
-			_class& ori_ret = method_type_return_type(ori_mt);
 
-			auto new_params = method_type_parameter_types_view(new_mt);
-			auto ori_params = method_type_parameter_types_view(ori_mt);
-
-			if(new_params.size() != ori_params.size()) {
-				return false;
-			}
-
-			for(nuint i = 0; i < new_params.size(); ++i) {
-				_class& new_p = new_params[i];
-				_class& ori_p = ori_params[i];
-
-				if(!method_handle_is_type_convertible(new_p, ori_p)) {
-					return false;
-				}
-			}
-
-			return method_handle_is_type_convertible(ori_ret, new_ret);
+			return method_handle_are_types_convertible(new_mt, ori_mt);
 		}
 	);
 
@@ -77,7 +59,6 @@ static void init_jvm_mh_adapter() {
 			object& new_mt = new_mh->get<reference>(
 				method_handle_method_type_field_position
 			);
-			_class& new_ret = method_type_return_type(new_mt);
 
 			object& ori_mh = new_mh->get<reference>(
 				jvm_mh_adapter_original_field_position
@@ -85,32 +66,10 @@ static void init_jvm_mh_adapter() {
 			object& ori_mt = ori_mh.get<reference>(
 				method_handle_method_type_field_position
 			);
-			_class& ori_ret = method_type_return_type(ori_mt);
 
-			auto new_params = method_type_parameter_types_view(new_mt);
-			auto ori_params = method_type_parameter_types_view(ori_mt);
-
-			optional<reference> possible_throwable
-				= method_handle_try_convert_arguments_on_stack(
-					new_params, ori_params
-				);
-			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
-			}
-
-			possible_throwable
-				= method_handle_invoke_exact(ori_mh, args_beginning);
-			
-			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
-			}
-
-			possible_throwable
-				= method_handle_try_convert_return_value_and_save_on_stack(
-					ori_ret, new_ret
-				);
-
-			return {};
+			return method_handle_try_invoke_checked(
+				ori_mh, new_mt, ori_mt, args_beginning
+			);
 		}
 	);
 }

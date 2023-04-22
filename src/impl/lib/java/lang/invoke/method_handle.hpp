@@ -47,7 +47,7 @@ inline void init_java_lang_invoke_method_handle() {
 }
 
 [[nodiscard]] inline optional<reference>
-method_handle_invoke_exact(reference mh_ref, nuint args_beginning) {
+method_handle_try_invoke_exact(reference mh_ref, nuint args_beginning) {
 	method& m = mh_ref->_class().instance_methods()
 		[method_handle_invoke_exact_ptr_index];
 

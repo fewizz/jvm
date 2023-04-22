@@ -3,6 +3,7 @@
 #include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/object.hpp"
+#include "decl/class/resolve_method_type.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
@@ -88,7 +89,7 @@ try_invoke_virtual_resolved_non_polymorphic(
 
 template<basic_range Desriptor>
 [[nodiscard]] inline optional<reference> try_invoke_virtual_resolved(
-	method& resolved_method, Desriptor&& desc
+	_class& d, method& resolved_method, Desriptor&& desc
 ) {
 	if(resolved_method.is_signature_polymorphic()) {
 		nuint args_count_stack = 0;
@@ -111,15 +112,31 @@ template<basic_range Desriptor>
 			--args_beginning_positoin;
 		}
 
-		if(
-			resolved_method.name()
-			.has_equal_size_and_elements(c_string{ "invokeExact" })
-		) {
-			return method_handle_invoke_exact(
-				move(mh_ref), args_beginning_positoin
+		if(resolved_method.name().has_equal_size_and_elements(
+			c_string{ "invokeExact" }
+		)) {
+			return method_handle_try_invoke_exact(
+				move(mh_ref),
+				args_beginning_positoin
 			);
-		} else {
-			posix::abort();
+		}
+		else if(resolved_method.name().has_equal_size_and_elements(
+			c_string{ "invoke" }
+		)) {
+			expected<reference, reference> possible_new_mt
+				= try_resolve_method_type(d, resolved_method.descriptor());
+
+			if(possible_new_mt.is_unexpected()) {
+				return move(possible_new_mt.get_unexpected());
+			}
+
+			reference new_mt = move(possible_new_mt.get());
+
+			return method_handle_try_invoke(
+				move(mh_ref),
+				move(new_mt),
+				args_beginning_positoin
+			);
 		}
 
 		return {};
@@ -179,5 +196,5 @@ template<basic_range Desriptor>
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();
-	return try_invoke_virtual_resolved(resolved_method, desc);
+	return try_invoke_virtual_resolved(d, resolved_method, desc);
 }

@@ -8,6 +8,7 @@
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/invoke/method_handles_lookup.hpp"
+#include "decl/lib/java/lang/illegal_caller_exception.hpp"
 
 static void init_java_lang_invoke_method_handles() {
 	_class& c = classes.load_class_by_bootstrap_class_loader(
@@ -19,6 +20,11 @@ static void init_java_lang_invoke_method_handles() {
 		c_string{"()Ljava/lang/invoke/MethodHandles$Lookup;"}
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
+			if(!latest_execution_context.has_value()) {
+				thrown_in_native = try_create_illegal_caller_exception().get();
+				return nullptr;
+			}
+
 			execution_context& prev_exe_context
 				= latest_execution_context->previous.get();
 
