@@ -132,7 +132,7 @@ static inline void init_java_lang_throwable() {
 					stack_trace_element_constructor.get(),
 					move(class_name),
 					move(method_name),
-					reference{}, // file name
+					move(file_name), // file name
 					int32{ line_number }
 				);
 			if(possible_ste.is_unexpected()) {
