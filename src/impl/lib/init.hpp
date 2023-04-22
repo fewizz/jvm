@@ -44,6 +44,7 @@
 #include "./java/lang/void.hpp"
 #include "./java/nio/buffer.hpp"
 
+#include "./jvm/mh/adapter.hpp"
 #include "./jvm/mh/class_member.hpp"
 #include "./jvm/mh/constructor.hpp"
 #include "./jvm/mh/getter.hpp"
@@ -95,6 +96,7 @@ static inline void init_lib() {
 	init_java_lang_void();
 	init_java_nio_buffer();
 
+	init_jvm_mh_adapter();
 	init_jvm_mh_class_member();
 	init_jvm_mh_constructor();
 	init_jvm_mh_getter();

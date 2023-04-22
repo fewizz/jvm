@@ -1,5 +1,7 @@
 #include "decl/lib/java/lang/byte.hpp"
 
+#include "decl/native/environment.hpp"
+
 #include "classes.hpp"
 
 static void init_java_lang_byte() {
@@ -15,4 +17,10 @@ static void init_java_lang_byte() {
 		java_lang_byte_class->instance_field_position(
 			c_string{"value_", }, c_string{"B"}
 		);
+
+	java_lang_byte_class->declared_static_methods().find(
+		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
+	).native_function((void*)+[](native_environment*) -> object* {
+		return byte_class->instance().object_ptr();
+	});
 }

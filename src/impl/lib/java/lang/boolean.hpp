@@ -1,5 +1,7 @@
 #include "decl/lib/java/lang/boolean.hpp"
 
+#include "decl/native/environment.hpp"
+
 #include "classes.hpp"
 
 static void init_java_lang_boolean() {
@@ -15,4 +17,10 @@ static void init_java_lang_boolean() {
 		java_lang_boolean_class->instance_field_position(
 			c_string{"value_", }, c_string{"Z"}
 		);
+
+	java_lang_boolean_class->declared_static_methods().find(
+		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
+	).native_function((void*)+[](native_environment*) -> object* {
+		return bool_class->instance().object_ptr();
+	});
 }

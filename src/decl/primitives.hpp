@@ -1,10 +1,24 @@
 #pragma once
 
+#include <optional.hpp>
+
+struct _class;
+
+static optional<_class&> void_class{};
+static optional<_class&> bool_class{};
+static optional<_class&> byte_class{};
+static optional<_class&> short_class{};
+static optional<_class&> char_class{};
+static optional<_class&> int_class{};
+static optional<_class&> long_class{};
+static optional<_class&> float_class{};
+static optional<_class&> double_class{};
+
+using void_t = decltype(nullptr);
+
 #include <integer.hpp>
 #include <type.hpp>
 #include <optional.hpp>
-
-#include "./primitives_classes.hpp"
 
 template<typename From, typename To>
 inline constexpr bool widening_conversion_allowed =
@@ -177,32 +191,3 @@ struct wrapper_constructor_by_primitive_type_t {
 template<typename Type>
 static constexpr wrapper_constructor_by_primitive_type_t<Type>
 	wrapper_constructor_by_primitive_type{};
-
-#include "decl/reference.hpp"
-#include "decl/execute.hpp"
-#include "decl/class.hpp"
-#include "decl/object.hpp"
-
-template<not_same_as<void_t> Type>
-[[nodiscard]] optional<reference> try_box_on_stack() {
-	Type value = stack.pop_back<Type>();
-	expected<reference, reference> possible_result = try_create_object(
-		wrapper_constructor_by_primitive_type<Type>(), value
-	);
-
-	if(possible_result.is_unexpected()) {
-		return move(possible_result.get_unexpected());
-	}
-
-	stack.emplace_back(move(possible_result.get_expected()));
-	return {};
-}
-
-template<not_same_as<void_t> Type>
-void unbox_on_stack() {
-	reference value = stack.pop_back<reference>();
-	Type& unboxed_value = value->get<Type>(
-		wrapper_value_field_position_by_primitive_type<Type>()
-	);
-	stack.emplace_back(move(unboxed_value));
-}

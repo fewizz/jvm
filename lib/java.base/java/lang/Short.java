@@ -2,6 +2,10 @@ package java.lang;
 
 public final class Short extends Number {
 
+	private static native Class<Float> getPrimitiveClass();
+
+	public static final Class<Float> TYPE = getPrimitiveClass();
+
 	private final short value_;
 
 	public Short(short value) {

@@ -1,6 +1,10 @@
 package java.lang;
 
 public final class Byte extends Number {
+
+	private static native Class<Byte> getPrimitiveClass();
+
+	public static final Class<Byte> TYPE = getPrimitiveClass();
 	
 	private final byte value_;
 

@@ -5,6 +5,10 @@ public final class Double
 	implements Comparable<Double>
 {
 
+	private static native Class<Float> getPrimitiveClass();
+
+	public static final Class<Float> TYPE = getPrimitiveClass();
+
 	private final double value_;
 
 	public Double(double value) {

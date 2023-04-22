@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/integer.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/primitives_classes.hpp"
+#include "decl/primitives.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/string.hpp"

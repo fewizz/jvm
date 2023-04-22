@@ -17,4 +17,6 @@ public abstract class MethodHandle {
 
 	public native final Object invoke(Object... args) throws Throwable;
 
+	public native MethodHandle asType(MethodType newType);
+
 }

@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public final class Character implements Serializable, Comparable<Character> {
 
+	private static native Class<Character> getPrimitiveClass();
+
+	public static final Class<Character> TYPE = getPrimitiveClass();
+
 	private final char value_;
 
 	public Character(char value) {

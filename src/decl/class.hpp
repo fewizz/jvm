@@ -14,7 +14,7 @@
 #include "./class/find_by_name_and_descriptor_extension.hpp"
 
 #include "./reference.hpp"
-#include "./primitives_classes.hpp"
+#include "./primitives.hpp"
 
 #include "mutex_attribute_recursive.hpp"
 
@@ -458,7 +458,7 @@ public:
 	}
 
 	template<typename Handler>
-	decltype(auto) view_raw_type(Handler&& handler) {
+	decltype(auto) view_raw_type_non_void(Handler&& handler) {
 		if(is_reference()) {
 			return handler.template operator()<reference>();
 		}
@@ -486,13 +486,19 @@ public:
 			} else
 			if(is(double_class.get())) {
 				return handler.template operator()<double>();
-			} else
-			if(is(void_class.get())) {
-				return handler.template operator()<void_t>();
 			} else {
 				posix::abort();
 			}
 		}
 	};
+
+	template<typename Handler>
+	decltype(auto) view_raw_type(Handler&& handler) {
+		if(is(void_class.get())) {
+			return handler.template operator()<void_t>();
+		} else {
+			return view_raw_type_non_void(forward<Handler>(handler));
+		}
+	}
 
 };

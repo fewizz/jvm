@@ -87,9 +87,8 @@ template<typename T0, typename T1>
 
 template<typename T0, typename T1>
 [[nodiscard]] inline optional<reference>
-method_handle_try_convert_on_stack(
-	[[maybe_unused]] _class& t0,
-	[[maybe_unused]] _class& t1
+method_handle_try_convert_and_save_on_stack(
+	T0& t0
 ) {
 	/* If T0 and T1 are references */
 	if constexpr(same_as<reference, T0> && same_as<reference, T1>) {
@@ -98,9 +97,9 @@ method_handle_try_convert_on_stack(
 	/* If T0 and T1 are primitives */
 	if constexpr(widening_conversion_allowed<T0, T1>) {
 		if constexpr(
-			not_same_as<T0, void_t> && not_same_as<T0, void_t>
+			not_same_as<T0, void_t>
 		) {
-			stack.emplace_back((T1)stack.pop_back<T0>());
+			stack.emplace_back((T1)t0);
 			return {};
 		}
 	}
@@ -116,16 +115,16 @@ method_handle_try_convert_on_stack(
 		not_same_as<reference, T0> && same_as<reference, T1>
 	) {
 		// TODO clang is dumb? or me? (probably second)
-		if constexpr(
-			not_same_as<T0, void_t> &&
-			not_same_as<reference, T0>
-		) {
-			optional<reference> possible_exception
-				= try_box_on_stack<T0>();
-			if(possible_exception.has_value()) {
-				return move(possible_exception.get());
+		if constexpr(not_same_as<reference, T0>) {
+			expected<reference, reference> possible_result = try_create_object(
+				wrapper_constructor_by_primitive_type<T0>(), t0
+			);
+
+			if(possible_result.is_unexpected()) {
+				return move(possible_result.get_unexpected());
 			}
 
+			stack.emplace_back(move(possible_result.get_expected()));
 			return {};
 		}
 	}
@@ -133,50 +132,113 @@ method_handle_try_convert_on_stack(
 	   will be applied at runtime, possibly followed by a Java method
 	   invocation conversion (JLS 5.3) on the primitive value. */
 	if constexpr(
-		not_same_as<T1, void_t> &&
 		same_as<T0, reference> && not_same_as<T1, reference>
 	) {
-
-		unbox_on_stack<T1>();
-
+		T1& unboxed_value = t0->template get<T1>(
+			wrapper_value_field_position_by_primitive_type<T1>()
+		);
+		stack.emplace_back(move(unboxed_value));
 		return {};
-	}
-	/* If the return type T1 is marked as void, any returned value is
-	   discarded */
-	if constexpr(same_as<T1, void_t>) {
-		if constexpr(not_same_as<T0, void_t>) {
-			stack.pop_back<T0>();
-			return {};
-		}
-	}
-	/* If the return type T0 is void and T1 a reference, a null value is
-	   introduced. */
-	if constexpr(same_as<T0, void_t> && same_as<T1, reference>) {
-		stack.emplace_back(reference{});
-		return {};
-	}
-	/* If the return type T0 is void and T1 a primitive, a zero value is
-	   introduced. */
-	if constexpr(same_as<T0, void_t> && not_same_as<T1, reference>) {
-		if constexpr(not_same_as<T1, void_t>) {
-			stack.emplace_back(T1{});
-			return {};
-		}
 	}
 
 	posix::abort(); // impossible
 }
 
 [[nodiscard]] inline optional<reference>
-method_handle_try_convert_on_stack(
-	_class& t0,
-	_class& t1
+method_handle_try_convert_return_value_and_save_on_stack(
+	_class& ori_ret, _class& new_ret
 ) {
-	t0.view_raw_type([&]<typename T0>() -> optional<reference> {
-		return t1.view_raw_type([&]<typename T1>() -> optional<reference> {
-			return method_handle_try_convert_on_stack<T0, T1>(t0, t1);
+	bool ori_is_void = ori_ret.is(void_class.get());
+	bool new_is_void = new_ret.is(void_class.get());
+
+	if(ori_is_void && new_is_void) {
+		return {};
+	}
+
+	/* If the return type T1 is marked as void, any returned value is
+	   discarded */
+	if(new_is_void && !ori_is_void) {
+		ori_ret.view_raw_type_non_void([]<typename T0>() {
+			stack.pop_back<T0>();
+		});
+		return {};
+	}
+	/* If the return type T0 is void and T1 a reference, a null value is
+	   introduced. */
+	/* If the return type T0 is void and T1 a primitive, a zero value is
+	   introduced. */
+	if(ori_is_void && !new_is_void) {
+		stack.emplace_back(reference{});
+		new_ret.view_raw_type_non_void([]<typename T1>() {
+			stack.emplace_back(T1{});
+		});
+		return {};
+	}
+
+	return ori_ret.view_raw_type_non_void(
+	[&]<typename T0>() -> optional<reference> {
+		T0 t0 = stack.pop_back<T0>();
+	
+		return new_ret.view_raw_type_non_void([&]<typename T1>()
+		-> optional<reference> {
+			return method_handle_try_convert_and_save_on_stack<
+				T0, T1
+			>(t0);
 		});
 	});
+}
 
-	return {};
+template<range_of<_class&> NewArgs, range_of<_class&> OriArgs>
+[[nodiscard]] inline optional<reference>
+method_handle_try_convert_arguments_on_stack(
+	NewArgs&& new_args, OriArgs&& ori_args, nuint index
+) {
+	--index;
+
+	_class& new_a = new_args[index];
+	_class& ori_a = ori_args[index];
+
+	return new_a.view_raw_type_non_void([&]<typename T0>()
+	-> optional<reference> {
+		T0 t0 = stack.pop_back<T0>();
+
+		if(index > 0) {
+			optional<reference> possible_throwable
+				= method_handle_try_convert_arguments_on_stack(
+					forward<NewArgs>(new_args),
+					forward<OriArgs>(ori_args),
+					index
+				);
+			if(possible_throwable.has_value()) {
+				return move(possible_throwable.get());
+			}
+		}
+
+		return ori_a.view_raw_type_non_void(
+			[&]<typename T1>() -> optional<reference> {
+				optional<reference> possible_thowable
+				= method_handle_try_convert_and_save_on_stack<T0, T1>(t0);
+
+				if(possible_thowable.has_value()) {
+					return move(possible_thowable.get());
+				}
+				return {};
+			}
+		);
+	});
+}
+
+template<range_of<_class&> NewArgs, range_of<_class&> OriArgs>
+[[nodiscard]] inline optional<reference>
+method_handle_try_convert_arguments_on_stack(
+	NewArgs&& new_args, OriArgs&& ori_args
+) {
+	auto size = range_size(new_args);
+	if(size == 0) return {};
+
+	return method_handle_try_convert_arguments_on_stack(
+		forward<NewArgs>(new_args),
+		forward<OriArgs>(ori_args),
+		size
+	);
 }

@@ -21,6 +21,12 @@ static inline void init_java_lang_double() {
 			c_string{"value_", }, c_string{"D"}
 		);
 
+	java_lang_double_class->declared_static_methods().find(
+		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
+	).native_function((void*)+[](native_environment*) -> object* {
+		return double_class->instance().object_ptr();
+	});
+
 	java_lang_double_class->declared_methods().find(
 		c_string{ "doubleToRawLongBits" }, c_string{ "(D)J" }
 	).native_function(
