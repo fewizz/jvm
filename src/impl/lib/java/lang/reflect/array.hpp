@@ -15,11 +15,11 @@ static void init_java_lang_reflect_array() {
 			native_environment*, object* component_type, int32 len
 		) -> object* {
 			if(len < 0) {
-				expected<reference, reference> possible_nase
-					= try_create_negative_array_size_exception();
-				thrown_in_native = possible_nase.move();
+				thrown_in_native
+					= try_create_negative_array_size_exception().get();
 				return nullptr;
 			}
+
 			_class& c = class_from_class_instance(*component_type);
 			expected<reference, reference> possible_array
 				= try_create_array_of(c, len);

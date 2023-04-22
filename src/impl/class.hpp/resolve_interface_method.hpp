@@ -83,9 +83,6 @@ inline expected<method&, reference> try_resolve_interface_method(
 	/* • If method lookup failed, interface method resolution throws a
 	     NoSuchMethodError */
 	if(!possible_m.has_value()) {
-		expected<reference, reference> possible_nsme
-			= try_create_no_such_method_error();
-		
 		return unexpected{ try_create_no_such_method_error().get() };
 	}
 
