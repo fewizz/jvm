@@ -39,7 +39,7 @@ static void init_jvm_mh_setter() {
 				= try_put_field_resolved(resolved_field);
 			
 			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
+				return possible_throwable.move();
 			}
 
 			return {};

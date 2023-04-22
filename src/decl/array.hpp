@@ -49,10 +49,10 @@ static inline expected<reference, reference> try_create_array_by_class(
 		= try_create_object(array_class);
 
 	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
+		return unexpected{ possible_ref.move_unexpected() };
 	}
 
-	reference ref = move(possible_ref.get_expected());
+	reference ref = possible_ref.move_expected();
 
 	array_length(ref, length);
 	Type* data = (Type*) posix::allocate_raw_zeroed_memory_of<Type>(

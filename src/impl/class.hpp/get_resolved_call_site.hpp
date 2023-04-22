@@ -51,10 +51,10 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 		= try_get_resolved_method_handle(bm.method_handle_index);
 	
 	if(possible_mh.is_unexpected()) {
-		return unexpected{ move(possible_mh.get_unexpected()) };
+		return unexpected{ possible_mh.move_unexpected() };
 	}
 
-	reference mh = move(possible_mh.get_expected());
+	reference mh = possible_mh.move_expected();
 
 	/* 2. If R is a symbolic reference to a dynamically-computed call site, then
 	      it gives a method descriptor. */
@@ -72,9 +72,9 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 	expected<reference, reference> possible_mt
 		= try_resolve_method_type(*this, descriptor);
 	if(possible_mt.is_unexpected()) {
-		return unexpected{ move(possible_mt.get_unexpected()) };
+		return unexpected{ possible_mt.move_unexpected() };
 	}
-	reference mt = move(possible_mt.get_expected());
+	reference mt = possible_mt.move_expected();
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
@@ -87,10 +87,10 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 	expected<reference, reference> possible_lookup
 		= try_create_object(method_handles_lookup_class.get());
 	if(possible_lookup.is_unexpected()) {
-		return unexpected{ move(possible_lookup.get_unexpected()) };
+		return unexpected{ possible_lookup.move_unexpected() };
 	}
 
-	stack.emplace_back(move(possible_lookup.get_expected()));
+	stack.emplace_back(possible_lookup.move_expected());
 	++args_count_stack;
 
 	/* The first component of the array is set to a reference to an instance of
@@ -99,10 +99,10 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 		= try_create_string_from_utf8(name);
 	
 	if(possible_name_ref.is_unexpected()) {
-		return move(possible_name_ref.get_unexpected());
+		return possible_name_ref.move_unexpected();
 	}
 
-	stack.emplace_back(move(possible_name_ref.get_expected()));
+	stack.emplace_back(possible_name_ref.move_expected());
 	++args_count_stack;
 
 	/* The second component of the array is set to the reference to an instance
@@ -131,11 +131,11 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 					try_get_string((class_file::constant::string_index) index);
 				
 				if(possible_string.is_unexpected()) {
-					thrown = move(possible_string.get_unexpected());
+					thrown = possible_string.move_unexpected();
 					return;
 				}
 
-				stack.emplace_back(move(possible_string.get_expected()));
+				stack.emplace_back(possible_string.move_expected());
 				++args_count_stack;
 			}
 			/* If A is a numeric constant, then a reference to an instance of
@@ -150,10 +150,10 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 					= try_resolve_method_type(*this, descriptor);
 				
 				if(possible_mt.is_unexpected()) {
-					thrown = move(possible_mt.get_unexpected());
+					thrown = possible_mt.move_unexpected();
 					return;
 				}
-				stack.emplace_back(move(possible_mt.get_expected()));
+				stack.emplace_back(possible_mt.move_expected());
 				++args_count_stack;
 			}
 			else if constexpr(
@@ -165,11 +165,11 @@ inline expected<reference, reference> _class::try_get_resolved_call_site(
 					);
 				
 				if(possible_mh.is_unexpected()) {
-					thrown = move(possible_mh.get_unexpected());
+					thrown = possible_mh.move_unexpected();
 					return;
 				}
 
-				stack.emplace_back(move(possible_mh.get_expected()));
+				stack.emplace_back(possible_mh.move_expected());
 				++args_count_stack;
 			}
 			else {

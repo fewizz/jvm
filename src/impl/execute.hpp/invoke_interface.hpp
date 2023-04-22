@@ -106,7 +106,7 @@ template<basic_range Name, basic_range Desriptor>
 		);
 
 	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
+		return possible_resolved_method.move_unexpected();
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();
@@ -132,9 +132,7 @@ template<basic_range Name, basic_range Desriptor>
 			/* Otherwise, if the resolved method is static, the invokeinterface
 			instruction throws an IncompatibleClassChangeError. */
 			if(resolved_method.is_static()) {
-				expected<reference, reference> possible_icce
-					= try_create_incompatible_class_change_error();
-				return move(possible_icce.get());
+				return move(try_create_incompatible_class_change_error().get());
 			}
 			return {};
 		}
@@ -144,7 +142,7 @@ template<basic_range Name, basic_range Desriptor>
 	   of the exceptions pertaining to interface method resolution (§5.4.3.4)
 	   can be thrown. */
 	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
+		return possible_resolved_method.move_unexpected();
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();

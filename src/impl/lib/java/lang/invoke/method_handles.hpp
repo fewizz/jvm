@@ -40,10 +40,10 @@ static void init_java_lang_invoke_method_handles() {
 					caller_class.instance() // arg 0
 				);
 			if(possible_lookup.is_unexpected()) {
-				thrown_in_native = move(possible_lookup.get_unexpected());
+				thrown_in_native = possible_lookup.move_unexpected();
 				return nullptr;
 			}
-			reference lookup = move(possible_lookup.get_expected());
+			reference lookup = possible_lookup.move_expected();
 
 			return & lookup.unsafe_release_without_destroing();
 		}

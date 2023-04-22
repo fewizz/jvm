@@ -27,7 +27,7 @@ inline expected<reference, reference> try_create_thread(reference runnable) {
 
 static void on_thread_exit(optional<reference> possible_throwable) {
 	if(possible_throwable.has_value()) {
-		reference thrown0 = move(possible_throwable.get());
+		reference thrown0 = possible_throwable.move();
 		print::err("unhandled throwable: \n");
 
 		method& print_stack_trace = thrown0->_class().instance_methods().find(

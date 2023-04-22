@@ -44,7 +44,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 					expected<_class&, reference> possible_c
 						= try_resolve_class_from_type(d, p);
 					if(possible_c.is_unexpected()) {
-						thrown = move(possible_c.get_unexpected());
+						thrown = possible_c.move_unexpected();
 						return;
 					}
 				},
@@ -53,7 +53,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 					expected<_class&, reference> possible_c
 						= try_resolve_class_from_type(d, r);
 					if(possible_c.is_unexpected()) {
-						thrown = move(possible_c.get_unexpected());
+						thrown = possible_c.move_unexpected();
 						return;
 					}
 				},
@@ -91,9 +91,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	/* 1. If C is an interface, method resolution throws an
 	      IncompatibleClassChangeError. */
 	if(c.is_interface()) {
-		expected<reference, reference> possible_icce
-			= try_create_incompatible_class_change_error();
-		return unexpected{ move(possible_icce.get()) };
+		return unexpected{ try_create_incompatible_class_change_error().get() };
 	}
 
 	/* 2. Otherwise, method resolution attempts to locate the referenced method
@@ -151,9 +149,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	//    Otherwise, method lookup fails.
 	/* If method lookup failed, method resolution throws a NoSuchMethodError. */
 	if(!possible_m.has_value()) {
-		expected<reference, reference> possible_nsme
-			= try_create_no_such_method_error();
-		return unexpected{ move(possible_nsme.get()) };
+		return unexpected{ try_create_no_such_method_error().get() };
 	}
 
 	method& m = possible_m.get();

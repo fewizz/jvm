@@ -63,10 +63,10 @@ static inline void init_java_lang_throwable() {
 			stack_trace_element_class.get(), frames_count
 		);
 		if(possible_ste_array.is_unexpected()) {
-			thrown_in_native = move(possible_ste_array.get_unexpected());
+			thrown_in_native = possible_ste_array.move_unexpected();
 			return nullptr;
 		}
-		reference ste_array = move(possible_ste_array.get_expected());
+		reference ste_array = possible_ste_array.move_expected();
 
 		execution_context* ctx = ctx_begin;
 
@@ -77,10 +77,10 @@ static inline void init_java_lang_throwable() {
 				);
 			
 			if(possible_class_name.is_unexpected()) {
-				thrown_in_native = move(possible_class_name.get_unexpected());
+				thrown_in_native = possible_class_name.move_unexpected();
 				return nullptr;
 			}
-			reference class_name = move(possible_class_name.get_expected());
+			reference class_name = possible_class_name.move_expected();
 
 			expected<reference, reference> possible_method_name
 				= try_create_string_from_utf8(
@@ -88,11 +88,11 @@ static inline void init_java_lang_throwable() {
 				);
 
 			if(possible_method_name.is_unexpected()) {
-				thrown_in_native = move(possible_method_name.get_unexpected());
+				thrown_in_native = possible_method_name.move_unexpected();
 				return nullptr;
 			}
 
-			reference method_name = move(possible_method_name.get_expected());
+			reference method_name = possible_method_name.move_expected();
 
 			reference file_name{};
 			uint16 line_number = -1;
@@ -106,11 +106,10 @@ static inline void init_java_lang_throwable() {
 						ctx->method._class().source_file()
 					);
 				if(possible_file_name.is_unexpected()) {
-					thrown_in_native
-						= move(possible_file_name.get_unexpected());
+					thrown_in_native = possible_file_name.move_unexpected();
 					return nullptr;
 				}
-				file_name = move(possible_file_name.get_expected());
+				file_name = possible_file_name.move_expected();
 
 				uint32 pc =
 					ctx->instruction_ptr - ctx->method.code().iterator();
@@ -136,11 +135,11 @@ static inline void init_java_lang_throwable() {
 					int32{ line_number }
 				);
 			if(possible_ste.is_unexpected()) {
-				thrown_in_native = move(possible_ste.get_unexpected());
+				thrown_in_native = possible_ste.move_unexpected();
 				return nullptr;
 			}
 
-			reference ste = move(possible_ste.get_expected());
+			reference ste = possible_ste.move_expected();
 
 			frame = move(ste);
 			ctx = ctx->previous.ptr();

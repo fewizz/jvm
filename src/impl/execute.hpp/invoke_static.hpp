@@ -34,10 +34,7 @@ inline optional<reference> try_invoke_static(
 		/* Otherwise, if the resolved method is an instance method, the
 		   invokestatic instruction throws an IncompatibleClassChangeError. */
 		if(resolved_method.is_instance_initialisation()) {
-			expected<reference, reference> possible_icce
-				= try_create_incompatible_class_change_error();
-
-			return move(possible_icce.get());
+			return try_create_incompatible_class_change_error().get();
 		}
 
 		/* On successful resolution of the method, the class or interface that
@@ -48,7 +45,7 @@ inline optional<reference> try_invoke_static(
 			= c.try_initialise_if_need();
 
 		if(possible_throwable.has_value()) {
-			return move(possible_throwable.get());
+			return possible_throwable.move();
 		}
 
 		return {};
@@ -82,7 +79,7 @@ inline optional<reference> try_invoke_static(
 	/* During resolution of the symbolic reference to the method, any of the
 	   exceptions pertaining to method resolution (§5.4.3.3) can be thrown. */
 	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
+		return possible_resolved_method.move_unexpected();
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();

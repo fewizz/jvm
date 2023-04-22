@@ -61,7 +61,7 @@ inline void put_static_resolved(field& resolved_field) {
 	
 
 	if(possible_resolved_field.is_unexpected()) {
-		return move(possible_resolved_field.get_unexpected());
+		return possible_resolved_field.move_unexpected();
 	}
 
 	field& resolved_field = possible_resolved_field.get_expected();

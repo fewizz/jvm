@@ -92,7 +92,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 					(class_file::constant::field_ref_index) r
 				);
 			if(possible_r.is_unexpected()) {
-				return unexpected{ move(possible_r.get_unexpected()) };
+				return unexpected{ possible_r.move_unexpected() };
 			}
 
 			field& r = possible_r.get_expected();
@@ -105,7 +105,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 					return try_resolve_class_from_type(*this, t);
 				});
 			if(possible_t.is_unexpected()) {
-				return unexpected{ move(possible_t.get_unexpected()) };
+				return unexpected{ possible_t.move_unexpected() };
 			}
 			_class& t = possible_t.get_expected();
 
@@ -139,10 +139,10 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			}();
 
 			if(possible_mt.is_unexpected()) {
-				return unexpected{ move(possible_mt.get_unexpected()) };
+				return unexpected{ possible_mt.move_unexpected() };
 			}
 
-			reference mt = move(possible_mt.get_expected());
+			reference mt = possible_mt.move_expected();
 
 			expected<reference, reference> possible_mh
 			= [&]() -> expected<reference, reference> {
@@ -161,10 +161,10 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			}();
 
 			if(possible_mh.is_unexpected()) {
-				return unexpected{ move(possible_mh.get_unexpected()) };
+				return unexpected{ possible_mh.move_unexpected() };
 			}
 
-			return move(possible_mh.get_expected());
+			return possible_mh.move_expected();
 		}
 
 		case behavior_kind::invoke_virtual:
@@ -183,7 +183,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 				);
 
 			if(possible_r.is_unexpected()) {
-				return unexpected{ move(possible_r.get_unexpected()) };
+				return unexpected{ possible_r.move_unexpected() };
 			}
 			method& r = possible_r.get_expected();
 			_class& c = r._class();
@@ -208,7 +208,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 							return try_resolve_class_from_type(*this, t);
 						});
 					if(possible_a.is_unexpected()) {
-						thrown = move(possible_a.get_unexpected());
+						thrown = possible_a.move_unexpected();
 						return loop_action::stop;
 					}
 					_class& a = possible_a.get_expected();
@@ -227,7 +227,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 					return try_resolve_class_from_type(*this, type);
 				});
 			if(possible_t.is_unexpected()) {
-				return unexpected{ move(possible_t.get_unexpected()) };
+				return unexpected{ possible_t.move_unexpected() };
 			}
 
 			_class& t = possible_t.get_expected();
@@ -262,10 +262,10 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			}();
 
 			if(possible_mt.is_unexpected()) {
-				return unexpected{ move(possible_mt.get_unexpected()) };
+				return unexpected{ possible_mt.move_unexpected() };
 			}
 
-			reference mt = move(possible_mt.get_expected());
+			reference mt = possible_mt.move_expected();
 
 			expected<reference, reference> possible_mh
 			= [&]() -> expected<reference, reference> {
@@ -284,10 +284,10 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			}();
 
 			if(possible_mh.is_unexpected()) {
-				return unexpected{ move(possible_mh.get_unexpected()) };
+				return unexpected{ possible_mh.move_unexpected() };
 			}
 
-			return move(possible_mh.get_expected());
+			return possible_mh.move_expected();
 		}
 	}
 

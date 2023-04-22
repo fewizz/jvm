@@ -22,7 +22,7 @@ inline optional<reference> _class::try_initialise_if_need() {
 			= super().try_initialise_if_need();
 
 		if(possible_throwable.has_value()) {
-			return move(possible_throwable.get());
+			return possible_throwable.move();
 		}
 	}
 

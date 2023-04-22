@@ -148,10 +148,10 @@ method_handle_try_convert_and_save_on_stack(
 			);
 
 			if(possible_result.is_unexpected()) {
-				return move(possible_result.get_unexpected());
+				return possible_result.move_unexpected();
 			}
 
-			stack.emplace_back(move(possible_result.get_expected()));
+			stack.emplace_back(possible_result.move_expected());
 			return {};
 		}
 	}
@@ -237,7 +237,7 @@ method_handle_try_convert_arguments_on_stack(
 					index
 				);
 			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
+				return possible_throwable.move();
 			}
 		}
 
@@ -247,7 +247,7 @@ method_handle_try_convert_arguments_on_stack(
 				= method_handle_try_convert_and_save_on_stack<T0, T1>(t0);
 
 				if(possible_thowable.has_value()) {
-					return move(possible_thowable.get());
+					return possible_thowable.move();
 				}
 				return {};
 			}
@@ -284,14 +284,14 @@ method_handle_try_convert_arguments_on_stack(
 			new_params, ori_params
 		);
 	if(possible_throwable.has_value()) {
-		return move(possible_throwable.get());
+		return possible_throwable.move();
 	}
 
 	possible_throwable
 		= method_handle_try_invoke_exact(ori_mh, args_beginning);
 	
 	if(possible_throwable.has_value()) {
-		return move(possible_throwable.get());
+		return possible_throwable.move();
 	}
 
 	possible_throwable

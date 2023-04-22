@@ -32,16 +32,14 @@ static void init_java_lang_class_loader() {
 		if(b == nullptr) {
 			expected<reference, reference> possible_npe
 				= try_create_null_pointer_exception();
-			thrown_in_native = move(possible_npe.get());
+			thrown_in_native = possible_npe.move();
 			return nullptr;
 		}
 
 		span<uint8> bytes = array_as_span<uint8>(*b);
 
 		if(off < 0 || len < 0 || (uint32)(off + len) > bytes.size()) {
-			expected<reference, reference> possible_ioobe
-				= try_create_index_of_of_bounds_exception();
-			thrown_in_native = move(possible_ioobe.get());
+			thrown_in_native = try_create_index_of_of_bounds_exception().get();
 			return nullptr;
 		}
 
@@ -56,7 +54,7 @@ static void init_java_lang_class_loader() {
 		);
 
 		if(possible_c.is_unexpected()) {
-			thrown_in_native = move(possible_c.get_unexpected());
+			thrown_in_native = possible_c.move_unexpected();
 			return nullptr;
 		}
 
@@ -80,7 +78,7 @@ static void init_java_lang_class_loader() {
 			}
 		);
 		if(possible_c.is_unexpected()) {
-			thrown_in_native = move(possible_c.get_unexpected());
+			thrown_in_native = possible_c.move_unexpected();
 			return nullptr;
 		}
 

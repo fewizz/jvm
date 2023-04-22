@@ -31,9 +31,9 @@ template<
 			range_size(params_classes)
 		);
 	if(possible_params_array_ref.is_unexpected()) {
-		return unexpected{ move(possible_params_array_ref.get_unexpected()) };
+		return unexpected{ possible_params_array_ref.move_unexpected() };
 	}
-	reference params_array_ref = move(possible_params_array_ref.get_expected());
+	reference params_array_ref = possible_params_array_ref.move_expected();
 
 	params_classes
 		.transform_view([](_class& c) { return c.instance(); })
@@ -43,10 +43,10 @@ template<
 		= try_create_byte_array(range_size(descriptor));
 	
 	if(possible_descriptor_ref.is_unexpected()) {
-		return unexpected{ move(possible_descriptor_ref.get_unexpected()) };
+		return unexpected{ possible_descriptor_ref.move_unexpected() };
 	}
 
-	reference descriptor_ref = move(possible_descriptor_ref.get_expected());
+	reference descriptor_ref = possible_descriptor_ref.move_expected();
 
 	descriptor.copy_to(array_as_span<uint8>(descriptor_ref));
 
@@ -59,10 +59,10 @@ template<
 		);
 	
 	if(possible_mt.is_unexpected()) {
-		return unexpected{ move(possible_mt.get_unexpected()) };
+		return unexpected{ possible_mt.move_unexpected() };
 	}
 
-	reference mt = move(possible_mt.get_expected());
+	reference mt = possible_mt.move_expected();
 
 	return mt;
 }
@@ -166,19 +166,19 @@ static void init_java_lang_invoke_method_type() {
 						= try_create_byte_array(destriptor.size());
 					if(possible_array.is_unexpected()) {
 						return unexpected {
-							move(possible_array.get_unexpected())
+							possible_array.move_unexpected()
 						};
 					}
-					reference array = move(possible_array.get_expected());
+					reference array = possible_array.move_expected();
 					destriptor.copy_to(array_as_span<char>(array));
 					return array;
 				}
 			);
 			if(possible_result.is_unexpected()) {
-				thrown_in_native = move(possible_result.get_unexpected());
+				thrown_in_native = possible_result.move_unexpected();
 				return nullptr;
 			}
-			reference result = move(possible_result.get_expected());
+			reference result = possible_result.move_expected();
 			return & result.unsafe_release_without_destroing();
 		}
 	);

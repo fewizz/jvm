@@ -73,7 +73,7 @@ static void init_java_lang_integer() {
 				return nullptr;
 			}
 
-			reference string = move(possible_string.get_expected());
+			reference string = possible_string.move_expected();
 
 			return & string.unsafe_release_without_destroing();
 		}

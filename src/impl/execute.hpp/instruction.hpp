@@ -89,15 +89,13 @@ struct execute_instruction {
 		int32 element_index = stack.pop_back<int32>();
 		reference array_ref = stack.pop_back<reference>();
 		if(array_ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
-			expected<reference, reference> possible_ioobe
-				= try_create_index_of_of_bounds_exception();
-			return handle_thrown(move(possible_ioobe.get()));
+			return handle_thrown(
+				try_create_index_of_of_bounds_exception().get()
+			);
 		}
 		E* ptr = array_data<E>(array_ref);
 		handler(ptr[element_index]);
@@ -1262,7 +1260,7 @@ struct execute_instruction {
 
 		optional<reference> possible_throwable = try_get_field(c, x.index);
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1311,7 +1309,7 @@ struct execute_instruction {
 			= ::try_invoke_virtual(c, x.index);
 
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1343,7 +1341,7 @@ struct execute_instruction {
 			= ::try_invoke_special(c, x.index);
 
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1375,7 +1373,7 @@ struct execute_instruction {
 			= ::try_invoke_static(c, x.index);
 
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1400,7 +1398,7 @@ struct execute_instruction {
 			= ::try_invoke_interface(c, x.index);
 
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1427,7 +1425,7 @@ struct execute_instruction {
 			= ::try_invoke_dynamic(c, x.index);
 
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1443,15 +1441,15 @@ struct execute_instruction {
 			= c.try_get_resolved_class(x.index);
 
 		if(possible_c0.is_unexpected()) {
-			return handle_thrown(move(possible_c0.get_unexpected()));
+			return handle_thrown(possible_c0.move_unexpected());
 		}
 
 		_class& c0 = possible_c0.get_expected();
 		expected<reference, reference> possible_ref = try_create_object(c0);
 		if(possible_ref.is_unexpected()) {
-			return handle_thrown(move(possible_ref.get_unexpected()));
+			return handle_thrown(possible_ref.move_unexpected());
 		}
-		reference ref = move(possible_ref.get_expected());
+		reference ref = possible_ref.move_expected();
 		stack.emplace_back(move(ref));
 		return loop_action::next;
 	}
@@ -1459,7 +1457,7 @@ struct execute_instruction {
 		optional<reference> possible_throwable
 			= ::try_new_array(/* c, */ x.type);
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1468,7 +1466,7 @@ struct execute_instruction {
 			= c.try_get_resolved_class(x.index);
 		
 		if(possible_element_class.is_unexpected()) {
-			return handle_thrown(move(possible_element_class.get_unexpected()));
+			return handle_thrown(possible_element_class.move_unexpected());
 		}
 
 		_class& element_class = possible_element_class.get_expected();
@@ -1484,10 +1482,10 @@ struct execute_instruction {
 			= try_create_array_of(element_class, count);
 
 		if(possible_ref.is_unexpected()) {
-			return handle_thrown(move(possible_ref.get_unexpected()));
+			return handle_thrown(possible_ref.move_unexpected());
 		}
 
-		reference ref = move(possible_ref.get_expected());
+		reference ref = possible_ref.move_expected();
 
 		stack.emplace_back(move(ref));
 		return loop_action::next;
@@ -1496,9 +1494,7 @@ struct execute_instruction {
 		if(info) { tabs(); print::out("array_length\n"); }
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 		stack.emplace_back(int32{ ::array_length(ref) });
 		return loop_action::next;
@@ -1508,9 +1504,7 @@ struct execute_instruction {
 
 		reference ref = move(stack.pop_back<reference>());
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 		return handle_thrown(move(ref));
 	}
@@ -1523,7 +1517,7 @@ struct execute_instruction {
 		}
 		optional<reference> possible_throwable = ::try_check_cast(c, x.index);
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
@@ -1531,16 +1525,14 @@ struct execute_instruction {
 		optional<reference> possible_throwable
 			= ::try_check_instance_of(c, x.index);
 		if(possible_throwable.has_value()) {
-			return handle_thrown(move(possible_throwable.get()));
+			return handle_thrown(possible_throwable.move());
 		}
 		return loop_action::next;
 	}
 	loop_action operator () (instr::monitor_enter) {
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 		ref->lock();
 		return loop_action::next;
@@ -1548,9 +1540,7 @@ struct execute_instruction {
 	loop_action operator () (instr::monitor_exit) {
 		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
-			expected<reference, reference> possible_npe
-				= try_create_null_pointer_exception();
-			return handle_thrown(move(possible_npe.get()));
+			return handle_thrown(try_create_null_pointer_exception().get());
 		}
 		ref->unlock();
 		return loop_action::next;

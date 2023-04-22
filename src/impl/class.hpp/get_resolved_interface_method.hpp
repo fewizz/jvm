@@ -33,7 +33,7 @@ inline expected<method&, reference> _class::try_get_resolved_interface_method(
 
 	optional<reference> possible_throwable = verifier(m);
 	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
+		return unexpected{ possible_throwable.move() };
 	}
 
 	trampoline(ref_index) = m;

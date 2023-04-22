@@ -156,7 +156,7 @@
 	);
 
 	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
+		return possible_resolved_method.move_unexpected();
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();

@@ -301,13 +301,13 @@ classes::try_load_non_array_class_by_bootstrap_class_loader(
 		expected<reference, reference> possible_name_ref
 			= try_create_string_from_utf8(name);
 		if(possible_name_ref.is_unexpected()) {
-			return move(possible_name_ref.get_unexpected());
+			return possible_name_ref.move_unexpected();
 		}
-		reference name_ref = move(possible_name_ref.get_expected());
+		reference name_ref = possible_name_ref.move_expected();
 		return try_create_class_not_found_exception(move(name_ref)).get();
 	}
 
-	auto data = move(possible_data.get());
+	auto data = possible_data.move();
 
 	return try_define_class(forward<Name>(name), move(data), nullptr);
 }
@@ -356,15 +356,15 @@ classes::try_load_non_array_class_by_user_class_loader(
 	expected<reference, reference> possible_name_ref
 		= try_create_string_from_utf8(name);
 	if(possible_name_ref.is_unexpected()) {
-		return unexpected{ move(possible_name_ref.get_unexpected()) };
+		return unexpected{ possible_name_ref.move_unexpected() };
 	}
-	reference name_ref = move(possible_name_ref.get_expected());
+	reference name_ref = possible_name_ref.move_expected();
 	method& load_method = l_c[class_loader_load_class_method_index];
 
 	optional<reference> possible_exception
 		= try_execute(load_method, reference{*l_ref}, name_ref);
 	if(possible_exception.has_value()) {
-		return move(possible_exception.get());
+		return possible_exception.move();
 	}
 
 	/* If the invocation of loadClass on L has a result, then: */
@@ -473,7 +473,7 @@ expected<_class&, reference> classes::try_load_array_class(
 	}();
 
 	if(possible_component_class.is_unexpected()) {
-		return { move(possible_component_class.get_unexpected()) };
+		return unexpected{ possible_component_class.move_unexpected() };
 	}
 
 	_class& component_class = possible_component_class.get_expected();

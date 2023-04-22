@@ -37,10 +37,10 @@
 	}();
 
 	if(possible_ref.is_unexpected()) {
-		return { move(possible_ref.get_unexpected()) };
+		return { possible_ref.move_unexpected() };
 	}
 
-	reference ref = move(possible_ref.get_expected());
+	reference ref = possible_ref.move_expected();
 
 	if(info) {
 		char type_ch;

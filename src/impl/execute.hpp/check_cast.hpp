@@ -63,7 +63,7 @@ try_check_cast(_class& c, class_file::constant::class_index index) {
 	expected<_class&, reference> possible_t = c.try_get_resolved_class(index);
 	
 	if(possible_t.is_unexpected()) {
-		return move(possible_t.get_unexpected());
+		return possible_t.move_unexpected();
 	}
 
 	_class& t = possible_t.get_expected();

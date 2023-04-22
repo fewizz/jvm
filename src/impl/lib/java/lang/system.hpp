@@ -32,9 +32,7 @@ static inline void init_java_lang_system() {
 			   destination array is not modified.
 			*/
 			if(src == nullptr || dst == nullptr) {
-				expected<reference, reference> possible_npe
-					= try_create_null_pointer_exception();
-				thrown_in_native = move(possible_npe.get());
+				thrown_in_native = try_create_null_pointer_exception().get();
 				return;
 			}
 			// TODO case when src == dst
@@ -50,9 +48,7 @@ static inline void init_java_lang_system() {
 				// The dest argument refers to an object that is not an array.
 				!dst->_class().is_array()
 			) {
-				expected<reference, reference> possible_ase
-					= try_create_array_store_exception();
-				thrown_in_native = move(possible_ase.get());
+				thrown_in_native = try_create_array_store_exception().get();
 				return;
 			}
 
@@ -77,9 +73,7 @@ static inline void init_java_lang_system() {
 				   a primitive component type. */
 				src_is_primitive != dst_is_primitive
 			) {
-				expected<reference, reference> possible_ase
-					= try_create_array_store_exception();
-				thrown_in_native = move(possible_ase.get());
+				thrown_in_native = try_create_array_store_exception().get();
 				return;
 			}
 
@@ -100,9 +94,8 @@ static inline void init_java_lang_system() {
 				// destination array.
 				dst_pos + len > array_length(*dst)
 			) {
-				expected<reference, reference> possible_ioobe
-					= try_create_index_of_of_bounds_exception();
-				thrown_in_native = move(possible_ioobe.get());
+				thrown_in_native
+					= try_create_index_of_of_bounds_exception().get();
 				return;
 			}
 
@@ -167,9 +160,8 @@ static inline void init_java_lang_system() {
 					   arrays have component types that are reference types.) */
 					bool assignable = sc.is(dc) || sc.is_sub_of(dc);
 					if(!assignable) {
-						expected<reference, reference> possible_ase
-							= try_create_array_store_exception();
-						thrown_in_native = move(possible_ase.get());
+						thrown_in_native
+							= try_create_array_store_exception().get();
 						return;
 					}
 				}

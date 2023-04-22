@@ -85,7 +85,7 @@ int main (int argc, const char** argv) {
 
 	expected<reference, reference> possible_thread = try_create_thread();
 	if(possible_thread.is_unexpected()) {
-		return on_exit(move(possible_thread.get_unexpected()));
+		return on_exit(possible_thread.move_unexpected());
 	}
 
 	_class& app_cl_class = classes.load_class_by_bootstrap_class_loader(
@@ -95,10 +95,10 @@ int main (int argc, const char** argv) {
 		= try_create_object(app_cl_class);
 
 	if(possible_app_cl_ref.is_unexpected()) {
-		return on_exit(move(possible_app_cl_ref.get_unexpected()));
+		return on_exit(possible_app_cl_ref.move_unexpected());
 	}
 
-	reference app_cl_ref = move(possible_app_cl_ref.get_expected());
+	reference app_cl_ref = possible_app_cl_ref.move_expected();
 
 	auto main_class_name = c_string{ argv[1] }.sized();
 
@@ -106,7 +106,7 @@ int main (int argc, const char** argv) {
 		= classes.try_load_class(main_class_name, app_cl_ref.object_ptr());
 
 	if(possible_c.is_unexpected()) {
-		return on_exit(move(possible_c.get_unexpected()));
+		return on_exit(possible_c.move_unexpected());
 	}
 
 	_class& c = possible_c.get_expected();
@@ -122,10 +122,10 @@ int main (int argc, const char** argv) {
 		= try_create_array_of(string_class.get(), 0);
 
 	if(possible_args_array.is_unexpected()) {
-		return on_exit(move(possible_args_array.get_unexpected()));
+		return on_exit(possible_args_array.move_unexpected());
 	}
 
-	reference args_array = move(possible_args_array.get_unexpected());
+	reference args_array = possible_args_array.move_unexpected();
 
 	stack.emplace_back(args_array);
 

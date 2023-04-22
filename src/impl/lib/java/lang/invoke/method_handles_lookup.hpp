@@ -37,10 +37,10 @@ static expected<reference, reference> try_lookup_find_getter(
 		= try_create_method_type(field_c, span{&c});
 
 	if(possible_mt.is_unexpected()) {
-		return unexpected{ move(possible_mt.get_unexpected()) };
+		return unexpected{ possible_mt.move_unexpected() };
 	}
 
-	reference mt = move(possible_mt.get_expected());
+	reference mt = possible_mt.move_expected();
 
 	return try_create_getter_mh(move(mt), c, index);
 }
@@ -66,10 +66,10 @@ static expected<reference, reference> try_lookup_find_setter(
 		);
 
 	if(possible_mt.is_unexpected()) {
-		return unexpected{ move(possible_mt.get_unexpected()) };
+		return unexpected{ possible_mt.move_unexpected() };
 	}
 
-	reference mt = move(possible_mt.get_expected());
+	reference mt = possible_mt.move_expected();
 
 	return try_create_setter_mh(move(mt), c, index);
 }
@@ -122,7 +122,7 @@ static expected<reference, reference> try_lookup_find_special(
 
 		if(possible_resolved_method.is_unexpected()) {
 			return unexpected {
-				move(possible_resolved_method.get_unexpected())
+				possible_resolved_method.move_unexpected()
 			};
 		}
 
@@ -183,10 +183,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			expected<reference, reference> possible_mh
 				= try_lookup_find_getter(*cls, *name, *c);
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);
@@ -213,10 +213,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			expected<reference, reference> possible_mh
 				= try_lookup_find_setter(*cls, *name, *c);
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);
@@ -245,10 +245,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 				= try_lookup_find_virtual(*cls, *name, *mt);
 
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);
@@ -276,10 +276,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			expected<reference, reference> possible_mh
 				= try_lookup_find_static(*cls, *name, *mt);
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);
@@ -306,10 +306,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			expected<reference, reference> possible_mh
 				= try_lookup_find_constructor(*cls, *mt);
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);
@@ -341,10 +341,10 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			expected<reference, reference> possible_mh
 				= try_lookup_find_special(*cls, *name, *mt, *caller);
 			if(possible_mh.is_unexpected()) {
-				thrown_in_native = move(possible_mh.get_unexpected());
+				thrown_in_native = possible_mh.move_unexpected();
 				return nullptr;
 			}
-			reference mh = move(possible_mh.get_expected());
+			reference mh = possible_mh.move_expected();
 			return & mh.unsafe_release_without_destroing();
 		}
 	);

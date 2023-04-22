@@ -18,7 +18,7 @@ inline reference _class::instance() {
 			posix::abort();
 		}
 
-		instance_ = move(possible_c.get_expected());
+		instance_ = possible_c.move_expected();
 		instance_->set<int64>(class_ptr_field_position, (int64) this);
 	}
 	return instance_;

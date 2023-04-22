@@ -38,10 +38,10 @@ static inline void init_java_lang_class() {
 			expected<reference, reference> possible_string
 				= try_create_string_from_utf8(c.name());
 			if(possible_string.is_unexpected()) {
-				thrown_in_native = move(possible_string.get_unexpected());
+				thrown_in_native = possible_string.move_unexpected();
 				return nullptr;
 			}
-			reference string = move(possible_string.get_expected());
+			reference string = possible_string.move_expected();
 			return & string.unsafe_release_without_destroing();
 		}
 	);

@@ -29,14 +29,14 @@ _class::try_get_resolved_field(
 		= try_resolve_field(ref_index);
 	
 	if(possible_resolved_field.is_unexpected()) {
-		return unexpected{ move(possible_resolved_field.get_unexpected()) };
+		return unexpected{ possible_resolved_field.move_unexpected() };
 	}
 
 	field& resolved_field = possible_resolved_field.get_expected();
 
 	optional<reference> possible_error = verifier(resolved_field);
 	if(possible_error.has_value()) {
-		return move(possible_error.get());
+		return possible_error.move();
 	}
 
 	trampoline(ref_index) = resolved_field;

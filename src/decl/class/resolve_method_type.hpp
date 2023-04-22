@@ -33,7 +33,7 @@ try_resolve_method_type(_class& d, Descriptor&& descriptor) {
 			expected<_class&, reference> possible_c
 				= try_resolve_class_from_type(d, p);
 			if(possible_c.is_unexpected()) {
-				thrown = move(possible_c.get_unexpected());
+				thrown = possible_c.move_unexpected();
 				return;
 			}
 			_class& c = possible_c.get_expected();
@@ -44,7 +44,7 @@ try_resolve_method_type(_class& d, Descriptor&& descriptor) {
 			expected<_class&, reference> possible_c
 				= try_resolve_class_from_type(d, r);
 			if(possible_c.is_unexpected()) {
-				thrown = move(possible_c.get_unexpected());
+				thrown = possible_c.move_unexpected();
 				return;
 			}
 			_class& c = possible_c.get_expected();

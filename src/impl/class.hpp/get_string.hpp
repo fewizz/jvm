@@ -29,9 +29,9 @@ inline expected<reference, reference> _class::try_get_string(
 		= try_create_string_from_utf8(text_utf8);
 	
 	if(possible_utf16_string_ref.is_unexpected()) {
-		return unexpected{ move(possible_utf16_string_ref.get_unexpected()) };
+		return unexpected{ possible_utf16_string_ref.move_unexpected() };
 	}
-	reference utf16_string_ref = move(possible_utf16_string_ref.get_expected());
+	reference utf16_string_ref = possible_utf16_string_ref.move_expected();
 
 	trampoline(string_index) = utf16_string_ref;
 

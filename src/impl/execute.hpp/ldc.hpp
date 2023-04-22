@@ -30,9 +30,9 @@ inline optional<reference> try_ldc(
 				class_file::constant::string_index{ const_index }
 			);
 		if(possible_string.is_unexpected()) {
-			return move(possible_string.get_unexpected());
+			return possible_string.move_unexpected();
 		}
-		stack.emplace_back(move(possible_string.get_expected()));
+		stack.emplace_back(possible_string.move_expected());
 		return {};
 	} else
 	if(constant.is_same_as<class_file::constant::_class>()) {
@@ -42,7 +42,7 @@ inline optional<reference> try_ldc(
 			);
 		
 		if(possible_c.is_unexpected()) {
-			return move(possible_c.get_unexpected());
+			return possible_c.move_unexpected();
 		}
 		stack.emplace_back(possible_c.get_expected().instance());
 		return {};

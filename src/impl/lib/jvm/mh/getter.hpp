@@ -38,7 +38,7 @@ static void init_jvm_mh_getter() {
 				= try_get_field_resolved(resolved_field);
 			
 			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
+				return possible_throwable.move();
 			}
 
 			return {};

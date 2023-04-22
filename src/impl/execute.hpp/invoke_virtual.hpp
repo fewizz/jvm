@@ -127,10 +127,10 @@ template<basic_range Desriptor>
 				= try_resolve_method_type(d, resolved_method.descriptor());
 
 			if(possible_new_mt.is_unexpected()) {
-				return move(possible_new_mt.get_unexpected());
+				return possible_new_mt.move_unexpected();
 			}
 
-			reference new_mt = move(possible_new_mt.get());
+			reference new_mt = possible_new_mt.move_expected();
 
 			return method_handle_try_invoke(
 				move(mh_ref),
@@ -192,7 +192,7 @@ template<basic_range Desriptor>
 		);
 	
 	if(possible_resolved_method.is_unexpected()) {
-		return move(possible_resolved_method.get_unexpected());
+		return possible_resolved_method.move_unexpected();
 	}
 
 	method& resolved_method = possible_resolved_method.get_expected();

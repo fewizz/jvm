@@ -29,7 +29,7 @@ static void init_jvm_app_class_loader() {
 					}
 
 					posix::memory_for_range_of<unsigned char> data
-						= move(possible_data.get());
+						= possible_data.move();
 
 					expected<_class&, reference> possible_c
 						= classes.try_define_class(

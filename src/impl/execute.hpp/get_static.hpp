@@ -38,14 +38,14 @@ inline void get_static_resolved(
 				optional<reference> possible_throwable
 					= f._class().try_initialise_if_need();
 				if(possible_throwable.has_value()) {
-					return move(possible_throwable.get());
+					return possible_throwable.move();
 				}
 				return {};
 			}
 		);
 
 	if(possible_resolved_field.is_unexpected()) {
-		return move(possible_resolved_field.get_unexpected());
+		return possible_resolved_field.move_unexpected();
 	}
 
 	field& resolved_field = possible_resolved_field.get_expected();

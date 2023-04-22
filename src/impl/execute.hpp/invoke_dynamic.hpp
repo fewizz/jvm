@@ -20,7 +20,7 @@
 		= c.try_get_resolved_call_site(ref_index);
 	
 	if(possible_call_site.is_unexpected()) {
-		return move(possible_call_site.get_unexpected());
+		return possible_call_site.move_unexpected();
 	}
 
 	print::err("unimplemented\n");

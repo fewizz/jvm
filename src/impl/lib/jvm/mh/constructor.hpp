@@ -39,10 +39,10 @@ static void init_jvm_mh_constructor() {
 				= try_create_object(c);
 
 			if(possible_result.is_unexpected()) {
-				return move(possible_result.get_unexpected());
+				return possible_result.move_unexpected();
 			}
 
-			reference result = move(possible_result.get_expected());
+			reference result = possible_result.move_expected();
 
 			stack.insert_at(args_beginning, result);
 
@@ -55,7 +55,7 @@ static void init_jvm_mh_constructor() {
 				= try_invoke_special_selected(constructor);
 
 			if(possible_throwable.has_value()) {
-				return move(possible_throwable.get());
+				return possible_throwable.move();
 			}
 
 			stack.emplace_back(result);

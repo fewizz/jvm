@@ -34,9 +34,7 @@ access_control(_class& d, _class& c) {
 	/* If C is not accessible to D, then access control throws an
 	   IllegalAccessError. */
 	if(!accessible) {
-		expected<reference, reference> possible_iae
-			= try_create_illegal_access_error();
-		return move(possible_iae.get());
+		return try_create_illegal_access_error().get();
 	}
 
 	/* Otherwise, access control succeeds. */
@@ -80,9 +78,7 @@ access_control(_class& d, class_member& r) {
 	/* If R is not accessible to D, then access control throws an
 	   IllegalAccessError. */
 	if(!accessible) {
-		expected<reference, reference> possible_iae
-			= try_create_illegal_access_error();
-		return move(possible_iae.get());
+		return try_create_illegal_access_error().get();
 	}
 
 	/* Otherwise, access control succeeds. */

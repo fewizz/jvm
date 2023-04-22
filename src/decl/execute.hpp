@@ -105,7 +105,7 @@ template<typename Type>
 	optional<reference> possible_throwable
 		= try_get_field_resolved(resolved_field);
 	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
+		return unexpected{ possible_throwable.move() };
 	}
 	Type result = stack.pop_back<Type>();
 	return move(result);

@@ -47,7 +47,7 @@ try_resolve_class(_class& d, Name&& name) {
 			expected<_class&, reference> possible_c
 				= try_resolve_class(c, element_name);
 			if(possible_c.is_unexpected()) {
-				return unexpected{ move(possible_c.get_unexpected()) };
+				return unexpected{ possible_c.move_unexpected() };
 			}
 		}
 	}

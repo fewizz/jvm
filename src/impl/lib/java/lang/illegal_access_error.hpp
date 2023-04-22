@@ -13,7 +13,7 @@ try_create_illegal_access_error() {
 		);
 	
 	if(possible_c.is_unexpected()) {
-		return unexpected{ move(possible_c.get_unexpected()) };
+		return unexpected{ possible_c.move_unexpected() };
 	}
 
 	_class& c = possible_c.get_expected();

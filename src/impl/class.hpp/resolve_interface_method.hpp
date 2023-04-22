@@ -14,9 +14,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	/* 1. If C is not an interface, interface method resolution throws an
 	      IncompatibleClassChangeError. */
 	if(!c.is_interface()) {
-		expected<reference, reference> possible_icce
-			=try_create_incompatible_class_change_error();
-		return unexpected { move(possible_icce.get()) };
+		return try_create_incompatible_class_change_error().get();
 	}
 
 	/* 2. Otherwise, if C declares a method with the name and descriptor
@@ -88,7 +86,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 		expected<reference, reference> possible_nsme
 			= try_create_no_such_method_error();
 		
-		return unexpected { move(possible_nsme.get())};
+		return unexpected{ try_create_no_such_method_error().get() };
 	}
 
 	method& m = possible_m.get();
@@ -100,7 +98,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	if(possible_error.has_value()) {
 		/* - If access control failed, interface method resolution fails for the
 		     same reason. */
-		return unexpected{ move(possible_error.get()) };
+		return unexpected{ possible_error.move() };
 	}
 
 	/* - Otherwise, access control succeeded. Loading constraints are imposed,

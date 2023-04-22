@@ -83,10 +83,10 @@ try_create_object(method& constructor, Args&&... args) {
 		= try_create_object(constructor._class());
 	
 	if(possible_ref.is_unexpected()) {
-		return unexpected{ move(possible_ref.get_unexpected()) };
+		return unexpected{ possible_ref.move_unexpected() };
 	}
 
-	reference ref = move(possible_ref.get_expected());
+	reference ref = possible_ref.move_expected();
 
 	stack.emplace_back(ref);
 
@@ -97,7 +97,7 @@ try_create_object(method& constructor, Args&&... args) {
 	);
 
 	if(possible_throwable.has_value()) {
-		return unexpected{ move(possible_throwable.get()) };
+		return unexpected{ possible_throwable.move() };
 	}
 
 	return ref;

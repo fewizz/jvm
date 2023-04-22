@@ -38,9 +38,9 @@ inline void init_java_lang_invoke_method_handle() {
 				reference{*ths} /* original MethodHandle */
 			);
 			if(possible_adapter.is_unexpected()) {
-				thrown_in_native = move(possible_adapter.get_unexpected());
+				thrown_in_native = possible_adapter.move_unexpected();
 			}
-			reference adapter = move(possible_adapter.get());
+			reference adapter = possible_adapter.move();
 			return & adapter.unsafe_release_without_destroing();
 		}
 	);

@@ -63,7 +63,7 @@
 	   (§5.4.4). */
 	optional<reference> possible_exception = access_control(d, f);
 	if(possible_exception.has_value()) {
-		return unexpected{ move(possible_exception.get()) };
+		return unexpected{ possible_exception.move() };
 	}
 	// TODO loading constraints
 
@@ -83,7 +83,7 @@
 	expected<_class&, reference> possible_c
 		= try_resolve_class(*this, class_name);
 	if(possible_c.is_unexpected()) {
-		return move(possible_c.get_unexpected());
+		return possible_c.move_unexpected();
 	}
 
 	_class& c = possible_c.get_expected();
