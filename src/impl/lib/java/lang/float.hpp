@@ -2,7 +2,7 @@
 
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
-#include "decl/primitives.hpp"
+#include "decl/primitives_classes.hpp"
 
 #include <bit_cast.hpp>
 
@@ -14,6 +14,11 @@ static inline void init_java_lang_float() {
 	java_lang_float_constructor =
 		java_lang_float_class->declared_instance_methods()
 		.find(c_string{"<init>"}, c_string{"(F)V"});
+
+	java_lang_float_value_field_position =
+		java_lang_float_class->instance_field_position(
+			c_string{"value_", }, c_string{"F"}
+		);
 
 	java_lang_float_class->declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}

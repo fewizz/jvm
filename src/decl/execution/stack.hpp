@@ -15,8 +15,10 @@ static_assert(
 // inefficient for now..
 template<typename Type>
 concept stack_primitive_element =
-	same_as<Type, int32> || same_as<Type, int64> ||
-	same_as<Type, float> || same_as<Type, double>;
+	same_as<Type, int32> || same_as<Type, int64>  ||
+	same_as<Type, float> || same_as<Type, double> ||
+	same_as<Type, int16> || same_as<Type, uint16> ||
+	same_as<Type, uint8> || same_as<Type, bool>;
 
 thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	using base_type = list<posix::memory_for_range_of<uint64>>;

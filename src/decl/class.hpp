@@ -14,7 +14,7 @@
 #include "./class/find_by_name_and_descriptor_extension.hpp"
 
 #include "./reference.hpp"
-#include "./primitives.hpp"
+#include "./primitives_classes.hpp"
 
 #include "mutex_attribute_recursive.hpp"
 
@@ -483,8 +483,14 @@ public:
 			} else
 			if(is(float_class.get())) {
 				return handler.template operator()<float>();
-			} else {
+			} else
+			if(is(double_class.get())) {
 				return handler.template operator()<double>();
+			} else
+			if(is(void_class.get())) {
+				return handler.template operator()<void_t>();
+			} else {
+				posix::abort();
 			}
 		}
 	};

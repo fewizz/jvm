@@ -1,15 +1,12 @@
 #pragma once
 
-#include "decl/class.hpp"
-#include "decl/method.hpp"
-#include "decl/object.hpp"
+#include "decl/class/layout.hpp"
 
 #include <optional.hpp>
 
+struct _class;
+struct method;
+
 static optional<_class&> java_lang_double_class;
 static optional<method&> java_lang_double_constructor;
-
-[[nodiscard]] inline expected<reference, reference>
-try_create_wrapper(same_as<double> auto value) {
-	return try_create_object(java_lang_double_constructor.get(), value);
-}
+static layout::position java_lang_double_value_field_position;

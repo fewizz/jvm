@@ -16,6 +16,11 @@ static inline void init_java_lang_double() {
 		java_lang_double_class->declared_instance_methods()
 		.find(c_string{"<init>"}, c_string{"(D)V"});
 
+	java_lang_double_value_field_position =
+		java_lang_double_class->instance_field_position(
+			c_string{"value_", }, c_string{"D"}
+		);
+
 	java_lang_double_class->declared_methods().find(
 		c_string{ "doubleToRawLongBits" }, c_string{ "(D)J" }
 	).native_function(

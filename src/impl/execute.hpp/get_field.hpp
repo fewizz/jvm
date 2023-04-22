@@ -7,7 +7,7 @@
 #include <class_file/constant.hpp>
 
 [[nodiscard]] inline optional<reference> try_get_field_resolved(
-	field& resolved_field
+	instance_field_index resolved_field_index
 ) {
 	reference ref = stack.pop_back<reference>();
 
@@ -17,18 +17,24 @@
 		return try_create_null_pointer_exception().get();
 	}
 
-	instance_field_index index =
-		resolved_field._class().instance_fields()
-		.find_index_of(resolved_field);
-
 	ref->view(
-		index,
+		resolved_field_index,
 		[&](auto& field_value) {
 			stack.emplace_back(field_value);
 		}
 	);
 
 	return {};
+}
+
+[[nodiscard]] inline optional<reference> try_get_field_resolved(
+	field& resolved_field
+) {
+	instance_field_index index =
+		resolved_field._class().instance_fields()
+		.find_index_of(resolved_field);
+
+	return try_get_field_resolved(index);
 }
 
 [[nodiscard]] inline optional<reference> try_get_field(

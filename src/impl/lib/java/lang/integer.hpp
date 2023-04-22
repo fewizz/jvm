@@ -1,7 +1,7 @@
 #include "decl/lib/java/lang/integer.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/primitives.hpp"
+#include "decl/primitives_classes.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
 #include "decl/lib/java/lang/string.hpp"
@@ -16,6 +16,11 @@ static void init_java_lang_integer() {
 	java_lang_integer_constructor =
 		java_lang_integer_class->declared_instance_methods()
 		.find(c_string{"<init>"}, c_string{"(I)V"});
+
+	java_lang_integer_value_field_position =
+		java_lang_integer_class->instance_field_position(
+			c_string{"value_", }, c_string{"I"}
+		);
 
 	java_lang_integer_class->declared_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }

@@ -54,8 +54,8 @@ public:
 	const ::_class& _class() const;
 	      ::_class& _class()      ;
 
-	operator const ::object& () const { return *object_ptr(); }
-	operator       ::object& ()       { return *object_ptr(); }
+	operator const ::object& () const & { return *object_ptr(); }
+	operator       ::object& ()       & { return *object_ptr(); }
 };
 
 static inline reference nullptr_ref{};

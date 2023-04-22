@@ -11,7 +11,7 @@
 #include "lib/java/lang/object.hpp"
 #include "lib/java/lang/class_not_found_exception.hpp"
 #include "execute.hpp"
-#include "primitives.hpp"
+#include "primitives_classes.hpp"
 #include "try_load_class_file_data_at.hpp"
 #include "class/bootstrap_methods.hpp"
 #include "object.hpp"

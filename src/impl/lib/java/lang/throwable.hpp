@@ -5,7 +5,7 @@
 #include "decl/execution/latest_context.hpp"
 #include "decl/execute.hpp"
 #include "decl/array.hpp"
-#include "decl/primitives.hpp"
+#include "decl/primitives_classes.hpp"
 #include "decl/reference.hpp"
 #include "decl/lib/java/lang/stack_trace_element.hpp"
 #include "decl/lib/java/lang/string.hpp"

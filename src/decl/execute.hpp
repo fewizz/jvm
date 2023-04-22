@@ -85,13 +85,31 @@ inline optional<reference> try_invoke_static(
 
 // get_field
 
-[[nodiscard]] inline optional<reference> try_get_field(
-	_class& d, class_file::constant::field_ref_index ref_index
+[[nodiscard]] inline optional<reference> try_get_field_resolved(
+	instance_field_index resolved_field_index
 );
 
 [[nodiscard]] inline optional<reference> try_get_field_resolved(
 	field& resolved_field
 );
+
+[[nodiscard]] inline optional<reference> try_get_field(
+	_class& d, class_file::constant::field_ref_index ref_index
+);
+
+template<typename Type>
+[[nodiscard]] inline expected<Type, reference> try_get_field_resolved(
+	field& resolved_field, reference ref
+) {
+	stack.emplace_back(move(ref));
+	optional<reference> possible_throwable
+		= try_get_field_resolved(resolved_field);
+	if(possible_throwable.has_value()) {
+		return unexpected{ move(possible_throwable.get()) };
+	}
+	Type result = stack.pop_back<Type>();
+	return move(result);
+}
 
 // put_field
 

@@ -1,5 +1,5 @@
 #include "decl/classes.hpp"
-#include "decl/primitives.hpp"
+#include "decl/primitives_classes.hpp"
 #include "decl/native/environment.hpp"
 
 static void init_java_lang_void() {
