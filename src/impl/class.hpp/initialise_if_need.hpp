@@ -2,6 +2,7 @@
 #include "execute.hpp"
 
 #include <c_string.hpp>
+#include <ranges.hpp>
 
 inline optional<reference> _class::try_initialise_if_need() {
 	mutex_->lock();
@@ -36,7 +37,11 @@ inline optional<reference> _class::try_initialise_if_need() {
 	);
 
 	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
-	optional<method&> possible_method = declared_methods()
+	optional<method&> possible_method =
+		find_by_name_and_descriptor_view {
+			ranges{ declared_instance_methods(), declared_static_methods() }
+			.concat_view()
+		}
 		.try_find(c_string{ "<clinit>" }, c_string{ "()V" });
 	
 	if(possible_method.has_value()) {

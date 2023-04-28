@@ -5,7 +5,7 @@
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
 #include "decl/object.hpp"
-#include "decl/lib/jvm/mh/adapter.hpp"
+#include "decl/lib/jvm/mh/invoke_adapter.hpp"
 
 #include <class_file/constant.hpp>
 
@@ -33,8 +33,8 @@ inline void init_java_lang_invoke_method_handle() {
 	).native_function(
 		(void*)+[](native_environment*, object* ths, object* mt) -> object* {
 			expected<reference, reference> possible_adapter = try_create_object(
-				mh_adapter_constructor.get(),
-				reference{*mt}/* new MethodType*/,
+				mh_invoke_adapter_constructor.get(),
+				reference{*mt}  /* new MethodType */,
 				reference{*ths} /* original MethodHandle */
 			);
 			if(possible_adapter.is_unexpected()) {

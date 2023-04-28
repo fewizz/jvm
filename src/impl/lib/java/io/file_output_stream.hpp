@@ -17,7 +17,7 @@ static inline void init_java_io_file_output_stream() {
 			c_string{ "fd_value_" }, c_string{ "I" }
 		);
 
-	file_output_stream_class.declared_methods().find(
+	file_output_stream_class.declared_instance_methods().find(
 		c_string{ "write" }, c_string{ "(I)V" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths, int32 value) {
@@ -36,7 +36,7 @@ static inline void init_java_io_file_output_stream() {
 		}
 	);
 
-	file_output_stream_class.declared_methods().find(
+	file_output_stream_class.declared_instance_methods().find(
 		c_string{ "write" }, c_string{ "([B)V" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths, object* a) {
@@ -56,7 +56,7 @@ static inline void init_java_io_file_output_stream() {
 		}
 	);
 
-	file_output_stream_class.declared_methods().find(
+	file_output_stream_class.declared_instance_methods().find(
 		c_string{ "write" }, c_string{ "([BII)V" }
 	).native_function(
 		(void*)+[](
@@ -78,7 +78,7 @@ static inline void init_java_io_file_output_stream() {
 		}
 	);
 
-	file_output_stream_class.declared_methods().find(
+	file_output_stream_class.declared_instance_methods().find(
 		c_string{ "close" }, c_string{ "()V" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths) {

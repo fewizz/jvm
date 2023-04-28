@@ -27,7 +27,7 @@ static inline void init_java_lang_double() {
 		return double_class->instance().object_ptr();
 	});
 
-	java_lang_double_class->declared_methods().find(
+	java_lang_double_class->declared_static_methods().find(
 		c_string{ "doubleToRawLongBits" }, c_string{ "(D)J" }
 	).native_function(
 		(void*)+[](native_environment*, double value) {
@@ -35,7 +35,7 @@ static inline void init_java_lang_double() {
 		}
 	);
 
-	java_lang_double_class->declared_methods().find(
+	java_lang_double_class->declared_static_methods().find(
 		c_string{ "longBitsToDouble" }, c_string{ "(J)D" }
 	).native_function(
 		(void*)+[](native_environment*, int64 value) {

@@ -4,8 +4,10 @@
 #include "object.hpp"
 #include "array.hpp"
 #include "decl/lib/java/lang/class.hpp"
+#include "decl/lib/java/lang/object.hpp"
 
 #include <optional.hpp>
+#include <generator_view.hpp>
 
 inline optional<_class&> method_type_class;
 inline layout::position
@@ -39,4 +41,13 @@ inline _class& method_type_return_type(object& mt) {
 		method_type_return_type_instance_field_position
 	);
 	return class_from_class_instance(return_type);
+}
+
+inline expected<reference, reference>
+try_create_method_type_generic(nuint count) {
+	generator_view param_types {
+		[]() -> _class& { return object_class.get(); },
+		count
+	};
+	return try_create_method_type(object_class.get(), param_types);
 }

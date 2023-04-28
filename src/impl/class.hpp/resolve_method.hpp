@@ -11,6 +11,7 @@
 #include "decl/lib/java/lang/invoke/var_handle.hpp"
 
 #include <loop_action.hpp>
+#include <ranges.hpp>
 
 /* 2. Otherwise, method resolution attempts to locate the referenced method in C
       and its superclasses: */
@@ -22,11 +23,13 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 	      method reference, and the declaration is a signature polymorphic
 	      method (§2.9.3), then method lookup succeeds. All the class names
 	      mentioned in the descriptor are resolved */
+
 	auto methods_with_same_name
-		= c.declared_methods().filter_view([&](method& m) {
+		= ranges{ c.declared_instance_methods(), c.declared_static_methods() }
+		.concat_view().filter_view([&](method& m) {
 			return m.name().has_equal_size_and_elements(name);
 		});
-	
+
 	bool only_one_method_with_same_name
 		= methods_with_same_name.get_or_compute_size() == 1;
 
@@ -70,7 +73,12 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 
 	/*    Otherwise, if C declares a method with the name and descriptor
 	      specified by the method reference, method lookup succeeds. */
-	optional<method&> m = c.declared_methods().try_find(name, descriptor);
+	optional<method&> m =
+		find_by_name_and_descriptor_view {
+			ranges{ c.declared_instance_methods(), c.declared_static_methods() }
+			.concat_view()
+		}
+		.try_find(name, descriptor);
 	if(m.has_value()) {
 		return m.get();
 	}
@@ -111,7 +119,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	        and descriptor specified by the method reference include exactly one
 	        method that does not have its ACC_ABSTRACT flag set, then this
 	        method is chosen and method lookup succeeds. */
-	if(!possible_m.has_value()) {
+	if(!possible_m.has_no_value()) {
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
 			[&](method& m) {
@@ -131,12 +139,12 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	      and descriptor specified by the method reference that has neither
 	      its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	      arbitrarily chosen and method lookup succeeds. */
-	if(!possible_m.has_value()) {
+	if(possible_m.has_no_value()) {
 		c.for_each_super_interface([&](_class& i) {
-			for(method& m : i.declared_methods()) {
+			for(method& m : i.declared_instance_methods()) {
 				if(
 					m.has_name_and_descriptor_equal_to(name, descriptor) &&
-					!m.is_private() && !m.is_static()
+					!m.is_private()
 				) {
 					possible_m = m;
 					return loop_action::stop;
@@ -148,7 +156,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 
 	//    Otherwise, method lookup fails.
 	/* If method lookup failed, method resolution throws a NoSuchMethodError. */
-	if(!possible_m.has_value()) {
+	if(possible_m.has_no_value()) {
 		return unexpected{ try_create_no_such_method_error().get() };
 	}
 

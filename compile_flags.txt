@@ -18,5 +18,5 @@
 -I../print/include
 
 -fmodules
--Xclang -fimplicit-module-maps
--Xclang -fprebuilt-module-path=./build
+-fimplicit-module-maps
+-fprebuilt-module-path=./build

@@ -28,10 +28,11 @@ inline expected<method&, reference> try_resolve_interface_method(
 	      its ACC_PUBLIC flag set and does not have its ACC_STATIC flag set,
 	      method lookup succeeds. */
 	if(!possible_m.has_value()) {
-		possible_m = object_class->declared_methods().try_find_first_satisfying(
+		possible_m = object_class->declared_instance_methods()
+		.try_find_first_satisfying(
 			[&](method& m) {
 				return
-					m.is_public() && !m.is_static() &&
+					m.is_public() &&
 					m.has_name_and_descriptor_equal_to(name, descriptor);
 			}
 		);

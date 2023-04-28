@@ -21,7 +21,7 @@ static inline void init_java_lang_class() {
 		c_string{ "ptr_" }, c_string{ "J" }
 	);
 
-	class_class->declared_methods().find(
+	class_class->declared_instance_methods().find(
 		c_string{ "getComponentType" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> object* {
@@ -30,7 +30,7 @@ static inline void init_java_lang_class() {
 		}
 	);
 
-	class_class->declared_methods().find(
+	class_class->declared_instance_methods().find(
 		c_string{ "getName" }, c_string{ "()Ljava/lang/String;" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> object* {

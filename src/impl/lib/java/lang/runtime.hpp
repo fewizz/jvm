@@ -11,7 +11,7 @@ static inline void init_java_lang_runtime() {
 		c_string{ "java/lang/Runtime" }
 	);
 
-	runtime_class.declared_methods().find(
+	runtime_class.declared_instance_methods().find(
 		c_string{ "exit" }, c_string{ "(I)V" }
 	).native_function(
 		(void*)+[](native_environment*, object*, int32 status) {
@@ -22,7 +22,7 @@ static inline void init_java_lang_runtime() {
 		}
 	);
 
-	runtime_class.declared_methods().find(
+	runtime_class.declared_instance_methods().find(
 		c_string{ "availableProcessors" }, c_string{ "()I" }
 	).native_function(
 		(void*)+[](native_environment*, object*) {

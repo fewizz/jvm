@@ -4,12 +4,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.WrongMethodTypeException;
 
-public final class Adapter extends MethodHandle {
+public final class InvokeAdapter extends MethodHandle {
 	private final MethodHandle original_;
 
 	private native boolean check();
 
-	private Adapter(
+	private InvokeAdapter(
 		MethodType methodType,
 		MethodHandle original
 	) {

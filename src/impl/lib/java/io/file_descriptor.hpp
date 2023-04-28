@@ -9,7 +9,7 @@ static void init_java_io_file_descriptor() {
 			c_string{ "java/io/FileDescriptor" }
 		);
 
-	file_descriptor_class.declared_methods().find(
+	file_descriptor_class.declared_static_methods().find(
 		c_string{ "stderr_fd" }, c_string{ "()I" }
 	).native_function(
 		(void*)+[](native_environment*) {
@@ -17,7 +17,7 @@ static void init_java_io_file_descriptor() {
 		}
 	);
 
-	file_descriptor_class.declared_methods().find(
+	file_descriptor_class.declared_static_methods().find(
 		c_string{ "stdin_fd" }, c_string{ "()I" }
 	).native_function(
 		(void*)+[](native_environment*) {
@@ -25,7 +25,7 @@ static void init_java_io_file_descriptor() {
 		}
 	);
 
-	file_descriptor_class.declared_methods().find(
+	file_descriptor_class.declared_static_methods().find(
 		c_string{ "stdout_fd" }, c_string{ "()I" }
 	).native_function(
 		(void*)+[](native_environment*) {

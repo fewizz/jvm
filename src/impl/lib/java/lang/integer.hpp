@@ -22,7 +22,7 @@ static void init_java_lang_integer() {
 			c_string{"value_", }, c_string{"I"}
 		);
 
-	java_lang_integer_class->declared_methods().find(
+	java_lang_integer_class->declared_static_methods().find(
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
@@ -30,7 +30,7 @@ static void init_java_lang_integer() {
 		}
 	);
 
-	java_lang_integer_class->declared_methods().find(
+	java_lang_integer_class->declared_static_methods().find(
 		c_string{ "toString" }, c_string{ "(II)Ljava/lang/String;" }
 	).native_function(
 		(void*)+[](native_environment*, int32 value, int32 radix) -> object* {

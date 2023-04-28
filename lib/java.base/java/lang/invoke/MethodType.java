@@ -54,4 +54,13 @@ public final class MethodType {
 		return new MethodType(rtype, new Class<?>[]{ ptype0 });
 	}
 
+	public static MethodType genericMethodType(int objectArgCount) {
+		if(objectArgCount < 0 || objectArgCount > 255) {
+			throw new IllegalArgumentException();
+		}
+		Class<?>[] params = new Class<?>[objectArgCount];
+		for(int i = 0; i < objectArgCount; ++i) params[i] = Object.class;
+		return new MethodType(Object.class, params);
+	}
+
 }

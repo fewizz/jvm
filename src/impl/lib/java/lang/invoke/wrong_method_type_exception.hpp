@@ -7,7 +7,8 @@ static void init_java_lang_invoke_wrong_method_type_exception() {
 		c_string{"java/lang/invoke/WrongMethodTypeException"}
 	);
 
-	wrong_method_type_exception_constructor = c.declared_methods().find(
-		c_string{"<init>"}, c_string{"()V"}
-	);
+	wrong_method_type_exception_constructor =
+		c.declared_instance_methods().find(
+			c_string{"<init>"}, c_string{"()V"}
+		);
 }

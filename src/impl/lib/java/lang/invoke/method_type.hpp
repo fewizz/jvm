@@ -143,7 +143,7 @@ static void init_java_lang_invoke_method_type() {
 			c_string{ "[B" }
 		);
 
-	method_type_class->declared_methods().find(
+	method_type_class->declared_static_methods().find(
 		c_string{ "descriptorUTF8" },
 		c_string{ "(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(

@@ -52,8 +52,8 @@ template<typename T0, typename T1>
 		same_as<T1, reference>
 	) {
 		return
-		t1.is(object_class.get()) ||
-		t1.is(wrapper_class_by_primitive_type<T0>());
+			t1.is(object_class.get()) ||
+			t1.is(wrapper_class_by_primitive_type<T0>());
 	}
 	/* If T0 is a reference and T1 a primitive, an unboxing conversion will be
 	   applied at runtime, possibly followed by a Java method invocation
@@ -66,8 +66,8 @@ template<typename T0, typename T1>
 		return
 		/* In the case where T0 is Object, these are the conversions allowed
 			by java.lang.reflect.Method.invoke. */
-		t0.is(object_class.get()) ||
-		t0.is(wrapper_class_by_primitive_type<T1>());
+			t0.is(object_class.get()) ||
+			t0.is(wrapper_class_by_primitive_type<T1>());
 	}
 
 	return false;

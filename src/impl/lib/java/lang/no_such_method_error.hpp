@@ -17,7 +17,7 @@ static void init_java_lang_no_such_method_error() {
 		c_string{"java/lang/NoSuchMethodError"}
 	);
 	no_such_method_error_constructor
-		= no_such_method_error_class->declared_methods().find(
+		= no_such_method_error_class->declared_instance_methods().find(
 			c_string{"<init>"}, c_string{"()V"}
 		);
 }

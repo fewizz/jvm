@@ -13,7 +13,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 		c_string{ "java/lang/invoke/LambdaMetaFactory" }
 	);
 
-	lambda_meta_factory_class->declared_methods().find(
+	lambda_meta_factory_class->declared_static_methods().find(
 		c_string{ "metafactory" },
 		c_string{ "("
 			"Ljava/lang/invoke/MethodHandles$Lookup;"

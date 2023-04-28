@@ -1,4 +1,4 @@
-#include "decl/lib/jvm/mh/adapter.hpp"
+#include "decl/lib/jvm/mh/invoke_adapter.hpp"
 
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
@@ -6,15 +6,15 @@
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 
-static layout::position jvm_mh_adapter_original_field_position;
+static layout::position jvm_mh_invoke_adapter_original_field_position;
 
-static void init_jvm_mh_adapter() {
-	mh_adapter_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{"jvm/mh/Adapter"}
+static void init_jvm_mh_invoke_adapter() {
+	mh_invoke_adapter_class = classes.load_class_by_bootstrap_class_loader(
+		c_string{"jvm/mh/InvokeAdapter"}
 	);
 
-	mh_adapter_constructor =
-		mh_adapter_class->declared_instance_methods()
+	mh_invoke_adapter_constructor =
+		mh_invoke_adapter_class->declared_instance_methods()
 		.find(
 			c_string{"<init>"},
 			c_string {
@@ -25,12 +25,12 @@ static void init_jvm_mh_adapter() {
 			}
 		);
 
-	jvm_mh_adapter_original_field_position
-		= mh_adapter_class->instance_field_position(
+	jvm_mh_invoke_adapter_original_field_position
+		= mh_invoke_adapter_class->instance_field_position(
 			c_string{"original_"}, c_string{"Ljava/lang/invoke/MethodHandle;"}
 		);
 	
-	mh_adapter_class->declared_instance_methods()
+	mh_invoke_adapter_class->declared_instance_methods()
 	.find(c_string{"check"}, c_string{"()Z"})
 	.native_function(
 		(void*)+[](native_environment*, object* new_mh) -> bool {
@@ -39,7 +39,7 @@ static void init_jvm_mh_adapter() {
 			);
 
 			object& ori_mh = new_mh->get<reference>(
-				jvm_mh_adapter_original_field_position
+				jvm_mh_invoke_adapter_original_field_position
 			);
 			object& ori_mt = ori_mh.get<reference>(
 				method_handle_method_type_field_position
@@ -49,7 +49,7 @@ static void init_jvm_mh_adapter() {
 		}
 	);
 
-	mh_adapter_class->declared_instance_methods()
+	mh_invoke_adapter_class->declared_instance_methods()
 	.find(c_string{"invokeExactPtr"}, c_string{"()V"})
 	.native_function(
 		(void*)+[](
@@ -61,7 +61,7 @@ static void init_jvm_mh_adapter() {
 			);
 
 			object& ori_mh = new_mh->get<reference>(
-				jvm_mh_adapter_original_field_position
+				jvm_mh_invoke_adapter_original_field_position
 			);
 			object& ori_mt = ori_mh.get<reference>(
 				method_handle_method_type_field_position

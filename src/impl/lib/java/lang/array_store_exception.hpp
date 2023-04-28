@@ -15,7 +15,7 @@ static void init_java_lang_array_store_exception() {
 	);
 
 	array_store_exception_constructor =
-		array_store_exception_class->declared_methods().find(
+		array_store_exception_class->declared_instance_methods().find(
 			c_string{"<init>"}, c_string{ "()V" }
 		);
 }

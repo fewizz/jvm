@@ -15,7 +15,7 @@ static void init_java_lang_class_cast_exception() {
 	);
 
 	class_cast_exception_constructor =
-		class_cast_exception_class->declared_methods().find(
+		class_cast_exception_class->declared_instance_methods().find(
 			c_string{"<init>"}, c_string{ "()V" }
 		);
 }

@@ -17,7 +17,7 @@ static inline void init_java_lang_system() {
 		c_string{ "java/lang/System" }
 	);
 
-	system_class->declared_methods().find(
+	system_class->declared_static_methods().find(
 		c_string{ "arraycopy" },
 		c_string{ "(Ljava/lang/Object;ILjava/lang/Object;II)V" }
 	).native_function(
@@ -56,14 +56,14 @@ static inline void init_java_lang_system() {
 			_class& dst_component_class = dst->_class().get_component_class();
 			bool src_is_primitive = src_component_class.is_primitive();
 			bool dst_is_primitive = dst_component_class.is_primitive();
-			bool both_are_primitive = src_is_primitive && dst_is_primitive;
+			bool both_are_primitives = src_is_primitive && dst_is_primitive;
 
 			if(
 				/* The src argument and dest argument refer to arrays whose
 				   component types are different primitive types. */
 				(
-					both_are_primitive &&
-					&src_component_class != &dst_component_class
+					both_are_primitives &&
+					src_component_class.is_not(dst_component_class)
 				) ||
 				/* The src argument refers to an array with a primitive
 				   component type and the dest argument refers to an array with
@@ -99,35 +99,15 @@ static inline void init_java_lang_system() {
 				return;
 			}
 
-			if(both_are_primitive) {
-				auto copy_primitive_array = [&]<typename Type>() {
+			if(both_are_primitives) {
+				src_component_class.view_raw_type_non_void([&]<typename Type>()
+				{
 					Type* src_data = array_data<Type>(*src);
 					Type* dst_data = array_data<Type>(*dst);
-					range {
-						span{ src_data + src_pos, (nuint) len }
-					}.copy_to(span{ dst_data + dst_pos, (nuint) len });
-				};
-				_class* src_ptr = &src->_class();
-				if(
-					src_ptr == byte_array_class.ptr() ||
-					src_ptr == bool_array_class.ptr()
-				) { copy_primitive_array.operator () <uint8>(); }
-				else if(
-					src_ptr == short_array_class.ptr() ||
-					src_ptr == char_array_class.ptr()
-				) { copy_primitive_array.operator () <uint16>(); }
-				else if(
-					src_ptr == int_array_class.ptr() ||
-					src_ptr == float_array_class.ptr()
-				) { copy_primitive_array.operator () <uint32>(); }
-				else if(
-					src_ptr == long_array_class.ptr() ||
-					src_ptr == double_array_class.ptr()
-				) { copy_primitive_array.operator () <uint64>(); }
-				else {
-					print::err("unknown primitive type?\n");
-					posix::abort();
-				}
+
+					span{ src_data + src_pos, (nuint) len }
+					.copy_to(span{ dst_data + dst_pos, (nuint) len });
+				});
 				return;
 			}
 
@@ -158,7 +138,7 @@ static inline void init_java_lang_system() {
 					   the restrictions already itemized, this paragraph
 					   effectively applies only to the situation where both
 					   arrays have component types that are reference types.) */
-					bool assignable = sc.is(dc) || sc.is_sub_of(dc);
+					bool assignable = sc.is(dc) || sc.is_sub_of(dc); // TODO
 					if(!assignable) {
 						thrown_in_native
 							= try_create_array_store_exception().get();
@@ -170,7 +150,7 @@ static inline void init_java_lang_system() {
 		}
 	);
 
-	system_class->declared_methods().find(
+	system_class->declared_static_methods().find(
 		c_string{ "nanoTime" }, c_string{ "()J" }
 	).native_function(
 		(void*) (int64(*)(native_environment*))

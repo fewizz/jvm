@@ -156,6 +156,7 @@ public:
 	bool is_not_primitive() const { return !is_primitive_; }
 	bool is_reference() const { return !is_primitive_; }
 	bool is(const _class& c) const { return c.ptr() == this; }
+	bool is_not(const _class& c) const { return c.ptr() != this; }
 
 	_class& get_array_class();
 	_class& get_component_class();

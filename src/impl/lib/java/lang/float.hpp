@@ -28,7 +28,7 @@ static inline void init_java_lang_float() {
 		}
 	);
 
-	java_lang_float_class->declared_methods().find(
+	java_lang_float_class->declared_static_methods().find(
 		c_string{ "floatToRawIntBits" }, c_string{ "(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {
@@ -36,7 +36,7 @@ static inline void init_java_lang_float() {
 		}
 	);
 
-	java_lang_float_class->declared_methods().find(
+	java_lang_float_class->declared_static_methods().find(
 		c_string{ "floatToIntBits" }, c_string{ "(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) -> int32 {
@@ -55,7 +55,7 @@ static inline void init_java_lang_float() {
 		}
 	);
 
-	java_lang_float_class->declared_methods().find(
+	java_lang_float_class->declared_static_methods().find(
 		c_string{ "isNaN" }, c_string{ "(F)Z" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {

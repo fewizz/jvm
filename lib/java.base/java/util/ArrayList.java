@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 
 public class ArrayList<E> extends AbstractList<E>
-	implements List<E>, RandomAccess, Cloneable, Serializable
+	implements RandomAccess, Cloneable, Serializable
 {
 
 	Object[] storage_;

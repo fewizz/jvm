@@ -161,7 +161,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		c_string{ "java/lang/invoke/MethodHandles$Lookup" }
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findGetter" },
 		c_string {
 			"("
@@ -191,7 +191,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findSetter" },
 		c_string {
 			"("
@@ -221,7 +221,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findVirtual" },
 		c_string {
 			"("
@@ -253,7 +253,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findStatic" },
 		c_string {
 			"("
@@ -284,7 +284,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findConstructor" },
 		c_string {
 			"("
@@ -314,7 +314,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	);
 
-	method_handles_lookup_class->declared_methods().find(
+	method_handles_lookup_class->declared_instance_methods().find(
 		c_string{ "findSpecial" },
 		c_string {
 			"("

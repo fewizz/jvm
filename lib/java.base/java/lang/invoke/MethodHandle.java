@@ -17,6 +17,12 @@ public abstract class MethodHandle {
 
 	public native final Object invoke(Object... args) throws Throwable;
 
+	public native Object invokeWithArguments(Object... args) throws Throwable;
+
 	public native MethodHandle asType(MethodType newType);
+
+	public boolean isVarargsCollector() {
+		return false;
+	}
 
 }
