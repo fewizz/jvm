@@ -6,6 +6,8 @@
 #include "decl/lib/java/lang/no_such_field_error.hpp"
 #include "decl/class/access_control.hpp"
 
+#include <ranges.hpp>
+
 [[nodiscard]] inline optional<field&> try_resolve_field0(
 	_class& c,
 	class_file::constant::utf8 name,
@@ -17,7 +19,13 @@
 	/* If C declares a field with the name and descriptor specified by the field
 	   reference, field lookup succeeds. The declared field is the result of the
 	   field lookup. */
-	optional<field&> f = c.declared_fields().try_find(name, desc);
+	optional<field&> f =
+		find_by_name_and_descriptor_view {
+			ranges{ c.declared_static_fields(), c.declared_instance_fields() }
+			.concat_view()
+		}
+		.try_find(name, desc);
+
 	if(f.has_value()) {
 		return f.get();
 	}

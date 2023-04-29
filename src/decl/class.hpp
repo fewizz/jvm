@@ -41,14 +41,12 @@ private:
 	const class_file::constant::utf8 source_file_;
 
 	const posix::memory_for_range_of<_class*> declared_interfaces_;
-	posix::memory_for_range_of<field> declared_fields_;
-	posix::memory_for_range_of<method> declared_methods_;
 
-	const posix::memory_for_range_of<field*> declared_static_fields_;
-	const posix::memory_for_range_of<method*> declared_static_methods_;
+	mutable posix::memory_for_range_of<field> declared_static_fields_;
+	mutable posix::memory_for_range_of<field> declared_instance_fields_;
 
-	const posix::memory_for_range_of<field*> declared_instance_fields_;
-	const posix::memory_for_range_of<method*> declared_instance_methods_;
+	mutable posix::memory_for_range_of<method> declared_static_methods_;
+	mutable posix::memory_for_range_of<method> declared_instance_methods_;
 
 	const posix::memory_for_range_of<field*> instance_fields_;
 	const posix::memory_for_range_of<method*> instance_methods_;
@@ -76,14 +74,17 @@ public:
 
 	_class(
 		constants&&, bootstrap_methods&&,
-		posix::memory_for_range_of<uint8> bytes, class_file::access_flags,
+		posix::memory_for_range_of<uint8> bytes,
+		class_file::access_flags,
 		this_class_name,
 		posix::memory_for_range_of<uint8> descriptor,
 		class_file::constant::utf8 source_file,
 		optional<_class&> super,
 		posix::memory_for_range_of<_class*>,
-		posix::memory_for_range_of<field>,
-		posix::memory_for_range_of<method>,
+		posix::memory_for_range_of<field> declared_static_fields,
+		posix::memory_for_range_of<field> declared_instance_fields,
+		posix::memory_for_range_of<method> declared_static_methods,
+		posix::memory_for_range_of<method> declared_instance_methods,
 		is_array_class,
 		is_primitive_class,
 		reference loader = {}
@@ -181,10 +182,10 @@ public:
 	}
 	inline auto fields_view_for_layout_view() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_fields_.as_span().dereference_view()),
+			decltype(declared_static_fields_.as_span()),
 			declared_static_field_index
 		> {
-			declared_static_fields_.as_span().dereference_view()
+			declared_static_fields_.as_span()
 		};
 	}
 	//
@@ -206,29 +207,12 @@ public:
 		Name&& name, Descriptor&& descriptor
 	);
 
-	auto declared_fields() {
-		return find_by_name_and_descriptor_view<
-			decltype(declared_fields_.as_span()),
-			declared_field_index
-		> {
-			declared_fields_.as_span()
-		};
-	}
-	auto declared_methods() {
-		return find_by_name_and_descriptor_view<
-			decltype(declared_methods_.as_span()),
-			declared_method_index
-		> {
-			declared_methods_.as_span()
-		};
-	}
-
 	auto declared_static_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_fields_.as_span().dereference_view()),
+			decltype(declared_static_fields_.as_span()),
 			declared_static_field_index
 		> {
-			declared_static_fields_.as_span().dereference_view()
+			declared_static_fields_.as_span()
 		};
 	}
 	auto instance_fields() const {
@@ -242,27 +226,27 @@ public:
 
 	auto declared_static_methods() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_methods_.as_span().dereference_view()),
+			decltype(declared_static_methods_.as_span()),
 			declared_static_method_index
 		> {
-			declared_static_methods_.as_span().dereference_view()
+			declared_static_methods_.as_span()
+		};
+	}
+	auto declared_instance_methods() const {
+		return find_by_name_and_descriptor_view<
+			decltype(declared_instance_methods_.as_span()),
+			declared_instance_method_index
+		> {
+			declared_instance_methods_.as_span()
 		};
 	}
 
-	auto declared_instance_methods() const {
-		return find_by_name_and_descriptor_view<
-			decltype(declared_instance_methods_.as_span().dereference_view()),
-			declared_instance_method_index
-		> {
-			declared_instance_methods_.as_span().dereference_view()
-		};
-	}
 	auto declared_instance_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_instance_fields_.as_span().dereference_view()),
+			decltype(declared_instance_fields_.as_span()),
 			declared_instance_field_index
 		> {
-			declared_instance_fields_.as_span().dereference_view()
+			declared_instance_fields_.as_span()
 		};
 	}
 	auto instance_methods() const {

@@ -14,10 +14,6 @@ struct method_member_index : class_member_index {
 	using class_member_index::class_member_index;
 };
 
-struct declared_method_index : method_member_index {
-	using method_member_index::method_member_index;
-};
-
 struct declared_instance_method_index : method_member_index {
 	using method_member_index::method_member_index;
 };
@@ -34,18 +30,14 @@ struct field_member_index : class_member_index {
 	using class_member_index::class_member_index;
 };
 
-struct declared_field_index : field_member_index {
-	using field_member_index::field_member_index;
-};
-
-struct instance_field_index : field_member_index {
-	using field_member_index::field_member_index;
-};
-
 struct declared_instance_field_index : field_member_index {
 	using field_member_index::field_member_index;
 };
 
 struct declared_static_field_index : field_member_index {
+	using field_member_index::field_member_index;
+};
+
+struct instance_field_index : field_member_index {
 	using field_member_index::field_member_index;
 };

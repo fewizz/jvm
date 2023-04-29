@@ -670,12 +670,13 @@ expected<_class&, reference> classes::try_define_class(
 	if(!thrown.is_null()) {
 		return { thrown };
 	}
-	
-	uint16 fields_count = fields_reader.read_count();
 
 	::list fields {
-		posix::allocate_memory_for<field>(fields_count)
+		posix::allocate_memory_for<field>(fields_reader.read_count())
 	};
+
+	nuint static_fields_count = 0;
+	nuint instance_fields_count = 0;
 
 	auto methods_reader = fields_reader.read_and_get_methods_reader(
 		[&](auto field_reader) {
@@ -699,14 +700,35 @@ expected<_class&, reference> classes::try_define_class(
 				const_pool.utf8_constant(name_index);
 			class_file::constant::utf8 descriptor =
 				const_pool.utf8_constant(descriptor_index);
-			fields.emplace_back(access_flags, name, descriptor);
+
+			field f{ access_flags, name, descriptor };
+
+			++(f.is_static() ? static_fields_count : instance_fields_count);
+
+			fields.emplace_back(move(f));
+
 			return it;
 		}
 	);
 
+	::list static_fields {
+		posix::allocate_memory_for<field>(static_fields_count)
+	};
+
+	::list instance_fields {
+		posix::allocate_memory_for<field>(instance_fields_count)
+	};
+
+	for(field& f : fields) {
+		(f.is_static() ? static_fields : instance_fields).emplace_back(move(f));
+	}
+
 	::list methods {
 		posix::allocate_memory_for<method>(methods_reader.read_count())
 	};
+
+	nuint static_methods_count = 0;
+	nuint instance_methods_count = 0;
 
 	auto read_method_and_get_advaned_iterator = []<typename Iterator>(
 		constants& const_pool, class_file::method::reader<Iterator> reader
@@ -839,10 +861,23 @@ expected<_class&, reference> classes::try_define_class(
 			auto [m, it] = read_method_and_get_advaned_iterator(
 				const_pool, method_reader
 			);
+			++(m.is_static() ? static_methods_count : instance_methods_count);
 			methods.emplace_back(move(m));
 			return it;
 		}
 	);
+
+	::list static_methods {
+		posix::allocate_memory_for<method>(static_methods_count)
+	};
+	::list instance_methods {
+		posix::allocate_memory_for<method>(instance_methods_count)
+	};
+
+	for(method& m : methods) {
+		(m.is_static() ? static_methods : instance_methods)
+			.emplace_back(move(m));
+	}
 
 	bootstrap_methods bootstrap_methods{};
 	class_file::constant::utf8 source_file{};
@@ -940,8 +975,10 @@ expected<_class&, reference> classes::try_define_class(
 		source_file,
 		super,
 		interfaces.move_storage_range(),
-		fields.move_storage_range(),
-		methods.move_storage_range(),
+		static_fields.move_storage_range(),
+		instance_fields.move_storage_range(),
+		static_methods.move_storage_range(),
+		instance_methods.move_storage_range(),
 		is_array_class{ false },
 		is_primitive_class{ false },
 		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
@@ -961,18 +998,18 @@ _class& classes::define_array_class(
 	span<char> data_as_span{ (char*) data.iterator(), data.size() };
 	range{ name }.copy_to(data_as_span);
 
-	posix::memory_for_range_of<field> declared_fields {
+	posix::memory_for_range_of<field> declared_instance_fields {
 		posix::allocate_memory_for<field>(2)
 	};
 
 	// ptr to data
-	declared_fields[0].construct(
+	declared_instance_fields[0].construct(
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
 		class_file::constant::utf8{ c_string{ "J" } }
 	);
 	// length
-	declared_fields[1].construct(
+	declared_instance_fields[1].construct(
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
 		class_file::constant::utf8{ c_string{ "I" } }
@@ -990,7 +1027,9 @@ _class& classes::define_array_class(
 		class_file::constant::utf8{},
 		object_class.get(),
 		posix::memory_for_range_of<_class*>{},
-		move(declared_fields),
+		posix::memory_for_range_of<field>{},
+		move(declared_instance_fields),
+		posix::memory_for_range_of<method>{},
 		posix::memory_for_range_of<method>{},
 		is_array_class{ true },
 		is_primitive_class{ false },
@@ -1019,6 +1058,8 @@ _class& classes::define_primitive_class(Name&& name, char ch) {
 		object_class,
 		posix::memory_for_range_of<_class*>{},
 		posix::memory_for_range_of<field>{},
+		posix::memory_for_range_of<field>{},
+		posix::memory_for_range_of<method>{},
 		posix::memory_for_range_of<method>{},
 		is_array_class{ false },
 		is_primitive_class{ true }
