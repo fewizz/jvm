@@ -20,7 +20,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	/* 2. Otherwise, if C declares a method with the name and descriptor
 	      specified by the interface method reference, method lookup
 	      succeeds. */
-	optional<method&> possible_m =
+	optional<instance_method&> possible_m =
 		c.declared_instance_methods().try_find(name, descriptor);
 
 	/* 3. Otherwise, if the class Object declares a method with the name
@@ -30,7 +30,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	if(!possible_m.has_value()) {
 		possible_m = object_class->declared_instance_methods()
 		.try_find_first_satisfying(
-			[&](method& m) {
+			[&](instance_method& m) {
 				return
 					m.is_public() &&
 					m.has_name_and_descriptor_equal_to(name, descriptor);
@@ -46,7 +46,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	if(!possible_m.has_value()) {
 		c.for_each_maximally_specific_super_interface_instance_method(
 			name, descriptor,
-			[&](method& m0) {
+			[&](instance_method& m0) {
 				if(!m0.is_abstract()) {
 					if(possible_m.has_value()) { // more than one
 						possible_m = {};
@@ -65,7 +65,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	      arbitrarily chosen and method lookup succeeds. */
 	if(!possible_m.has_value()) {
 		c.for_each_super_interface([&](_class& i) {
-			for(method& m0 : i.declared_instance_methods()) {
+			for(instance_method& m0 : i.declared_instance_methods()) {
 				if(
 					!m0.is_private() &&
 					m0.has_name_and_descriptor_equal_to(name, descriptor)

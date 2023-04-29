@@ -38,7 +38,7 @@ static void init_jvm_mh_static() {
 				ths->get<uint16>(mh_class_member_index_position)
 			};
 
-			method& resolved_method = c[method_index];
+			static_method& resolved_method = c[method_index];
 
 			return try_invoke_static_resolved(resolved_method);
 		}

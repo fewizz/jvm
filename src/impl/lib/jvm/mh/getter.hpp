@@ -32,7 +32,7 @@ static void init_jvm_mh_getter() {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
-			field& resolved_field = c[index];
+			instance_field& resolved_field = c[index];
 
 			optional<reference> possible_throwable
 				= try_get_field_resolved(resolved_field);

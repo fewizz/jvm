@@ -95,6 +95,11 @@ public:
 	}
 
 	template<typename Type>
+	Type& get(IndexType index) {
+		return get<Type>(layout().slot_for_field_index(index).beginning());
+	}
+
+	template<typename Type>
 	void set(layout::position position, Type value) {
 		view<Type>(position, [&](Type& e) { return e = move(value); });
 	}

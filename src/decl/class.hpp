@@ -42,14 +42,20 @@ private:
 
 	const posix::memory_for_range_of<_class*> declared_interfaces_;
 
-	mutable posix::memory_for_range_of<field> declared_static_fields_;
-	mutable posix::memory_for_range_of<field> declared_instance_fields_;
+	mutable posix::memory_for_range_of<static_field>
+		declared_static_fields_;
+	mutable posix::memory_for_range_of<instance_field>
+		declared_instance_fields_;
 
-	mutable posix::memory_for_range_of<method> declared_static_methods_;
-	mutable posix::memory_for_range_of<method> declared_instance_methods_;
+	mutable posix::memory_for_range_of<static_method>
+		declared_static_methods_;
+	mutable posix::memory_for_range_of<instance_method>
+		declared_instance_methods_;
 
-	const posix::memory_for_range_of<field*> instance_fields_;
-	const posix::memory_for_range_of<method*> instance_methods_;
+	const posix::memory_for_range_of<instance_field*> instance_fields_;
+	const posix::memory_for_range_of<instance_method*> instance_methods_;
+
+	optional<method> initialisation_method_;
 
 	const ::layout instance_layout_;
 	const ::layout declared_static_layout_;
@@ -81,10 +87,11 @@ public:
 		class_file::constant::utf8 source_file,
 		optional<_class&> super,
 		posix::memory_for_range_of<_class*>,
-		posix::memory_for_range_of<field> declared_static_fields,
-		posix::memory_for_range_of<field> declared_instance_fields,
-		posix::memory_for_range_of<method> declared_static_methods,
-		posix::memory_for_range_of<method> declared_instance_methods,
+		posix::memory_for_range_of<static_field> declared_static_fields,
+		posix::memory_for_range_of<instance_field> declared_instance_fields,
+		posix::memory_for_range_of<static_method> declared_static_methods,
+		posix::memory_for_range_of<instance_method> declared_instance_methods,
+		optional<method> initialisation_method,
 		is_array_class,
 		is_primitive_class,
 		reference loader = {}
@@ -95,20 +102,30 @@ public:
 	_class& operator = (_class&&) = delete;
 	_class& operator = (const _class&) = delete;
 
-	inline const field& operator[](instance_field_index index) const;
-	inline       field& operator[](instance_field_index index);
+	inline const instance_field&
+	operator[](instance_field_index index) const;
+	inline       instance_field&
+	operator[](instance_field_index index);
 
-	inline const field& operator[](declared_static_field_index index) const;
-	inline       field& operator[](declared_static_field_index index);
+	inline const static_field&
+	operator[](declared_static_field_index index) const;
+	inline       static_field&
+	operator[](declared_static_field_index index);
 
-	inline const method& operator[](instance_method_index index) const;
-	inline       method& operator[](instance_method_index index);
+	inline const instance_method&
+	operator[](instance_method_index index) const;
+	inline       instance_method&
+	operator[](instance_method_index index);
 
-	inline const method& operator[](declared_instance_method_index index) const;
-	inline       method& operator[](declared_instance_method_index index);
+	inline const instance_method&
+	operator[](declared_instance_method_index index) const;
+	inline       instance_method&
+	operator[](declared_instance_method_index index);
 
-	inline const method& operator[](declared_static_method_index index) const;
-	inline       method& operator[](declared_static_method_index index);
+	inline const static_method&
+	operator[](declared_static_method_index index) const;
+	inline       static_method&
+	operator[](declared_static_method_index index);
 
 	using constants::operator [];
 
@@ -360,8 +377,8 @@ public:
 	void for_each_maximally_specific_super_interface_instance_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	) {
-		auto search_for_method = [&](_class& c) -> optional<method&> {
-			for(method& m : c.declared_instance_methods()) {
+		auto search_for_method = [&](_class& c) -> optional<instance_method&> {
+			for(instance_method& m : c.declared_instance_methods()) {
 				if(
 					m.has_name_and_descriptor_equal_to(name, descriptor) &&
 					!m.is_private()
@@ -378,7 +395,7 @@ public:
 				for(_class& super_i : c.declared_interfaces()) {
 					loop_action handlers_action;
 
-					optional<method&> m = search(super_i);
+					optional<instance_method&> m = search(super_i);
 
 					if(m.has_value()) {
 						if constexpr(

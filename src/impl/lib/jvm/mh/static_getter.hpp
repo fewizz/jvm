@@ -39,7 +39,7 @@ static void init_jvm_mh_static_getter() {
 				return move(optional_throwable.get());
 			}
 
-			field& resolved_field = c[index];
+			static_field& resolved_field = c[index];
 
 			get_static_resolved(resolved_field);
 

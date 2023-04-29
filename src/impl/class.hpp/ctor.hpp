@@ -10,10 +10,11 @@ inline _class::_class(
 	class_file::constant::utf8          source_file,
 	optional<_class&>                   super_class,
 	posix::memory_for_range_of<_class*> declared_interfaces,
-	posix::memory_for_range_of<field>   declared_static_fields,
-	posix::memory_for_range_of<field>   declared_instance_fields,
-	posix::memory_for_range_of<method>  declared_static_methods,
-	posix::memory_for_range_of<method>  declared_instance_methods,
+	posix::memory_for_range_of<static_field>   declared_static_fields,
+	posix::memory_for_range_of<instance_field>   declared_instance_fields,
+	posix::memory_for_range_of<static_method> declared_static_methods,
+	posix::memory_for_range_of<instance_method> declared_instance_methods,
+	optional<method>                    initialisation_method,
 	is_array_class                      is_array,
 	is_primitive_class                  is_primitive,
 	reference                           defining_loader
@@ -29,25 +30,25 @@ inline _class::_class(
 	source_file_         { source_file                  },
 	declared_interfaces_ { move(declared_interfaces)    },
 	declared_static_fields_ { [&] {
-		for(field& f : declared_static_fields.as_span()) {
+		for(static_field& f : declared_static_fields.as_span()) {
 			f.class_ = *this;
 		}
 		return move(declared_static_fields);
 	}()},
 	declared_instance_fields_ { [&] {
-		for(field& f : declared_instance_fields.as_span()) {
+		for(instance_field& f : declared_instance_fields.as_span()) {
 			f.class_ = *this;
 		}
 		return move(declared_instance_fields);
 	}()},
 	declared_static_methods_ { [&] {
-		for(method& m : declared_static_methods.as_span()) {
+		for(static_method& m : declared_static_methods.as_span()) {
 			m.class_ = *this;
 		}
 		return move(declared_static_methods);
 	}()},
 	declared_instance_methods_ { [&] {
-		for(method& m : declared_instance_methods.as_span()) {
+		for(instance_method& m : declared_instance_methods.as_span()) {
 			m.class_ = *this;
 		}
 		return move(declared_instance_methods);
@@ -57,13 +58,13 @@ inline _class::_class(
 		if(has_super()) {
 			count += range_size(super().instance_fields());
 		}
-		::list fields = posix::allocate_memory_for<field*>(count);
+		::list fields = posix::allocate_memory_for<instance_field*>(count);
 		if(has_super()) {
-			for(field& f : super().instance_fields()) {
+			for(instance_field& f : super().instance_fields()) {
 				fields.emplace_back(&f);
 			}
 		}
-		for(field& f : declared_instance_fields_.as_span()) {
+		for(instance_field& f : declared_instance_fields_.as_span()) {
 			fields.emplace_back(&f);
 		}
 		return fields.move_storage_range();
@@ -73,7 +74,7 @@ inline _class::_class(
 		if(has_super()) {
 			// increase instance methods count if super instance method
 			// isn't overrided by any declared instance method
-			for(method& m : super().instance_methods()) {
+			for(instance_method& m : super().instance_methods()) {
 				if(
 					this->declared_instance_methods()
 					.try_find(m.name(), m.descriptor()).has_no_value()
@@ -82,13 +83,13 @@ inline _class::_class(
 				}
 			}
 		}
-		::list methods = posix::allocate_memory_for<method*>(count);
+		::list methods = posix::allocate_memory_for<instance_method*>(count);
 		if(has_super()) {
-			for(method& m : super().instance_methods()) {
+			for(instance_method& m : super().instance_methods()) {
 				methods.emplace_back(&m);
 			}
 		}
-		for(method& m : this->declared_instance_methods()) {
+		for(instance_method& m : this->declared_instance_methods()) {
 			auto index_of_overriden = find_by_name_and_descriptor_view {
 				methods.dereference_view()
 			}.try_find_index_of(m.name(), m.descriptor());
@@ -102,6 +103,12 @@ inline _class::_class(
 			}
 		}
 		return methods.move_storage_range();
+	}()},
+	initialisation_method_{ [&] {
+		if(initialisation_method.has_value()) {
+			initialisation_method->class_ = *this;
+		}
+		return move(initialisation_method);
 	}()},
 	instance_layout_ { [&] {
 		return

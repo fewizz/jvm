@@ -28,7 +28,7 @@
 }
 
 [[nodiscard]] inline optional<reference> try_get_field_resolved(
-	field& resolved_field
+	instance_field& resolved_field
 ) {
 	instance_field_index index =
 		resolved_field._class().instance_fields()
@@ -58,6 +58,7 @@
 		return possible_resolved_field.move_unexpected();
 	}
 
-	field& resolved_field = possible_resolved_field.get_expected();
+	instance_field& resolved_field
+		= (instance_field&) possible_resolved_field.get_expected();
 	return try_get_field_resolved(resolved_field);
 }

@@ -15,7 +15,7 @@ int main (int argc, const char** argv) {
 	}
 
 	// TODO replace with somethig more reliable
-	executable_path = c_string_of_unknown_size{argv[0]}.sized();
+	executable_path = c_string_of_unknown_size{ argv[0] }.sized();
 
 	// TODO replace with algo
 	lib_path = [] {
@@ -91,14 +91,28 @@ int main (int argc, const char** argv) {
 	_class& app_cl_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{"jvm/AppClassLoader"}
 	);
-	expected<reference, reference> possible_app_cl_ref
-		= try_create_object(app_cl_class);
 
-	if(possible_app_cl_ref.is_unexpected()) {
-		return on_exit(possible_app_cl_ref.move_unexpected());
+	optional<reference> possible_exception
+		= app_cl_class.try_initialise_if_need();
+	if(possible_exception.has_value()) {
+		posix::abort();
 	}
 
-	reference app_cl_ref = possible_app_cl_ref.move_expected();
+	optional<field&> possible_app_cl_instance_field
+		= try_resolve_field0(
+			app_cl_class,
+			c_string{"INSTANCE"},
+			c_string{"Ljava/lang/ClassLoader;"}
+		);
+	if(possible_app_cl_instance_field.has_no_value()) {
+		posix::abort();
+	}
+
+	static_field& app_cl_instance_field
+		= (static_field&) possible_app_cl_instance_field.get();
+
+	reference& app_cl_ref =
+		get_static_resolved<reference>(app_cl_instance_field);
 
 	auto main_class_name = c_string{ argv[1] }.sized();
 

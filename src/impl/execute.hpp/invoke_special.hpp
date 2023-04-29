@@ -61,7 +61,7 @@
 
 	_class& referenced_class = resolved_method._class();
 
-	optional<method&> possible_selected_method
+	optional<instance_method&> possible_selected_method
 		= select_method_for_invoke_special(
 			current_c, referenced_class, resolved_method
 		);

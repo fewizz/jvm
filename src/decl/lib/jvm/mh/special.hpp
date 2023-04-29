@@ -17,7 +17,7 @@ try_create_special_mh(
 }
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_special_mh(reference mt, method& m) {
+try_create_special_mh(reference mt, instance_method& m) {
 	declared_instance_method_index index = m._class()
 		.declared_instance_methods().find_index_of(m);
 

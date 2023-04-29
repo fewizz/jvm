@@ -6,7 +6,7 @@
 
 #include <class_file/constant.hpp>
 
-inline void put_static_resolved(field& resolved_field) {
+inline void put_static_resolved(static_field& resolved_field) {
 	declared_static_field_index index =
 		resolved_field._class().declared_static_fields()
 		.find_index_of(resolved_field);
@@ -64,7 +64,8 @@ inline void put_static_resolved(field& resolved_field) {
 		return possible_resolved_field.move_unexpected();
 	}
 
-	field& resolved_field = possible_resolved_field.get_expected();
+	static_field& resolved_field
+		= (static_field&) possible_resolved_field.get_expected();
 
 	put_static_resolved(resolved_field);
 

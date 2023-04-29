@@ -275,7 +275,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 					case behavior_kind::invoke_static:
 						return try_create_static_mh(mt, r);
 					case behavior_kind::invoke_special:
-						return try_create_special_mh(mt, r);
+						return try_create_special_mh(mt, (instance_method&) r);
 					case behavior_kind::new_invoke_special:
 						return try_create_constructor_mh(mt, r);
 					//case behavior_kind::invoke_interface: // TODO

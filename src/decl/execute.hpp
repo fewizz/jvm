@@ -46,7 +46,8 @@ template<basic_range StackType>
 	_class& c, method& mr
 );
 
-[[nodiscard]] optional<method&> select_method_for_invoke_special(
+[[nodiscard]] optional<instance_method&>
+select_method_for_invoke_special(
 	_class& current, _class& referenced_class, method& resolved_method
 );
 
@@ -64,7 +65,7 @@ try_invoke_virtual_resolved_non_polymorphic(
 // invoke_static
 
 [[nodiscard]] inline optional<reference>
-try_invoke_static_resolved(method& resolved_method);
+try_invoke_static_resolved(static_method& resolved_method);
 
 inline optional<reference> try_invoke_static(
 	_class& d,
@@ -90,7 +91,7 @@ inline optional<reference> try_invoke_static(
 );
 
 [[nodiscard]] inline optional<reference> try_get_field_resolved(
-	field& resolved_field
+	instance_field& resolved_field
 );
 
 [[nodiscard]] inline optional<reference> try_get_field(
@@ -99,7 +100,7 @@ inline optional<reference> try_invoke_static(
 
 template<typename Type>
 [[nodiscard]] inline expected<Type, reference> try_get_field_resolved(
-	field& resolved_field, reference ref
+	instance_field& resolved_field, reference ref
 ) {
 	stack.emplace_back(move(ref));
 	optional<reference> possible_throwable
@@ -120,7 +121,7 @@ try_put_field(
 );
 
 [[nodiscard]] inline optional<reference>
-try_put_field_resolved(field& resolved_field);
+try_put_field_resolved(instance_field& resolved_field);
 
 // get_static
 
@@ -129,7 +130,12 @@ try_put_field_resolved(field& resolved_field);
 );
 
 inline void get_static_resolved(
-	field& resolved_field
+	static_field& resolved_field
+);
+
+template<typename Type>
+inline Type& get_static_resolved(
+	static_field& resolved_field
 );
 
 // put_static
@@ -140,5 +146,5 @@ inline void get_static_resolved(
 );
 
 inline void put_static_resolved(
-	field& resolved_field
+	static_field& resolved_field
 );

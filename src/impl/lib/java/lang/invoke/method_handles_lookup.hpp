@@ -128,7 +128,7 @@ static expected<reference, reference> try_lookup_find_special(
 
 		method& resolved_method = possible_resolved_method.get_expected();
 
-		optional<method&> possible_selected_method
+		optional<instance_method&> possible_selected_method
 			= select_method_for_invoke_special(
 				d, c, resolved_method
 			);
@@ -137,7 +137,7 @@ static expected<reference, reference> try_lookup_find_special(
 			posix::abort();
 		}
 
-		method& selected_method = possible_selected_method.get();
+		instance_method& selected_method = possible_selected_method.get();
 
 		return try_create_special_mh(
 			mt, selected_method

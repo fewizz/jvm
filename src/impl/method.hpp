@@ -80,7 +80,7 @@ inline bool method::can_override(method& ma) const {
 				const ::_class* b_ptr = &c.super();
 
 				while(!b_ptr->super().is(a)) {
-					optional<::method&> m
+					optional<::instance_method&> m
 						= b_ptr->declared_instance_methods()
 						.try_find(ma.name(), ma.descriptor());
 

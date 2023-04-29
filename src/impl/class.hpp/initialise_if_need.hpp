@@ -36,16 +36,10 @@ inline optional<reference> _class::try_initialise_if_need() {
 		}
 	);
 
-	// 2.9.2 "The requirement for ACC_STATIC was introduced in Java SE 7"
-	optional<method&> possible_method =
-		find_by_name_and_descriptor_view {
-			ranges{ declared_instance_methods(), declared_static_methods() }
-			.concat_view()
-		}
-		.try_find(c_string{ "<clinit>" }, c_string{ "()V" });
-	
-	if(possible_method.has_value()) {
-		method& clinit = possible_method.get();
+	// 2.9.2 The requirement for ACC_STATIC was introduced in Java SE 7
+
+	if(initialisation_method_.has_value()) {
+		method& clinit = initialisation_method_.get();
 		return try_execute(clinit);
 	}
 

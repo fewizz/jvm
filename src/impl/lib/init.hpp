@@ -27,6 +27,7 @@
 #include "./java/lang/incompatible_class_change_error.hpp"
 #include "./java/lang/index_out_of_bounds_exception.hpp"
 #include "./java/lang/integer.hpp"
+#include "./java/lang/linkage_error.hpp"
 #include "./java/lang/long.hpp"
 #include "./java/lang/negative_array_size_exception.hpp"
 #include "./java/lang/no_such_field_error.hpp"

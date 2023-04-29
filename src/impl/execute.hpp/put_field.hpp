@@ -9,7 +9,7 @@
 #include <class_file/constant.hpp>
 
 [[nodiscard]] inline optional<reference>
-try_put_field_resolved(field& resolved_field) {
+try_put_field_resolved(instance_field& resolved_field) {
 	reference ref = move(stack.get<reference>(
 		stack.size() - resolved_field.stack_size - 1
 	));
@@ -79,6 +79,7 @@ try_put_field(
 		return possible_resolved_field.move_unexpected();
 	}
 
-	field& resolved_field = possible_resolved_field.get_expected();
+	instance_field& resolved_field
+		= (instance_field&) possible_resolved_field.get_expected();
 	return try_put_field_resolved(resolved_field);
 }

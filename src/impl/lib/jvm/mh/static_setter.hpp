@@ -39,7 +39,7 @@ static void init_jvm_mh_static_setter() {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
 
-			field& resolved_field = c[index];
+			static_field& resolved_field = c[index];
 
 			put_static_resolved(resolved_field);
 

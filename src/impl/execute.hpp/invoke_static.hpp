@@ -11,7 +11,7 @@
 #include <overloaded.hpp>
 
 [[nodiscard]] inline optional<reference>
-try_invoke_static_resolved(method& resolved_method) {
+try_invoke_static_resolved(static_method& resolved_method) {
 	_class& c = resolved_method._class();
 
 	if(resolved_method.is_synchronized()) {
@@ -82,7 +82,8 @@ inline optional<reference> try_invoke_static(
 		return possible_resolved_method.move_unexpected();
 	}
 
-	method& resolved_method = possible_resolved_method.get_expected();
+	static_method& resolved_method
+		= (static_method&) possible_resolved_method.get_expected();
 
 	return try_invoke_static_resolved(resolved_method);
 }

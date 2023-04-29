@@ -30,7 +30,7 @@ public:
 };
 
 using code_or_native_function_ptr =
-	variant<code, optional<native_function_ptr>>;
+	variant<code, native_function_ptr>;
 
 using exception_handlers = list<
 	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
@@ -131,23 +131,24 @@ public:
 	bool is_native() const { return access_flags_.native; }
 	bool is_synchronized() const { return access_flags_.super_or_synchronized; }
 	bool is_abstract() const { return access_flags_.abstract; }
+
 	bool has_variable_number_of_arguments() const {
 		return access_flags_.varargs;
 	}
 
 	bool native_function_is_loaded() const {
-		return code_.get_same_as<optional<native_function_ptr>>().has_value();
+		return code_.get_same_as<native_function_ptr>() != nullptr;
 	}
 
 	void native_function(native_function_ptr function) {
-		if(!code_.is_same_as<optional<native_function_ptr>>()) {
+		if(!code_.is_same_as<native_function_ptr>()) {
 			posix::abort();
 		}
 		code_ = function;
 	}
 
 	native_function_ptr native_function() {
-		return code_.get_same_as<optional<native_function_ptr>>().get();
+		return code_.get_same_as<native_function_ptr>();
 	}
 
 	one_of_descriptor_return_types return_type() const {
@@ -166,4 +167,23 @@ public:
 
 	bool can_override(method&) const;
 
+};
+
+struct static_method : method {
+};
+
+struct instance_method : method {
+};
+
+#include <types.hpp>
+
+template<typename T0, typename T1>
+requires (
+	type_is_lvalue_reference<T0> &&
+	type_is_lvalue_reference<T1> &&
+	base_of<remove_reference<T0>, ::method> &&
+	base_of<remove_reference<T1>, ::method>
+)
+struct __types::common::result<T0, T1> {
+	using type = method&;
 };

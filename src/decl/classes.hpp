@@ -10,6 +10,7 @@
 #include "lib/java/lang/class.hpp"
 #include "lib/java/lang/object.hpp"
 #include "lib/java/lang/class_not_found_exception.hpp"
+#include "lib/java/lang/linkage_error.hpp"
 #include "execute.hpp"
 #include "primitives.hpp"
 #include "try_load_class_file_data_at.hpp"
@@ -542,8 +543,7 @@ expected<_class&, reference> classes::try_define_class(
 				defining_loader
 			);
 		if(c.has_value()) {
-			// TODO throw LinkageError
-			posix::abort();
+			return unexpected { try_create_linkage_error().get() };
 		}
 	}
 
@@ -712,15 +712,20 @@ expected<_class&, reference> classes::try_define_class(
 	);
 
 	::list static_fields {
-		posix::allocate_memory_for<field>(static_fields_count)
+		posix::allocate_memory_for<static_field>(static_fields_count)
 	};
 
 	::list instance_fields {
-		posix::allocate_memory_for<field>(instance_fields_count)
+		posix::allocate_memory_for<instance_field>(instance_fields_count)
 	};
 
 	for(field& f : fields) {
-		(f.is_static() ? static_fields : instance_fields).emplace_back(move(f));
+		if(f.is_static()) {
+			static_fields.emplace_back(move(f));
+		}
+		else {
+			instance_fields.emplace_back(move(f));
+		}
 	}
 
 	::list methods {
@@ -744,7 +749,7 @@ expected<_class&, reference> classes::try_define_class(
 		};
 
 		code_or_native_function_ptr code_or_native_function {
-			optional<native_function_ptr>()
+			native_function_ptr{nullptr}
 		};
 
 		posix::memory_for_range_of<
@@ -861,22 +866,38 @@ expected<_class&, reference> classes::try_define_class(
 			auto [m, it] = read_method_and_get_advaned_iterator(
 				const_pool, method_reader
 			);
-			++(m.is_static() ? static_methods_count : instance_methods_count);
+			if(!m.is_class_initialisation()) {
+				++(
+					m.is_static() ?
+					static_methods_count :
+					instance_methods_count
+				);
+			}
 			methods.emplace_back(move(m));
 			return it;
 		}
 	);
 
 	::list static_methods {
-		posix::allocate_memory_for<method>(static_methods_count)
+		posix::allocate_memory_for<static_method>(static_methods_count)
 	};
 	::list instance_methods {
-		posix::allocate_memory_for<method>(instance_methods_count)
+		posix::allocate_memory_for<instance_method>(instance_methods_count)
 	};
+	optional<method> initialisation_method{};
 
 	for(method& m : methods) {
-		(m.is_static() ? static_methods : instance_methods)
-			.emplace_back(move(m));
+		if(m.is_class_initialisation()) {
+			initialisation_method = move(m);
+			continue;
+		}
+
+		if(m.is_static()) {
+			static_methods.emplace_back(move(m));
+		}
+		else {
+			instance_methods.emplace_back(move(m));
+		}
 	}
 
 	bootstrap_methods bootstrap_methods{};
@@ -979,6 +1000,7 @@ expected<_class&, reference> classes::try_define_class(
 		instance_fields.move_storage_range(),
 		static_methods.move_storage_range(),
 		instance_methods.move_storage_range(),
+		move(initialisation_method),
 		is_array_class{ false },
 		is_primitive_class{ false },
 		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
@@ -998,8 +1020,8 @@ _class& classes::define_array_class(
 	span<char> data_as_span{ (char*) data.iterator(), data.size() };
 	range{ name }.copy_to(data_as_span);
 
-	posix::memory_for_range_of<field> declared_instance_fields {
-		posix::allocate_memory_for<field>(2)
+	posix::memory_for_range_of<instance_field> declared_instance_fields {
+		posix::allocate_memory_for<instance_field>(2)
 	};
 
 	// ptr to data
@@ -1027,10 +1049,11 @@ _class& classes::define_array_class(
 		class_file::constant::utf8{},
 		object_class.get(),
 		posix::memory_for_range_of<_class*>{},
-		posix::memory_for_range_of<field>{},
+		posix::memory_for_range_of<static_field>{},
 		move(declared_instance_fields),
-		posix::memory_for_range_of<method>{},
-		posix::memory_for_range_of<method>{},
+		posix::memory_for_range_of<static_method>{},
+		posix::memory_for_range_of<instance_method>{},
+		optional<method>{},
 		is_array_class{ true },
 		is_primitive_class{ false },
 		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
@@ -1057,10 +1080,11 @@ _class& classes::define_primitive_class(Name&& name, char ch) {
 		class_file::constant::utf8{},
 		object_class,
 		posix::memory_for_range_of<_class*>{},
-		posix::memory_for_range_of<field>{},
-		posix::memory_for_range_of<field>{},
-		posix::memory_for_range_of<method>{},
-		posix::memory_for_range_of<method>{},
+		posix::memory_for_range_of<static_field>{},
+		posix::memory_for_range_of<instance_field>{},
+		posix::memory_for_range_of<static_method>{},
+		posix::memory_for_range_of<instance_method>{},
+		optional<method>{},
 		is_array_class{ false },
 		is_primitive_class{ true }
 	);

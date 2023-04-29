@@ -4,7 +4,8 @@
 
 #include <loop_action.hpp>
 
-[[nodiscard]] inline optional<method&> select_method_for_invoke_special(
+[[nodiscard]] inline optional<instance_method&>
+select_method_for_invoke_special(
 	_class& current, _class& referenced_class, method& resolved_method
 ) {
 	/* If all of the following are true, let C be the direct superclass of
@@ -41,7 +42,7 @@
 	      class, and so forth, until a match is found or no further
 	      superclasses exist. If a match is found, then it is the method to be
 	      invoked. */
-	optional<method&> possible_m;
+	optional<instance_method&> possible_m;
 	{
 		_class* c0 = &c;
 		do {
@@ -61,7 +62,7 @@
 	if(!possible_m.has_value() && c.is_interface()) {
 		object_class->declared_instance_methods().try_find(
 			resolved_method.name(), resolved_method.descriptor()
-		).if_has_value([&](method& m) {
+		).if_has_value([&](instance_method& m) {
 			if(m.is_public()) {
 				possible_m = m;
 			}
@@ -75,7 +76,7 @@
 		   method to be invoked. */
 		c.for_each_maximally_specific_super_interface_instance_method(
 			resolved_method.name(), resolved_method.descriptor(),
-			[&](method& m) {
+			[&](instance_method& m) {
 				if(!m.is_abstract()) {
 					if(possible_m.has_value()) { // more than one
 						possible_m = {};
