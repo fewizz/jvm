@@ -19,7 +19,7 @@
 #include <optional.hpp>
 #include <overloaded.hpp>
 
-static optional<_class&> method_handle_class;
+static optional<c&> method_handle_class;
 
 inline instance_method_index method_handle_invoke_exact_ptr_index;
 inline layout::position method_handle_method_type_field_position;
@@ -29,7 +29,7 @@ method_handle_try_invoke_exact(reference mh_ref, nuint args_beginning);
 
 template<typename T0, typename T1>
 [[nodiscard]] inline bool method_handle_is_type_convertible(
-	_class& t0, _class& t1
+	c& t0, c& t1
 ) {
 	if constexpr(same_as<T0, void_t> || same_as<T1, void_t>) {
 		return true;
@@ -74,8 +74,8 @@ template<typename T0, typename T1>
 }
 
 [[nodiscard]] inline bool method_handle_is_type_convertible(
-	_class& t0,
-	_class& t1
+	c& t0,
+	c& t1
 ) {
 	return t0.view_raw_type([&]<typename T0>() -> bool {
 		return t1.view_raw_type([&]<typename T1>() -> bool {
@@ -90,8 +90,8 @@ template<typename T0, typename T1>
 	object& new_mt,
 	object& ori_mt
 ) {
-	_class& new_ret = method_type_return_type(new_mt);
-	_class& ori_ret = method_type_return_type(ori_mt);
+	c& new_ret = method_type_return_type(new_mt);
+	c& ori_ret = method_type_return_type(ori_mt);
 
 	auto new_params = method_type_parameter_types_view(new_mt);
 	auto ori_params = method_type_parameter_types_view(ori_mt);
@@ -101,8 +101,8 @@ template<typename T0, typename T1>
 	}
 
 	for(nuint i = 0; i < new_params.size(); ++i) {
-		_class& new_p = new_params[i];
-		_class& ori_p = ori_params[i];
+		c& new_p = new_params[i];
+		c& ori_p = ori_params[i];
 
 		if(!method_handle_is_type_convertible(new_p, ori_p)) {
 			return false;
@@ -173,7 +173,7 @@ method_handle_try_convert_and_save_on_stack(
 
 [[nodiscard]] inline optional<reference>
 method_handle_try_convert_return_value_and_save_on_stack(
-	_class& new_ret, _class& ori_ret
+	c& new_ret, c& ori_ret
 ) {
 	bool ori_is_void = ori_ret.is(void_class.get());
 	bool new_is_void = new_ret.is(void_class.get());
@@ -215,15 +215,15 @@ method_handle_try_convert_return_value_and_save_on_stack(
 	});
 }
 
-template<range_of<_class&> NewArgs, range_of<_class&> OriArgs>
+template<range_of<c&> NewArgs, range_of<c&> OriArgs>
 [[nodiscard]] inline optional<reference>
 method_handle_try_convert_arguments_on_stack(
 	NewArgs&& new_args, OriArgs&& ori_args, nuint index
 ) {
 	--index;
 
-	_class& new_a = new_args[index];
-	_class& ori_a = ori_args[index];
+	c& new_a = new_args[index];
+	c& ori_a = ori_args[index];
 
 	return new_a.view_raw_type_non_void([&]<typename T0>()
 	-> optional<reference> {
@@ -255,7 +255,7 @@ method_handle_try_convert_arguments_on_stack(
 	});
 }
 
-template<range_of<_class&> NewArgs, range_of<_class&> OriArgs>
+template<range_of<c&> NewArgs, range_of<c&> OriArgs>
 [[nodiscard]] inline optional<reference>
 method_handle_try_convert_arguments_on_stack(
 	NewArgs&& new_args, OriArgs&& ori_args
@@ -273,8 +273,8 @@ method_handle_try_convert_arguments_on_stack(
 [[nodiscard]] inline optional<reference> method_handle_try_invoke_checked(
 	object& ori_mh, object& new_mt, object& ori_mt, nuint args_beginning
 ) {
-	_class& new_ret = method_type_return_type(new_mt);
-	_class& ori_ret = method_type_return_type(ori_mt);
+	c& new_ret = method_type_return_type(new_mt);
+	c& ori_ret = method_type_return_type(ori_mt);
 
 	auto new_params = method_type_parameter_types_view(new_mt);
 	auto ori_params = method_type_parameter_types_view(ori_mt);

@@ -17,13 +17,13 @@ struct reference;
 struct object : layout_view_extension<object, instance_field_index> {
 private:
 	uint32 references_ = 0;
-	optional<_class&> class_{};
+	optional<c&> class_{};
 	body<posix::mutex> mutex_{};
 	posix::memory_for_range_of<uint8> data_;
 
 	friend reference;
 
-	friend expected<reference, reference> try_create_object(_class& c);
+	friend expected<reference, reference> try_create_object(c& c);
 	void on_reference_added();
 	void on_reference_removed();
 	void unsafe_decrease_reference_count_without_destroing();
@@ -41,19 +41,19 @@ private:
 
 public:
 
-	object(_class& c);
+	object(c& c);
 	~object();
 
-	const ::_class& _class() const {
+	const ::c& c() const {
 		if(!class_.has_value()) {
-			print::err("object::_class(): object is null");
+			print::err("object::c(): object is null");
 			posix::abort();
 		}
 		return class_.get();
 	}
-	      ::_class& _class()       {
+	      ::c& c()       {
 		if(!class_.has_value()) {
-			print::err("object::_class(): object is null");
+			print::err("object::c(): object is null");
 			posix::abort();
 		}
 		return class_.get();
@@ -72,7 +72,7 @@ public:
 };
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_object(_class& c);
+try_create_object(c& c);
 
 #include "execute.hpp"
 
@@ -80,8 +80,8 @@ template<typename... Args>
 [[nodiscard]] inline expected<reference, reference>
 try_create_object(method& constructor, Args&&... args) {
 	expected<reference, reference> possible_ref
-		= try_create_object(constructor._class());
-	
+		= try_create_object(constructor.c());
+
 	if(possible_ref.is_unexpected()) {
 		return unexpected{ possible_ref.move_unexpected() };
 	}

@@ -9,7 +9,7 @@
 inline bool method::is_instance_initialisation() const {
 	return
 		/* It is defined in a class (not an interface). */
-		!_class().is_interface() &&
+		!c().is_interface() &&
 		/* It has the special name <init>. */
 		name().has_equal_size_and_elements(c_string{ "<init>" }) &&
 		/* It is void (§4.3.3). */
@@ -21,7 +21,7 @@ inline bool method::is_class_initialisation() const {
 }
 
 inline bool method::is_signature_polymorphic() const {
-	const ::_class& c = _class();
+	const ::c& c = this->c();
 
 	bool c_is_mh_or_vh =
 		c.is(method_handle_class.get()) ||
@@ -70,14 +70,14 @@ inline bool method::can_override(method& ma) const {
 		     B is a subclass of A and mC can override mB and mB can override
 		     mA. */
 		bool ma_is_private = ma.is_private();
-		const ::_class& a = ma._class();
-		const ::_class& c = mc._class();
+		const ::c& a = ma.c();
+		const ::c& c = mc.c();
 		bool thrird = !ma_is_public && !ma_is_protected && !ma_is_private && (
 			/* a */ ma.package().has_equal_size_and_elements(mc.package()) ||
 			/* b */ [&]() -> bool {
 				if(!c.has_super()) return false;
 
-				const ::_class* b_ptr = &c.super();
+				const ::c* b_ptr = &c.super();
 
 				while(!b_ptr->super().is(a)) {
 					optional<::instance_method&> m

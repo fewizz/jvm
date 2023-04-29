@@ -29,7 +29,7 @@
 	}
 
 	/* Otherwise, if step 1, step 2, or step 3 of the lookup procedure */
-	if(!selected_method._class().is_interface()) {
+	if(!selected_method.c().is_interface()) {
 		/* selects an abstract method, invokespecial throws an
 		   AbstractMethodError. */
 		if(selected_method.is_abstract()) {
@@ -56,10 +56,10 @@
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_special_resolved(
-	_class& current_c, method& resolved_method
+	c& current_c, method& resolved_method
 ) {
 
-	_class& referenced_class = resolved_method._class();
+	c& referenced_class = resolved_method.c();
 
 	optional<instance_method&> possible_selected_method
 		= select_method_for_invoke_special(
@@ -100,7 +100,7 @@
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_special(
-	_class& current_c,
+	c& current_c,
 	class_file::constant::method_or_interface_method_ref_index ref_index
 ) {
 	auto verifier = [&](method& m) -> optional<reference> {
@@ -121,7 +121,7 @@
 		   thrown. */
 		if(
 			m.is_instance_initialisation() &&
-			!m._class().name()
+			!m.c().name()
 				.has_equal_size_and_elements(referenced_class_name))
 		{
 			return try_create_no_such_method_error().get();

@@ -2,4 +2,4 @@
 
 #include "class.hpp"
 
-static optional<_class&> buffer_class;
+static optional<c&> buffer_class;

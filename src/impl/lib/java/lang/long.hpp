@@ -21,7 +21,7 @@ inline void init_java_lang_long() {
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function(
 		(void*)+[]() -> object* {
-			return long_class->instance().object_ptr();
+			return long_class->object_ptr();
 		}
 	);
 }

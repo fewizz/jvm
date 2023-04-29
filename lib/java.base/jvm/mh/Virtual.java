@@ -12,5 +12,5 @@ public class Virtual extends ClassMember {
 	) {
 		super(methodType, c, declaredStaticMethodIndex);
 	}
-	
+
 }

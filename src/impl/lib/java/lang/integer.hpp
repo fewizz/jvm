@@ -26,7 +26,7 @@ static void init_java_lang_integer() {
 		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
-			return int_class->instance().object_ptr();
+			return int_class->object_ptr();
 		}
 	);
 

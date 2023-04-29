@@ -24,7 +24,7 @@ namespace instr = class_file::attribute::code::instruction;
 
 struct execute_instruction {
 	method& m;
-	_class& c;
+	c& c;
 	const uint8* const instruction_ptr;
 	const uint8*& next_instruction_ptr;
 
@@ -35,9 +35,9 @@ struct execute_instruction {
 	[[nodiscard]] loop_action handle_thrown(reference thrown) {
 		if(info) {
 			tabs();
-			print::out("handling ", thrown._class().name(), "\n");
+			print::out("handling ", thrown.c().name(), "\n");
 		}
-		_class& thrown_class = thrown->_class();
+		::c& thrown_class = thrown->c();
 
 		auto& exception_handlers = m.exception_handlers();
 
@@ -50,7 +50,7 @@ struct execute_instruction {
 				continue;
 			}
 
-			expected<_class&, reference> possible_catch_class
+			expected<::c&, reference> possible_catch_class
 				= c.try_get_resolved_class(handler.catch_type);
 			
 			if(possible_catch_class.is_unexpected()) {
@@ -60,7 +60,7 @@ struct execute_instruction {
 				posix::abort();
 			}
 
-			_class& catch_class = possible_catch_class.get_expected();
+			::c& catch_class = possible_catch_class.get_expected();
 
 			bool same = &thrown_class == &catch_class;
 			bool subclass = thrown_class.is_sub_of(catch_class);
@@ -317,7 +317,7 @@ struct execute_instruction {
 		if(info) {
 			tabs(); print::out("a_load_0 ");
 			if(!ref.is_null()) {
-				print::out(ref._class().name());
+				print::out(ref.c().name());
 			}
 			print::out(" @");
 			print::out.hex((uint64) ref.object_ptr());
@@ -335,7 +335,7 @@ struct execute_instruction {
 		if(info) {
 			tabs(); print::out("a_load_2 ");
 			if(!ref.is_null()) {
-				print::out(ref._class().name());
+				print::out(ref.c().name());
 			}
 			print::out(" @");
 			print::out.hex((uint64) ref.object_ptr());
@@ -1437,14 +1437,14 @@ struct execute_instruction {
 			);
 			print::out(name, " @", stack.size(), "\n");
 		}
-		expected<_class&, reference> possible_c0
+		expected<::c&, reference> possible_c0
 			= c.try_get_resolved_class(x.index);
 
 		if(possible_c0.is_unexpected()) {
 			return handle_thrown(possible_c0.move_unexpected());
 		}
 
-		_class& c0 = possible_c0.get_expected();
+		::c& c0 = possible_c0.get_expected();
 		expected<reference, reference> possible_ref = try_create_object(c0);
 		if(possible_ref.is_unexpected()) {
 			return handle_thrown(possible_ref.move_unexpected());
@@ -1462,14 +1462,14 @@ struct execute_instruction {
 		return loop_action::next;
 	}
 	loop_action operator () (instr::a_new_array x) {
-		expected<_class&, reference> possible_element_class
+		expected<::c&, reference> possible_element_class
 			= c.try_get_resolved_class(x.index);
 		
 		if(possible_element_class.is_unexpected()) {
 			return handle_thrown(possible_element_class.move_unexpected());
 		}
 
-		_class& element_class = possible_element_class.get_expected();
+		::c& element_class = possible_element_class.get_expected();
 
 		if(info) {
 			tabs(); print::out("a_new_array ");

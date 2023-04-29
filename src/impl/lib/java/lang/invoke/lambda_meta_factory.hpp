@@ -5,7 +5,7 @@
 
 #include <optional.hpp>
 
-static optional<_class&> lambda_meta_factory_class;
+static optional<c&> lambda_meta_factory_class;
 
 static void init_java_lang_invoke_lambda_meta_factory() {
 

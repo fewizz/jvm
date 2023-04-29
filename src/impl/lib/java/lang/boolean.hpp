@@ -21,6 +21,6 @@ static void init_java_lang_boolean() {
 	java_lang_boolean_class->declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function((void*)+[](native_environment*) -> object* {
-		return bool_class->instance().object_ptr();
+		return bool_class->object_ptr();
 	});
 }

@@ -6,7 +6,7 @@
 
 #include <optional.hpp>
 
-static optional<_class&> class_cast_exception_class;
+static optional<c&> class_cast_exception_class;
 static optional<method&> class_cast_exception_constructor;
 
 static void init_java_lang_class_cast_exception() {

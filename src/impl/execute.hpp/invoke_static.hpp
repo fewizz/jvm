@@ -12,14 +12,14 @@
 
 [[nodiscard]] inline optional<reference>
 try_invoke_static_resolved(static_method& resolved_method) {
-	_class& c = resolved_method._class();
+	c& c = resolved_method.c();
 
 	if(resolved_method.is_synchronized()) {
-		c.instance()->lock();
+		c.object().lock();
 	}
 	on_scope_exit unlock_if_synchronized { [&] {
 		if(resolved_method.is_synchronized()) {
-			c.instance()->unlock();
+			c.object().unlock();
 		}
 	}};
 
@@ -27,7 +27,7 @@ try_invoke_static_resolved(static_method& resolved_method) {
 }
 
 inline optional<reference> try_invoke_static(
-	_class& d,
+	c& d,
 	class_file::constant::method_or_interface_method_ref_index ref_index
 ) {
 	auto verifier = [](method& resolved_method) -> optional<reference> {
@@ -40,7 +40,7 @@ inline optional<reference> try_invoke_static(
 		/* On successful resolution of the method, the class or interface that
 		   declared the resolved method is initialized (§5.5) if that class or
 		   interface has not already been initialized. */
-		_class& c = resolved_method._class();
+		c& c = resolved_method.c();
 		optional<reference> possible_throwable
 			= c.try_initialise_if_need();
 

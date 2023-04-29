@@ -2,7 +2,7 @@
 #include "decl/object.hpp"
 
 static void init_java_lang_invoke_string_concat_factory() {
-	_class& scf = classes.load_class_by_bootstrap_class_loader(
+	c& scf = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/invoke/StringConcatFactory" }
 	);
 	method& make_concat_with_constants = scf.declared_static_methods().find(

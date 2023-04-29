@@ -7,7 +7,7 @@
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
 
-static optional<_class&> string_class{};
+static optional<c&> string_class{};
 inline layout::position string_value_field_position;
 
 template<typename Handler>

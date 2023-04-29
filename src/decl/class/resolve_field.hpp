@@ -9,7 +9,7 @@
 #include <ranges.hpp>
 
 [[nodiscard]] inline optional<field&> try_resolve_field0(
-	_class& c,
+	c& c,
 	class_file::constant::utf8 name,
 	class_file::constant::utf8 desc
 ) {
@@ -32,7 +32,7 @@
 
 	/* Otherwise, field lookup is applied recursively to the direct
 	   superinterfaces of the specified class or interface C. */
-	for(_class& i : c.declared_interfaces()) {
+	for(::c& i : c.declared_interfaces()) {
 		optional<field&> possible_f = try_resolve_field0(i, name, desc);
 		if(possible_f.has_value()) {
 			return possible_f;
@@ -53,8 +53,8 @@
 }
 
 [[nodiscard]] inline expected<field&, reference> try_resolve_field(
-	_class& d,
-	_class& c,
+	c& d,
+	c& c,
 	class_file::constant::utf8 name,
 	class_file::constant::utf8 desc
 ) {
@@ -83,18 +83,18 @@
 /* To resolve an unresolved symbolic reference from D to a field in a class or
    interface C, the symbolic reference to C given by the field reference must
    first be resolved (§5.4.3.1). */
-[[nodiscard]] inline expected<field&, reference> _class::try_resolve_field(
+[[nodiscard]] inline expected<field&, reference> c::try_resolve_field(
 	class_file::constant::field_ref ref
 ) {
 	class_file::constant::_class c0 = class_constant(ref.class_index);
 	class_file::constant::utf8 class_name = utf8_constant(c0.name_index);
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= try_resolve_class(*this, class_name);
 	if(possible_c.is_unexpected()) {
 		return possible_c.move_unexpected();
 	}
 
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 
 	class_file::constant::name_and_type nat
 		= name_and_type_constant(ref.name_and_type_index);

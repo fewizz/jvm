@@ -2,7 +2,7 @@
 
 #include "decl/class.hpp"
 
-void _class::destruct_declared_static_fields_values() {
+void c::destruct_declared_static_fields_values() {
 	if(initialisation_state_ != initialisation_state::done) return;
 
 	declared_static_fields().for_each_index([&](

@@ -2,7 +2,7 @@
 
 #include "decl/classes.hpp"
 
-static optional<_class&> no_such_field_error_class;
+static optional<c&> no_such_field_error_class;
 static optional<method&> no_such_field_error_constructor;
 
 [[nodiscard]] inline expected<reference, reference>

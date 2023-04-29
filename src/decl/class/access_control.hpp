@@ -9,7 +9,7 @@
    accessible to the referring class or interface. */
 
 [[nodiscard]] inline optional<reference>
-access_control(_class& d, _class& c);
+access_control(c& d, c& c);
 
 [[nodiscard]] inline optional<reference>
-access_control(_class& d, class_member& r);
+access_control(c& d, class_member& r);

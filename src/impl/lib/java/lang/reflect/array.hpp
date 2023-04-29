@@ -20,7 +20,7 @@ static void init_java_lang_reflect_array() {
 				return nullptr;
 			}
 
-			_class& c = class_from_class_instance(*component_type);
+			c& c = class_from_class_instance(*component_type);
 			expected<reference, reference> possible_array
 				= try_create_array_of(c, len);
 			

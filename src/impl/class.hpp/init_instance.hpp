@@ -1,10 +1,9 @@
 #include "decl/class.hpp"
 
-#include "lib/java/lang/class.hpp"
-#include "object.hpp"
-#include "object.hpp"
+#include "decl/lib/java/lang/class.hpp"
+#include "decl/object.hpp"
 
-inline reference _class::instance() {
+void c::init_instance() {
 	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();
@@ -21,5 +20,4 @@ inline reference _class::instance() {
 		instance_ = possible_c.move_expected();
 		instance_->set<int64>(class_ptr_field_position, (int64) this);
 	}
-	return instance_;
 }

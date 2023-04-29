@@ -11,7 +11,7 @@
 #include <posix/memory.hpp>
 
 using trampoline = optional<
-	reference, _class&, method&, field&,
+	reference, c&, method&, field&,
 	instance_method_index, instance_field_index
 >;
 

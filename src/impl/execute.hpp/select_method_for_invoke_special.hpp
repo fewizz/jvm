@@ -6,7 +6,7 @@
 
 [[nodiscard]] inline optional<instance_method&>
 select_method_for_invoke_special(
-	_class& current, _class& referenced_class, method& resolved_method
+	c& current, c& referenced_class, method& resolved_method
 ) {
 	/* If all of the following are true, let C be the direct superclass of
 	   the current class: */
@@ -24,7 +24,7 @@ select_method_for_invoke_special(
 		   regardless of the actual value of the flag in the class file and
 		   the version of the class file */
 
-	_class& c =
+	c& c =
 		c_is_direct_super_class ? current.super() :
 		/* Otherwise, let C be the class or interface named by the symbolic
 		   reference. */
@@ -44,7 +44,7 @@ select_method_for_invoke_special(
 	      invoked. */
 	optional<instance_method&> possible_m;
 	{
-		_class* c0 = &c;
+		::c* c0 = &c;
 		do {
 			possible_m = c0->declared_instance_methods().try_find(
 				resolved_method.name(), resolved_method.descriptor()

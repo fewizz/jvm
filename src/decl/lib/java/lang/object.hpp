@@ -2,4 +2,4 @@
 
 #include "class.hpp"
 
-static optional<_class&> object_class;
+static optional<c&> object_class;

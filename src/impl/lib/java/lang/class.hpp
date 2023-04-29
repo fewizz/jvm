@@ -9,8 +9,8 @@
 
 #include <c_string.hpp>
 
-static inline _class& class_from_class_instance(object& class_instance) {
-	return * (_class*) class_instance.get<int64>(class_ptr_field_position);
+static inline c& class_from_class_instance(object& class_instance) {
+	return * (c*) class_instance.get<int64>(class_ptr_field_position);
 }
 
 static inline void init_java_lang_class() {
@@ -25,8 +25,8 @@ static inline void init_java_lang_class() {
 		c_string{ "getComponentType" }, c_string{ "()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> object* {
-			_class& c = class_from_class_instance(*ths);
-			return c.get_component_class().instance().object_ptr();
+			c& c = class_from_class_instance(*ths);
+			return c.get_component_class().object_ptr();
 		}
 	);
 
@@ -34,7 +34,7 @@ static inline void init_java_lang_class() {
 		c_string{ "getName" }, c_string{ "()Ljava/lang/String;" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> object* {
-			_class& c = class_from_class_instance(*ths);
+			c& c = class_from_class_instance(*ths);
 			expected<reference, reference> possible_string
 				= try_create_string_from_utf8(c.name());
 			if(possible_string.is_unexpected()) {

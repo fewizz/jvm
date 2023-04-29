@@ -31,7 +31,7 @@
 #include <print/print.hpp>
 
 static optional<reference> try_execute(method& m) {
-	_class& c = m._class();
+	c& c = m.c();
 	if(info) {
 		tabs();
 		print::out("executing: ", c.name(), ".", m.name(), m.descriptor());
@@ -83,7 +83,7 @@ static optional<reference> try_execute(method& m) {
 				tabs();
 				print::out(
 					"uncatched exception ",
-					thrown._class().name(),
+					thrown.c().name(),
 					"\n"
 				);
 			}

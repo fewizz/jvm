@@ -31,7 +31,7 @@ try_invoke_virtual_resolved_non_polymorphic(
 
 	/* Let C be the class of objectref. A method is selected with respect to C
 	   and the resolved method (§5.4.6). This is the method to be invoked. */
-	_class& c = obj_ref._class();
+	c& c = obj_ref.c();
 	optional<method&> possible_selected_method
 		= try_select_method(c, resolved_method);
 
@@ -89,7 +89,7 @@ try_invoke_virtual_resolved_non_polymorphic(
 
 template<basic_range Desriptor>
 [[nodiscard]] inline optional<reference> try_invoke_virtual_resolved(
-	_class& d, method& resolved_method, Desriptor&& desc
+	c& d, method& resolved_method, Desriptor&& desc
 ) {
 	if(resolved_method.is_signature_polymorphic()) {
 		nuint args_count_stack = 0;
@@ -146,7 +146,7 @@ template<basic_range Desriptor>
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_virtual(
-	_class& d, class_file::constant::method_ref_index ref_index
+	c& d, class_file::constant::method_ref_index ref_index
 ) {
 	namespace cf = class_file;
 	namespace cc = cf::constant;

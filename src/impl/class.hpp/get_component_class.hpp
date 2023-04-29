@@ -3,7 +3,7 @@
 
 #include <iterator_and_sentinel.hpp>
 
-inline _class& _class::get_component_class() {
+inline c& c::get_component_class() {
 	// component class for primitives are passed by constructor,
 	// no special handling needed
 	mutex_->lock();

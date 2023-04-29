@@ -5,7 +5,7 @@
 #include <class_file/constant.hpp>
 
 inline optional<reference> try_ldc(
-	class_file::constant::index const_index, _class& c
+	class_file::constant::index const_index, c& c
 ) {
 	if(info) {
 		tabs();
@@ -36,7 +36,7 @@ inline optional<reference> try_ldc(
 		return {};
 	} else
 	if(constant.is_same_as<class_file::constant::_class>()) {
-		expected<_class&, reference> possible_c
+		expected<::c&, reference> possible_c
 			= c.try_get_resolved_class(
 				class_file::constant::class_index{ const_index }
 			);
@@ -44,7 +44,7 @@ inline optional<reference> try_ldc(
 		if(possible_c.is_unexpected()) {
 			return possible_c.move_unexpected();
 		}
-		stack.emplace_back(possible_c.get_expected().instance());
+		stack.emplace_back(possible_c.get_expected().object());
 		return {};
 	}
 	else {
@@ -54,7 +54,7 @@ inline optional<reference> try_ldc(
 }
 
 inline void ldc_2_w(
-	class_file::constant::index const_index, _class& c
+	class_file::constant::index const_index, c& c
 ) {
 	if(info) {
 		tabs();

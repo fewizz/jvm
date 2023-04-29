@@ -9,7 +9,7 @@
 #include <print/print.hpp>
 
 [[nodiscard]] inline optional<reference> try_invoke_dynamic(
-	_class& c, class_file::constant::invoke_dynamic_index ref_index
+	c& c, class_file::constant::invoke_dynamic_index ref_index
 ) {
 	/* The symbolic reference is resolved (§5.4.3.6) for this specific
 	   invokedynamic instruction to obtain a reference to an instance of

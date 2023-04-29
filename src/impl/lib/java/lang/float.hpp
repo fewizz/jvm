@@ -24,7 +24,7 @@ static inline void init_java_lang_float() {
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function(
 		(void*)+[]() -> object* {
-			return float_class->instance().object_ptr();
+			return float_class->object_ptr();
 		}
 	);
 

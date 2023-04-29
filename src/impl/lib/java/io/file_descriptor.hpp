@@ -4,7 +4,7 @@
 #include <posix/io.hpp>
 
 static void init_java_io_file_descriptor() {
-	_class& file_descriptor_class
+	c& file_descriptor_class
 		= classes.load_class_by_bootstrap_class_loader(
 			c_string{ "java/io/FileDescriptor" }
 		);

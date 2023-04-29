@@ -9,7 +9,7 @@
 #include <optional.hpp>
 #include <span.hpp>
 
-static optional<_class&> negative_array_size_exception_class;
+static optional<c&> negative_array_size_exception_class;
 static optional<method&> negative_array_size_exception_constructor;
 
 [[nodiscard]] inline expected<reference, reference>

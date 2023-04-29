@@ -29,7 +29,7 @@ static inline void init_java_lang_throwable() {
 	).native_function((void*)+[](native_environment*, object* ths) -> object* {
 		// lets skip constructors/fillInStackTrace frames
 		execution_context* ctx_begin = latest_execution_context.ptr();
-		auto this_class_name = ths->_class().name();
+		auto this_class_name = ths->c().name();
 
 		while(true) {
 			execution_context* prev = ctx_begin;
@@ -46,7 +46,7 @@ static inline void init_java_lang_throwable() {
 			}
 
 			if(
-				prev->method._class().name().has_equal_size_and_elements(
+				prev->method.c().name().has_equal_size_and_elements(
 					this_class_name
 				) &&
 				prev->method.name().has_equal_size_and_elements(
@@ -73,7 +73,7 @@ static inline void init_java_lang_throwable() {
 		for(reference& frame : array_as_span<reference>(ste_array)) {
 			expected<reference, reference> possible_class_name
 				= try_create_string_from_utf8(
-					ctx->method._class().name()
+					ctx->method.c().name()
 				);
 			
 			if(possible_class_name.is_unexpected()) {
@@ -100,10 +100,10 @@ static inline void init_java_lang_throwable() {
 			if(ctx->method.is_native()) {
 				line_number = -2;
 			}
-			else if(ctx->method._class().has_source_file()) {
+			else if(ctx->method.c().has_source_file()) {
 				expected<reference, reference> possible_file_name
 					= try_create_string_from_utf8(
-						ctx->method._class().source_file()
+						ctx->method.c().source_file()
 					);
 				if(possible_file_name.is_unexpected()) {
 					thrown_in_native = possible_file_name.move_unexpected();

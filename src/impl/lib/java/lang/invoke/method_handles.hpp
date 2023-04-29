@@ -11,7 +11,7 @@
 #include "decl/lib/java/lang/illegal_caller_exception.hpp"
 
 static void init_java_lang_invoke_method_handles() {
-	_class& c = classes.load_class_by_bootstrap_class_loader(
+	c& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{"java/lang/invoke/MethodHandles"}
 	);
 
@@ -28,7 +28,7 @@ static void init_java_lang_invoke_method_handles() {
 			execution_context& prev_exe_context
 				= latest_execution_context->previous.get();
 
-			_class& caller_class = prev_exe_context.method._class();
+			::c& caller_class = prev_exe_context.method.c();
 
 			method& constructor
 				= method_handles_lookup_class->declared_instance_methods()
@@ -37,7 +37,7 @@ static void init_java_lang_invoke_method_handles() {
 			expected<reference, reference> possible_lookup
 				= try_create_object(
 					constructor,
-					caller_class.instance() // arg 0
+					reference{ caller_class.object() } // arg 0
 				);
 			if(possible_lookup.is_unexpected()) {
 				thrown_in_native = possible_lookup.move_unexpected();

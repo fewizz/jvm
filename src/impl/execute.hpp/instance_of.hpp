@@ -11,14 +11,14 @@
 #include <print/print.hpp>
 
 inline optional<reference> try_check_instance_of(
-	_class& c, class_file::constant::class_index index
+	c& c, class_file::constant::class_index index
 ) {
-	expected<_class&, reference> possible_t = c.try_get_resolved_class(index);
+	expected<::c&, reference> possible_t = c.try_get_resolved_class(index);
 	if(possible_t.is_unexpected()) {
 		return { possible_t.get_unexpected() };
 	}
 
-	_class& t = possible_t.get_expected();
+	::c& t = possible_t.get_expected();
 	
 	if(info) {
 		tabs();
@@ -27,7 +27,7 @@ inline optional<reference> try_check_instance_of(
 
 	struct check {
 
-	bool operator () (_class& s, _class& t) {
+	bool operator () (::c& s, ::c& t) {
 		/* "If S is a class type, then:" */
 		if(!s.is_array()) {
 			/* "If T is a class type, then S must be the same class as T, or S
@@ -54,8 +54,8 @@ inline optional<reference> try_check_instance_of(
 		}
 		/* "If T is an array type TC[], that is, an array of components of type
 		    TC, then one of the following must be true:" */
-		_class& sc = s.get_component_class();
-		_class& tc = t.get_component_class();
+		::c& sc = s.get_component_class();
+		::c& tc = t.get_component_class();
 		/* "TC and SC are the same primitive type." */
 		if(sc.is_primitive() && tc.is_primitive() && sc.is(tc)) {
 			return true;
@@ -81,7 +81,7 @@ inline optional<reference> try_check_instance_of(
 	    pushes an int result of 1 as an int onto the operand stack; otherwise,
 	    it pushes an int result of 0. */
 	else {
-		_class& s = ref._class();
+		::c& s = ref.c();
 		result = check{}(s, t);
 	}
 
@@ -91,7 +91,7 @@ inline optional<reference> try_check_instance_of(
 			print::out("null");
 		}
 		else {
-			print::out(ref._class().name());
+			print::out(ref.c().name());
 		}
 		print::out(" ", result != 0, "\n");
 	}

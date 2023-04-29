@@ -3,4 +3,4 @@
 #include <optional.hpp>
 #include "class.hpp"
 
-static optional<_class&> cloneable_class;
+static optional<c&> cloneable_class;

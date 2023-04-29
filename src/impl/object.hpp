@@ -10,7 +10,7 @@
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-inline object::object(::_class& c) :
+inline object::object(::c& c) :
 	class_{ c },
 	mutex_{ posix::create_mutex(mutex_attribute_recursive) },
 	data_ {
@@ -21,7 +21,7 @@ inline object::object(::_class& c) :
 		tabs();
 		print::out("# constructing object @");
 		print::out.hex((nuint)this);
-		auto name = _class().name();
+		auto name = c.name();
 		print::out(" of type ", name, "\n");
 	}
 
@@ -35,14 +35,14 @@ inline object::object(::_class& c) :
 inline object::~object() {
 	if(info) {
 		tabs();
-		auto name = _class().name();
+		auto name = c().name();
 		print::out("# destructing object @").hex((nuint)this);
 		print::out(" of type ", name, "\n");
 	}
 
-	if(_class().is_array()) {
+	if(c().is_array()) {
 		uint8* data = array_data<uint8>(*this);
-		if(_class().get_component_class().is_not_primitive()) {
+		if(c().get_component_class().is_not_primitive()) {
 			for(nuint x = array_length(*this); x > 0; --x) {
 				((reference*) data)[x - 1].~reference();
 			}
@@ -65,7 +65,7 @@ inline void object::on_reference_added() {
 		tabs();
 		print::out("# added reference to object @");
 		print::out.hex((nuint)this);
-		auto name = _class().name();
+		auto name = c().name();
 		print::out(" of type ", name, ", ", references_, " in sum\n");
 	}
 }
@@ -79,7 +79,7 @@ inline void object::on_reference_removed() {
 	if(info) {
 		tabs();
 		print::out("# removed reference to object @").hex((nuint)this);
-		auto name = _class().name();
+		auto name = c().name();
 		print::out(" of type ", name, ", ", references_, " left\n");
 	}
 	if(references_ == 0) {
@@ -101,7 +101,7 @@ inline void object::unsafe_decrease_reference_count_without_destroing() {
 }
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_object(_class& c) {
+try_create_object(c& c) {
 	optional<reference> possible_throwable = c.try_initialise_if_need();
 	if(possible_throwable.has_value()) {
 		return unexpected{ possible_throwable.move() };

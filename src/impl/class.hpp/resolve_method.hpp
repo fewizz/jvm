@@ -17,7 +17,7 @@
       and its superclasses: */
 template<basic_range Name, basic_range Descriptor>
 inline expected<optional<method&>, reference> try_method_resolution_step_2(
-	_class& d, _class& c, Name&& name, Descriptor&& descriptor
+	c& d, c& c, Name&& name, Descriptor&& descriptor
 ) {
 	/*    If C declares exactly one method with the name specified by the
 	      method reference, and the declaration is a signature polymorphic
@@ -44,7 +44,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 			class_file::method_descriptor::try_read_parameter_and_return_types(
 				descriptor.iterator(),
 				[&]<typename ParamType>(ParamType p) {
-					expected<_class&, reference> possible_c
+					expected<::c&, reference> possible_c
 						= try_resolve_class_from_type(d, p);
 					if(possible_c.is_unexpected()) {
 						thrown = possible_c.move_unexpected();
@@ -53,7 +53,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 				},
 				[&]<typename ReturnType>(ReturnType r) {
 					if(!thrown.is_null()) return;
-					expected<_class&, reference> possible_c
+					expected<::c&, reference> possible_c
 						= try_resolve_class_from_type(d, r);
 					if(possible_c.is_unexpected()) {
 						thrown = possible_c.move_unexpected();
@@ -95,7 +95,7 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 /* symbolic reference from D to a method in a class C is already resolved */
 template<basic_range Name, basic_range Descriptor>
 [[nodiscard]] expected<method&, reference>
-try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
+try_resolve_method(c& d, c& c, Name&& name, Descriptor&& descriptor) {
 	/* 1. If C is an interface, method resolution throws an
 	      IncompatibleClassChangeError. */
 	if(c.is_interface()) {
@@ -140,7 +140,7 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	      its ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	      arbitrarily chosen and method lookup succeeds. */
 	if(possible_m.has_no_value()) {
-		c.for_each_super_interface([&](_class& i) {
+		c.for_each_super_interface([&](::c& i) {
 			for(method& m : i.declared_instance_methods()) {
 				if(
 					m.has_name_and_descriptor_equal_to(name, descriptor) &&
@@ -178,16 +178,16 @@ try_resolve_method(_class& d, _class& c, Name&& name, Descriptor&& descriptor) {
 	return m;
 }
 
-inline expected<method&, reference> _class::try_resolve_method(
+inline expected<method&, reference> c::try_resolve_method(
 	class_file::constant::method_ref ref
 ) {
 	/* To resolve an unresolved symbolic reference from D to a method in a
 	   class C, the symbolic reference to C given by the method reference is
 	   first resolved (§5.4.3.1) */
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= try_get_resolved_class(ref.class_index);
 
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);

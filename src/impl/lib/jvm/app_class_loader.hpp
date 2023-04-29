@@ -6,7 +6,7 @@
 #include "decl/native/thrown.hpp"
 
 static void init_jvm_app_class_loader() {
-	_class& c = classes.load_class_by_bootstrap_class_loader(
+	c& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{"jvm/AppClassLoader"}
 	);
 
@@ -31,7 +31,7 @@ static void init_jvm_app_class_loader() {
 					posix::memory_for_range_of<unsigned char> data
 						= possible_data.move();
 
-					expected<_class&, reference> possible_c
+					expected<::c&, reference> possible_c
 						= classes.try_define_class(
 							name_utf8, move(data), ths
 						);
@@ -43,10 +43,8 @@ static void init_jvm_app_class_loader() {
 						return nullptr;
 					}
 
-					_class& c = possible_c.get_expected();
-
-					return & c.instance()
-						.unsafe_release_without_destroing();
+					::c& c = possible_c.get_expected();
+					return c.object_ptr();
 				}
 			);
 		}

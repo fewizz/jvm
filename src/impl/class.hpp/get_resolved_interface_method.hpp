@@ -6,7 +6,7 @@
 #include <loop_action.hpp>
 
 template<typename Verifier>
-inline expected<method&, reference> _class::try_get_resolved_interface_method(
+inline expected<method&, reference> c::try_get_resolved_interface_method(
 	class_file::constant::interface_method_ref_index ref_index,
 	Verifier&& verifier
 ) {

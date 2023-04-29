@@ -4,4 +4,4 @@
 
 #include <optional.hpp>
 
-static optional<_class&> method_handles_lookup_class;
+static optional<c&> method_handles_lookup_class;

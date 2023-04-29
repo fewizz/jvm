@@ -22,6 +22,6 @@ static void init_java_lang_character() {
 	java_lang_character_class->declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function((void*)+[](native_environment*) -> object* {
-		return char_class->instance().object_ptr();
+		return char_class->object_ptr();
 	});
 }

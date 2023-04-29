@@ -26,7 +26,7 @@ static void init_jvm_mh_static() {
 			reference& c_ref
 				= ths->get<reference>(mh_class_member_class_position);
 
-			_class& c = class_from_class_instance(c_ref);
+			c& c = class_from_class_instance(c_ref);
 
 			// TODO
 			optional<reference> init_error = c.try_initialise_if_need();

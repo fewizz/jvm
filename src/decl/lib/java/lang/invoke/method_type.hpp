@@ -9,7 +9,7 @@
 #include <optional.hpp>
 #include <generator_view.hpp>
 
-inline optional<_class&> method_type_class;
+inline optional<::c&> method_type_class;
 inline layout::position
 	method_type_return_type_instance_field_position,
 	method_type_parameter_types_instance_field_position,
@@ -17,9 +17,9 @@ inline layout::position
 
 static span<const char> method_type_descriptor(object& mt);
 
-template<range_of<_class&> ParamClasses>
+template<range_of<c&> ParamClasses>
 [[nodiscard]] inline expected<reference, reference> try_create_method_type(
-	_class& ret_class,
+	::c& ret_class,
 	ParamClasses&& params_classes
 );
 
@@ -31,12 +31,12 @@ inline auto method_type_parameter_types_view(object& mt) {
 	span<reference> parameter_types
 		= array_as_span<reference>(parameter_types_array);
 
-	return move(parameter_types).transform_view([](reference& ref) -> _class& {
+	return move(parameter_types).transform_view([](reference& ref) -> c& {
 		return class_from_class_instance(ref);
 	});
 }
 
-inline _class& method_type_return_type(object& mt) {
+inline c& method_type_return_type(object& mt) {
 	reference& return_type = mt.get<reference>(
 		method_type_return_type_instance_field_position
 	);
@@ -46,7 +46,7 @@ inline _class& method_type_return_type(object& mt) {
 inline expected<reference, reference>
 try_create_method_type_generic(nuint count) {
 	generator_view param_types {
-		[]() -> _class& { return object_class.get(); },
+		[]() -> c& { return object_class.get(); },
 		count
 	};
 	return try_create_method_type(object_class.get(), param_types);

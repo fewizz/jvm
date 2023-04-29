@@ -8,7 +8,7 @@
 
 #include <loop_action.hpp>
 
-inline bool can_cast(_class& t, _class& s) {
+inline bool can_cast(c& t, c& s) {
 	/* If S is a class type, then: */
 	if(!s.is_array()) {
 		/* If T is a class type, then S must be the same class as T, or S
@@ -35,8 +35,8 @@ inline bool can_cast(_class& t, _class& s) {
 	}
 	/* If T is an array type TC[], that is, an array of components of
 		type TC, then one of the following must be true: */
-	_class& sc = s.get_component_class();
-	_class& tc = t.get_component_class();
+	c& sc = s.get_component_class();
+	c& tc = t.get_component_class();
 	/* TC and SC are the same primitive type. */
 	if(sc.is_primitive() && tc.is_primitive() && sc.is(tc)) {
 		return true;
@@ -50,7 +50,7 @@ inline bool can_cast(_class& t, _class& s) {
 }
 
 inline optional<reference>
-try_check_cast(_class& c, class_file::constant::class_index index) {
+try_check_cast(c& c, class_file::constant::class_index index) {
 	reference& objectref = stack.back<reference>();
 
 	/* If objectref is null, then the operand stack is unchanged. */
@@ -60,14 +60,14 @@ try_check_cast(_class& c, class_file::constant::class_index index) {
 
 	/* Otherwise, the named class, array, or interface type is resolved
 	   (§5.4.3.1). */
-	expected<_class&, reference> possible_t = c.try_get_resolved_class(index);
+	expected<::c&, reference> possible_t = c.try_get_resolved_class(index);
 	
 	if(possible_t.is_unexpected()) {
 		return possible_t.move_unexpected();
 	}
 
-	_class& t = possible_t.get_expected();
-	_class& s = objectref._class();
+	::c& t = possible_t.get_expected();
+	::c& s = objectref.c();
 
 	bool result = can_cast(s, t);
 

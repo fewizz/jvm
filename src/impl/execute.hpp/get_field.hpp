@@ -31,14 +31,14 @@
 	instance_field& resolved_field
 ) {
 	instance_field_index index =
-		resolved_field._class().instance_fields()
+		resolved_field.c().instance_fields()
 		.find_index_of(resolved_field);
 
 	return try_get_field_resolved(index);
 }
 
 [[nodiscard]] inline optional<reference> try_get_field(
-	_class& d, class_file::constant::field_ref_index ref_index
+	c& d, class_file::constant::field_ref_index ref_index
 ) {
 	/* The referenced field is resolved (§5.4.3.2). */
 	expected<field&, reference> possible_resolved_field

@@ -23,8 +23,8 @@
 static expected<reference, reference> try_lookup_find_getter(
 	object& c_inst, object& name, object& field_type_inst
 ) {
-	_class& c = class_from_class_instance(c_inst);
-	_class& field_c = class_from_class_instance(field_type_inst);
+	::c& c = class_from_class_instance(c_inst);
+	::c& field_c = class_from_class_instance(field_type_inst);
 
 	instance_field_index index =
 		view_string_on_stack_as_utf8(name, [&](auto name_utf8)  {
@@ -48,8 +48,8 @@ static expected<reference, reference> try_lookup_find_getter(
 static expected<reference, reference> try_lookup_find_setter(
 	object& c_inst, object& name, object& field_type_inst
 ) {
-	_class& c = class_from_class_instance(c_inst);
-	_class& field_c = class_from_class_instance(field_type_inst);
+	::c& c = class_from_class_instance(c_inst);
+	::c& field_c = class_from_class_instance(field_type_inst);
 
 	instance_field_index index =
 		view_string_on_stack_as_utf8(name, [&](auto name_utf8) {
@@ -113,8 +113,8 @@ static expected<reference, reference> try_lookup_find_special(
 		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
-		_class& c = class_from_class_instance(refc);
-		_class& d = class_from_class_instance(special_caller);
+		::c& c = class_from_class_instance(refc);
+		::c& d = class_from_class_instance(special_caller);
 		expected<method&, reference> possible_resolved_method =
 			try_resolve_method(
 				d, c, name_utf8, method_type_descriptor(mt)
@@ -148,7 +148,7 @@ static expected<reference, reference> try_lookup_find_special(
 static expected<reference, reference> try_lookup_find_constructor(
 	object& refc, object& mt
 ) {
-	_class& c = class_from_class_instance(refc);
+	c& c = class_from_class_instance(refc);
 	method& m
 		= c.declared_instance_methods().find(
 			c_string{ "<init>" }, method_type_descriptor(mt)

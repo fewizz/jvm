@@ -10,7 +10,7 @@
    accessible to the referring class or interface. */
 
 [[nodiscard]] inline optional<reference>
-access_control(_class& d, _class& c) {
+access_control(c& d, c& c) {
 	/* A class or interface C is accessible to a class or interface D if and
 	   only if one of the following is true: */
 	
@@ -42,8 +42,8 @@ access_control(_class& d, _class& c) {
 }
 
 [[nodiscard]] inline optional<reference>
-access_control(_class& d, class_member& r) {
-	_class& c = r._class();
+access_control(c& d, class_member& r) {
+	c& c = r.c();
 
 	/* A field or method R is accessible to a class or interface D if and only
 	   if any of the following is true: */
@@ -67,7 +67,7 @@ access_control(_class& d, class_member& r) {
 	     the same nest as D, according to the nestmate test below. */
 	bool r_is_private =
 		r.is_private() &&
-		r._class().is(c); // TODO, temporaly
+		r.c().is(c); // TODO, temporaly
 
 	bool accessible =
 		r_is_public ||

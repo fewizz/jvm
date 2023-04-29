@@ -4,7 +4,7 @@
 #include <c_string.hpp>
 #include <ranges.hpp>
 
-inline optional<reference> _class::try_initialise_if_need() {
+inline optional<reference> c::try_initialise_if_need() {
 	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();

@@ -8,10 +8,10 @@
 
 inline void put_static_resolved(static_field& resolved_field) {
 	declared_static_field_index index =
-		resolved_field._class().declared_static_fields()
+		resolved_field.c().declared_static_fields()
 		.find_index_of(resolved_field);
 
-	resolved_field._class().view(
+	resolved_field.c().view(
 		index,
 		[&]<typename FieldType>(FieldType& field_value) {
 			/* If the value is of type int and the field descriptor type is
@@ -28,7 +28,7 @@ inline void put_static_resolved(static_field& resolved_field) {
 	method& current_method,
 	class_file::constant::field_ref_index ref_index
 ) {
-	_class& d = current_method._class();
+	c& d = current_method.c();
 
 	/* The referenced field is resolved (§5.4.3.2). */
 	expected<field&, reference> possible_resolved_field
@@ -49,7 +49,7 @@ inline void put_static_resolved(static_field& resolved_field) {
 				
 				if(
 					f.is_final() && !(
-						f._class().is(d) &&
+						f.c().is(d) &&
 						current_method.is_class_initialisation()
 					)
 				) {

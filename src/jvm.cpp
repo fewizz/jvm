@@ -37,11 +37,11 @@ int main (int argc, const char** argv) {
 
 	auto define_primitive_and_its_array_class = []<basic_range Name>(
 		Name&& name, char ch
-	) ->_class& {
-		_class& component_class = classes.define_primitive_class(name, ch);
+	) -> c& {
+		 c& component_class = classes.define_primitive_class(name, ch);
 
 		array<char, 2> array_class_name{ '[', ch };
-		_class& array_class
+		c& array_class
 			= classes.define_array_class(array_class_name, nullptr);
 
 		array_class.component_class(component_class);
@@ -88,7 +88,7 @@ int main (int argc, const char** argv) {
 		return on_exit(possible_thread.move_unexpected());
 	}
 
-	_class& app_cl_class = classes.load_class_by_bootstrap_class_loader(
+	c& app_cl_class = classes.load_class_by_bootstrap_class_loader(
 		c_string{"jvm/AppClassLoader"}
 	);
 
@@ -116,14 +116,14 @@ int main (int argc, const char** argv) {
 
 	auto main_class_name = c_string{ argv[1] }.sized();
 
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= classes.try_load_class(main_class_name, app_cl_ref.object_ptr());
 
 	if(possible_c.is_unexpected()) {
 		return on_exit(possible_c.move_unexpected());
 	}
 
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 	method& m = c.declared_static_methods().try_find(
 		c_string{ "main" },
 		c_string{ "([Ljava/lang/String;)V" }

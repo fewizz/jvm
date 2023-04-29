@@ -3,14 +3,14 @@
 #include "class.hpp"
 #include "object.hpp"
 
-inline optional<_class&> bool_array_class{};
-inline optional<_class&> byte_array_class{};
-inline optional<_class&> short_array_class{};
-inline optional<_class&> char_array_class{};
-inline optional<_class&> int_array_class{};
-inline optional<_class&> long_array_class{};
-inline optional<_class&> float_array_class{};
-inline optional<_class&> double_array_class{};
+inline optional<c&> bool_array_class{};
+inline optional<c&> byte_array_class{};
+inline optional<c&> short_array_class{};
+inline optional<c&> char_array_class{};
+inline optional<c&> int_array_class{};
+inline optional<c&> long_array_class{};
+inline optional<c&> float_array_class{};
+inline optional<c&> double_array_class{};
 
 constexpr inline layout::position
 	array_data_field_position{ 0 },
@@ -43,7 +43,7 @@ static inline span<Type> array_as_span(object& o) {
 
 template<typename Type>
 static inline expected<reference, reference> try_create_array_by_class(
-	_class& array_class, int32 length
+	c& array_class, int32 length
 ) {
 	expected<reference, reference> possible_ref
 		= try_create_object(array_class);
@@ -63,9 +63,9 @@ static inline expected<reference, reference> try_create_array_by_class(
 }
 
 static inline expected<reference, reference> try_create_array_of(
-	_class& element_class, int32 length
+	c& element_class, int32 length
 ) {
-	_class& array_class = element_class.get_array_class();
+	c& array_class = element_class.get_array_class();
 	return try_create_array_by_class<reference>(array_class, length);
 }
 

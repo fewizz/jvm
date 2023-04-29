@@ -20,7 +20,7 @@
    will be passed to that code. Second, the arguments are packaged into an array
    and the bootstrap method is invoked. Third, the result of the bootstrap
    method is validated, and used as the result of resolution. */
-inline expected<reference, reference> _class::try_get_resolved_call_site(
+inline expected<reference, reference> c::try_get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
 

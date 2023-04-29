@@ -30,7 +30,7 @@ static void on_thread_exit(optional<reference> possible_throwable) {
 		reference thrown0 = possible_throwable.move();
 		print::err("unhandled throwable: \n");
 
-		method& print_stack_trace = thrown0->_class().instance_methods().find(
+		method& print_stack_trace = thrown0->c().instance_methods().find(
 			c_string{ "printStackTrace" }, c_string{ "()V" }
 		);
 
@@ -51,7 +51,7 @@ static void* thread_start(void* arg) {
 	stack.emplace_back(runnable);
 
 	optional<reference> possible_throwable
-		= try_execute(runnable->_class().declared_instance_methods().find(
+		= try_execute(runnable->c().declared_instance_methods().find(
 			c_string{ "run" }, c_string{ "()V" }
 		));
 

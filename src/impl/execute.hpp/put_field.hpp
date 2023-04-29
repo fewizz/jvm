@@ -21,7 +21,7 @@ try_put_field_resolved(instance_field& resolved_field) {
 	}
 
 	instance_field_index index =
-		resolved_field._class().instance_fields()
+		resolved_field.c().instance_fields()
 		.find_index_of(resolved_field);
 
 	ref->view(
@@ -46,7 +46,7 @@ try_put_field(
 	method& current_method,
 	class_file::constant::field_ref_index ref_index
 ) {
-	_class& d = current_method._class();
+	c& d = current_method.c();
 
 	expected<field&, reference> possible_resolved_field =
 		d.try_get_resolved_field(
@@ -64,7 +64,7 @@ try_put_field(
 				Otherwise, an IllegalAccessError is thrown. */
 				if(
 					f.is_final() && !(
-						f._class().is(d) &&
+						f.c().is(d) &&
 						current_method.is_instance_initialisation()
 					)
 				) {

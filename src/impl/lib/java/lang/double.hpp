@@ -24,7 +24,7 @@ static inline void init_java_lang_double() {
 	java_lang_double_class->declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function((void*)+[](native_environment*) -> object* {
-		return double_class->instance().object_ptr();
+		return double_class->object_ptr();
 	});
 
 	java_lang_double_class->declared_static_methods().find(

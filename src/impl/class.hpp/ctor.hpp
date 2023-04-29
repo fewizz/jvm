@@ -1,6 +1,6 @@
 #include "class.hpp"
 
-inline _class::_class(
+inline c::c(
 	constants&&                         constants,
 	bootstrap_methods&&                 bootstrap_methods,
 	posix::memory_for_range_of<uint8>   bytes,
@@ -8,8 +8,8 @@ inline _class::_class(
 	this_class_name                     this_name,
 	posix::memory_for_range_of<uint8>   descriptor,
 	class_file::constant::utf8          source_file,
-	optional<_class&>                   super_class,
-	posix::memory_for_range_of<_class*> declared_interfaces,
+	optional<c&>                   super_class,
+	posix::memory_for_range_of<c*> declared_interfaces,
 	posix::memory_for_range_of<static_field>   declared_static_fields,
 	posix::memory_for_range_of<instance_field>   declared_instance_fields,
 	posix::memory_for_range_of<static_method> declared_static_methods,

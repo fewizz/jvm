@@ -4,8 +4,8 @@
 #include "decl/object.hpp"
 #include "decl/execute.hpp"
 
-inline _class& get_stack_overflow_error_class() {
-	static _class& c = classes.load_class_by_bootstrap_class_loader(
+inline c& get_stack_overflow_error_class() {
+	static c& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ "java/lang/StackOverflowError" }
 	);
 	return c;
@@ -23,7 +23,7 @@ try_create_stack_overflow_error() {
 		stack = move(operating_stack);
 	};
 
-	_class& c = get_stack_overflow_error_class();
+	c& c = get_stack_overflow_error_class();
 	method& m = c.declared_instance_methods().find(
 		c_string{ "<init>" }, c_string{ "()V" }
 	);

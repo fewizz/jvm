@@ -10,7 +10,7 @@
 #include "classes.hpp"
 
 static void init_java_lang_class_loader() {
-	_class& c = classes.load_class_by_bootstrap_class_loader(
+	c& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{"java/lang/ClassLoader"}
 	);
 
@@ -46,9 +46,9 @@ static void init_java_lang_class_loader() {
 		auto data = posix::allocate_memory_for<uint8>(bytes.size());
 		bytes.copy_to(data.as_span());
 
-		expected<_class&, reference> possible_c = view_string_on_stack_as_utf8(
+		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
 			*name,
-			[&](auto name_utf8) -> expected<_class&, reference> {
+			[&](auto name_utf8) -> expected<::c&, reference> {
 				return classes.try_define_class(name_utf8, move(data), ths);
 			}
 		);
@@ -58,18 +58,18 @@ static void init_java_lang_class_loader() {
 			return nullptr;
 		}
 
-		_class& c = possible_c.get_expected();
+		::c& c = possible_c.get_expected();
 
-		return & c.instance().unsafe_release_without_destroing();
+		return c.object_ptr();
 	});
 
 	c.declared_static_methods().find(
 		c_string{ "loadClassJVM" },
 		c_string{ "(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](native_environment*, object* name) -> object* {
-		expected<_class&, reference> possible_c = view_string_on_stack_as_utf8(
+		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
 			*name,
-			[](auto name_utf8) -> expected<_class&, reference> {
+			[](auto name_utf8) -> expected<::c&, reference> {
 				for(char& cp : name_utf8) {
 					if(cp == '.') cp = '/';
 				}
@@ -82,9 +82,9 @@ static void init_java_lang_class_loader() {
 			return nullptr;
 		}
 
-		_class& c = possible_c.get_expected();
+		::c& c = possible_c.get_expected();
 
-		return & c.instance().unsafe_release_without_destroing();
+		return c.object_ptr();
 	});
 
 	c.declared_instance_methods().find(
@@ -93,10 +93,10 @@ static void init_java_lang_class_loader() {
 	).native_function((void*)+[](
 		native_environment*, object* ths, object* name
 	) -> object* {
-		optional<_class&> possible_c
+		optional<::c&> possible_c
 		= view_string_on_stack_as_utf8(
 			*name,
-			[&](auto name_utf8) -> optional<_class&> {
+			[&](auto name_utf8) -> optional<::c&> {
 				for(char& cp : name_utf8) {
 					if(cp == '.') cp = '/';
 				}
@@ -111,7 +111,6 @@ static void init_java_lang_class_loader() {
 			return nullptr;
 		}
 
-		return & possible_c->instance()
-			.unsafe_release_without_destroing();
+		return possible_c->object_ptr();
 	});
 }

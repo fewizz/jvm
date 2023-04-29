@@ -4,7 +4,7 @@
 #include "classes.hpp"
 
 inline expected<reference, reference> try_create_illegal_caller_exception() {
-	_class& c = classes.load_class_by_bootstrap_class_loader(
+	c& c = classes.load_class_by_bootstrap_class_loader(
 		c_string{"java/lang/IllegalCallerException"}
 	);
 

@@ -93,5 +93,5 @@ inline bool reference::is_null() const {
 	return obj_ptr_ == nullptr;
 }
 
-inline const _class& reference::_class() const { return object()._class(); }
-inline       _class& reference::_class()       { return object()._class(); }
+inline const c& reference::c() const { return object().c(); }
+inline       c& reference::c()       { return object().c(); }

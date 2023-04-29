@@ -1,4 +1,5 @@
 #include "./class.hpp/impl.hpp"
+#include "./classes.hpp/impl.hpp"
 #include "./execute.hpp/impl.hpp"
 #include "./lib/init.hpp"
 #include "./native/call.hpp/impl.hpp"

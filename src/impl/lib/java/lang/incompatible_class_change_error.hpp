@@ -7,7 +7,7 @@
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_incompatible_class_change_error() {
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= classes.try_load_class_by_bootstrap_class_loader(
 			c_string{"java/lanf/IncompatibleClassChangeError"}
 		);
@@ -16,7 +16,7 @@ try_create_incompatible_class_change_error() {
 		return unexpected{ possible_c.move_unexpected() };
 	}
 
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 	method& constructor = c.instance_methods().find(
 		c_string{"<init>"}, c_string{"()V"}
 	);

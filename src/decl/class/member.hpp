@@ -8,16 +8,16 @@
 #include <optional.hpp>
 #include <range.hpp>
 
-struct _class;
+struct c;
 
 struct class_member {
 protected:
-	optional<_class&> class_;
+	optional<c&> class_;
 	const class_file::access_flags access_flags_;
 	const class_file::constant::utf8 name_;
 	const class_file::constant::utf8 desc_;
 
-	friend _class;
+	friend ::c;
 public:
 
 	class_member(
@@ -30,8 +30,8 @@ public:
 		desc_        { desc         }
 	{}
 
-	const ::_class& _class() const { return class_.get(); }
-	      ::_class& _class()       { return class_.get(); }
+	const ::c& c() const { return class_.get(); }
+	      ::c& c()       { return class_.get(); }
 
 	class_file::constant::utf8 name() const {
 		return name_;

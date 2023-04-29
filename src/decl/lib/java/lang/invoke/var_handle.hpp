@@ -2,4 +2,4 @@
 
 #include "class.hpp"
 
-static optional<_class&> var_handle_class;
+static optional<c&> var_handle_class;

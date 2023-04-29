@@ -6,7 +6,7 @@
 
 #include <optional.hpp>
 
-static optional<_class&> index_of_of_bounds_exception_class;
+static optional<c&> index_of_of_bounds_exception_class;
 static optional<method&> index_of_of_bounds_exception_constructor;
 
 [[nodiscard]] inline expected<reference, reference>

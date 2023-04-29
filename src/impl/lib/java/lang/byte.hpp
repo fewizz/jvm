@@ -21,6 +21,6 @@ static void init_java_lang_byte() {
 	java_lang_byte_class->declared_static_methods().find(
 		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
 	).native_function((void*)+[](native_environment*) -> object* {
-		return byte_class->instance().object_ptr();
+		return byte_class->object_ptr();
 	});
 }

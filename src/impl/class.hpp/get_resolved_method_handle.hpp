@@ -16,7 +16,7 @@
 #include <class_file/constant.hpp>
 #include <span.hpp>
 
-inline expected<reference, reference> _class::try_get_resolved_method_handle(
+inline expected<reference, reference> c::try_get_resolved_method_handle(
 	class_file::constant::method_handle_index index
 ) {
 	mutex_->lock();
@@ -96,18 +96,18 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 			}
 
 			field& r = possible_r.get_expected();
-			_class& c = r._class();
+			c& c = r.c();
 			/* 2 */ // TODO
 
 			/* 3 */
-			expected<_class&, reference> possible_t
+			expected<::c&, reference> possible_t
 				= r.type.view([&]<class_file::descriptor_type Type>(Type t) {
 					return try_resolve_class_from_type(*this, t);
 				});
 			if(possible_t.is_unexpected()) {
 				return unexpected{ possible_t.move_unexpected() };
 			}
-			_class& t = possible_t.get_expected();
+			::c& t = possible_t.get_expected();
 
 			/* 4 */
 			expected<reference, reference> possible_mt
@@ -120,7 +120,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 						);
 					case behavior_kind::get_static:
 						return try_create_method_type(
-							t, span<_class>{}
+							t, span<::c>{}
 						);
 					case behavior_kind::put_field: {
 						array arg_types{ &c, &t };
@@ -186,16 +186,16 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 				return unexpected{ possible_r.move_unexpected() };
 			}
 			method& r = possible_r.get_expected();
-			_class& c = r._class();
+			c& c = r.c();
 			/* 2 */ // TODO
 
 			/* 3 */
 
 			nuint params_count = r.parameters_count();
-			_class* params_raw[params_count];
-			_class* c_with_params_raw[params_count + 1];
-			span<_class*> params{ params_raw, params_count };
-			span<_class*> c_with_params{ c_with_params_raw, params_count + 1};
+			::c* params_raw[params_count];
+			::c* c_with_params_raw[params_count + 1];
+			span<::c*> params{ params_raw, params_count };
+			span<::c*> c_with_params{ c_with_params_raw, params_count + 1};
 
 			c_with_params[0] = &c;
 
@@ -203,7 +203,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 
 			r.parameter_types().for_each_indexed(
 				[&](one_of_descriptor_parameter_types type, nuint index) {
-					expected<_class&, reference> possible_a
+					expected<::c&, reference> possible_a
 						= type.view([&](auto t) {
 							return try_resolve_class_from_type(*this, t);
 						});
@@ -211,7 +211,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 						thrown = possible_a.move_unexpected();
 						return loop_action::stop;
 					}
-					_class& a = possible_a.get_expected();
+					::c& a = possible_a.get_expected();
 					params[index] = &a;
 					c_with_params[index + 1] = &a;
 					return loop_action::next;
@@ -222,7 +222,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 				return unexpected{ move(thrown) };
 			}
 
-			expected<_class&, reference> possible_t
+			expected<::c&, reference> possible_t
 				= r.return_type().view([&](auto type) {
 					return try_resolve_class_from_type(*this, type);
 				});
@@ -230,7 +230,7 @@ inline expected<reference, reference> _class::try_get_resolved_method_handle(
 				return unexpected{ possible_t.move_unexpected() };
 			}
 
-			_class& t = possible_t.get_expected();
+			::c& t = possible_t.get_expected();
 
 			/* 4 */
 			expected<reference, reference> possible_mt

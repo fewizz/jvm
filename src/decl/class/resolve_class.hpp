@@ -8,19 +8,19 @@
 /* To resolve an unresolved symbolic reference from D to a class or interface C
    denoted by N, the following steps are performed: */
 template<basic_range Name>
-[[nodiscard]] inline expected<_class&, reference>
-try_resolve_class(_class& d, Name&& name) {
+[[nodiscard]] inline expected<c&, reference>
+try_resolve_class(c& d, Name&& name) {
 	/* 1. The defining loader of D is used to load and thereby create a class
 	      or interface denoted by N. This class or interface is C. The details
 	      of the process are given in §5.3. */
 	reference defining_loader = d.defining_loader();
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= classes.try_load_class(name, defining_loader.object_ptr());
 
 	if(possible_c.is_unexpected()) {
 		return { possible_c.get_unexpected() };
 	}
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 	
 	/*    Any exception that can be thrown as a result of failure to load and
 	      thereby create C can thus be thrown as a result of failure of class
@@ -44,7 +44,7 @@ try_resolve_class(_class& d, Name&& name) {
 				name.iterator() + dimensionality + 1, // skip 'L'
 				name.sentinel() - 1 // ';'
 			}.as_range();
-			expected<_class&, reference> possible_c
+			expected<::c&, reference> possible_c
 				= try_resolve_class(c, element_name);
 			if(possible_c.is_unexpected()) {
 				return unexpected{ possible_c.move_unexpected() };
@@ -57,8 +57,8 @@ try_resolve_class(_class& d, Name&& name) {
 }
 
 template<class_file::descriptor_type Type>
-[[nodiscard]] inline expected<_class&, reference> try_resolve_class_from_type(
-	_class& d, Type type
+[[nodiscard]] inline expected<c&, reference> try_resolve_class_from_type(
+	c& d, Type type
 ) {
 	if constexpr(same_as<Type, class_file::v>) {
 		return void_class.get();

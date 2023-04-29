@@ -4,15 +4,15 @@
 
 struct _class;
 
-static optional<_class&> void_class{};
-static optional<_class&> bool_class{};
-static optional<_class&> byte_class{};
-static optional<_class&> short_class{};
-static optional<_class&> char_class{};
-static optional<_class&> int_class{};
-static optional<_class&> long_class{};
-static optional<_class&> float_class{};
-static optional<_class&> double_class{};
+static optional<c&> void_class{};
+static optional<c&> bool_class{};
+static optional<c&> byte_class{};
+static optional<c&> short_class{};
+static optional<c&> char_class{};
+static optional<c&> int_class{};
+static optional<c&> long_class{};
+static optional<c&> float_class{};
+static optional<c&> double_class{};
 
 using void_t = decltype(nullptr);
 
@@ -40,31 +40,31 @@ inline constexpr bool widening_conversion_allowed =
 
 template<typename Type>
 struct class_by_primitive_type_t {
-	_class& operator () () const requires same_as<Type, bool> {
+	c& operator () () const requires same_as<Type, bool> {
 		return bool_class.get();
 	}
-	_class& operator () () const requires same_as<Type, int8> {
+	c& operator () () const requires same_as<Type, int8> {
 		return byte_class.get();
 	}
-	_class& operator () () const requires same_as<Type, int16> {
+	c& operator () () const requires same_as<Type, int16> {
 		return short_class.get();
 	}
-	_class& operator () () const requires same_as<Type, uint16> {
+	c& operator () () const requires same_as<Type, uint16> {
 		return char_class.get();
 	}
-	_class& operator () () const requires same_as<Type, int32> {
+	c& operator () () const requires same_as<Type, int32> {
 		return int_class.get();
 	}
-	_class& operator () () const requires same_as<Type, int64> {
+	c& operator () () const requires same_as<Type, int64> {
 		return long_class.get();
 	}
-	_class& operator () () const requires same_as<Type, float> {
+	c& operator () () const requires same_as<Type, float> {
 		return float_class.get();
 	}
-	_class& operator () () const requires same_as<Type, double> {
+	c& operator () () const requires same_as<Type, double> {
 		return double_class.get();
 	}
-	_class& operator () () const requires same_as<Type, void_t> {
+	c& operator () () const requires same_as<Type, void_t> {
 		return void_class.get();
 	}
 };
@@ -98,28 +98,28 @@ static constexpr auto primitive_identifier = overloaded {
 
 template<typename Type>
 struct wrapper_class_by_primitive_type_t {
-	_class& operator() () const requires same_as<Type, bool> {
+	c& operator() () const requires same_as<Type, bool> {
 		return java_lang_boolean_class.get();
 	}
-	_class& operator() () const requires same_as<Type, int8> {
+	c& operator() () const requires same_as<Type, int8> {
 		return java_lang_byte_class.get();
 	}
-	_class& operator() () const requires same_as<Type, int16> {
+	c& operator() () const requires same_as<Type, int16> {
 		return java_lang_short_class.get();
 	}
-	_class& operator() () const requires same_as<Type, uint16> {
+	c& operator() () const requires same_as<Type, uint16> {
 		return java_lang_character_class.get();
 	}
-	_class& operator() () const requires same_as<Type, int32> {
+	c& operator() () const requires same_as<Type, int32> {
 		return java_lang_integer_class.get();
 	}
-	_class& operator() () const requires same_as<Type, int64> {
+	c& operator() () const requires same_as<Type, int64> {
 		return java_lang_long_class.get();
 	}
-	_class& operator() () const requires same_as<Type, float> {
+	c& operator() () const requires same_as<Type, float> {
 		return java_lang_float_class.get();
 	}
-	_class& operator() () const requires same_as<Type, double> {
+	c& operator() () const requires same_as<Type, double> {
 		return java_lang_double_class.get();
 	}
 };

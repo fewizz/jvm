@@ -10,7 +10,7 @@
 
 template<typename Verifier>
 inline expected<field&, reference>
-_class::try_get_resolved_field(
+c::try_get_resolved_field(
 	class_file::constant::field_ref_index ref_index, Verifier&& verifier
 ) {
 	mutex_->lock();

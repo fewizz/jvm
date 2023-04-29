@@ -3,7 +3,7 @@
 
 #include <range.hpp>
 
-inline _class& _class::get_array_class() {
+inline c& c::get_array_class() {
 	mutex_->lock();
 	if(!array_class_.has_value()) {
 

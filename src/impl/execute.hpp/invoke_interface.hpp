@@ -27,13 +27,13 @@
 
 	/* Otherwise, if the class of objectref does not implement the resolved
 	   interface, invokeinterface throws an IncompatibleClassChangeError. */
-	if(!obj_ref._class().is_implementing(resolved_interface_method._class())) {
+	if(!obj_ref.c().is_implementing(resolved_interface_method.c())) {
 		return try_create_incompatible_class_change_error().get();
 	}
 
 	/* Let C be the class of objectref. A method is selected with respect to C
 	   and the resolved method (§5.4.6). This is the method to be invoked. */
-	_class& c = obj_ref._class();
+	c& c = obj_ref.c();
 	optional<method&> possible_selected_method
 		= try_select_method(c, resolved_interface_method);
 	
@@ -98,7 +98,7 @@
 // c is resolved from d
 template<basic_range Name, basic_range Desriptor>
 [[nodiscard]] optional<reference> try_invoke_interface(
-	_class& c, Name&& name, Desriptor&& descriptor
+	c& c, Name&& name, Desriptor&& descriptor
 ) {
 	expected<method&, reference> possible_resolved_method
 		= try_resolve_interface_method(
@@ -114,7 +114,7 @@ template<basic_range Name, basic_range Desriptor>
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_interface(
-	_class& d, class_file::constant::interface_method_ref_index ref_index
+	c& d, class_file::constant::interface_method_ref_index ref_index
 ) {
 	namespace cc = class_file::constant;
 	cc::interface_method_ref method_ref

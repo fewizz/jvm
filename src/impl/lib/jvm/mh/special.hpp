@@ -30,7 +30,7 @@ static void init_jvm_mh_special() {
 
 			reference& c_ref
 				= mh->get<reference>(mh_class_member_class_position);
-			_class& c = class_from_class_instance(c_ref);
+			c& c = class_from_class_instance(c_ref);
 
 			method& selected_method = c[method_index];
 

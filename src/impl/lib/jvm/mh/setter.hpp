@@ -27,7 +27,7 @@ static void init_jvm_mh_setter() {
 		) -> optional<reference> {
 			reference& c_ref
 				= mh->get<reference>(mh_class_member_class_position);
-			_class& c = class_from_class_instance(c_ref);
+			c& c = class_from_class_instance(c_ref);
 
 			instance_field_index index {
 				mh->get<uint16>(mh_class_member_index_position)

@@ -21,9 +21,9 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
-struct _class :
+struct c :
 	layout_view_extension< // for static fields
-		_class,
+		c,
 		declared_static_field_index
 	>,
 	constants,
@@ -32,7 +32,7 @@ struct _class :
 {
 private:
 	// mutable
-	optional<_class&> super_;
+	optional<c&> super_;
 
 	const posix::memory_for_range_of<uint8> bytes_;
 	const class_file::access_flags access_flags_;
@@ -40,7 +40,7 @@ private:
 	const posix::memory_for_range_of<uint8> descriptor_;
 	const class_file::constant::utf8 source_file_;
 
-	const posix::memory_for_range_of<_class*> declared_interfaces_;
+	const posix::memory_for_range_of<c*> declared_interfaces_;
 
 	mutable posix::memory_for_range_of<static_field>
 		declared_static_fields_;
@@ -66,8 +66,8 @@ private:
 	body<posix::mutex> mutex_;
 
 	// mutable state:
-	optional<_class&> array_class_;
-	optional<_class&> component_class_;
+	optional<c&> array_class_;
+	optional<c&> component_class_;
 	reference instance_;
 	enum initialisation_state {
 		not_started,
@@ -78,15 +78,15 @@ private:
 
 public:
 
-	_class(
+	c(
 		constants&&, bootstrap_methods&&,
 		posix::memory_for_range_of<uint8> bytes,
 		class_file::access_flags,
 		this_class_name,
 		posix::memory_for_range_of<uint8> descriptor,
 		class_file::constant::utf8 source_file,
-		optional<_class&> super,
-		posix::memory_for_range_of<_class*>,
+		optional<c&> super,
+		posix::memory_for_range_of<c*>,
 		posix::memory_for_range_of<static_field> declared_static_fields,
 		posix::memory_for_range_of<instance_field> declared_instance_fields,
 		posix::memory_for_range_of<static_method> declared_static_methods,
@@ -97,10 +97,10 @@ public:
 		reference loader = {}
 	);
 
-	_class(_class&&) = delete;
-	_class(const _class&) = delete;
-	_class& operator = (_class&&) = delete;
-	_class& operator = (const _class&) = delete;
+	c(c&&) = delete;
+	c(const c&) = delete;
+	c& operator = (c&&) = delete;
+	c& operator = (const c&) = delete;
 
 	inline const instance_field&
 	operator[](instance_field_index index) const;
@@ -150,12 +150,12 @@ public:
 		}
 	}
 
-	const _class& super() const { return super_.get(); }
-	      _class& super()       { return super_.get(); }
+	const c& super() const { return super_.get(); }
+	      c& super()       { return super_.get(); }
 	bool has_super() const { return super_.has_value(); }
 
-	const _class* ptr() const & { return this; }
-	      _class* ptr()       & { return this; }
+	const c* ptr() const & { return this; }
+	      c* ptr()       & { return this; }
 
 	class_file::constant::utf8 source_file() const { return source_file_; }
 	bool has_source_file() const { return source_file_.iterator() != nullptr; }
@@ -173,11 +173,11 @@ public:
 	bool is_primitive() const { return is_primitive_; }
 	bool is_not_primitive() const { return !is_primitive_; }
 	bool is_reference() const { return !is_primitive_; }
-	bool is(const _class& c) const { return c.ptr() == this; }
-	bool is_not(const _class& c) const { return c.ptr() != this; }
+	bool is(const c& c) const { return c.ptr() == this; }
+	bool is_not(const c& c) const { return c.ptr() != this; }
 
-	_class& get_array_class();
-	_class& get_component_class();
+	c& get_array_class();
+	c& get_component_class();
 
 	[[nodiscard]] optional<reference> try_initialise_if_need();
 
@@ -277,24 +277,35 @@ public:
 
 	auto declared_interfaces() const {
 		return declared_interfaces_.transform_view(
-			[](storage<_class*>& storage) -> _class& { return *storage.get(); }
+			[](storage<c*>& storage) -> c& { return *storage.get(); }
 		);
 	}
 
-	reference instance();
+private:
+	inline void init_instance();
+public:
+	::object& object() {
+		init_instance();
+		return instance_.object();
+	}
+
+	::object* object_ptr() {
+		init_instance();
+		return instance_.object_ptr();
+	}
 
 	reference defining_loader() {
 		return defining_loader_;
 	}
 
-	void array_class(_class& c)     { array_class_     = c; }
-	void component_class(_class& c) { component_class_ = c; }
+	void array_class(c& c)     { array_class_     = c; }
+	void component_class(c& c) { component_class_ = c; }
 
 	[[nodiscard]] expected<reference, reference> try_get_string(
 		class_file::constant::string_index string_index
 	);
 
-	[[nodiscard]] expected<_class&, reference> try_get_resolved_class(
+	[[nodiscard]] expected<c&, reference> try_get_resolved_class(
 		class_file::constant::class_index string_index
 	);
 
@@ -377,7 +388,7 @@ public:
 	void for_each_maximally_specific_super_interface_instance_method(
 		Name&& name, Descriptor&& descriptor, Handler&& handler
 	) {
-		auto search_for_method = [&](_class& c) -> optional<instance_method&> {
+		auto search_for_method = [&](c& c) -> optional<instance_method&> {
 			for(instance_method& m : c.declared_instance_methods()) {
 				if(
 					m.has_name_and_descriptor_equal_to(name, descriptor) &&
@@ -390,9 +401,9 @@ public:
 		};
 		struct recursive {
 			loop_action operator()(
-				Handler&& handler, decltype(search_for_method) search, _class& c
+				Handler&& handler, decltype(search_for_method) search, c& c
 			) {
-				for(_class& super_i : c.declared_interfaces()) {
+				for(::c& super_i : c.declared_interfaces()) {
 					loop_action handlers_action;
 
 					optional<instance_method&> m = search(super_i);
@@ -427,7 +438,7 @@ public:
 
 	template<typename Handler>
 	void for_each_super_interface(Handler&& handler) {
-		for(_class& i : declared_interfaces()) {
+		for(c& i : declared_interfaces()) {
 			loop_action action = handler(i);
 			switch (action) {
 				case loop_action::stop: return;
@@ -436,9 +447,9 @@ public:
 		}
 	}
 
-	bool is_sub_of(_class& other) const {
+	bool is_sub_of(c& other) const {
 		if(has_super()) {
-			const _class& s = super();
+			const c& s = super();
 			if(&s == &other) {
 				return true;
 			}
@@ -447,8 +458,8 @@ public:
 		return false;
 	}
 
-	bool is_implementing(_class& other) const {
-		for(_class& i : declared_interfaces()) {
+	bool is_implementing(c& other) const {
+		for(c& i : declared_interfaces()) {
 			if(&i == &other) {
 				return true;
 			}

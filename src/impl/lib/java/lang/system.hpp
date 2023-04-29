@@ -44,16 +44,16 @@ static inline void init_java_lang_system() {
 			   modified: */
 			if(
 				// The src argument refers to an object that is not an array.
-				!src->_class().is_array() ||
+				!src->c().is_array() ||
 				// The dest argument refers to an object that is not an array.
-				!dst->_class().is_array()
+				!dst->c().is_array()
 			) {
 				thrown_in_native = try_create_array_store_exception().get();
 				return;
 			}
 
-			_class& src_component_class = src->_class().get_component_class();
-			_class& dst_component_class = dst->_class().get_component_class();
+			c& src_component_class = src->c().get_component_class();
+			c& dst_component_class = dst->c().get_component_class();
 			bool src_is_primitive = src_component_class.is_primitive();
 			bool dst_is_primitive = dst_component_class.is_primitive();
 			bool both_are_primitives = src_is_primitive && dst_is_primitive;
@@ -120,8 +120,8 @@ static inline void init_java_lang_system() {
 				reference& s = src_span[x];
 				reference& d = dst_span[x];
 				if(!s.is_null() && !d.is_null()) {
-					_class& sc = s._class();
-					_class& dc = d._class();
+					c& sc = s.c();
+					c& dc = d.c();
 
 					/* Otherwise, if any actual component of the source array
 					   from position srcPos through srcPos+length-1 cannot be

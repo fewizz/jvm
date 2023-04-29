@@ -17,11 +17,11 @@
 static optional<method&> method_type_constructor;
 
 template<
-	range_of<_class&> ParamClasses,
+	range_of<c&> ParamClasses,
 	range_of_decayed<char> Descriptor
 >
 [[nodiscard]]inline expected<reference, reference> try_create_method_type(
-	_class& ret_class,
+	c& ret_class,
 	ParamClasses&& params_classes,
 	Descriptor&& descriptor
 ) {
@@ -36,7 +36,7 @@ template<
 	reference params_array_ref = possible_params_array_ref.move_expected();
 
 	params_classes
-		.transform_view([](_class& c) { return c.instance(); })
+		.transform_view([](c& c) -> object& { return c.object(); })
 		.copy_to(array_as_span<reference>(params_array_ref));
 
 	expected<reference, reference> possible_descriptor_ref
@@ -53,7 +53,7 @@ template<
 	expected<reference, reference> possible_mt
 		= try_create_object(
 			method_type_constructor.get(),
-			ret_class.instance(),
+			reference{ ret_class.object() },
 			move(params_array_ref),
 			move(descriptor_ref)
 		);
@@ -68,15 +68,15 @@ template<
 }
 
 template<
-	range_of<_class&> ParamsClasses,
+	range_of<c&> ParamsClasses,
 	typename Handler
 >
 static decltype(auto) method_type_view_descriptor_utf8(
-	_class& ret, ParamsClasses&& params_classes, Handler&& handler
+	c& ret, ParamsClasses&& params_classes, Handler&& handler
 ) {
 	return range { params_classes }
 		.transform_view(
-			[&](_class& c) -> span<const char> {
+			[&](c& c) -> span<const char> {
 				return c.descriptor();
 			}
 		)
@@ -97,9 +97,9 @@ static decltype(auto) method_type_view_descriptor_utf8(
 	);
 }
 
-template<range_of<_class&> ParamClasses>
+template<range_of<c&> ParamClasses>
 [[nodiscard]] expected<reference, reference> try_create_method_type(
-	_class& ret_class,
+	c& ret_class,
 	ParamClasses&& params_classes
 ) {
 	return method_type_view_descriptor_utf8(
@@ -153,7 +153,7 @@ static void init_java_lang_invoke_method_type() {
 
 			auto params
 				= array_as_span<reference>(*params_class_array)
-				.transform_view([](reference& class_ref) -> _class& {
+				.transform_view([](reference& class_ref) -> c& {
 					return class_from_class_instance(class_ref);
 				});
 

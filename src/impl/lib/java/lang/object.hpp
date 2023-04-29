@@ -22,7 +22,7 @@ static inline void init_java_lang_object() {
 	.find(c_string{ "getClass" }, c_string{ "()Ljava/lang/Class;" })
 	.native_function(
 		(void*)+[](native_environment*, object* o) -> object* {
-			return o->_class().instance().object_ptr();
+			return o->c().object_ptr();
 		}
 	);
 

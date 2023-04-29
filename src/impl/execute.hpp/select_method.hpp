@@ -10,7 +10,7 @@
    instruction. The rules to select a method with respect to a class or
    interface C and a method mR are as follows: */
 [[nodiscard]] inline optional<method&> try_select_method(
-	_class& c, method& mr
+	c& c, method& mr
 ) {
 	/* 1. If mR is marked ACC_PRIVATE, then it is the selected method. */
 	if(mr.is_private()) {
@@ -34,7 +34,7 @@
 	       superclasses exist. If a method is found, it is the selected
 	       method. */
 	{
-		_class* s = &c;
+		::c* s = &c;
 		while(s->has_super()) {
 			s = &s->super();
 

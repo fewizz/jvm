@@ -7,7 +7,7 @@
 
 #include <posix/abort.hpp>
 
-inline expected<reference, reference> _class::try_get_string(
+inline expected<reference, reference> c::try_get_string(
 	class_file::constant::string_index string_index
 ) {
 	mutex_->lock();

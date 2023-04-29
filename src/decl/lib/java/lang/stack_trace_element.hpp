@@ -6,5 +6,5 @@
 
 #include <optional.hpp>
 
-static optional<_class&> stack_trace_element_class;
+static optional<c&> stack_trace_element_class;
 static optional<method&> stack_trace_element_constructor;

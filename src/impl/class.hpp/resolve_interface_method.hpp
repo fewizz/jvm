@@ -9,7 +9,7 @@
 
 template<basic_range Name, basic_range Descriptor>
 inline expected<method&, reference> try_resolve_interface_method(
-	_class& d, _class& c, Name&& name, Descriptor&& descriptor
+	c& d, c& c, Name&& name, Descriptor&& descriptor
 ) {
 	/* 1. If C is not an interface, interface method resolution throws an
 	      IncompatibleClassChangeError. */
@@ -64,7 +64,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 	      ACC_PRIVATE flag nor its ACC_STATIC flag set, one of these is
 	      arbitrarily chosen and method lookup succeeds. */
 	if(!possible_m.has_value()) {
-		c.for_each_super_interface([&](_class& i) {
+		c.for_each_super_interface([&](::c& i) {
 			for(instance_method& m0 : i.declared_instance_methods()) {
 				if(
 					!m0.is_private() &&
@@ -105,20 +105,20 @@ inline expected<method&, reference> try_resolve_interface_method(
 	return m;
 }
 
-inline expected<method&, reference> _class::try_resolve_interface_method(
+inline expected<method&, reference> c::try_resolve_interface_method(
 	class_file::constant::interface_method_ref ref
 ) {
 	/* To resolve an unresolved symbolic reference from D to an interface
 	   method in an interface C, the symbolic reference to C given by the
 	   interface method reference is first resolved (§5.4.3.1). */
-	expected<_class&, reference> possible_c
+	expected<c&, reference> possible_c
 		= try_get_resolved_class(ref.class_index);
 
 	if(possible_c.is_unexpected()) {
 		return unexpected{ possible_c.get_unexpected() };
 	}
 
-	_class& c = possible_c.get_expected();
+	c& c = possible_c.get_expected();
 
 	auto nat = name_and_type_constant(ref.name_and_type_index);
 	auto name = utf8_constant(nat.name_index);
