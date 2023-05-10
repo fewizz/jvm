@@ -4,6 +4,6 @@
 
 static void init_java_io_serializable() {
 	serializable_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/io/Serializable" }
+		c_string{ u8"java/io/Serializable" }
 	);
 }

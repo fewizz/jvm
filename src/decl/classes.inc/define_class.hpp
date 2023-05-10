@@ -1,12 +1,39 @@
+#pragma once
+
 #include "decl/classes.hpp"
+
+#include "./define_class.inc/read_method.hpp"
+#include "./define_class.inc/read_field.hpp"
+#include "./define_class.inc/read_bootstrap_methods.hpp"
 
 /* The following steps are used to derive a nonarray class or interface C
    denoted by N from a purported representation in class file format using the
    class loader L. */
-expected<c&, reference> classes::try_define_class0(
+template<basic_range Name>
+expected<c&, reference> classes::try_define_class(
+	Name&& name,
 	posix::memory_for_range_of<uint8> bytes,
 	object* defining_loader // L
 ) {
+	mutex_->lock();
+	on_scope_exit unlock_classes_mutex { [&] {
+		mutex_->unlock();
+	}};
+
+	/* 1. First, the Java Virtual Machine determines whether L has already
+			been recorded as an initiating loader of a class or interface
+			denoted by N. If so, this derivation attempt is invalid and
+			derivation throws a LinkageError. */
+	{
+		optional<c&> c
+			= try_find_class_which_loading_was_initiated_by(
+				name,
+				defining_loader
+			);
+		if(c.has_value()) {
+			return unexpected { try_create_linkage_error().get() };
+		}
+	}
 	/* 2. Otherwise, the Java Virtual Machine attempts to parse the purported
 	      representation. The purported representation may not in fact be a
 	      valid representation of C, so derivation must detect the following
@@ -102,30 +129,28 @@ expected<c&, reference> classes::try_define_class0(
 
 	reference thrown;
 
-	auto fields_reader =
-		interfaces_reader.read_and_get_fields_reader(
-			[&](class_file::constant::class_index interface_index)
-			{
-				if(!thrown.is_null()) {
-					return;
-				}
-
-				class_file::constant::_class c =
-					const_pool.class_constant(interface_index);
-				class_file::constant::utf8 interface_name =
-					const_pool.utf8_constant(c.name_index);
-				expected<::c&, reference> possible_interface
-					= try_load_non_array_class(
-						interface_name, defining_loader
-					);
-				if(possible_interface.is_unexpected()) {
-					thrown = possible_interface.get_unexpected();
-					return;
-				}
-				// TODO access control
-				interfaces.emplace_back(&possible_interface.get_expected());
+	auto fields_reader = interfaces_reader.read_and_get_fields_reader(
+		[&](class_file::constant::class_index interface_index) {
+			if(!thrown.is_null()) {
+				return;
 			}
-		);
+
+			class_file::constant::_class c =
+				const_pool.class_constant(interface_index);
+			class_file::constant::utf8 interface_name =
+				const_pool.utf8_constant(c.name_index);
+			expected<::c&, reference> possible_interface
+				= try_load_non_array_class(
+					interface_name, defining_loader
+				);
+			if(possible_interface.is_unexpected()) {
+				thrown = possible_interface.get_unexpected();
+				return;
+			}
+			// TODO access control
+			interfaces.emplace_back(&possible_interface.get_expected());
+		}
+	);
 	
 	if(!thrown.is_null()) {
 		return { thrown };
@@ -140,28 +165,7 @@ expected<c&, reference> classes::try_define_class0(
 
 	auto methods_reader = fields_reader.read_and_get_methods_reader(
 		[&](auto field_reader) {
-			auto [access_flags, name_index_reader] {
-				field_reader.read_access_flags_and_get_name_index_reader()
-			};
-			auto [name_index, descriptor_index_reader] {
-				name_index_reader.read_and_get_descriptor_index_reader()
-			};
-			auto [descriptor_index, attributes_reader] {
-				descriptor_index_reader.read_and_get_attributes_reader()
-			};
-			auto it = attributes_reader.read_and_get_advanced_iterator(
-				[&](auto name_index) {
-					return const_pool.utf8_constant(name_index);
-				},
-				[&]<typename Type>(Type) {
-				}
-			);
-			class_file::constant::utf8 name =
-				const_pool.utf8_constant(name_index);
-			class_file::constant::utf8 descriptor =
-				const_pool.utf8_constant(descriptor_index);
-
-			field f{ access_flags, name, descriptor };
+			auto [f, it] = read_field(const_pool, field_reader);
 
 			++(f.is_static() ? static_fields_count : instance_fields_count);
 
@@ -195,137 +199,9 @@ expected<c&, reference> classes::try_define_class0(
 	nuint static_methods_count = 0;
 	nuint instance_methods_count = 0;
 
-	auto read_method_and_get_advaned_iterator = []<typename Iterator>(
-		constants& const_pool, class_file::method::reader<Iterator> reader
-	) -> tuple<method, Iterator> {
-		auto [access_flags, name_index_reader] {
-			reader.read_access_flags_and_get_name_index_reader()
-		};
-		auto [name_index, descriptor_index_reader] {
-			name_index_reader.read_and_get_descriptor_index_reader()
-		};
-		auto [desc_index, attributes_reader] {
-			descriptor_index_reader.read_and_get_attributes_reader()
-		};
-
-		code_or_native_function_ptr code_or_native_function {
-			native_function_ptr{nullptr}
-		};
-
-		posix::memory_for_range_of<
-			class_file::attribute::code::exception_handler
-		> exception_handlers{};
-
-		posix::memory_for_range_of<
-			tuple<uint16, class_file::line_number>
-		> line_numbers{};
-
-		auto mapper = [&](auto name_index) {
-			return const_pool.utf8_constant(name_index);
-		};
-
-		Iterator it = attributes_reader.read_and_get_advanced_iterator(
-			mapper, [&]<typename Type>(Type reader) {
-
-			using namespace class_file;
-
-			if constexpr (Type::attribute_type == attribute::type::code) {
-				using namespace attribute::code;
-				Type max_stack_reader = reader;
-
-				auto [max_stack, max_locals_reader]
-					= max_stack_reader.read_and_get_max_locals_reader();
-				auto [max_locals, code_reader]
-					= max_locals_reader.read_and_get_code_reader();
-
-				auto code_span = code_reader.read_as_span();
-				auto exception_table_reader
-					= code_reader.skip_and_get_exception_table_reader();
-
-				code_or_native_function = ::code {
-					code_span, max_stack, max_locals
-				};
-
-				::list exception_handlers_list {
-					posix::allocate_memory_for<
-						class_file::attribute::code::exception_handler
-					>(exception_table_reader.read_count())
-				};
-
-				auto attributes_reader
-					= exception_table_reader.read_and_get_attributes_reader(
-					[&](exception_handler eh) {
-						exception_handlers_list.emplace_back(eh);
-						return loop_action::next;
-					}
-				);
-
-				attributes_reader.read_and_get_advanced_iterator(
-					mapper,
-					[&]<typename CodeAttributeType>(
-						CodeAttributeType reader
-					) {
-						using namespace class_file;
-
-						if constexpr (
-							CodeAttributeType::attribute_type ==
-							attribute::type::line_numbers
-						) {
-							CodeAttributeType count_reader = reader;
-							auto [count, line_numbers_reader]
-								= count_reader
-								.read_and_get_line_numbers_reader();
-							
-							::list line_numbers_list {
-								posix::allocate_memory_for<
-									tuple<uint16, class_file::line_number>
-								>(count)
-							};
-
-							line_numbers_reader.read_and_get_advanced_iterator(
-								count,
-								[&](
-									uint16 start_pc,
-									class_file::line_number ln
-								) {
-									line_numbers_list.emplace_back(
-										start_pc,
-										ln
-									);
-								}
-							);
-							line_numbers
-								= line_numbers_list.move_storage_range();
-						}
-					}
-				);
-
-				exception_handlers
-					= exception_handlers_list.move_storage_range();
-			}
-		});
-
-		class_file::constant::utf8 name = const_pool.utf8_constant(name_index);
-		class_file::constant::utf8 desc = const_pool.utf8_constant(desc_index);
-
-		return {
-			method {
-				access_flags,
-				name,
-				desc,
-				code_or_native_function,
-				move(exception_handlers),
-				move(line_numbers)
-			},
-			it
-		};
-	};
-
 	auto attributes_reader = methods_reader.read_and_get_attributes_reader(
 		[&](auto method_reader) {
-			auto [m, it] = read_method_and_get_advaned_iterator(
-				const_pool, method_reader
-			);
+			auto [m, it] = read_method(const_pool, method_reader);
 			if(!m.is_class_initialisation()) {
 				++(
 					m.is_static() ?
@@ -363,50 +239,6 @@ expected<c&, reference> classes::try_define_class0(
 	bootstrap_methods bootstrap_methods{};
 	class_file::constant::utf8 source_file{};
 
-	auto read_bootstap_methods = [](auto reader) -> ::bootstrap_methods {
-		auto [count, bootstrap_methods_reader] {
-			reader.read_count_and_get_methods_reader()
-		};
-
-		::list bootstrap_methods_raw {
-			posix::allocate_memory_for<bootstrap_method>(count)
-		};
-
-		bootstrap_methods_reader.read(
-			count,
-			[&](auto method_reader) {
-				auto [reference_index, arguments_count_reader] {
-					method_reader
-						.read_reference_index_and_get_arguments_count_reader()
-				};
-				auto [arguments_count, arguments_reader] {
-					arguments_count_reader.read_and_get_arguments_reader()
-				};
-
-				::list arguments_indices_raw {
-					posix::allocate_memory_for<
-						class_file::constant::index
-					>(arguments_count)
-				};
-
-				arguments_reader.read(
-					arguments_count,
-					[&](class_file::constant::index index) {
-						arguments_indices_raw.emplace_back(index);
-					}
-				);
-
-				bootstrap_methods_raw.emplace_back(
-					reference_index, arguments_indices_raw.move_storage_range()
-				);
-			}
-		);
-
-		return ::bootstrap_methods {
-			bootstrap_methods_raw.move_storage_range()
-		};
-	};
-
 	attributes_reader.read_and_get_advanced_iterator(
 		[&](auto attribute_name_index) {
 			return const_pool.utf8_constant(attribute_name_index);
@@ -424,7 +256,6 @@ expected<c&, reference> classes::try_define_class0(
 				Type index_reader = attribute_reader;
 				auto [utf8_index, it]
 					= index_reader.read_and_get_advanced_iterator();
-				
 				source_file = const_pool.utf8_constant(utf8_index);
 			}
 		}
@@ -437,13 +268,12 @@ expected<c&, reference> classes::try_define_class0(
 		const_pool.utf8_constant(this_class_constant.name_index)
 	};
 
-	auto descriptor_utf8 = posix::allocate_memory_for<uint8>(
-		name_utf8.size() + 2
-	);
+	posix::memory_for_range_of<utf8::unit> descriptor_utf8
+		= posix::allocate_memory_for<utf8::unit>(name_utf8.size() + 2);
 
 	name_utf8.copy_to(
 		span {
-			(char*) descriptor_utf8.iterator() + 1,
+			descriptor_utf8.as_span().iterator() + 1,
 			descriptor_utf8.size() - 2
 		}
 	);
@@ -458,7 +288,7 @@ expected<c&, reference> classes::try_define_class0(
 	return emplace_back(
 		move(const_pool), move(bootstrap_methods),
 		move(bytes), access_flags,
-		this_class_name{ name_utf8 },
+		name_utf8,
 		move(descriptor_utf8),
 		source_file,
 		super,

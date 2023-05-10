@@ -32,11 +32,11 @@ try_resolve_class(c& d, Name&& name) {
 	      recursively. */
 	if(c.is_array()) {
 		nuint dimensionality = 0;
-		for(char c : name) {
+		for(utf8::unit c : name) {
 			if(c == '[') ++dimensionality;
 			else break;
 		}
-		char element_type = name[dimensionality];
+		utf8::unit element_type = name[dimensionality];
 		bool element_is_reference = element_type == 'L';
 
 		if(element_is_reference) {

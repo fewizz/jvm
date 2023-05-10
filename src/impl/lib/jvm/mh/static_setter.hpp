@@ -8,17 +8,17 @@
 
 static void init_jvm_mh_static_setter() {
 	mh_static_setter_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{"jvm/mh/StaticSetter"}
+		c_string{ u8"jvm/mh/StaticSetter" }
 	);
 
 	mh_static_setter_constructor
 		= mh_static_setter_class->declared_instance_methods().find(
-			c_string{"<init>"},
-			c_string{"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V"}
+			c_string{ u8"<init>" },
+			c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V" }
 		);
 
 	mh_static_setter_class->declared_instance_methods().find(
-		c_string{"invokeExactPtr"}, c_string{"()V"}
+		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
 			reference mh,

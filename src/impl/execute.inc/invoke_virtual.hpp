@@ -113,15 +113,15 @@ template<basic_range Desriptor>
 		}
 
 		if(resolved_method.name().has_equal_size_and_elements(
-			c_string{ "invokeExact" }
+			c_string{ u8"invokeExact" }
 		)) {
-			return method_handle_try_invoke_exact(
+			return mh::try_invoke_exact(
 				move(mh_ref),
 				args_beginning_positoin
 			);
 		}
 		else if(resolved_method.name().has_equal_size_and_elements(
-			c_string{ "invoke" }
+			c_string{ u8"invoke" }
 		)) {
 			expected<reference, reference> possible_new_mt
 				= try_resolve_method_type(d, resolved_method.descriptor());
@@ -132,7 +132,7 @@ template<basic_range Desriptor>
 
 			reference new_mt = possible_new_mt.move_expected();
 
-			return method_handle_try_invoke(
+			return mh::try_invoke(
 				move(mh_ref),
 				move(new_mt),
 				args_beginning_positoin

@@ -4,11 +4,11 @@
 
 static void init_java_lang_invoke_wrong_method_type_exception() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{"java/lang/invoke/WrongMethodTypeException"}
+		c_string{ u8"java/lang/invoke/WrongMethodTypeException" }
 	);
 
 	wrong_method_type_exception_constructor =
 		c.declared_instance_methods().find(
-			c_string{"<init>"}, c_string{"()V"}
+			c_string{ u8"<init>" }, c_string{ u8"()V" }
 		);
 }

@@ -4,6 +4,6 @@
 
 static void init_java_lang_cloneable() {
 	cloneable_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/Cloneable" }
+		c_string{ u8"java/lang/Cloneable" }
 	);
 }

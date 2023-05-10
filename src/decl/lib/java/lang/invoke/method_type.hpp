@@ -9,13 +9,15 @@
 #include <optional.hpp>
 #include <generator_view.hpp>
 
+#include <unicode/utf8.hpp>
+
 inline optional<::c&> method_type_class;
 inline layout::position
 	method_type_return_type_instance_field_position,
 	method_type_parameter_types_instance_field_position,
 	method_type_descriptor_instance_field_position;
 
-static span<const char> method_type_descriptor(object& mt);
+static span<utf8::unit> method_type_descriptor(object& mt);
 
 template<range_of<c&> ParamClasses>
 [[nodiscard]] inline expected<reference, reference> try_create_method_type(

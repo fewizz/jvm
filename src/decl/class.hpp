@@ -7,7 +7,6 @@
 #include "./class/trampolines.hpp"
 #include "./class/bootstrap_methods.hpp"
 
-#include "./class/name.hpp"
 #include "./class/is_array.hpp"
 #include "./class/is_primitive.hpp"
 
@@ -36,8 +35,8 @@ private:
 
 	const posix::memory_for_range_of<uint8> bytes_;
 	const class_file::access_flags access_flags_;
-	const this_class_name this_name_;
-	const posix::memory_for_range_of<uint8> descriptor_;
+	const class_file::constant::utf8 name_;
+	const posix::memory_for_range_of<const utf8::unit> descriptor_;
 	const class_file::constant::utf8 source_file_;
 
 	const posix::memory_for_range_of<c*> declared_interfaces_;
@@ -82,8 +81,8 @@ public:
 		constants&&, bootstrap_methods&&,
 		posix::memory_for_range_of<uint8> bytes,
 		class_file::access_flags,
-		this_class_name,
-		posix::memory_for_range_of<uint8> descriptor,
+		class_file::constant::utf8 name,
+		posix::memory_for_range_of<utf8::unit> descriptor,
 		class_file::constant::utf8 source_file,
 		optional<c&> super,
 		posix::memory_for_range_of<c*>,
@@ -131,14 +130,16 @@ public:
 
 	class_file::access_flags access_flags() const { return access_flags_; }
 
-	this_class_name name() const { return this_name_; }
-	span<char> descriptor() const {
-		return ::span{ (char*) descriptor_.iterator(), descriptor_.size() };
+	class_file::constant::utf8 name() const {
+		return name_;
+	}
+	span<const utf8::unit, uint16> descriptor() const {
+		return descriptor_.as_span();
 	}
 
-	span<const char> package() const {
+	span<const utf8::unit> package() const {
 		optional<uint16> possible_slash_index
-			= name().try_find_index_of_last_satisfying([](char ch) {
+			= name().try_find_index_of_last_satisfying([](utf8::unit ch) {
 				return ch == '/';
 			});
 		if(possible_slash_index.has_value()) {

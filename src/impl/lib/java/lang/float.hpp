@@ -8,20 +8,20 @@
 
 static inline void init_java_lang_float() {
 	java_lang_float_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/Float" }
+		c_string{ u8"java/lang/Float" }
 	);
 
 	java_lang_float_constructor =
 		java_lang_float_class->declared_instance_methods()
-		.find(c_string{"<init>"}, c_string{"(F)V"});
+		.find(c_string{ u8"<init>" }, c_string{ u8"(F)V" });
 
 	java_lang_float_value_field_position =
 		java_lang_float_class->instance_field_position(
-			c_string{"value_", }, c_string{"F"}
+			c_string{ u8"value_" }, c_string{ u8"F" }
 		);
 
 	java_lang_float_class->declared_static_methods().find(
-		c_string{"getPrimitiveClass"}, c_string{"()Ljava/lang/Class;"}
+		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[]() -> object* {
 			return float_class->object_ptr();
@@ -29,7 +29,7 @@ static inline void init_java_lang_float() {
 	);
 
 	java_lang_float_class->declared_static_methods().find(
-		c_string{ "floatToRawIntBits" }, c_string{ "(F)I" }
+		c_string{ u8"floatToRawIntBits" }, c_string{ u8"(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {
 			return bit_cast<int32>(value);
@@ -37,7 +37,7 @@ static inline void init_java_lang_float() {
 	);
 
 	java_lang_float_class->declared_static_methods().find(
-		c_string{ "floatToIntBits" }, c_string{ "(F)I" }
+		c_string{ u8"floatToIntBits" }, c_string{ u8"(F)I" }
 	).native_function(
 		(void*)+[](native_environment*, float value) -> int32 {
 			if(__builtin_isinf(value)) {
@@ -56,7 +56,7 @@ static inline void init_java_lang_float() {
 	);
 
 	java_lang_float_class->declared_static_methods().find(
-		c_string{ "isNaN" }, c_string{ "(F)Z" }
+		c_string{ u8"isNaN" }, c_string{ u8"(F)Z" }
 	).native_function(
 		(void*)+[](native_environment*, float value) {
 			return __builtin_isnan(value);

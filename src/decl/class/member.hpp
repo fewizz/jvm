@@ -56,7 +56,7 @@ public:
 		return !is_public() && !is_protected() && !is_private();
 	}
 
-	span<const char> package() const {
+	span<const utf8::unit> package() const {
 		optional<uint16> possible_slash_index
 			= name().try_find_index_of_last_satisfying([](char ch) {
 				return ch == '/';

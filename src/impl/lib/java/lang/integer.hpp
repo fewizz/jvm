@@ -10,20 +10,20 @@
 
 static void init_java_lang_integer() {
 	java_lang_integer_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/Integer" }
+		c_string{ u8"java/lang/Integer" }
 	);
 
 	java_lang_integer_constructor =
 		java_lang_integer_class->declared_instance_methods()
-		.find(c_string{"<init>"}, c_string{"(I)V"});
+		.find(c_string{ u8"<init>" }, c_string{ u8"(I)V" });
 
 	java_lang_integer_value_field_position =
 		java_lang_integer_class->instance_field_position(
-			c_string{"value_", }, c_string{"I"}
+			c_string{ u8"value_" }, c_string{ u8"I" }
 		);
 
 	java_lang_integer_class->declared_static_methods().find(
-		c_string{ "getPrimitiveClass" }, c_string{ "()Ljava/lang/Class;" }
+		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
 			return int_class->object_ptr();
@@ -31,7 +31,7 @@ static void init_java_lang_integer() {
 	);
 
 	java_lang_integer_class->declared_static_methods().find(
-		c_string{ "toString" }, c_string{ "(II)Ljava/lang/String;" }
+		c_string{ u8"toString" }, c_string{ u8"(II)Ljava/lang/String;" }
 	).native_function(
 		(void*)+[](native_environment*, int32 value, int32 radix) -> object* {
 			int32 max_radix = 10 + 26;

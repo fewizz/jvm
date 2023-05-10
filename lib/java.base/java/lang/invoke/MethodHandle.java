@@ -8,6 +8,7 @@ public abstract class MethodHandle {
 	}
 
 	protected abstract void invokeExactPtr();
+	protected native void invokePtr();
 
 	public MethodType type() {
 		return methodType_;

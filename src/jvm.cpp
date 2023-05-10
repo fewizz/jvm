@@ -15,11 +15,11 @@ int main (int argc, const char** argv) {
 	}
 
 	// TODO replace with somethig more reliable
-	executable_path = c_string_of_unknown_size{ argv[0] }.sized();
+	executable_path = c_string{ (const utf8::unit*) argv[0] }.sized();
 
 	// TODO replace with algo
 	lib_path = [] {
-		c_string_of_known_size exe = executable_path.get();
+		auto exe = executable_path.get();
 		nuint last_slash = exe.size() - 1;
 
 		while(
@@ -28,19 +28,19 @@ int main (int argc, const char** argv) {
 		){
 			--last_slash;
 		}
-		return c_string_of_known_size{ exe.begin(), last_slash };
+		return c_string_of_known_size<utf8::unit>{ exe.begin(), last_slash };
 	}();
 
 	init_java_lang_object();
 
-	void_class = classes.define_primitive_class(c_string{ "void"    }, 'V');
+	void_class = classes.define_primitive_class(c_string{ u8"void" }, 'V');
 
 	auto define_primitive_and_its_array_class = []<basic_range Name>(
-		Name&& name, char ch
+		Name&& name, utf8::unit ch
 	) -> c& {
 		 c& component_class = classes.define_primitive_class(name, ch);
 
-		array<char, 2> array_class_name{ '[', ch };
+		array<utf8::unit, 2> array_class_name{ u8'[', ch };
 		c& array_class
 			= classes.define_array_class(array_class_name, nullptr);
 
@@ -51,21 +51,21 @@ int main (int argc, const char** argv) {
 	};
 
 	bool_class
-		= define_primitive_and_its_array_class(c_string{ "boolean" }, 'Z');
+		= define_primitive_and_its_array_class(c_string{ u8"boolean" }, 'Z');
 	byte_class
-		= define_primitive_and_its_array_class(c_string{ "byte" }, 'B');
+		= define_primitive_and_its_array_class(c_string{ u8"byte" }, 'B');
 	short_class
-		= define_primitive_and_its_array_class(c_string{ "short" }, 'S');
+		= define_primitive_and_its_array_class(c_string{ u8"short" }, 'S');
 	char_class
-		= define_primitive_and_its_array_class(c_string{ "char" }, 'C');
+		= define_primitive_and_its_array_class(c_string{ u8"char" }, 'C');
 	int_class
-		= define_primitive_and_its_array_class(c_string{ "int" }, 'I');
+		= define_primitive_and_its_array_class(c_string{ u8"int" }, 'I');
 	long_class
-		= define_primitive_and_its_array_class(c_string{ "long" }, 'J');
+		= define_primitive_and_its_array_class(c_string{ u8"long" }, 'J');
 	float_class
-		= define_primitive_and_its_array_class(c_string{ "float" }, 'F');
+		= define_primitive_and_its_array_class(c_string{ u8"float" }, 'F');
 	double_class
-		= define_primitive_and_its_array_class(c_string{ "double" }, 'D');
+		= define_primitive_and_its_array_class(c_string{ u8"double" }, 'D');
 
 	bool_array_class   = bool_class  ->get_array_class();
 	byte_array_class   = byte_class  ->get_array_class();
@@ -89,7 +89,7 @@ int main (int argc, const char** argv) {
 	}
 
 	c& app_cl_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{"jvm/AppClassLoader"}
+		c_string{ u8"jvm/AppClassLoader" }
 	);
 
 	optional<reference> possible_exception
@@ -101,8 +101,8 @@ int main (int argc, const char** argv) {
 	optional<field&> possible_app_cl_instance_field
 		= try_resolve_field0(
 			app_cl_class,
-			c_string{"INSTANCE"},
-			c_string{"Ljava/lang/ClassLoader;"}
+			c_string{ u8"INSTANCE" },
+			c_string{ u8"Ljava/lang/ClassLoader;" }
 		);
 	if(possible_app_cl_instance_field.has_no_value()) {
 		posix::abort();
@@ -114,7 +114,7 @@ int main (int argc, const char** argv) {
 	reference& app_cl_ref =
 		get_static_resolved<reference>(app_cl_instance_field);
 
-	auto main_class_name = c_string{ argv[1] }.sized();
+	auto main_class_name = c_string{ (const utf8::unit*) argv[1] }.sized();
 
 	expected<c&, reference> possible_c
 		= classes.try_load_class(main_class_name, app_cl_ref.object_ptr());
@@ -125,8 +125,8 @@ int main (int argc, const char** argv) {
 
 	c& c = possible_c.get_expected();
 	method& m = c.declared_static_methods().try_find(
-		c_string{ "main" },
-		c_string{ "([Ljava/lang/String;)V" }
+		c_string{ u8"main" },
+		c_string{ u8"([Ljava/lang/String;)V" }
 	).if_has_no_value([] {
 		print::err("main method is not found\n");
 		posix::abort();

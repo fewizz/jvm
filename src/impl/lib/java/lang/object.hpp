@@ -7,11 +7,11 @@
 
 static inline void init_java_lang_object() {
 	object_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/Object" }
+		c_string{ u8"java/lang/Object" }
 	);
 
 	object_class->declared_instance_methods()
-	.find(c_string{ "hashCode" }, c_string{ "()I" })
+	.find(c_string{ u8"hashCode" }, c_string{ u8"()I" })
 	.native_function(
 		(void*)+[](native_environment*, object* o) {
 			return (int32) (nuint) o;
@@ -19,7 +19,7 @@ static inline void init_java_lang_object() {
 	);
 
 	object_class->declared_instance_methods()
-	.find(c_string{ "getClass" }, c_string{ "()Ljava/lang/Class;" })
+	.find(c_string{ u8"getClass" }, c_string{ u8"()Ljava/lang/Class;" })
 	.native_function(
 		(void*)+[](native_environment*, object* o) -> object* {
 			return o->c().object_ptr();

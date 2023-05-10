@@ -32,8 +32,8 @@ template<typename Handler>
 inline decltype(auto) view_string_on_stack_as_utf8(
 	object& str, Handler&& handler
 ) {
-	return view_on_stack<char>{ string_utf8_length(str) }(
-		[&](span<char> utf8_str) -> decltype(auto) {
+	return view_on_stack<utf8::unit>{ string_utf8_length(str) }(
+		[&](span<utf8::unit> utf8_str) -> decltype(auto) {
 			auto it = utf8_str.iterator();
 			for_each_string_codepoint(str, [&](unicode::code_point cp) {
 				utf8::encoder{}(cp, it);

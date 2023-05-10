@@ -7,12 +7,12 @@
 
 static void init_jvm_app_class_loader() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{"jvm/AppClassLoader"}
+		c_string{ u8"jvm/AppClassLoader" }
 	);
 
 	c.declared_instance_methods().find(
-		c_string{"findClass"},
-		c_string{"(Ljava/lang/String;)Ljava/lang/Class;"}
+		c_string{ u8"findClass" },
+		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function(
 		(void*)+[](native_environment*, object* ths, object* name) -> object* {
 			return view_string_on_stack_as_utf8(
@@ -20,7 +20,7 @@ static void init_jvm_app_class_loader() {
 				[&](auto name_utf8) -> object* {
 					optional<posix::memory_for_range_of<unsigned char>>
 						possible_data = try_load_class_file_data_at(
-							c_string{"."},
+							c_string{ u8"." },
 							name_utf8
 						);
 

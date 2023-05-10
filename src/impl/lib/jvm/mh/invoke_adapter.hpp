@@ -10,13 +10,13 @@ static layout::position jvm_mh_invoke_adapter_original_field_position;
 
 static void init_jvm_mh_invoke_adapter() {
 	mh_invoke_adapter_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{"jvm/mh/InvokeAdapter"}
+		c_string{ u8"jvm/mh/InvokeAdapter" }
 	);
 
 	mh_invoke_adapter_constructor =
 		mh_invoke_adapter_class->declared_instance_methods()
 		.find(
-			c_string{"<init>"},
+			c_string{ u8"<init>" },
 			c_string {
 				"("
 					"Ljava/lang/invoke/MethodType;"
@@ -27,11 +27,12 @@ static void init_jvm_mh_invoke_adapter() {
 
 	jvm_mh_invoke_adapter_original_field_position
 		= mh_invoke_adapter_class->instance_field_position(
-			c_string{"original_"}, c_string{"Ljava/lang/invoke/MethodHandle;"}
+			c_string{ u8"original_" },
+			c_string{ u8"Ljava/lang/invoke/MethodHandle;" }
 		);
 	
 	mh_invoke_adapter_class->declared_instance_methods()
-	.find(c_string{"check"}, c_string{"()Z"})
+	.find(c_string{ u8"check" }, c_string{ u8"()Z" })
 	.native_function(
 		(void*)+[](native_environment*, object* new_mh) -> bool {
 			object& new_mt = new_mh->get<reference>(
@@ -45,12 +46,12 @@ static void init_jvm_mh_invoke_adapter() {
 				method_handle_method_type_field_position
 			);
 
-			return method_handle_are_types_convertible(new_mt, ori_mt);
+			return mh::is_convertible(new_mt, ori_mt);
 		}
 	);
 
 	mh_invoke_adapter_class->declared_instance_methods()
-	.find(c_string{"invokeExactPtr"}, c_string{"()V"})
+	.find(c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" })
 	.native_function(
 		(void*)+[](
 			reference new_mh,
@@ -67,7 +68,7 @@ static void init_jvm_mh_invoke_adapter() {
 				method_handle_method_type_field_position
 			);
 
-			return method_handle_try_invoke_checked(
+			return mh::try_invoke_checked(
 				ori_mh, new_mt, ori_mt, args_beginning
 			);
 		}

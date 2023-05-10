@@ -14,18 +14,18 @@
 static inline void init_java_lang_throwable() {
 
 	throwable_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/Throwable" }
+		c_string{ u8"java/lang/Throwable" }
 	);
 
 	throwable_stack_trace_field_position =
 		throwable_class->instance_field_position(
-			c_string{ "stackTrace_" },
-			c_string{ "[Ljava/lang/StackTraceElement;" }
+			c_string{ u8"stackTrace_" },
+			c_string{ u8"[Ljava/lang/StackTraceElement;" }
 		);
 
 	throwable_class->declared_instance_methods()
 	.find(
-		c_string{ "fillInStackTrace" }, c_string{ "()Ljava/lang/Throwable;" }
+		c_string{ u8"fillInStackTrace" }, c_string{ u8"()Ljava/lang/Throwable;" }
 	).native_function((void*)+[](native_environment*, object* ths) -> object* {
 		// lets skip constructors/fillInStackTrace frames
 		execution_context* ctx_begin = latest_execution_context.ptr();
@@ -50,7 +50,7 @@ static inline void init_java_lang_throwable() {
 					this_class_name
 				) &&
 				prev->method.name().has_equal_size_and_elements(
-					c_string{ "<init>" }
+					c_string{ u8"<init>" }
 				)
 			) {
 				break;

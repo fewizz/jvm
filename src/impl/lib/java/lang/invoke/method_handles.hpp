@@ -12,12 +12,12 @@
 
 static void init_java_lang_invoke_method_handles() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{"java/lang/invoke/MethodHandles"}
+		c_string{ u8"java/lang/invoke/MethodHandles" }
 	);
 
 	c.declared_static_methods().find(
-		c_string{"lookup"},
-		c_string{"()Ljava/lang/invoke/MethodHandles$Lookup;"}
+		c_string{ u8"lookup" },
+		c_string{ u8"()Ljava/lang/invoke/MethodHandles$Lookup;" }
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
 			if(!latest_execution_context.has_value()) {
@@ -32,7 +32,10 @@ static void init_java_lang_invoke_method_handles() {
 
 			method& constructor
 				= method_handles_lookup_class->declared_instance_methods()
-				.find(c_string{"<init>"}, c_string{"(Ljava/lang/Class;)V"});
+				.find(
+					c_string{ u8"<init>" },
+					c_string{ u8"(Ljava/lang/Class;)V" }
+				);
 
 			expected<reference, reference> possible_lookup
 				= try_create_object(

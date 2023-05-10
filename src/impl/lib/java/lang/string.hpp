@@ -46,10 +46,10 @@ inline nuint string_utf8_length(object& str) {
 
 static inline void init_java_lang_string() {
 	string_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/String" }
+		c_string{ u8"java/lang/String" }
 	);
 
 	string_value_field_position = string_class->instance_field_position(
-		c_string{ "value_" }, c_string{ "[C" }
+		c_string{ u8"value_" }, c_string{ u8"[C" }
 	);
 }

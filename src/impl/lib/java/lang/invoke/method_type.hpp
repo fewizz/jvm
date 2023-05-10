@@ -18,7 +18,7 @@ static optional<method&> method_type_constructor;
 
 template<
 	range_of<c&> ParamClasses,
-	range_of_decayed<char> Descriptor
+	range_of_decayed<utf8::unit> Descriptor
 >
 [[nodiscard]]inline expected<reference, reference> try_create_method_type(
 	c& ret_class,
@@ -76,19 +76,19 @@ static decltype(auto) method_type_view_descriptor_utf8(
 ) {
 	return range { params_classes }
 		.transform_view(
-			[&](c& c) -> span<const char> {
+			[&](c& c) -> span<const utf8::unit> {
 				return c.descriptor();
 			}
 		)
 		.flat_view()
 		.sized_view()
-		.view_copied_elements_on_stack([&](span<const char> params)
+		.view_copied_elements_on_stack([&](span<const utf8::unit> params)
 			-> decltype(auto)
 		{
 			auto descriptor = ranges {
-				array{ '(' },
+				array{ u8'(' },
 				params,
-				array{ ')' },
+				array{ u8')' },
 				ret.descriptor()
 			}.concat_view().sized_view();
 
@@ -117,35 +117,35 @@ template<range_of<c&> ParamClasses>
 
 static void init_java_lang_invoke_method_type() {
 	method_type_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/invoke/MethodType" }
+		c_string{ u8"java/lang/invoke/MethodType" }
 	);
 
 	method_type_constructor = method_type_class->instance_methods().find(
-		c_string{"<init>"},
-		c_string{"(Ljava/lang/Class;[Ljava/lang/Class;[B)V"}
+		c_string{ u8"<init>" },
+		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V" }
 	);
 
 	method_type_parameter_types_instance_field_position =
 		method_type_class->instance_field_position(
-			c_string{ "parameterTypes_" },
-			c_string{ "[Ljava/lang/Class;" }
+			c_string{ u8"parameterTypes_" },
+			c_string{ u8"[Ljava/lang/Class;" }
 		);
 
 	method_type_return_type_instance_field_position =
 		method_type_class->instance_field_position(
-			c_string{ "returnType_" },
-			c_string{ "Ljava/lang/Class;" }
+			c_string{ u8"returnType_" },
+			c_string{ u8"Ljava/lang/Class;" }
 		);
 
 	method_type_descriptor_instance_field_position =
 		method_type_class->instance_field_position(
-			c_string{ "descriptorUTF8_" },
-			c_string{ "[B" }
+			c_string{ u8"descriptorUTF8_" },
+			c_string{ u8"[B" }
 		);
 
 	method_type_class->declared_static_methods().find(
-		c_string{ "descriptorUTF8" },
-		c_string{ "(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
+		c_string{ u8"descriptorUTF8" },
+		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(
 		(void*)+[](
 			native_environment*, object* ret_class, object* params_class_array
@@ -184,9 +184,9 @@ static void init_java_lang_invoke_method_type() {
 	);
 }
 
-static span<const char> method_type_descriptor(object& mt) {
+static span<utf8::unit> method_type_descriptor(object& mt) {
 	reference& utf8_desc = mt.get<reference>(
 		method_type_descriptor_instance_field_position
 	);
-	return array_as_span<const char>(utf8_desc);
+	return array_as_span<utf8::unit>(utf8_desc);
 }

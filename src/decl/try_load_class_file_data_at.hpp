@@ -11,13 +11,13 @@ template<basic_range RootPath, basic_range Name>
 optional<posix::memory_for_range_of<unsigned char>>
 try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 	auto null_terminated = ranges {
-		root_path, array{'/'},
-		name, c_string{".class"}, array{'\0'}
+		root_path, array{u8'/'},
+		name, c_string{ u8".class" }, array{u8'\0'}
 	}.concat_view();
 
 	expected<handle<posix::file>, posix::error> possible_file
 		= null_terminated.view_copied_elements_on_stack(
-			[&](span<char> on_stack) {
+			[&](span<utf8::unit> on_stack) {
 				return posix::try_open_file(
 					on_stack,
 					posix::file_access_mode::binary_read
@@ -34,8 +34,8 @@ try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 	nuint size = f->set_offset_to_end();
 	f->set_offset(0);
 
-	posix::memory_for_range_of<unsigned char> data
-		= posix::allocate_memory_for<unsigned char>(size);
+	posix::memory_for_range_of<uint8> data
+		= posix::allocate_memory_for<uint8>(size);
 
 	nuint read_total = 0;
 	while(read_total < size) {

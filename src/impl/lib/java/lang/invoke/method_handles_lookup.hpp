@@ -110,7 +110,7 @@ static expected<reference, reference> try_lookup_find_special(
 	return view_string_on_stack_as_utf8(name, [&](auto name_utf8)
 	-> expected<reference, reference>
 	{
-		if(name_utf8.has_equal_size_and_elements(c_string{ "<init>" })) {
+		if(name_utf8.has_equal_size_and_elements(c_string{ u8"<init>" })) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
 		::c& c = class_from_class_instance(refc);
@@ -151,18 +151,18 @@ static expected<reference, reference> try_lookup_find_constructor(
 	c& c = class_from_class_instance(refc);
 	method& m
 		= c.declared_instance_methods().find(
-			c_string{ "<init>" }, method_type_descriptor(mt)
+			c_string{ u8"<init>" }, method_type_descriptor(mt)
 		);
 	return try_create_constructor_mh(mt, m);
 }
 
 static void init_java_lang_invoke_method_handles_lookup() {
 	method_handles_lookup_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ "java/lang/invoke/MethodHandles$Lookup" }
+		c_string{ u8"java/lang/invoke/MethodHandles$Lookup" }
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findGetter" },
+		c_string{ u8"findGetter" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"
@@ -192,7 +192,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findSetter" },
+		c_string{ u8"findSetter" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"
@@ -222,7 +222,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findVirtual" },
+		c_string{ u8"findVirtual" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"
@@ -254,7 +254,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findStatic" },
+		c_string{ u8"findStatic" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"
@@ -285,7 +285,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findConstructor" },
+		c_string{ u8"findConstructor" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"
@@ -315,7 +315,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ "findSpecial" },
+		c_string{ u8"findSpecial" },
 		c_string {
 			"("
 				"Ljava/lang/Class;"

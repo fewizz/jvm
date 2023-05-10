@@ -8,7 +8,7 @@ inline c& c::get_array_class() {
 	if(!array_class_.has_value()) {
 
 		auto array_class_name = ranges {
-			array{ '[' }, descriptor()
+			array{ u8'[' }, descriptor()
 		}.concat_view();
 
 		array_class_ = classes.load_array_class(

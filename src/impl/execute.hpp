@@ -1,28 +1,28 @@
 #include "decl/execute.hpp"
 
-#include "./instruction.hpp"
+#include "./execute.inc/instruction.hpp"
 
-#include "./select_method.hpp"
-#include "./select_method_for_invoke_special.hpp"
+#include "./execute.inc/select_method.hpp"
+#include "./execute.inc/select_method_for_invoke_special.hpp"
 
-#include "./invoke_dynamic.hpp"
-#include "./invoke_interface.hpp"
-#include "./invoke_special.hpp"
-#include "./invoke_static.hpp"
-#include "./invoke_virtual.hpp"
+#include "./execute.inc/invoke_dynamic.hpp"
+#include "./execute.inc/invoke_interface.hpp"
+#include "./execute.inc/invoke_special.hpp"
+#include "./execute.inc/invoke_static.hpp"
+#include "./execute.inc/invoke_virtual.hpp"
 
-#include "./get_field.hpp"
-#include "./put_field.hpp"
+#include "./execute.inc/get_field.hpp"
+#include "./execute.inc/put_field.hpp"
 
-#include "./get_static.hpp"
-#include "./put_static.hpp"
+#include "./execute.inc/get_static.hpp"
+#include "./execute.inc/put_static.hpp"
 
-#include "execution/info.hpp"
-#include "execution/context.hpp"
-#include "execution/latest_context.hpp"
-#include "native/call.hpp"
-#include "class.hpp"
-#include "lib/java/lang/stack_overflow_error.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/context.hpp"
+#include "decl/execution/latest_context.hpp"
+#include "decl/native/call.hpp"
+#include "decl/class.hpp"
+#include "decl/lib/java/lang/stack_overflow_error.hpp"
 
 #include <class_file/reader.hpp>
 #include <class_file/descriptor/method_reader.hpp>

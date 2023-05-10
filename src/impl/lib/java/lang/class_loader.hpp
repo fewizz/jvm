@@ -11,18 +11,18 @@
 
 static void init_java_lang_class_loader() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{"java/lang/ClassLoader"}
+		c_string{ u8"java/lang/ClassLoader" }
 	);
 
 	class_loader_load_class_method_index
 		= c.instance_methods().find_index_of(
-			c_string{"loadClass"},
-			c_string{"(Ljava/lang/String;)Ljava/lang/Class;"}
+			c_string{ u8"loadClass" },
+			c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 		);
 
 	c.declared_instance_methods().find(
-		c_string{"defineClass"},
-		c_string{"(Ljava/lang/String;[BII)Ljava/lang/Class;"}
+		c_string{ u8"defineClass" },
+		c_string{ u8"(Ljava/lang/String;[BII)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
 		object* ths, object* name, object* b, int32 off, int32 len
@@ -48,7 +48,7 @@ static void init_java_lang_class_loader() {
 
 		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
 			*name,
-			[&](auto name_utf8) -> expected<::c&, reference> {
+			[&](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				return classes.try_define_class(name_utf8, move(data), ths);
 			}
 		);
@@ -64,13 +64,13 @@ static void init_java_lang_class_loader() {
 	});
 
 	c.declared_static_methods().find(
-		c_string{ "loadClassJVM" },
-		c_string{ "(Ljava/lang/String;)Ljava/lang/Class;" }
+		c_string{ u8"loadClassJVM" },
+		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](native_environment*, object* name) -> object* {
 		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
 			*name,
-			[](auto name_utf8) -> expected<::c&, reference> {
-				for(char& cp : name_utf8) {
+			[](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
+				for(utf8::unit& cp : name_utf8) {
 					if(cp == '.') cp = '/';
 				}
 				return
@@ -88,16 +88,16 @@ static void init_java_lang_class_loader() {
 	});
 
 	c.declared_instance_methods().find(
-		c_string{ "findLoadedClass" },
-		c_string{ "(Ljava/lang/String;)Ljava/lang/Class;" }
+		c_string{ u8"findLoadedClass" },
+		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*, object* ths, object* name
 	) -> object* {
 		optional<::c&> possible_c
 		= view_string_on_stack_as_utf8(
 			*name,
-			[&](auto name_utf8) -> optional<::c&> {
-				for(char& cp : name_utf8) {
+			[&](span<utf8::unit> name_utf8) -> optional<::c&> {
+				for(utf8::unit& cp : name_utf8) {
 					if(cp == '.') cp = '/';
 				}
 
