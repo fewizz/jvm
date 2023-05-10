@@ -12,7 +12,7 @@ inline void init_java_lang_invoke_method_handle() {
 
 	method_handle_invoke_exact_ptr_index
 		= method_handle_class->instance_methods().find_index_of(
-			c_string{ u8"invokeExactPtr"}, c_string{ u8"()V"}
+			c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 		);
 	
 	method_handle_method_type_field_position

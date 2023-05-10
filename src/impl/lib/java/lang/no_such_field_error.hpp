@@ -14,7 +14,7 @@ try_create_no_such_field_error() {
 
 static void init_java_lang_no_such_field_error() {
 	no_such_field_error_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/NoSuchFieldError"}
+		c_string{ u8"java/lang/NoSuchFieldError" }
 	);
 	no_such_field_error_constructor
 		= no_such_field_error_class->declared_instance_methods().find(

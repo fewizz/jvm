@@ -47,7 +47,7 @@ classes::try_load_non_array_class_by_bootstrap_class_loader(
 	   §5.3.5. */
 
 	optional<posix::memory_for_range_of<unsigned char>> possible_data =
-		ranges{ lib_path.get(), c_string{ u8"/java.base"} }.concat_view()
+		ranges{ lib_path.get(), c_string{ u8"/java.base" } }.concat_view()
 		.view_copied_elements_on_stack([&](span<utf8::unit> root_path_on_stack) {
 			return try_load_class_file_data_at(
 				root_path_on_stack,
