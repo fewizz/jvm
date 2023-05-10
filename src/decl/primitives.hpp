@@ -2,7 +2,7 @@
 
 #include <optional.hpp>
 
-struct _class;
+struct c;
 
 static optional<c&> void_class{};
 static optional<c&> bool_class{};
@@ -162,28 +162,28 @@ static constexpr wrapper_value_field_position_by_primitive_type_t<Type>
 
 template<typename Type>
 struct wrapper_constructor_by_primitive_type_t {
-	method& operator () () const requires same_as<Type, bool> {
+	instance_method& operator () () const requires same_as<Type, bool> {
 		return java_lang_boolean_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, int8> {
+	instance_method& operator () () const requires same_as<Type, int8> {
 		return java_lang_byte_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, int16> {
+	instance_method& operator () () const requires same_as<Type, int16> {
 		return java_lang_short_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, uint16> {
+	instance_method& operator () () const requires same_as<Type, uint16> {
 		return java_lang_character_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, int32> {
+	instance_method& operator () () const requires same_as<Type, int32> {
 		return java_lang_integer_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, int64> {
+	instance_method& operator () () const requires same_as<Type, int64> {
 		return java_lang_long_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, float> {
+	instance_method& operator () () const requires same_as<Type, float> {
 		return java_lang_float_constructor.get();
 	}
-	method& operator () () const requires same_as<Type, double> {
+	instance_method& operator () () const requires same_as<Type, double> {
 		return java_lang_double_constructor.get();
 	}
 };

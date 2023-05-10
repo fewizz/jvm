@@ -24,7 +24,7 @@ try_create_stack_overflow_error() {
 	};
 
 	c& c = get_stack_overflow_error_class();
-	method& m = c.declared_instance_methods().find(
+	instance_method& m = c.declared_instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"()V" }
 	);
 	

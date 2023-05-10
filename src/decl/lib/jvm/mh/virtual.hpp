@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_virtual_class;
-static optional<method&> mh_virtual_constructor;
+static optional<instance_method&> mh_virtual_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_virtual_mh(reference mt, method& resolved_method) {

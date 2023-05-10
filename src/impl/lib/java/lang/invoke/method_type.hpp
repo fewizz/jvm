@@ -14,7 +14,7 @@
 #include <ranges.hpp>
 #include <span.hpp>
 
-static optional<method&> method_type_constructor;
+static optional<instance_method&> method_type_constructor;
 
 template<
 	range_of<c&> ParamClasses,

@@ -13,7 +13,7 @@ static void init_java_lang_class_not_found_exception() {
 [[nodiscard]] inline expected<reference, reference>
 try_create_class_not_found_exception() {
 	c& c = class_not_found_exception_class.get();
-	method& m = c.declared_instance_methods().find(
+	instance_method& m = c.declared_instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"()V" }
 	);
 	return try_create_object(m);
@@ -22,7 +22,7 @@ try_create_class_not_found_exception() {
 [[nodiscard]] inline expected<reference, reference>
 try_create_class_not_found_exception(reference message) {
 	c& c = class_not_found_exception_class.get();
-	method& m = c.declared_instance_methods().find(
+	instance_method& m = c.declared_instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"(Ljava/lang/String;)V" }
 	);
 	return try_create_object(m, move(message));

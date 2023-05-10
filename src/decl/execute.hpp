@@ -30,11 +30,11 @@ template<basic_range StackType>
 // invoke_special
 
 [[nodiscard]] inline optional<reference> try_invoke_special_selected(
-	method& selected_method
+	instance_method& selected_method
 );
 
 [[nodiscard]] inline optional<reference> try_invoke_special_resolved(
-	c& current_c, method& resolved_method
+	c& current_c, instance_method& resolved_method
 );
 
 [[nodiscard]] inline optional<reference> try_invoke_special(

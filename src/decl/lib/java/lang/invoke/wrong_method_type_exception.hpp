@@ -6,7 +6,7 @@
 
 #include <optional.hpp>
 
-static optional<method&> wrong_method_type_exception_constructor;
+static optional<instance_method&> wrong_method_type_exception_constructor;
 
 inline expected<reference, reference> try_create_wrong_method_type_exception() {
 	return try_create_object(

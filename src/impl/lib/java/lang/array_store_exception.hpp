@@ -7,7 +7,7 @@
 #include <optional.hpp>
 
 static optional<c&> array_store_exception_class;
-static optional<method&> array_store_exception_constructor;
+static optional<instance_method&> array_store_exception_constructor;
 
 static void init_java_lang_array_store_exception() {
 	array_store_exception_class = classes.load_class_by_bootstrap_class_loader(

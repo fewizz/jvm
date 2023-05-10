@@ -7,7 +7,7 @@
 #include <optional.hpp>
 
 static optional<c&> index_of_of_bounds_exception_class;
-static optional<method&> index_of_of_bounds_exception_constructor;
+static optional<instance_method&> index_of_of_bounds_exception_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_index_of_of_bounds_exception();

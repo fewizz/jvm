@@ -7,4 +7,4 @@
 #include <optional.hpp>
 
 static optional<c&> stack_trace_element_class;
-static optional<method&> stack_trace_element_constructor;
+static optional<instance_method&> stack_trace_element_constructor;

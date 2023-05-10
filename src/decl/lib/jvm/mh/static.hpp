@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_static_class;
-inline optional<method&> mh_static_constructor;
+inline optional<instance_method&> mh_static_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_static_mh(

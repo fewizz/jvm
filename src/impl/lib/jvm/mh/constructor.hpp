@@ -49,7 +49,7 @@ static void init_jvm_mh_constructor() {
 			declared_instance_method_index method_index {
 				mh->get<uint16>(mh_class_member_index_position)
 			};
-			method& constructor = c[method_index];
+			instance_method& constructor = c[method_index];
 
 			optional<reference> possible_throwable
 				= try_invoke_special_selected(constructor);

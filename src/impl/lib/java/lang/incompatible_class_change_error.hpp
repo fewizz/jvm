@@ -17,7 +17,7 @@ try_create_incompatible_class_change_error() {
 	}
 
 	c& c = possible_c.get_expected();
-	method& constructor = c.instance_methods().find(
+	instance_method& constructor = c.instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"()V" }
 	);
 

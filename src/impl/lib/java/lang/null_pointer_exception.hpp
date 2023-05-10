@@ -6,7 +6,7 @@
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_null_pointer_exception() {
-	method& m = null_pointer_exception_constructor.get();
+	instance_method& m = null_pointer_exception_constructor.get();
 
 	return try_create_object(m);
 }

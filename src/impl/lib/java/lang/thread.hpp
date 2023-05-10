@@ -11,7 +11,7 @@
 #include <posix/thread.hpp>
 
 inline expected<reference, reference> try_create_thread() {
-	method& constructor = thread_class->instance_methods().find(
+	instance_method& constructor = thread_class->instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"()V" }
 	);
 	
@@ -19,7 +19,7 @@ inline expected<reference, reference> try_create_thread() {
 }
 
 inline expected<reference, reference> try_create_thread(reference runnable) {
-	method& constructor = thread_class->instance_methods().find(
+	instance_method& constructor = thread_class->instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"(Ljava/lang/Runnable;)V" }
 	);
 	return try_create_object(constructor, move(runnable));

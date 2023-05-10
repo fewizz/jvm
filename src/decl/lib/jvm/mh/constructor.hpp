@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_constructor_class;
-inline optional<method&> mh_constructor_constructor;
+inline optional<instance_method&> mh_constructor_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_constructor_mh(

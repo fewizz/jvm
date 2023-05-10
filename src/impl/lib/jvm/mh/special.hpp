@@ -32,7 +32,7 @@ static void init_jvm_mh_special() {
 				= mh->get<reference>(mh_class_member_class_position);
 			c& c = class_from_class_instance(c_ref);
 
-			method& selected_method = c[method_index];
+			instance_method& selected_method = c[method_index];
 
 			return try_invoke_special_selected(selected_method);
 		}

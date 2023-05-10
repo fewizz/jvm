@@ -3,7 +3,7 @@
 #include "decl/classes.hpp"
 
 static optional<c&> no_such_field_error_class;
-static optional<method&> no_such_field_error_constructor;
+static optional<instance_method&> no_such_field_error_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_no_such_field_error() {

@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_static_getter_class;
-static optional<method&> mh_static_getter_constructor;
+static optional<instance_method&> mh_static_getter_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_static_getter_mh(

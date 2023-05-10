@@ -15,7 +15,7 @@
 #include <optional.hpp>
 
 [[nodiscard]] inline optional<reference> try_invoke_special_selected(
-	method& selected_method
+	instance_method& selected_method
 ) {
 	// copy, so object and it's lock may not be destroyed
 	reference obj_ref = stack.get<reference>(
@@ -56,7 +56,7 @@
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_special_resolved(
-	c& current_c, method& resolved_method
+	c& current_c, instance_method& resolved_method
 ) {
 
 	c& referenced_class = resolved_method.c();
@@ -94,7 +94,7 @@
 		}
 	}
 
-	method& selected_method = possible_selected_method.get();
+	instance_method& selected_method = possible_selected_method.get();
 
 	return try_invoke_special_selected(selected_method);
 }
@@ -159,7 +159,8 @@
 		return possible_resolved_method.move_unexpected();
 	}
 
-	method& resolved_method = possible_resolved_method.get_expected();
+	instance_method& resolved_method
+		= (instance_method&) possible_resolved_method.get_expected();
 
 	return try_invoke_special_resolved(current_c, resolved_method);
 }

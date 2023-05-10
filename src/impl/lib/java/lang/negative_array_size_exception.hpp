@@ -6,9 +6,7 @@
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_negative_array_size_exception() {
-	method& m = negative_array_size_exception_constructor.get();
-
-	return try_create_object(m);
+	return try_create_object(negative_array_size_exception_constructor.get());
 }
 
 inline void init_java_lang_negative_array_size_exception() {

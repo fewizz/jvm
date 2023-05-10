@@ -78,7 +78,7 @@ try_create_object(c& c);
 
 template<typename... Args>
 [[nodiscard]] inline expected<reference, reference>
-try_create_object(method& constructor, Args&&... args) {
+try_create_object(instance_method& constructor, Args&&... args) {
 	expected<reference, reference> possible_ref
 		= try_create_object(constructor.c());
 

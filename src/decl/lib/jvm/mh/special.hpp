@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_special_class;
-inline optional<method&> mh_special_constructor;
+inline optional<instance_method&> mh_special_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_special_mh(

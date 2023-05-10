@@ -7,7 +7,7 @@
 #include <optional.hpp>
 
 static optional<c&> class_cast_exception_class;
-static optional<method&> class_cast_exception_constructor;
+static optional<instance_method&> class_cast_exception_constructor;
 
 static void init_java_lang_class_cast_exception() {
 	class_cast_exception_class = classes.load_class_by_bootstrap_class_loader(

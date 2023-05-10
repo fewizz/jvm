@@ -30,7 +30,7 @@ static void init_java_lang_invoke_method_handles() {
 
 			::c& caller_class = prev_exe_context.method.c();
 
-			method& constructor
+			instance_method& constructor
 				= method_handles_lookup_class->declared_instance_methods()
 				.find(
 					c_string{ u8"<init>" },

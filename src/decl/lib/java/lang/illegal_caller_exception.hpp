@@ -8,7 +8,7 @@ inline expected<reference, reference> try_create_illegal_caller_exception() {
 		c_string{ u8"java/lang/IllegalCallerException" }
 	);
 
-	method& constructor = c.declared_instance_methods().find(
+	instance_method& constructor = c.declared_instance_methods().find(
 		c_string{ u8"<init>" },
 		c_string{ u8"()V" }
 	);

@@ -4,7 +4,7 @@
 #include "decl/object.hpp"
 
 static optional<c&> mh_setter_class;
-static optional<method&> mh_setter_constructor;
+static optional<instance_method&> mh_setter_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_setter_mh(
