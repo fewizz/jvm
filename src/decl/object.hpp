@@ -1,9 +1,8 @@
 #pragma once
 
-#include "class.hpp"
-#include "class/layout.hpp"
-#include "class/layout_view_extension.hpp"
-#include "class/member_index.hpp"
+#include "decl/class.hpp"
+#include "decl/class/layout_view_extension.hpp"
+#include "decl/class/member_index.hpp"
 
 #include <optional.hpp>
 #include <integer.hpp>
@@ -14,6 +13,8 @@
 template<typename Type>
 struct object_of;
 
+struct layout;
+
 namespace jl {
 	struct object{};
 }
@@ -22,7 +23,9 @@ struct _class;
 struct reference;
 
 template<>
-struct object_of<jl::object> : layout_view_extension<object_of<jl::object>, instance_field_index> {
+struct object_of<jl::object> :
+	layout_view_extension<object_of<jl::object>, instance_field_index>
+{
 private:
 	uint32 references_ = 0;
 	optional<c&> class_{};
@@ -37,13 +40,14 @@ private:
 	void unsafe_decrease_reference_count_without_destroing();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object, instance_field_index>;
+	friend layout_view_extension<object_of<jl::object>, instance_field_index>;
 
-	inline const ::layout& layout_for_view() {
+	const ::layout& layout_for_view() {
 		return class_->instance_layout();
 	}
 	uint8* data_for_layout_view() { return data_.as_span().begin(); }
-	inline auto fields_view_for_layout_view() {
+
+	auto fields_view_for_layout_view() {
 		return class_->instance_fields();
 	}
 
@@ -62,7 +66,7 @@ public:
 		}
 		return class_.get();
 	}
-	      ::c& c()       {
+		  ::c& c()       {
 		if(!class_.has_value()) {
 			print::err("object::c(): object is null");
 			posix::abort();

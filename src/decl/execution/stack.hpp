@@ -52,7 +52,10 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 		}
 	}
 
-	void unsafely_emplace_reference_at(nuint index, object* obj_ptr) {
+	void unsafely_emplace_reference_at(
+		nuint index,
+		object_of<jl::object>* obj_ptr
+	) {
 		uint64* base_ptr = & base_type::operator [] (index);
 		new ((char*) base_ptr) reference(obj_ptr);
 		nuint bitmap_index = index / 64;
@@ -121,7 +124,7 @@ public:
 		base_type::emplace_back();
 		unsafely_emplace_reference_at(size() - 1, ref.object_ptr());
 	}
-	void emplace_back(object& obj) {
+	void emplace_back(object_of<jl::object>& obj) {
 		base_type::emplace_back();
 		unsafely_emplace_reference_at(size() - 1, &obj);
 	}
@@ -148,9 +151,9 @@ public:
 			unsafely_emplace_reference_at(index, ref.object_ptr());
 		}
 	}
-	void emplace_at(nuint index, object& obj) {
+	void emplace_at(nuint index, object_of<jl::object>& obj) {
 		if(is_reference_at(index)) {
-			get<reference>(index) = reference{ obj };
+			get<reference>(index) = obj;
 		} else {
 			unsafely_emplace_reference_at(index, &obj);
 		}

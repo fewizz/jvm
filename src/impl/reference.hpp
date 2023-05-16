@@ -58,6 +58,16 @@ inline reference& reference::operator = (reference&& other) {
 	return *this;
 }
 
+inline reference& reference::operator = (object_of<jl::object>& o) {
+	if(&o == obj_ptr_) {
+		return *this;
+	}
+	try_reset();
+	obj_ptr_ = &o;
+	o.on_reference_added();
+	return *this;
+}
+
 inline void abort_if_null(const object* obj_ptr) {
 	if(obj_ptr == nullptr) {
 		print::err("obj_ is nullptr\n");

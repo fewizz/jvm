@@ -12,18 +12,17 @@
 #include <overloaded.hpp>
 
 namespace jl::i {
-	struct method_handle{};
+	struct method_handle {
+		static inline optional<::c&> c;
+		static inline instance_method_index invoke_exact_ptr_index;
+		static inline layout::position method_type_field_position;
+	};
 }
 
 template<>
 struct object_of<jl::i::method_handle> : object_of<jl::object> {
 	using object_of<jl::object>::object_of;
 };
-
-static optional<c&> method_handle_class;
-
-inline instance_method_index method_handle_invoke_exact_ptr_index;
-inline layout::position method_handle_method_type_field_position;
 
 namespace mh {
 
@@ -32,7 +31,7 @@ namespace mh {
 		object_of<jl::i::method_handle>& mh, nuint args_beginning
 	) {
 		method& m = mh.c().instance_methods()
-			[method_handle_invoke_exact_ptr_index];
+			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
@@ -48,7 +47,7 @@ namespace mh {
 		nuint args_beginning
 	) {
 		method& m = mh.c().instance_methods()
-			[method_handle_invoke_exact_ptr_index];
+			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(

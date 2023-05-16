@@ -190,7 +190,7 @@ public:
 	inline void destruct_declared_static_fields_values();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object, instance_field_index>;
+	friend layout_view_extension<object_of<jl::object>, instance_field_index>;
 
 	const ::layout& layout_for_view() const {
 		return declared_static_layout_;
@@ -285,12 +285,12 @@ public:
 private:
 	inline void init_instance();
 public:
-	::object& object() {
+	object_of<jl::object>& object() {
 		init_instance();
 		return instance_.object();
 	}
 
-	::object* object_ptr() {
+	object_of<jl::object>* object_ptr() {
 		init_instance();
 		return instance_.object_ptr();
 	}

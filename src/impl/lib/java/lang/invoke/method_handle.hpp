@@ -6,29 +6,29 @@
 #include "decl/lib/jvm/mh/invoke_adapter.hpp"
 
 inline void init_java_lang_invoke_method_handle() {
-	method_handle_class = classes.load_class_by_bootstrap_class_loader(
+	jl::i::method_handle::c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ u8"java/lang/invoke/MethodHandle" }
 	);
 
-	method_handle_invoke_exact_ptr_index
-		= method_handle_class->instance_methods().find_index_of(
+	jl::i::method_handle::invoke_exact_ptr_index
+		= jl::i::method_handle::c->instance_methods().find_index_of(
 			c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 		);
-	
-	method_handle_method_type_field_position
-		= method_handle_class->instance_field_position(
+
+	jl::i::method_handle::method_type_field_position
+		= jl::i::method_handle::c->instance_field_position(
 			c_string{ u8"methodType_" },
 			c_string{ u8"Ljava/lang/invoke/MethodType;" }
 		);
 
-	method_handle_class->declared_instance_methods().find(
+	jl::i::method_handle::c->declared_instance_methods().find(
 		c_string{ u8"invokePtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
 			reference mh_ref, reference new_mt, nuint args_beginning
 		) -> optional<reference> {
 			reference& mt = mh_ref->get<reference>(
-				method_handle_method_type_field_position
+				jl::i::method_handle::method_type_field_position
 			);
 			object_of<jl::i::method_handle>& mh =
 				(object_of<jl::i::method_handle>&) mh_ref.object();
@@ -42,7 +42,7 @@ inline void init_java_lang_invoke_method_handle() {
 		}
 	);
 
-	method_handle_class->declared_instance_methods().find(
+	jl::i::method_handle::c->declared_instance_methods().find(
 		c_string{ u8"asType" },
 		c_string {
 			u8"(Ljava/lang/invoke/MethodType;)"

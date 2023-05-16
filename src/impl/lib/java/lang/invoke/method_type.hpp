@@ -116,34 +116,34 @@ template<range_of<c&> ParamClasses>
 }
 
 static void init_java_lang_invoke_method_type() {
-	method_type_class = classes.load_class_by_bootstrap_class_loader(
+	jl::i::method_type::c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ u8"java/lang/invoke/MethodType" }
 	);
 
-	method_type_constructor = method_type_class->instance_methods().find(
+	method_type_constructor = jl::i::method_type::c->instance_methods().find(
 		c_string{ u8"<init>" },
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V" }
 	);
 
-	method_type_parameter_types_instance_field_position =
-		method_type_class->instance_field_position(
+	jl::i::method_type::parameter_types_instance_field_position =
+		jl::i::method_type::c->instance_field_position(
 			c_string{ u8"parameterTypes_" },
 			c_string{ u8"[Ljava/lang/Class;" }
 		);
 
-	method_type_return_type_instance_field_position =
-		method_type_class->instance_field_position(
+	jl::i::method_type::return_type_instance_field_position =
+		jl::i::method_type::c->instance_field_position(
 			c_string{ u8"returnType_" },
 			c_string{ u8"Ljava/lang/Class;" }
 		);
 
-	method_type_descriptor_instance_field_position =
-		method_type_class->instance_field_position(
+	jl::i::method_type::descriptor_instance_field_position =
+		jl::i::method_type::c->instance_field_position(
 			c_string{ u8"descriptorUTF8_" },
 			c_string{ u8"[B" }
 		);
 
-	method_type_class->declared_static_methods().find(
+	jl::i::method_type::c->declared_static_methods().find(
 		c_string{ u8"descriptorUTF8" },
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(

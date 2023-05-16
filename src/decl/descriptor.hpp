@@ -28,3 +28,4 @@ static constexpr nuint descriptor_type_stack_size =
 	same_as_any<Type, class_file::j, class_file::d> ?
 	2 :
 	1;
+

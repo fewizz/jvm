@@ -4,16 +4,14 @@
 #include <expected.hpp>
 #include <posix/memory.hpp>
 
+struct c;
+
 template<typename Type>
 struct object_of;
 
 namespace jl {
 	struct object;
 }
-
-using object = object_of<jl::object>;
-
-struct c;
 
 struct reference {
 private:
@@ -31,13 +29,13 @@ private:
 
 public:
 
-	reference(object& obj);
-	reference(object* obj_ptr);
+	reference(object_of<jl::object>& obj);
+	reference(object_of<jl::object>* obj_ptr);
 
 	reference() = default;
 
 	~reference();
-	object& unsafe_release_without_destroing();
+	object_of<jl::object>& unsafe_release_without_destroing();
 
 	reference(const reference& );
 	reference(      reference&&);
@@ -45,26 +43,28 @@ public:
 	reference& operator = (const reference& );
 	reference& operator = (      reference&&);
 
+	reference& operator = (object_of<jl::object>&);
+
 	reference operator = (decltype(nullptr)) {
 		try_reset();
 		return *this;
 	}
 
-	const ::object& object() const;
-	      ::object& object();
+	const object_of<jl::object>& object() const;
+	      object_of<jl::object>& object();
 
-	const ::object* object_ptr() const;
-	      ::object* object_ptr();
+	const object_of<jl::object>* object_ptr() const;
+	      object_of<jl::object>* object_ptr();
 
-	::object* operator -> () { return object_ptr(); }
+	object_of<jl::object>* operator -> () { return object_ptr(); }
 
 	bool is_null() const;
 
 	const ::c& c() const;
 	      ::c& c()      ;
 
-	operator const ::object& () const & { return *object_ptr(); }
-	operator       ::object& ()       & { return *object_ptr(); }
+	operator const object_of<jl::object>& () const & { return *object_ptr(); }
+	operator       object_of<jl::object>& ()       & { return *object_ptr(); }
 };
 
 static inline reference nullptr_ref{};

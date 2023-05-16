@@ -37,7 +37,7 @@ static void init_jvm_mh_invoke_adapter() {
 		(void*)+[](native_environment*, object* new_mh) -> bool {
 			object_of<jl::i::method_type>& new_mt =
 				(object_of<jl::i::method_type>&) new_mh->get<reference>(
-					method_handle_method_type_field_position
+					jl::i::method_handle::method_type_field_position
 				).object();
 
 			object& ori_mh = new_mh->get<reference>(
@@ -45,7 +45,7 @@ static void init_jvm_mh_invoke_adapter() {
 			);
 			object_of<jl::i::method_type>& ori_mt =
 				(object_of<jl::i::method_type>&) ori_mh.get<reference>(
-					method_handle_method_type_field_position
+					jl::i::method_handle::method_type_field_position
 				).object();
 
 			return mh::is_convertible(new_mt, ori_mt);
@@ -61,7 +61,7 @@ static void init_jvm_mh_invoke_adapter() {
 		) -> optional<reference> {
 			object_of<jl::i::method_type>& new_mt =
 				(object_of<jl::i::method_type>&) new_mh->get<reference>(
-					method_handle_method_type_field_position
+					jl::i::method_handle::method_type_field_position
 				).object();
 
 			object_of<jl::i::method_handle>& ori_mh =
@@ -72,7 +72,7 @@ static void init_jvm_mh_invoke_adapter() {
 
 			object_of<jl::i::method_type>& ori_mt =
 				(object_of<jl::i::method_type>&) ori_mh.get<reference>(
-					method_handle_method_type_field_position
+					jl::i::method_handle::method_type_field_position
 				).object();
 
 			return mh::try_invoke_checked(

@@ -265,7 +265,9 @@ inline expected<reference, reference> c::try_get_resolved_method_handle(
 				return unexpected{ possible_mt.move_unexpected() };
 			}
 
-			reference mt = possible_mt.move_expected();
+			reference mt_ref = possible_mt.move_expected();
+			object_of<jl::i::method_type>& mt
+				= (object_of<jl::i::method_type>&) mt_ref.object();
 
 			expected<reference, reference> possible_mh
 			= [&]() -> expected<reference, reference> {
