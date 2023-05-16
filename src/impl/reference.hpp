@@ -16,6 +16,12 @@ inline reference::reference(::object& obj) : obj_ptr_{ &obj }{
 	obj.on_reference_added();
 }
 
+inline reference::reference(::object* obj_ptr) : obj_ptr_{ obj_ptr } {
+	if(obj_ptr != nullptr) {
+		obj_ptr->on_reference_added();
+	}
+}
+
 inline const ::object* reference::object_ptr() const { return obj_ptr_; }
 inline       ::object* reference::object_ptr()       { return obj_ptr_; }
 

@@ -30,9 +30,11 @@ inline void init_java_lang_invoke_method_handle() {
 			reference& mt = mh_ref->get<reference>(
 				method_handle_method_type_field_position
 			);
+			object_of<jl::i::method_handle>& mh =
+				(object_of<jl::i::method_handle>&) mh_ref.object();
 
 			return mh::try_invoke_checked(
-				mh_ref,
+				mh,
 				(object_of<jl::i::method_type>&) new_mt.object(),
 				(object_of<jl::i::method_type>&)mt,
 				args_beginning

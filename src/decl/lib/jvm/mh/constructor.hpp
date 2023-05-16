@@ -12,7 +12,7 @@ try_create_constructor_mh(
 ) {
 	return try_create_object(
 		mh_constructor_constructor.get(),
-		move(mt), reference{ c.object() }, uint16{ index }
+		move(mt), c.object(), uint16{ index }
 	);
 }
 

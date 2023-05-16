@@ -5,6 +5,7 @@
 #include "decl/field.hpp"
 #include "decl/array.hpp"
 
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class.hpp"
@@ -17,6 +18,11 @@
 
 template<typename Handler>
 void view_object_type(auto name, Handler&& handler) {
+	if(name.has_equal_size_and_elements(
+		c_string{"java/lang/invoke/MethodHandle"})
+	) {
+		return handler.template operator () <jl::i::method_handle>();
+	}
 	if(name.has_equal_size_and_elements(
 		c_string{"java/lang/invoke/MethodType"})
 	) {

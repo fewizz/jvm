@@ -111,12 +111,14 @@ template<basic_range Desriptor>
 			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
 			--args_beginning_positoin;
 		}
+		object_of<jl::i::method_handle>& mh
+			= (object_of<jl::i::method_handle>&) mh_ref.object();
 
 		if(resolved_method.name().has_equal_size_and_elements(
 			c_string{ u8"invokeExact" }
 		)) {
 			return mh::try_invoke_exact(
-				move(mh_ref),
+				mh,
 				args_beginning_positoin
 			);
 		}
@@ -130,11 +132,13 @@ template<basic_range Desriptor>
 				return possible_new_mt.move_unexpected();
 			}
 
-			reference new_mt = possible_new_mt.move_expected();
+			reference new_mt_ref = possible_new_mt.move_expected();
+			object_of<jl::i::method_type>& new_mt
+				= (object_of<jl::i::method_type>&) new_mt_ref.object();
 
 			return mh::try_invoke(
-				move(mh_ref),
-				move(new_mt),
+				mh,
+				new_mt,
 				args_beginning_positoin
 			);
 		}

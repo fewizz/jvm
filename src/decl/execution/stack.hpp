@@ -52,9 +52,9 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 		}
 	}
 
-	void unsafely_emplace_reference_at(nuint index, reference ref) {
+	void unsafely_emplace_reference_at(nuint index, object* obj_ptr) {
 		uint64* base_ptr = & base_type::operator [] (index);
-		new ((char*) base_ptr) reference(move(ref));
+		new ((char*) base_ptr) reference(obj_ptr);
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
 		reference_bits_[bitmap_index].get() |= (uint64(1) << bit_index);
@@ -119,7 +119,11 @@ public:
 
 	void emplace_back(reference ref) {
 		base_type::emplace_back();
-		unsafely_emplace_reference_at(size() - 1, move(ref));
+		unsafely_emplace_reference_at(size() - 1, ref.object_ptr());
+	}
+	void emplace_back(object& obj) {
+		base_type::emplace_back();
+		unsafely_emplace_reference_at(size() - 1, &obj);
 	}
 	template<stack_primitive_element Type>
 	requires (bytes_in<Type> == 4)
@@ -141,7 +145,14 @@ public:
 		if(is_reference_at(index)) {
 			get<reference>(index) = move(ref);
 		} else {
-			unsafely_emplace_reference_at(index, move(ref));
+			unsafely_emplace_reference_at(index, ref.object_ptr());
+		}
+	}
+	void emplace_at(nuint index, object& obj) {
+		if(is_reference_at(index)) {
+			get<reference>(index) = reference{ obj };
+		} else {
+			unsafely_emplace_reference_at(index, &obj);
 		}
 	}
 

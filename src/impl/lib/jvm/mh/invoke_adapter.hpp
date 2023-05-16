@@ -64,9 +64,12 @@ static void init_jvm_mh_invoke_adapter() {
 					method_handle_method_type_field_position
 				).object();
 
-			object& ori_mh = new_mh->get<reference>(
-				jvm_mh_invoke_adapter_original_field_position
-			);
+			object_of<jl::i::method_handle>& ori_mh =
+				(object_of<jl::i::method_handle>&)
+				new_mh->get<reference>(
+					jvm_mh_invoke_adapter_original_field_position
+				).object();
+
 			object_of<jl::i::method_type>& ori_mt =
 				(object_of<jl::i::method_type>&) ori_mh.get<reference>(
 					method_handle_method_type_field_position

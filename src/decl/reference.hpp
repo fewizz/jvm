@@ -32,6 +32,7 @@ private:
 public:
 
 	reference(object& obj);
+	reference(object* obj_ptr);
 
 	reference() = default;
 
