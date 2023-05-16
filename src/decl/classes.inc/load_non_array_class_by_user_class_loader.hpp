@@ -7,12 +7,12 @@
 template<basic_range Name>
 expected<c&, reference>
 classes::try_load_non_array_class_by_user_class_loader(
-	Name&& name, object* l_ref
+	Name&& name, object_of<jl::c_loader>* l
 ) {
-	if(l_ref == nullptr) {
+	if(l == nullptr) {
 		posix::abort();
 	}
-	c& l_c = l_ref->c();
+	c& l_c = l->c();
 
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -24,7 +24,7 @@ classes::try_load_non_array_class_by_user_class_loader(
 	   so, this class or interface is C, and no class loading or creation is
 	   necessary. */
 	optional<c&> loaded_class
-		= try_find_class_which_loading_was_initiated_by(name, l_ref);
+		= try_find_class_which_loading_was_initiated_by(name, l);
 	
 	if(loaded_class.has_value()) {
 		return loaded_class.get();
@@ -52,7 +52,7 @@ classes::try_load_non_array_class_by_user_class_loader(
 	method& load_method = l_c[class_loader_load_class_method_index];
 
 	optional<reference> possible_exception
-		= try_execute(load_method, reference{*l_ref}, name_ref);
+		= try_execute(load_method, reference{*l}, name_ref);
 	if(possible_exception.has_value()) {
 		return possible_exception.move();
 	}
@@ -79,8 +79,8 @@ classes::try_load_non_array_class_by_user_class_loader(
 	/* Otherwise, the result is the created class or interface C. The Java
 	   Virtual Machine records that L is an initiating loader of C (§5.3.4).
 	   The process of loading and creating C succeeds. */
-	if(c.defining_loader().object_ptr() != l_ref) {
-		mark_class_loader_as_initiating_for_class(c, l_ref);
+	if(c.defining_loader().object_ptr() != l) {
+		mark_class_loader_as_initiating_for_class(c, l);
 	}
 	return c;
 }

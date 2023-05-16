@@ -13,7 +13,7 @@ template<basic_range Name>
 expected<c&, reference> classes::try_define_class(
 	Name&& name,
 	posix::memory_for_range_of<uint8> bytes,
-	object* defining_loader // L
+	object_of<jl::c_loader>* defining_loader // L
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {

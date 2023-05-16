@@ -4,7 +4,7 @@
 
 template<basic_range Name>
 c& classes::define_array_class(
-	Name&& name, object* defining_loader
+	Name&& name, object_of<jl::c_loader>* defining_loader
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {

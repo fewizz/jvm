@@ -14,9 +14,12 @@ static void init_jvm_app_class_loader() {
 		c_string{ u8"findClass" },
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[](native_environment*, object* ths, object* name) -> object* {
-			return view_string_on_stack_as_utf8(
-				*name,
+		(void*)+[](
+			native_environment*,
+			object_of<jl::c_loader>* ths,
+			object_of<jl::string>* name
+		) -> object* {
+			return name->view_on_stack_as_utf8(
 				[&](auto name_utf8) -> object* {
 					optional<posix::memory_for_range_of<unsigned char>>
 						possible_data = try_load_class_file_data_at(

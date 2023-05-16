@@ -12,7 +12,8 @@ inline c& c::get_array_class() {
 		}.concat_view();
 
 		array_class_ = classes.load_array_class(
-			array_class_name, defining_loader_.object_ptr()
+			array_class_name,
+			(object_of<jl::c_loader>*) defining_loader_.object_ptr()
 		);
 
 		array_class_->component_class_ = *this;

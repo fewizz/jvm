@@ -117,7 +117,10 @@ int main (int argc, const char** argv) {
 	auto main_class_name = c_string{ (const utf8::unit*) argv[1] }.sized();
 
 	expected<c&, reference> possible_c
-		= classes.try_load_class(main_class_name, app_cl_ref.object_ptr());
+		= classes.try_load_class(
+			main_class_name,
+			(object_of<jl::c_loader>*) app_cl_ref.object_ptr()
+		);
 
 	if(possible_c.is_unexpected()) {
 		return on_exit(possible_c.move_unexpected());

@@ -7,7 +7,7 @@
    loader or a user-defined class loader. */
 template<basic_range Name>
 expected<c&, reference> classes::try_load_array_class(
-	Name&& name, object* l_ref
+	Name&& name, object_of<jl::c_loader>* l
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -20,7 +20,7 @@ expected<c&, reference> classes::try_load_array_class(
 	   is necessary. */
 	
 	optional<c&> loaded_class
-		= try_find_class_which_loading_was_initiated_by(name, l_ref);
+		= try_find_class_which_loading_was_initiated_by(name, l);
 
 	if(loaded_class.has_value()) {
 		return loaded_class.get();
@@ -60,7 +60,7 @@ expected<c&, reference> classes::try_load_array_class(
 				= iterator_and_sentinel {
 					iter, iter + size
 				}.as_range().view_copied_elements_on_stack([&](auto cn) {
-					return try_load_class(cn, l_ref);
+					return try_load_class(cn, l);
 				});
 
 			return possible_component_class;
@@ -92,8 +92,9 @@ expected<c&, reference> classes::try_load_array_class(
 	      defining loader. Otherwise, the Java Virtual Machine marks C to have
 	      the bootstrap class loader as its defining loader.*/
 
-	object* defining_class_loader
-		= component_class.defining_loader().object_ptr();
+	object_of<jl::c_loader>* defining_class_loader =
+		(object_of<jl::c_loader>*)
+		component_class.defining_loader().object_ptr();
 
 	optional<class_and_initiating_loaders&> c_and_l =
 		try_find_first_satisfying([&](class_and_initiating_loaders& c_and_il) {
@@ -111,8 +112,8 @@ expected<c&, reference> classes::try_load_array_class(
 	/*    In any case, the Java Virtual Machine then records that L is an
 	      initiating loader for C (§5.3.4). */
 	
-	if(component_class.defining_loader().object_ptr() != l_ref) {
-		mark_class_loader_as_initiating_for_class(c, l_ref);
+	if(component_class.defining_loader().object_ptr() != l) {
+		mark_class_loader_as_initiating_for_class(c, l);
 	}
 
 	/*    If the component type is a reference type, the accessibility of the
