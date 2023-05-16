@@ -7,6 +7,12 @@
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
 
+namespace jl {
+
+	struct string{};
+
+}
+
 static optional<c&> string_class{};
 inline layout::position string_value_field_position;
 
@@ -72,3 +78,18 @@ try_create_string_from_utf8(String&& str_utf8) {
 
 	return try_create_string(data);
 }
+
+template<>
+struct object_of<jl::string> : object {
+	using object::object;
+
+	nuint length() {
+		return string_utf8_length(*this);
+	}
+
+	template<typename Handler>
+	decltype(auto) view_on_stack_as_utf8(Handler&& handler) {
+		return view_string_on_stack_as_utf8(*this, forward<Handler>(handler));
+	}
+
+};

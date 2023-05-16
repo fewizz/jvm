@@ -11,10 +11,18 @@
 #include <posix/memory.hpp>
 #include <posix/thread.hpp>
 
+template<typename Type>
+struct object_of;
+
+namespace jl {
+	struct object{};
+}
+
 struct _class;
 struct reference;
 
-struct object : layout_view_extension<object, instance_field_index> {
+template<>
+struct object_of<jl::object> : layout_view_extension<object_of<jl::object>, instance_field_index> {
 private:
 	uint32 references_ = 0;
 	optional<c&> class_{};
@@ -41,8 +49,11 @@ private:
 
 public:
 
-	object(c& c);
-	~object();
+	object_of<jl::object>(const object_of<jl::object>&  c) = delete;
+	object_of<jl::object>(      object_of<jl::object>&& c) = delete;
+
+	object_of<jl::object>(c& c);
+	~object_of<jl::object>();
 
 	const ::c& c() const {
 		if(!class_.has_value()) {
@@ -70,6 +81,8 @@ public:
 	}
 
 };
+
+using object = object_of<jl::object>;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_object(c& c);

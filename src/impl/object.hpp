@@ -5,12 +5,30 @@
 #include "decl/field.hpp"
 #include "decl/array.hpp"
 
+#include "decl/lib/java/lang/string.hpp"
+#include "decl/lib/java/lang/class.hpp"
+#include "decl/lib/java/lang/class_loader.hpp"
+
 #include "execution/info.hpp"
 
 #include <posix/memory.hpp>
 #include <posix/io.hpp>
 
-inline object::object(::c& c) :
+template<typename Handler>
+void view_object_type(auto name, Handler&& handler) {
+	if(name.has_equal_size_and_elements(c_string{"java/lang/String"})) {
+		return handler.template operator () <jl::string>();
+	}
+	if(name.has_equal_size_and_elements(c_string{"java/lang/Class"})) {
+		return handler.template operator () <jl::c>();
+	}
+	if(name.has_equal_size_and_elements(c_string{"java/lang/ClassLoader"})) {
+		return handler.template operator () <jl::c_loader>();
+	}
+	return handler.template operator () <jl::object>();
+}
+
+inline object_of<jl::object>::object_of(::c& c) :
 	class_{ c },
 	mutex_{ posix::create_mutex(mutex_attribute_recursive) },
 	data_ {
@@ -32,7 +50,7 @@ inline object::object(::c& c) :
 	});
 }
 
-inline object::~object() {
+inline object_of<jl::object>::~object_of() {
 	if(info) {
 		tabs();
 		auto name = c().name();
@@ -70,6 +88,17 @@ inline void object::on_reference_added() {
 	}
 }
 
+inline void object::unsafe_decrease_reference_count_without_destroing() {
+	if(references_ == 0) {
+		print::err(
+			"'unsafe_decrease_reference_count_without_destroing'"
+			" on object without references\n"
+		);
+		posix::abort();
+	}
+	--references_;
+}
+
 inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		print::err("# removing reference on object without references\n");
@@ -84,20 +113,13 @@ inline void object::on_reference_removed() {
 	}
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
-		this->~object();
+
+		view_object_type(this->class_->name(), [&]<typename Type>() {
+			((object_of<Type>*)this)->~object_of<Type>();
+		});
+
 		posix::free_raw_memory(ptr_to_this);
 	}
-}
-
-inline void object::unsafe_decrease_reference_count_without_destroing() {
-	if(references_ == 0) {
-		print::err(
-			"'unsafe_decrease_reference_count_without_destroing'"
-			" on object without references\n"
-		);
-		posix::abort();
-	}
-	--references_;
 }
 
 [[nodiscard]] inline expected<reference, reference>
@@ -108,6 +130,10 @@ try_create_object(c& c) {
 	}
 
 	object* ptr = posix::allocate_raw_memory_of<object>(1).iterator();
-	new(ptr) object(c);
+	view_object_type(c.name(), [&]<typename Type>() {
+		static_assert(sizeof(object_of<Type>) == sizeof(object));
+		new(ptr) object_of<Type>(c);
+	});
+
 	return { *ptr };
 }

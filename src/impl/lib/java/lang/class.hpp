@@ -24,8 +24,8 @@ static inline void init_java_lang_class() {
 	class_class->declared_instance_methods().find(
 		c_string{ u8"getComponentType" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[](native_environment*, object* ths) -> object* {
-			c& c = class_from_class_instance(*ths);
+		(void*)+[](native_environment*, object_of<jl::c>* ths) -> object* {
+			c& c = ths->c();
 			return c.get_component_class().object_ptr();
 		}
 	);
@@ -33,8 +33,8 @@ static inline void init_java_lang_class() {
 	class_class->declared_instance_methods().find(
 		c_string{ u8"getName" }, c_string{ u8"()Ljava/lang/String;" }
 	).native_function(
-		(void*)+[](native_environment*, object* ths) -> object* {
-			c& c = class_from_class_instance(*ths);
+		(void*)+[](native_environment*, object_of<jl::c>* ths) -> object* {
+			c& c = ths->c();
 			expected<reference, reference> possible_string
 				= try_create_string_from_utf8(c.name());
 			if(possible_string.is_unexpected()) {

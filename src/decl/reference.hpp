@@ -4,12 +4,20 @@
 #include <expected.hpp>
 #include <posix/memory.hpp>
 
-struct object;
+template<typename Type>
+struct object_of;
+
+namespace jl {
+	struct object;
+}
+
+using object = object_of<jl::object>;
+
 struct c;
 
 struct reference {
 private:
-	object* obj_ptr_ = nullptr;
+	object_of<jl::object>* obj_ptr_ = nullptr;
 
 	friend expected<reference, reference> try_create_object(::c& c);
 

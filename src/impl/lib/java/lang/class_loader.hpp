@@ -25,7 +25,11 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;[BII)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		object* ths, object* name, object* b, int32 off, int32 len
+		object_of<jl::c_loader>* ths,
+		object_of<jl::string>* name,
+		object* b,
+		int32 off,
+		int32 len
 	)
 	-> object*
 	{
@@ -46,8 +50,7 @@ static void init_java_lang_class_loader() {
 		auto data = posix::allocate_memory_for<uint8>(bytes.size());
 		bytes.copy_to(data.as_span());
 
-		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
-			*name,
+		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
 			[&](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				return classes.try_define_class(name_utf8, move(data), ths);
 			}
@@ -66,9 +69,11 @@ static void init_java_lang_class_loader() {
 	c.declared_static_methods().find(
 		c_string{ u8"loadClassJVM" },
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
-	).native_function((void*)+[](native_environment*, object* name) -> object* {
-		expected<::c&, reference> possible_c = view_string_on_stack_as_utf8(
-			*name,
+	).native_function((void*)+[](
+		native_environment*,
+		object_of<jl::string>* name
+	) -> object* {
+		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
 			[](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				for(utf8::unit& cp : name_utf8) {
 					if(cp == '.') cp = '/';
@@ -91,11 +96,12 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"findLoadedClass" },
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
-		native_environment*, object* ths, object* name
+		native_environment*,
+		object_of<jl::c_loader>* ths,
+		object_of<jl::string>* name
 	) -> object* {
 		optional<::c&> possible_c
-		= view_string_on_stack_as_utf8(
-			*name,
+		= name->view_on_stack_as_utf8(
 			[&](span<utf8::unit> name_utf8) -> optional<::c&> {
 				for(utf8::unit& cp : name_utf8) {
 					if(cp == '.') cp = '/';
