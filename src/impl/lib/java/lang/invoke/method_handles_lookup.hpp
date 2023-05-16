@@ -81,7 +81,7 @@ static expected<reference, reference> try_lookup_find_setter(
 static expected<reference, reference> try_lookup_find_virtual(
 	object_of<jl::c>& c_inst,
 	object_of<jl::string>& name,
-	object& mt
+	object_of<jl::i::method_type>& mt
 ) {
 	::c& c = c_inst.c();
 
@@ -89,7 +89,7 @@ static expected<reference, reference> try_lookup_find_virtual(
 		return
 			c.instance_methods().find(
 				name_utf8,
-				method_type_descriptor(mt)
+				mt.descriptor()
 			);
 	});
 
@@ -98,7 +98,9 @@ static expected<reference, reference> try_lookup_find_virtual(
 
 static expected<reference, reference>
 try_lookup_find_static(
-	object_of<jl::c>& cls, object_of<jl::string>& name, object& mt
+	object_of<jl::c>& cls,
+	object_of<jl::string>& name,
+	object_of<jl::i::method_type>& mt
 ) {
 	c& c = cls.c();
 
@@ -106,7 +108,7 @@ try_lookup_find_static(
 		return c
 			.declared_static_methods().find(
 				name_utf8,
-				method_type_descriptor(mt)
+				mt.descriptor()
 			);
 		}
 	);
@@ -117,7 +119,7 @@ try_lookup_find_static(
 static expected<reference, reference> try_lookup_find_special(
 	object_of<jl::c>& refc,
 	object_of<jl::string>& name,
-	object& mt,
+	object_of<jl::i::method_type>& mt,
 	object_of<jl::c>& special_caller
 ) {
 	return name.view_on_stack_as_utf8([&](auto name_utf8)
@@ -130,7 +132,7 @@ static expected<reference, reference> try_lookup_find_special(
 		::c& d = special_caller.c();
 		expected<method&, reference> possible_resolved_method =
 			try_resolve_method(
-				d, c, name_utf8, method_type_descriptor(mt)
+				d, c, name_utf8, mt.descriptor()
 			);
 
 		if(possible_resolved_method.is_unexpected()) {
@@ -159,12 +161,12 @@ static expected<reference, reference> try_lookup_find_special(
 }
 
 static expected<reference, reference> try_lookup_find_constructor(
-	object_of<jl::c>& refc, object& mt
+	object_of<jl::c>& refc, object_of<jl::i::method_type>& mt
 ) {
 	c& c = refc.c();
 	method& m
 		= c.declared_instance_methods().find(
-			c_string{ u8"<init>" }, method_type_descriptor(mt)
+			c_string{ u8"<init>" }, mt.descriptor()
 		);
 	return try_create_constructor_mh(mt, m);
 }
@@ -251,7 +253,9 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)+[](
 			native_environment*, object*,
-			object_of<jl::c>* cls, object_of<jl::string>* name, object* mt
+			object_of<jl::c>* cls,
+			object_of<jl::string>* name,
+			object_of<jl::i::method_type>* mt
 		) -> object* {
 			if(cls == nullptr || name == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
@@ -283,7 +287,9 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)+[](
 			native_environment*, object*,
-			object_of<jl::c>* cls, object_of<jl::string>* name, object* mt
+			object_of<jl::c>* cls,
+			object_of<jl::string>* name,
+			object_of<jl::i::method_type>* mt
 		) -> object* {
 			if(cls == nullptr || name == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
@@ -314,7 +320,8 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	).native_function(
 		(void*)+[](
 			native_environment*, object*,
-			object_of<jl::c>* cls, object* mt
+			object_of<jl::c>* cls,
+			object_of<jl::i::method_type>* mt
 		) -> object* {
 			if(cls == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
@@ -349,7 +356,7 @@ static void init_java_lang_invoke_method_handles_lookup() {
 			native_environment*, object*,
 			object_of<jl::c>* cls,
 			object_of<jl::string>* name,
-			object* mt,
+			object_of<jl::i::method_type>* mt,
 			object_of<jl::c>* caller
 		) -> object* {
 			if(

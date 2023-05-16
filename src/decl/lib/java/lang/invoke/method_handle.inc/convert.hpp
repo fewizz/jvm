@@ -63,11 +63,11 @@ template<typename T0, typename T1>
 }
 
 [[nodiscard]] inline bool is_convertible(
-	object& new_mt,
-	object& ori_mt
+	object_of<jl::i::method_type>& new_mt,
+	object_of<jl::i::method_type>& ori_mt
 ) {
-	auto new_params = method_type_parameter_types_view(new_mt);
-	auto ori_params = method_type_parameter_types_view(ori_mt);
+	auto new_params = new_mt.parameter_types_view();
+	auto ori_params = ori_mt.parameter_types_view();
 
 	if(new_params.size() != ori_params.size()) {
 		return false;
@@ -82,8 +82,8 @@ template<typename T0, typename T1>
 		}
 	}
 
-	c& new_ret = method_type_return_type(new_mt);
-	c& ori_ret = method_type_return_type(ori_mt);
+	c& new_ret = new_mt.return_type();
+	c& ori_ret = ori_mt.return_type();
 
 	return is_type_convertible(ori_ret, new_ret);
 }

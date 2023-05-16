@@ -32,7 +32,10 @@ inline void init_java_lang_invoke_method_handle() {
 			);
 
 			return mh::try_invoke_checked(
-				mh_ref, new_mt, mt, args_beginning
+				mh_ref,
+				(object_of<jl::i::method_type>&) new_mt.object(),
+				(object_of<jl::i::method_type>&)mt,
+				args_beginning
 			);
 		}
 	);

@@ -7,13 +7,16 @@
 namespace mh {
 
 [[nodiscard]] inline optional<reference> try_invoke_checked(
-object& ori_mh, object& new_mt, object& ori_mt, nuint args_beginning
+	object& ori_mh,
+	object_of<jl::i::method_type>& new_mt,
+	object_of<jl::i::method_type>& ori_mt,
+	nuint args_beginning
 ) {
-	c& new_ret = method_type_return_type(new_mt);
-	c& ori_ret = method_type_return_type(ori_mt);
+	c& new_ret = new_mt.return_type();
+	c& ori_ret = ori_mt.return_type();
 
-	auto new_params = method_type_parameter_types_view(new_mt);
-	auto ori_params = method_type_parameter_types_view(ori_mt);
+	auto new_params = new_mt.parameter_types_view();
+	auto ori_params = ori_mt.parameter_types_view();
 
 	optional<reference> possible_throwable
 		= try_convert_arguments_on_stack(

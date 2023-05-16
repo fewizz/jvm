@@ -35,16 +35,18 @@ static void init_jvm_mh_invoke_adapter() {
 	.find(c_string{ u8"check" }, c_string{ u8"()Z" })
 	.native_function(
 		(void*)+[](native_environment*, object* new_mh) -> bool {
-			object& new_mt = new_mh->get<reference>(
-				method_handle_method_type_field_position
-			);
+			object_of<jl::i::method_type>& new_mt =
+				(object_of<jl::i::method_type>&) new_mh->get<reference>(
+					method_handle_method_type_field_position
+				).object();
 
 			object& ori_mh = new_mh->get<reference>(
 				jvm_mh_invoke_adapter_original_field_position
 			);
-			object& ori_mt = ori_mh.get<reference>(
-				method_handle_method_type_field_position
-			);
+			object_of<jl::i::method_type>& ori_mt =
+				(object_of<jl::i::method_type>&) ori_mh.get<reference>(
+					method_handle_method_type_field_position
+				).object();
 
 			return mh::is_convertible(new_mt, ori_mt);
 		}
@@ -57,16 +59,18 @@ static void init_jvm_mh_invoke_adapter() {
 			reference new_mh,
 			[[maybe_unused]] nuint args_beginning
 		) -> optional<reference> {
-			object& new_mt = new_mh->get<reference>(
-				method_handle_method_type_field_position
-			);
+			object_of<jl::i::method_type>& new_mt =
+				(object_of<jl::i::method_type>&) new_mh->get<reference>(
+					method_handle_method_type_field_position
+				).object();
 
 			object& ori_mh = new_mh->get<reference>(
 				jvm_mh_invoke_adapter_original_field_position
 			);
-			object& ori_mt = ori_mh.get<reference>(
-				method_handle_method_type_field_position
-			);
+			object_of<jl::i::method_type>& ori_mt =
+				(object_of<jl::i::method_type>&) ori_mh.get<reference>(
+					method_handle_method_type_field_position
+				).object();
 
 			return mh::try_invoke_checked(
 				ori_mh, new_mt, ori_mt, args_beginning

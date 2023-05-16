@@ -183,10 +183,3 @@ static void init_java_lang_invoke_method_type() {
 		}
 	);
 }
-
-static span<utf8::unit> method_type_descriptor(object& mt) {
-	reference& utf8_desc = mt.get<reference>(
-		method_type_descriptor_instance_field_position
-	);
-	return array_as_span<utf8::unit>(utf8_desc);
-}
