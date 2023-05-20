@@ -25,13 +25,13 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;[BII)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		object_of<jl::c_loader>* ths,
-		object_of<jl::string>* name,
-		object* b,
+		o<jl::c_loader>* ths,
+		o<jl::string>* name,
+		o<jl::object>* b,
 		int32 off,
 		int32 len
 	)
-	-> object*
+	-> o<jl::object>*
 	{
 		if(b == nullptr) {
 			expected<reference, reference> possible_npe
@@ -47,7 +47,7 @@ static void init_java_lang_class_loader() {
 			return nullptr;
 		}
 
-		auto data = posix::allocate_memory_for<uint8>(bytes.size());
+		auto data = posix::allocate<>(bytes.size());
 		bytes.copy_to(data.as_span());
 
 		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
@@ -71,8 +71,8 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		object_of<jl::string>* name
-	) -> object* {
+		o<jl::string>* name
+	) -> o<jl::object>* {
 		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
 			[](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				for(utf8::unit& cp : name_utf8) {
@@ -97,9 +97,9 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		object_of<jl::c_loader>* ths,
-		object_of<jl::string>* name
-	) -> object* {
+		o<jl::c_loader>* ths,
+		o<jl::string>* name
+	) -> o<jl::object>* {
 		optional<::c&> possible_c
 		= name->view_on_stack_as_utf8(
 			[&](span<utf8::unit> name_utf8) -> optional<::c&> {

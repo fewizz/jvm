@@ -9,7 +9,7 @@
 
 #include <c_string.hpp>
 
-static inline c& class_from_class_instance(object& class_instance) {
+static inline c& class_from_class_instance(o<jl::object>& class_instance) {
 	return * (c*) class_instance.get<int64>(class_ptr_field_position);
 }
 
@@ -24,7 +24,7 @@ static inline void init_java_lang_class() {
 	class_class->declared_instance_methods().find(
 		c_string{ u8"getComponentType" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[](native_environment*, object_of<jl::c>* ths) -> object* {
+		(void*)+[](native_environment*, o<jl::c>* ths) -> o<jl::object>* {
 			c& c = ths->c();
 			return c.get_component_class().object_ptr();
 		}
@@ -33,7 +33,7 @@ static inline void init_java_lang_class() {
 	class_class->declared_instance_methods().find(
 		c_string{ u8"getName" }, c_string{ u8"()Ljava/lang/String;" }
 	).native_function(
-		(void*)+[](native_environment*, object_of<jl::c>* ths) -> object* {
+		(void*)+[](native_environment*, o<jl::c>* ths) -> o<jl::object>* {
 			c& c = ths->c();
 			expected<reference, reference> possible_string
 				= try_create_string_from_utf8(c.name());

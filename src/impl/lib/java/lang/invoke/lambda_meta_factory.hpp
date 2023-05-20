@@ -28,12 +28,12 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 	).native_function(
 		(void*)+[](
 			native_environment*,
-			[[maybe_unused]] object* caller,
-			[[maybe_unused]] object* interfaceMethodName,
-			[[maybe_unused]] object* factoryType,
-			[[maybe_unused]] object* interfaceMethodType,
-			[[maybe_unused]] object* implementation,
-			[[maybe_unused]] object* dynamicMethodType
+			[[maybe_unused]] o<jl::object>* caller,
+			[[maybe_unused]] o<jl::object>* interfaceMethodName,
+			[[maybe_unused]] o<jl::object>* factoryType,
+			[[maybe_unused]] o<jl::object>* interfaceMethodType,
+			[[maybe_unused]] o<jl::object>* implementation,
+			[[maybe_unused]] o<jl::object>* dynamicMethodType
 		) {
 			posix::abort();
 		}

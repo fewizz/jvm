@@ -20,7 +20,7 @@ static void init_java_lang_boolean() {
 
 	java_lang_boolean_class->declared_static_methods().find(
 		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
-	).native_function((void*)+[](native_environment*) -> object* {
+	).native_function((void*)+[](native_environment*) -> o<jl::object>* {
 		return bool_class->object_ptr();
 	});
 }

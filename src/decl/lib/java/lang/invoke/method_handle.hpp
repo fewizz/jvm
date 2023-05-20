@@ -20,43 +20,36 @@ namespace jl::i {
 }
 
 template<>
-struct object_of<jl::i::method_handle> : object_of<jl::object> {
-	using object_of<jl::object>::object_of;
-};
-
-namespace mh {
+struct o<jl::i::method_handle> : o<jl::object> {
+	using o<jl::object>::o;
 
 	[[nodiscard]] inline optional<reference>
-	try_invoke_exact(
-		object_of<jl::i::method_handle>& mh, nuint args_beginning
-	) {
-		method& m = mh.c().instance_methods()
+	try_invoke_exact(nuint args_beginning) {
+		method& m = c().instance_methods()
 			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
 			reference mh_ref, nuint args_beginning
 		);
-		return ((f)ptr0)(mh, args_beginning);
+		return ((f)ptr0)(*this, args_beginning);
 	}
 
 	[[nodiscard]] inline optional<reference>
 	try_invoke(
-		object_of<jl::i::method_handle>& mh,
-		object_of<jl::i::method_type>& new_mt,
+		o<jl::i::method_type>& new_mt,
 		nuint args_beginning
 	) {
-		method& m = mh.c().instance_methods()
+		method& m = c().instance_methods()
 			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
 			reference mh_ref, reference new_mt, nuint args_beginning
 		);
-		return ((f)ptr0)(mh, new_mt, args_beginning);
+		return ((f)ptr0)(*this, new_mt, args_beginning);
 	}
-
-}
+};
 
 #include "./method_handle.inc/convert.hpp"
 #include "./method_handle.inc/invoke.hpp"

@@ -8,7 +8,7 @@
 #include <array.hpp>
 
 template<basic_range RootPath, basic_range Name>
-optional<posix::memory_for_range_of<unsigned char>>
+optional<posix::memory<>>
 try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 	auto null_terminated = ranges {
 		root_path, array{u8'/'},
@@ -34,8 +34,7 @@ try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 	nuint size = f->set_offset_to_end();
 	f->set_offset(0);
 
-	posix::memory_for_range_of<uint8> data
-		= posix::allocate_memory_for<uint8>(size);
+	posix::memory<> data = posix::allocate<>(size);
 
 	nuint read_total = 0;
 	while(read_total < size) {

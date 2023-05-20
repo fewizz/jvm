@@ -23,11 +23,11 @@ tuple<method, Iterator> read_method(
 		native_function_ptr{nullptr}
 	};
 
-	posix::memory_for_range_of<
+	posix::memory<
 		class_file::attribute::code::exception_handler
 	> exception_handlers{};
 
-	posix::memory_for_range_of<
+	posix::memory<
 		tuple<uint16, class_file::line_number>
 	> line_numbers{};
 
@@ -58,7 +58,7 @@ tuple<method, Iterator> read_method(
 			};
 
 			::list exception_handlers_list {
-				posix::allocate_memory_for<
+				posix::allocate<
 					class_file::attribute::code::exception_handler
 				>(exception_table_reader.read_count())
 			};
@@ -88,7 +88,7 @@ tuple<method, Iterator> read_method(
 							.read_and_get_line_numbers_reader();
 						
 						::list line_numbers_list {
-							posix::allocate_memory_for<
+							posix::allocate<
 								tuple<uint16, class_file::line_number>
 							>(count)
 						};
@@ -106,13 +106,12 @@ tuple<method, Iterator> read_method(
 							}
 						);
 						line_numbers
-							= line_numbers_list.move_storage_range();
+							= move(line_numbers_list.storage_range());
 					}
 				}
 			);
 
-			exception_handlers
-				= exception_handlers_list.move_storage_range();
+			exception_handlers = move(exception_handlers_list.storage_range());
 		}
 	});
 

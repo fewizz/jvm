@@ -10,68 +10,69 @@
 #include <posix/memory.hpp>
 #include <posix/thread.hpp>
 
-template<typename Type>
-struct object_of;
-
 struct layout;
 
 namespace jl {
 	struct object{};
 }
 
+template<typename Type>
+struct o;
+
 struct _class;
 struct reference;
 
 template<>
-struct object_of<jl::object> :
-	layout_view_extension<object_of<jl::object>, instance_field_index>
+struct o<jl::object> :
+	layout_view_extension<o<jl::object>, instance_field_index>
 {
 private:
 	uint32 references_ = 0;
-	optional<c&> class_{};
+	c& class_;
 	body<posix::mutex> mutex_{};
-	posix::memory_for_range_of<uint8> data_;
+	posix::memory<> data_;
 
 	friend reference;
 
 	friend expected<reference, reference> try_create_object(c& c);
+
 	void on_reference_added();
 	void on_reference_removed();
 	void unsafe_decrease_reference_count_without_destroing();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object_of<jl::object>, instance_field_index>;
+	friend layout_view_extension<o<jl::object>, instance_field_index>;
 
 	const ::layout& layout_for_view() {
-		return class_->instance_layout();
+		return class_.instance_layout();
 	}
 	uint8* data_for_layout_view() { return data_.as_span().begin(); }
 
 	auto fields_view_for_layout_view() {
-		return class_->instance_fields();
+		return class_.instance_fields();
 	}
 
 public:
 
-	object_of<jl::object>(const object_of<jl::object>&  c) = delete;
-	object_of<jl::object>(      object_of<jl::object>&& c) = delete;
+	o<jl::object>(const o<jl::object>&  c) = delete;
+	o<jl::object>(      o<jl::object>&& c) = delete;
 
-	object_of<jl::object>(c& c);
-	~object_of<jl::object>();
+	o<jl::object>(c& c);
+	~o<jl::object>();
 
 	const ::c& c() const {
-		if(!class_.has_value()) {
-			print::err("object::c(): object is null");
-			posix::abort();
-		}
-		return class_.get();
+		//if(!class_.has_value()) {
+		//	print::err("object::c(): object is null");
+		//	posix::abort();
+		//}
+		return class_;
 	}
 		  ::c& c()       {
-		if(!class_.has_value()) {
-			print::err("object::c(): object is null");
-			posix::abort();
-		}
-		return class_.get();
+		//if(!class_.has_value()) {
+		//	print::err("object::c(): object is null");
+		//	posix::abort();
+		//}
+		return class_;
 	}
 
 	uint32 references() { return references_; }
@@ -85,8 +86,6 @@ public:
 	}
 
 };
-
-using object = object_of<jl::object>;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_object(c& c);

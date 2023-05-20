@@ -53,7 +53,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
 					(uint64) x;
 			}
-			else if constexpr(same_as<Type, object*>) {
+			else if constexpr(same_as<Type, o<jl::object>*>) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
 					(uint64) x;
 			}
@@ -180,11 +180,11 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				same_as<Type, class_file::array>
 			) {
 				// increment reference count before possible deletion on stack
-				object* obj_ptr = (::object*) result;
+				o<jl::object>* obj_ptr = (::o<jl::object>*) result;
 				reference ref =
 					obj_ptr == nullptr ?
 					reference{} :
-					reference { * (::object*) result };
+					reference { * (::o<jl::object>*) result };
 
 				stack.pop_back_until(jstack_begin);
 				stack.emplace_back(move(ref));

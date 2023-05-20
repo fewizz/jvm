@@ -20,8 +20,7 @@ try_create_string(span<uint16> data) {
 	}
 	reference data_ref = possible_data_ref.move_expected();
 
-	array_data(data_ref, data.iterator());
-	array_length(data_ref, data.size());
+	data.copy_to(array_as_span<uint16>(data_ref));
 
 	expected<reference, reference> possible_string_ref
 		= try_create_object(string_class.get());
@@ -36,7 +35,7 @@ try_create_string(span<uint16> data) {
 	return string_ref;
 }
 
-inline nuint string_utf8_length(object& str) {
+inline nuint string_utf8_length(o<jl::object>& str) {
 	nuint utf8_length = 0;
 	for_each_string_codepoint(str, [&](unicode::code_point cp) {
 		utf8_length += utf8::encoder{}.units(cp);

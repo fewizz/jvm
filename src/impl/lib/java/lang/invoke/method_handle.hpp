@@ -30,13 +30,13 @@ inline void init_java_lang_invoke_method_handle() {
 			reference& mt = mh_ref->get<reference>(
 				jl::i::method_handle::method_type_field_position
 			);
-			object_of<jl::i::method_handle>& mh =
-				(object_of<jl::i::method_handle>&) mh_ref.object();
+			o<jl::i::method_handle>& mh =
+				(o<jl::i::method_handle>&) mh_ref.object();
 
 			return mh::try_invoke_checked(
 				mh,
-				(object_of<jl::i::method_type>&) new_mt.object(),
-				(object_of<jl::i::method_type>&)mt,
+				(o<jl::i::method_type>&) new_mt.object(),
+				(o<jl::i::method_type>&)mt,
 				args_beginning
 			);
 		}
@@ -49,7 +49,9 @@ inline void init_java_lang_invoke_method_handle() {
 			  "Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)+[](native_environment*, object* ths, object* mt) -> object* {
+		(void*)+[](native_environment*, o<jl::object>* ths, o<jl::object>* mt)
+		-> o<jl::object>*
+		{
 			expected<reference, reference> possible_adapter = try_create_object(
 				mh_invoke_adapter_constructor.get(),
 				reference{*mt}  /* new MethodType */,

@@ -33,24 +33,21 @@ using code_or_native_function_ptr =
 	variant<code, native_function_ptr>;
 
 using exception_handlers = list<
-	posix::memory_for_range_of<class_file::attribute::code::exception_handler>
+	posix::memory<class_file::attribute::code::exception_handler>
 >;
 
 struct method : class_member {
 private:
 
 	code_or_native_function_ptr code_;
-	posix::memory_for_range_of<
-		class_file::attribute::code::exception_handler
-	> exception_handlers_;
+	posix::memory<class_file::attribute::code::exception_handler>
+		exception_handlers_;
 	uint8 parameters_stack_size_ = 0;
-	posix::memory_for_range_of<
-		one_of_descriptor_parameter_types
-	> parameter_types_;
+	posix::memory<one_of_descriptor_parameter_types>
+		parameter_types_;
 	one_of_descriptor_return_types return_type_{ class_file::v{} };
-	posix::memory_for_range_of<
-		tuple<uint16, class_file::line_number>
-	> line_numbers_;
+	posix::memory<tuple<uint16, class_file::line_number>>
+		line_numbers_;
 
 public:
 
@@ -59,12 +56,10 @@ public:
 		class_file::constant::utf8             name,
 		class_file::constant::utf8             descriptor,
 		code_or_native_function_ptr            code,
-		posix::memory_for_range_of<
-			class_file::attribute::code::exception_handler
-		>&& exception_handlers,
-		posix::memory_for_range_of<
-			tuple<uint16, class_file::line_number>
-		>&& line_numbers
+		posix::memory<class_file::attribute::code::exception_handler>&&
+			exception_handlers,
+		posix::memory<tuple<uint16, class_file::line_number>>&&
+			line_numbers
 	) :
 		class_member       { access_flags, name, descriptor },
 		code_              { code                           },
@@ -77,7 +72,7 @@ public:
 		).get();
 
 		list parameter_types_list =
-			posix::allocate_memory_for<one_of_descriptor_parameter_types>(
+			posix::allocate<one_of_descriptor_parameter_types>(
 				parameter_count
 			);
 
@@ -104,7 +99,7 @@ public:
 				parameters_stack_size_ += descriptor_type_stack_size<Type>;
 			});
 		}
-		parameter_types_ = parameter_types_list.move_storage_range();
+		parameter_types_ = move(parameter_types_list.storage_range());
 	}
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }

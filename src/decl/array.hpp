@@ -17,27 +17,22 @@ constexpr inline layout::position
 	array_length_field_position{ bytes_in<int64> };
 
 template<typename Type>
-static Type* array_data(object& o) {
+static Type* array_data(o<jl::object>& o) {
 	return (Type*) o.get<int64>(array_data_field_position);
 }
 
-static inline int32 array_length(object& o) {
+static inline int32 array_length(o<jl::object>& o) {
 	return o.get<int32>(array_length_field_position);
 }
 
-template<typename Type>
-static void array_data(object& o, Type* ptr) {
-	o.set(array_data_field_position, (int64) ptr);
-}
+static inline int32 array_length(o<jl::object>& o);
 
-static inline int32 array_length(object& o);
-
-static inline void array_length(object& o, int32 length) {
+static inline void array_length(o<jl::object>& o, int32 length) {
 	o.set(array_length_field_position, length);
 }
 
 template<typename Type>
-static inline span<Type> array_as_span(object& o) {
+static inline span<Type> array_as_span(o<jl::object>& o) {
 	return { array_data<Type>(o), (nuint) array_length(o) };
 }
 
@@ -55,10 +50,15 @@ static inline expected<reference, reference> try_create_array_by_class(
 	reference ref = possible_ref.move_expected();
 
 	array_length(ref, length);
-	Type* data = (Type*) posix::allocate_raw_zeroed_memory_of<Type>(
-		length
-	).iterator();
-	array_data(ref, data);
+	span<storage<Type>> data =
+		posix::allocate_raw_zeroed<Type>(
+			length
+		);
+
+	int64 ptr = (int64) data.iterator();
+
+	ref->set(array_data_field_position, ptr);
+
 	return ref;
 }
 

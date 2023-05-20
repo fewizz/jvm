@@ -20,7 +20,7 @@ inline void init_java_lang_long() {
 	java_lang_long_class->declared_static_methods().find(
 		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[]() -> object* {
+		(void*)+[]() -> o<jl::object>* {
 			return long_class->object_ptr();
 		}
 	);

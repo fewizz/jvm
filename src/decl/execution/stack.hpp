@@ -20,20 +20,27 @@ concept stack_primitive_element =
 	same_as<Type, int16> || same_as<Type, uint16> ||
 	same_as<Type, uint8> || same_as<Type, bool>;
 
-thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
-	using base_type = list<posix::memory_for_range_of<uint64>>;
+thread_local static class stack :
+	list<posix::memory_of_size_and_alignment<sizeof(uint64), alignof(uint64)>>
+{
+	using base_type = list<posix::memory_of_size_and_alignment<
+		sizeof(uint64), alignof(uint64)
+	>>;
+
 	using base_type::base_type;
 
-	posix::memory_for_range_of<uint64> reference_bits_;
+	posix::memory<uint64> reference_bits_;
 
 	bool is_reference_at(nuint index) const {
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		return ((reference_bits_[bitmap_index].get()) >> bit_index) & 1;
+		uint64& bitmap = reference_bits_[bitmap_index].get();
+		return (bitmap >> bit_index) & 1;
 	}
 
 	template<typename Handler>
-	decltype(auto) view_as_int32_or_reference_at(nuint index, Handler&& handler) {
+	decltype(auto)
+	view_as_int32_or_reference_at(nuint index, Handler&& handler) {
 		if(is_reference_at(index)) {
 			return handler(get<reference>(index));
 		}
@@ -43,7 +50,8 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 	}
 
 	template<typename Handler>
-	decltype(auto) pop_back_and_view_as_int32_or_reference(Handler&& handler) {
+	decltype(auto)
+	pop_back_and_view_as_int32_or_reference(Handler&& handler) {
 		if(is_reference_at(size() - 1)) {
 			return handler(pop_back<reference>());
 		}
@@ -52,26 +60,25 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 		}
 	}
 
-	void unsafely_emplace_reference_at(
-		nuint index,
-		object_of<jl::object>* obj_ptr
+	void mark_reference(
+		nuint index
 	) {
-		uint64* base_ptr = & base_type::operator [] (index);
-		new ((char*) base_ptr) reference(obj_ptr);
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		reference_bits_[bitmap_index].get() |= (uint64(1) << bit_index);
+		uint64& bitmap = reference_bits_[bitmap_index].get();
+		bitmap |= (uint64(1) << bit_index);
 	}
 
 	reference destruct_reference_at(nuint index) {
 		reference& ref = get<reference>(index);
 		reference ref_moved = move(ref);
 		ref.~reference();
-		base_type::pop_back();
+		base_type::pop_back<reference>();
 
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		reference_bits_[bitmap_index].get() &= ~(uint64(1) << bit_index);
+		uint64& bitmap = reference_bits_[bitmap_index].get();
+		bitmap &= ~(uint64(1) << bit_index);
 
 		return ref_moved;
 	}
@@ -79,9 +86,9 @@ thread_local static class stack : list<posix::memory_for_range_of<uint64>> {
 public:
 
 	stack(nuint size) :
-		base_type{ posix::allocate_memory_for<uint64>(size) },
+		base_type{ posix::allocate<sizeof(uint64), alignof(uint64)>(size) },
 		reference_bits_ {
-			posix::allocate_zeroed_memory_for<uint64>(
+			posix::allocate_zeroed<uint64>(
 				(size / 64) + (size % 64 != 0)
 			)
 		}
@@ -99,7 +106,7 @@ public:
 			pop_back<reference>();
 		}
 		else {
-			base_type::pop_back();
+			base_type::pop_back<uint64>();
 		}
 	}
 
@@ -121,23 +128,23 @@ public:
 	}
 
 	void emplace_back(reference ref) {
-		base_type::emplace_back();
-		unsafely_emplace_reference_at(size() - 1, ref.object_ptr());
+		base_type::emplace_back<reference>(ref.object_ptr());
+		mark_reference(size() - 1);
 	}
-	void emplace_back(object_of<jl::object>& obj) {
-		base_type::emplace_back();
-		unsafely_emplace_reference_at(size() - 1, &obj);
+	void emplace_back(o<jl::object>& obj) {
+		base_type::emplace_back<reference>(&obj);
+		mark_reference(size() - 1);
 	}
 	template<stack_primitive_element Type>
 	requires (bytes_in<Type> == 4)
 	void emplace_back(Type v) {
-		base_type::emplace_back((uint64) bit_cast<uint32>(v));
+		base_type::emplace_back<uint64>((uint64) bit_cast<uint32>(v));
 	}
 	template<stack_primitive_element Type>
 	requires (bytes_in<Type> == 8)
 	void emplace_back(Type v) {
-		base_type::emplace_back(bit_cast<uint64>(v));
-		base_type::emplace_back(uint64(-1));
+		base_type::emplace_back<uint64>(bit_cast<uint64>(v));
+		base_type::emplace_back<uint64>(uint64(-1));
 	}
 	void emplace_back(int16 v) { emplace_back((int32)(uint16)(uint32) v); }
 	void emplace_back(uint16 v) { emplace_back((int32)(uint32) v); }
@@ -148,14 +155,18 @@ public:
 		if(is_reference_at(index)) {
 			get<reference>(index) = move(ref);
 		} else {
-			unsafely_emplace_reference_at(index, ref.object_ptr());
+			base_type::operator [] (index)
+				.construct<reference>(move(ref));
+			mark_reference(index);
 		}
 	}
-	void emplace_at(nuint index, object_of<jl::object>& obj) {
+	void emplace_at(nuint index, o<jl::object>& obj) {
 		if(is_reference_at(index)) {
 			get<reference>(index) = obj;
 		} else {
-			unsafely_emplace_reference_at(index, &obj);
+			base_type::operator [] (index)
+				.construct<reference>(&obj);
+			mark_reference(index);
 		}
 	}
 
@@ -164,12 +175,12 @@ public:
 		if(is_reference_at(index)) {
 			destruct_reference_at(index);
 		}
-		new (& base_type::operator [] (index)) Type(value);
+		base_type::operator [] (index).construct<Type>(move(value));
 	}
 
 	template<stack_primitive_element Type>
 	Type& get(nuint index) {
-		return * (Type*) &base_type::operator[](index);
+		return base_type::operator[](index).get<Type>();
 	}
 	template<same_as<reference>>
 	reference& get(nuint i) {
@@ -198,7 +209,7 @@ public:
 	template<stack_primitive_element Type>
 	Type pop_back() {
 		Type v = back<Type>();
-		base_type::pop_back(sizeof(Type) == 4? 1 : 2);
+		base_type::pop_back<uint64>(sizeof(Type) == 4? 1 : 2);
 		return v;
 	}
 	template<same_as<reference>>

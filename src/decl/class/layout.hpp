@@ -39,7 +39,7 @@ struct layout {
 	};
 
 	nuint ending_ = 0;
-	posix::memory_for_range_of<slot> field_index_to_slot_{};
+	posix::memory<slot> field_index_to_slot_{};
 
 	layout(layout&&) = default;
 
@@ -55,8 +55,7 @@ struct layout {
 			}
 			count += range_size(declared_instance_fields);
 
-			posix::memory_for_range_of<slot> field_index_to_slot
-				= posix::allocate_memory_for<slot>(count);
+			posix::memory field_index_to_slot = posix::allocate<slot>(count);
 
 			uint32 current_position = 0;
 			uint32 initial_field_index = 0;

@@ -7,7 +7,7 @@
    loader or a user-defined class loader. */
 template<basic_range Name>
 expected<c&, reference> classes::try_load_array_class(
-	Name&& name, object_of<jl::c_loader>* l
+	Name&& name, o<jl::c_loader>* l
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -92,8 +92,8 @@ expected<c&, reference> classes::try_load_array_class(
 	      defining loader. Otherwise, the Java Virtual Machine marks C to have
 	      the bootstrap class loader as its defining loader.*/
 
-	object_of<jl::c_loader>* defining_class_loader =
-		(object_of<jl::c_loader>*)
+	o<jl::c_loader>* defining_class_loader =
+		(o<jl::c_loader>*)
 		component_class.defining_loader().object_ptr();
 
 	optional<class_and_initiating_loaders&> c_and_l =

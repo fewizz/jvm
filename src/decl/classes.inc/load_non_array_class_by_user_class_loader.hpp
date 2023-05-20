@@ -7,7 +7,7 @@
 template<basic_range Name>
 expected<c&, reference>
 classes::try_load_non_array_class_by_user_class_loader(
-	Name&& name, object_of<jl::c_loader>* l
+	Name&& name, o<jl::c_loader>* l
 ) {
 	if(l == nullptr) {
 		posix::abort();

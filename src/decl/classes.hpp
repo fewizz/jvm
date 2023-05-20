@@ -27,30 +27,28 @@
 struct class_and_initiating_loaders {
 	c class_;
 	// TODO make resizeable
-	list<posix::memory_for_range_of<reference>> initiating_loaders;
+	list<posix::memory<reference>> initiating_loaders;
 
 	template<typename... Args>
 	class_and_initiating_loaders(
 		Args&&... args
 	) :
 		class_ { forward<Args>(args)... },
-		initiating_loaders {
-			posix::allocate_memory_for<reference>(16)
-		}
+		initiating_loaders { posix::allocate<reference>(16) }
 	{
-		initiating_loaders.emplace_back(class_.defining_loader());
+		initiating_loaders.emplace_back<reference>(class_.defining_loader());
 	}
 
-	void record_as_initiating(object_of<jl::c_loader>* cl) {
+	void record_as_initiating(o<jl::c_loader>* cl) {
 		if(loader_is_recorded_as_initiating(cl)) {
 			print::err("class-loader is already recorded as initiating\n");
 			posix::abort();
 		}
-		initiating_loaders.emplace_back(*cl);
+		initiating_loaders.emplace_back<reference>(*cl);
 	}
 
-	bool loader_is_recorded_as_initiating(object_of<jl::c_loader>* cl) const {
-		for(reference& l : initiating_loaders) {
+	bool loader_is_recorded_as_initiating(o<jl::c_loader>* cl) const {
+		for(const reference& l : initiating_loaders) {
 			if(l.object_ptr() == cl) {
 				return true;
 			}
@@ -60,28 +58,26 @@ struct class_and_initiating_loaders {
 };
 
 static struct classes :
-	private list<posix::memory_for_range_of<class_and_initiating_loaders>>
+	private list<posix::memory<class_and_initiating_loaders>>
 {
 private:
-	using base_type = list<
-		posix::memory_for_range_of<class_and_initiating_loaders>
-	>;
+	using base_type = list<posix::memory<class_and_initiating_loaders>>;
 	using base_type::base_type;
 
 	body<posix::mutex> mutex_ = posix::create_mutex(mutex_attribute_recursive);
 public:
 
 	~classes() {
-		for(class_and_initiating_loaders& c : *this) {
-			c.class_.destruct_declared_static_fields_values();
+		for(class_and_initiating_loaders& c_and_cl : *this) {
+			c_and_cl.class_.destruct_declared_static_fields_values();
 		}
 	}
 
 private:
 	void mark_class_loader_as_initiating_for_class(
-		c& c, object_of<jl::c_loader>* cl
+		c& c, o<jl::c_loader>* cl
 	) {
-		for(auto& c_and_cl : *this) {
+		for(class_and_initiating_loaders& c_and_cl : *this) {
 			if(&c_and_cl.class_ == &c) {
 				c_and_cl.record_as_initiating(cl);
 				return;
@@ -93,7 +89,7 @@ public:
 
 	template<basic_range Name>
 	optional<c&> try_find_class_which_loading_was_initiated_by(
-		Name&& name, object_of<jl::c_loader>* cl
+		Name&& name, o<jl::c_loader>* cl
 	) {
 		mutex_->lock();
 		on_scope_exit unlock_classes_mutex { [&] {
@@ -153,17 +149,17 @@ public:
 	template<basic_range Name>
 	expected<c&, reference>
 	try_load_non_array_class_by_user_class_loader(
-		Name&& name, object_of<jl::c_loader>* l
+		Name&& name, o<jl::c_loader>* l
 	);
 
 	template<basic_range Name>
 	expected<c&, reference> try_load_array_class(
-		Name&& name, object_of<jl::c_loader>* l
+		Name&& name, o<jl::c_loader>* l
 	);
 
 	template<basic_range Name>
 	c& load_array_class(
-		Name&& name, object_of<jl::c_loader>* l
+		Name&& name, o<jl::c_loader>* l
 	) {
 		expected<c&, reference> r = try_load_array_class(
 			forward<Name>(name), l
@@ -178,14 +174,14 @@ public:
 	template<basic_range Name>
 	expected<c&, reference> try_define_class(
 		Name&& name,
-		posix::memory_for_range_of<uint8> bytes,
-		object_of<jl::c_loader>* defining_loader // L
+		posix::memory<> bytes,
+		o<jl::c_loader>* defining_loader // L
 	);
 
 	template<basic_range Name>
 	c& define_array_class(
 		Name&& name,
-		object_of<jl::c_loader>* defining_loader
+		o<jl::c_loader>* defining_loader
 	);
 
 	template<basic_range Name>
@@ -217,7 +213,7 @@ public:
 
 	template<basic_range Name>
 	expected<c&, reference>
-	try_load_non_array_class(Name&& name, object_of<jl::c_loader>* l) {
+	try_load_non_array_class(Name&& name, o<jl::c_loader>* l) {
 		return l == nullptr ?
 			try_load_non_array_class_by_bootstrap_class_loader(
 				forward<Name>(name)
@@ -230,7 +226,7 @@ public:
 
 	template<basic_range Name>
 	expected<c&, reference>
-	try_load_class(Name&& name, object_of<jl::c_loader>* class_loader) {
+	try_load_class(Name&& name, o<jl::c_loader>* class_loader) {
 		if(range{name}.starts_with('[')) {
 			return try_load_array_class(
 				forward<Name>(name), class_loader
@@ -247,7 +243,9 @@ public:
 			);
 	}
 
-} classes{ posix::allocate_memory_for<class_and_initiating_loaders>(65536) };
+} classes {
+	posix::allocate<class_and_initiating_loaders>(65536)
+};
 
 #include "./classes.inc/define_array_class.hpp"
 #include "./classes.inc/define_class.hpp"

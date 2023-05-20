@@ -16,12 +16,12 @@ static void init_jvm_app_class_loader() {
 	).native_function(
 		(void*)+[](
 			native_environment*,
-			object_of<jl::c_loader>* ths,
-			object_of<jl::string>* name
-		) -> object* {
+			o<jl::c_loader>* ths,
+			o<jl::string>* name
+		) -> o<jl::object>* {
 			return name->view_on_stack_as_utf8(
-				[&](auto name_utf8) -> object* {
-					optional<posix::memory_for_range_of<unsigned char>>
+				[&](auto name_utf8) -> o<jl::object>* {
+					optional<posix::memory<>>
 						possible_data = try_load_class_file_data_at(
 							c_string{ u8"." },
 							name_utf8
@@ -31,7 +31,7 @@ static void init_jvm_app_class_loader() {
 						return nullptr;
 					}
 
-					posix::memory_for_range_of<unsigned char> data
+					posix::memory<> data
 						= possible_data.move();
 
 					expected<::c&, reference> possible_c

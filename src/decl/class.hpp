@@ -33,26 +33,22 @@ private:
 	// mutable
 	optional<c&> super_;
 
-	const posix::memory_for_range_of<uint8> bytes_;
+	const posix::memory<> bytes_;
 	const class_file::access_flags access_flags_;
 	const class_file::constant::utf8 name_;
-	const posix::memory_for_range_of<const utf8::unit> descriptor_;
+	const posix::memory<utf8::unit> descriptor_;
 	const class_file::constant::utf8 source_file_;
 
-	const posix::memory_for_range_of<c*> declared_interfaces_;
+	const posix::memory<c*> declared_interfaces_;
 
-	mutable posix::memory_for_range_of<static_field>
-		declared_static_fields_;
-	mutable posix::memory_for_range_of<instance_field>
-		declared_instance_fields_;
+	mutable posix::memory<static_field> declared_static_fields_;
+	mutable posix::memory<instance_field> declared_instance_fields_;
 
-	mutable posix::memory_for_range_of<static_method>
-		declared_static_methods_;
-	mutable posix::memory_for_range_of<instance_method>
-		declared_instance_methods_;
+	mutable posix::memory<static_method> declared_static_methods_;
+	mutable posix::memory<instance_method> declared_instance_methods_;
 
-	const posix::memory_for_range_of<instance_field*> instance_fields_;
-	const posix::memory_for_range_of<instance_method*> instance_methods_;
+	const posix::memory<instance_field*> instance_fields_;
+	const posix::memory<instance_method*> instance_methods_;
 
 	optional<method> initialisation_method_;
 
@@ -73,23 +69,23 @@ private:
 		pending,
 		done
 	} initialisation_state_ = not_started;
-	posix::memory_for_range_of<uint8> declared_static_fields_data_;
+	posix::memory<> declared_static_fields_data_;
 
 public:
 
 	c(
 		constants&&, bootstrap_methods&&,
-		posix::memory_for_range_of<uint8> bytes,
+		posix::memory<> bytes,
 		class_file::access_flags,
 		class_file::constant::utf8 name,
-		posix::memory_for_range_of<utf8::unit> descriptor,
+		posix::memory<utf8::unit> descriptor,
 		class_file::constant::utf8 source_file,
 		optional<c&> super,
-		posix::memory_for_range_of<c*>,
-		posix::memory_for_range_of<static_field> declared_static_fields,
-		posix::memory_for_range_of<instance_field> declared_instance_fields,
-		posix::memory_for_range_of<static_method> declared_static_methods,
-		posix::memory_for_range_of<instance_method> declared_instance_methods,
+		posix::memory<c*>,
+		posix::memory<static_field> declared_static_fields,
+		posix::memory<instance_field> declared_instance_fields,
+		posix::memory<static_method> declared_static_methods,
+		posix::memory<instance_method> declared_instance_methods,
 		optional<method> initialisation_method,
 		is_array_class,
 		is_primitive_class,
@@ -190,7 +186,7 @@ public:
 	inline void destruct_declared_static_fields_values();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<object_of<jl::object>, instance_field_index>;
+	friend layout_view_extension<o<jl::object>, instance_field_index>;
 
 	const ::layout& layout_for_view() const {
 		return declared_static_layout_;
@@ -235,7 +231,9 @@ public:
 	}
 	auto instance_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(instance_fields_.as_span().dereference_view()),
+			decltype(
+				instance_fields_.as_span().dereference_view()
+			),
 			instance_field_index
 		> {
 			instance_fields_.as_span().dereference_view()
@@ -269,7 +267,9 @@ public:
 	}
 	auto instance_methods() const {
 		return find_by_name_and_descriptor_view<
-			decltype(instance_methods_.as_span().dereference_view()),
+			decltype(
+				instance_methods_.as_span().dereference_view()
+			),
 			instance_method_index
 		> {
 			instance_methods_.as_span().dereference_view()
@@ -277,20 +277,18 @@ public:
 	}
 
 	auto declared_interfaces() const {
-		return declared_interfaces_.transform_view(
-			[](storage<c*>& storage) -> c& { return *storage.get(); }
-		);
+		return declared_interfaces_.as_span().dereference_view();
 	}
 
 private:
 	inline void init_instance();
 public:
-	object_of<jl::object>& object() {
+	o<jl::object>& object() {
 		init_instance();
 		return instance_.object();
 	}
 
-	object_of<jl::object>* object_ptr() {
+	o<jl::object>* object_ptr() {
 		init_instance();
 		return instance_.object_ptr();
 	}

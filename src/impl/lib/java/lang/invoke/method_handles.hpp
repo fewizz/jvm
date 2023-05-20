@@ -19,7 +19,7 @@ static void init_java_lang_invoke_method_handles() {
 		c_string{ u8"lookup" },
 		c_string{ u8"()Ljava/lang/invoke/MethodHandles$Lookup;" }
 	).native_function(
-		(void*)+[](native_environment*) -> object* {
+		(void*)+[](native_environment*) -> o<jl::object>* {
 			if(!latest_execution_context.has_value()) {
 				thrown_in_native = try_create_illegal_caller_exception().get();
 				return nullptr;

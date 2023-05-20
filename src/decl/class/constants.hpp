@@ -28,14 +28,14 @@ using constant = variant<
 >;
 
 struct constants :
-	private posix::memory_for_range_of<constant>
+	private posix::memory<constant>
 {
-	using base_type = posix::memory_for_range_of<constant>;
+	using base_type = posix::memory<constant>;
 	using base_type::base_type;
 
 public:
 
-	constants(posix::memory_for_range_of<constant> mem) :
+	constants(posix::memory<constant> mem) :
 		base_type(move(mem))
 	{}
 

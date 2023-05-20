@@ -36,7 +36,7 @@ template<
 	reference params_array_ref = possible_params_array_ref.move_expected();
 
 	params_classes
-		.transform_view([](c& c) -> object& { return c.object(); })
+		.transform_view([](c& c) -> o<jl::object>& { return c.object(); })
 		.copy_to(array_as_span<reference>(params_array_ref));
 
 	expected<reference, reference> possible_descriptor_ref
@@ -148,9 +148,11 @@ static void init_java_lang_invoke_method_type() {
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(
 		(void*)+[](
-			native_environment*, object* ret_class, object* params_class_array
-		) -> object* {
-
+			native_environment*,
+			o<jl::object>* ret_class,
+			o<jl::object>* params_class_array
+		) -> o<jl::object>*
+		{
 			auto params
 				= array_as_span<reference>(*params_class_array)
 				.transform_view([](reference& class_ref) -> c& {

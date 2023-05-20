@@ -63,8 +63,8 @@ template<typename T0, typename T1>
 }
 
 [[nodiscard]] inline bool is_convertible(
-	object_of<jl::i::method_type>& new_mt,
-	object_of<jl::i::method_type>& ori_mt
+	o<jl::i::method_type>& new_mt,
+	o<jl::i::method_type>& ori_mt
 ) {
 	auto new_params = new_mt.parameter_types_view();
 	auto ori_params = ori_mt.parameter_types_view();

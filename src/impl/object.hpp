@@ -40,11 +40,11 @@ void view_object_type(auto name, Handler&& handler) {
 	return handler.template operator () <jl::object>();
 }
 
-inline object_of<jl::object>::object_of(::c& c) :
+inline o<jl::object>::o(::c& c) :
 	class_{ c },
 	mutex_{ posix::create_mutex(mutex_attribute_recursive) },
 	data_ {
-		posix::allocate_memory_for<uint8>(c.instance_layout().size())
+		posix::allocate<>(c.instance_layout().size())
 	}
 {
 	if(info) {
@@ -62,7 +62,7 @@ inline object_of<jl::object>::object_of(::c& c) :
 	});
 }
 
-inline object_of<jl::object>::~object_of() {
+inline o<jl::object>::~o() {
 	if(info) {
 		tabs();
 		auto name = c().name();
@@ -80,7 +80,7 @@ inline object_of<jl::object>::~object_of() {
 		posix::free_raw_memory(data);
 	}
 
-	class_->instance_fields().for_each_index(
+	class_.instance_fields().for_each_index(
 		[&](instance_field_index field_index) {
 			view(field_index, []<typename Type>(Type& e) {
 				e.~Type();
@@ -89,7 +89,7 @@ inline object_of<jl::object>::~object_of() {
 	);
 }
 
-inline void object::on_reference_added() {
+inline void o<jl::object>::on_reference_added() {
 	++references_;
 	if(info) {
 		tabs();
@@ -100,7 +100,7 @@ inline void object::on_reference_added() {
 	}
 }
 
-inline void object::unsafe_decrease_reference_count_without_destroing() {
+inline void o<jl::object>::unsafe_decrease_reference_count_without_destroing() {
 	if(references_ == 0) {
 		print::err(
 			"'unsafe_decrease_reference_count_without_destroing'"
@@ -111,7 +111,7 @@ inline void object::unsafe_decrease_reference_count_without_destroing() {
 	--references_;
 }
 
-inline void object::on_reference_removed() {
+inline void o<jl::object>::on_reference_removed() {
 	if(references_ == 0) {
 		print::err("# removing reference on object without references\n");
 		posix::abort();
@@ -126,8 +126,10 @@ inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 
-		view_object_type(this->class_->name(), [&]<typename Type>() {
-			((object_of<Type>*)this)->~object_of<Type>();
+		//((o<jl::object>*)this)->~o<jl::object>();
+
+		view_object_type(this->class_.name(), [&]<typename Type>() {
+			((o<Type>*)this)->~o<Type>();
 		});
 
 		posix::free_raw_memory(ptr_to_this);
@@ -141,11 +143,14 @@ try_create_object(c& c) {
 		return unexpected{ possible_throwable.move() };
 	}
 
-	object* ptr = posix::allocate_raw_memory_of<object>(1).iterator();
+	storage<o<jl::object>>* ptr
+		= posix::allocate_raw<o<jl::object>>(1).iterator();
+
+	//new(ptr) o<jl::object>(c);
+
 	view_object_type(c.name(), [&]<typename Type>() {
-		static_assert(sizeof(object_of<Type>) == sizeof(object));
-		new(ptr) object_of<Type>(c);
+		ptr->construct(c);
 	});
 
-	return { *ptr };
+	return { ptr->get() };
 }

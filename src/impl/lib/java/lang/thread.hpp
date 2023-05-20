@@ -72,8 +72,11 @@ inline void init_java_lang_thread() {
 	
 	thread_class->declared_instance_methods().find(
 		c_string{ u8"start" }, c_string{ u8"()V" }
-	).native_function((void*)+[](native_environment*, object* ths) {
-		span<reference> ref = posix::allocate_raw_memory_of<reference>(1);
+	).native_function((void*)+[](native_environment*, o<jl::object>* ths) {
+		auto ref = posix::allocate_raw<
+			sizeof(reference), alignof(reference)
+		>(1);
+
 		new (ref.iterator()) ::reference(*ths);
 
 		posix::create_thread(thread_start, ref[0]);

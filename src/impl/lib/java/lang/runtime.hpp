@@ -14,7 +14,7 @@ static inline void init_java_lang_runtime() {
 	runtime_class.declared_instance_methods().find(
 		c_string{ u8"exit" }, c_string{ u8"(I)V" }
 	).native_function(
-		(void*)+[](native_environment*, object*, int32 status) {
+		(void*)+[](native_environment*, o<jl::object>*, int32 status) {
 			thrown_in_native = reference{};
 			thread = reference{};
 			stack.pop_back_until(0);
@@ -25,7 +25,7 @@ static inline void init_java_lang_runtime() {
 	runtime_class.declared_instance_methods().find(
 		c_string{ u8"availableProcessors" }, c_string{ u8"()I" }
 	).native_function(
-		(void*)+[](native_environment*, object*) {
+		(void*)+[](native_environment*, o<jl::object>*) {
 			return 1; // TODO
 		}
 	);

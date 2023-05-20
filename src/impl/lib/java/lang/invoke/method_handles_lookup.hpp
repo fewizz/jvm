@@ -21,9 +21,9 @@
 #include <span.hpp>
 
 static expected<reference, reference> try_lookup_find_getter(
-	object_of<jl::c>& c_inst,
-	object_of<jl::string>& name,
-	object_of<jl::c>& field_type_inst
+	o<jl::c>& c_inst,
+	o<jl::string>& name,
+	o<jl::c>& field_type_inst
 ) {
 	::c& c = c_inst.c();
 	::c& field_c = field_type_inst.c();
@@ -48,9 +48,9 @@ static expected<reference, reference> try_lookup_find_getter(
 }
 
 static expected<reference, reference> try_lookup_find_setter(
-	object_of<jl::c>& c_inst,
-	object_of<jl::string>& name,
-	object_of<jl::c>& field_type_inst
+	o<jl::c>& c_inst,
+	o<jl::string>& name,
+	o<jl::c>& field_type_inst
 ) {
 	::c& c = c_inst.c();
 	::c& field_c = field_type_inst.c();
@@ -79,9 +79,9 @@ static expected<reference, reference> try_lookup_find_setter(
 }
 
 static expected<reference, reference> try_lookup_find_virtual(
-	object_of<jl::c>& c_inst,
-	object_of<jl::string>& name,
-	object_of<jl::i::method_type>& mt
+	o<jl::c>& c_inst,
+	o<jl::string>& name,
+	o<jl::i::method_type>& mt
 ) {
 	::c& c = c_inst.c();
 
@@ -98,9 +98,9 @@ static expected<reference, reference> try_lookup_find_virtual(
 
 static expected<reference, reference>
 try_lookup_find_static(
-	object_of<jl::c>& cls,
-	object_of<jl::string>& name,
-	object_of<jl::i::method_type>& mt
+	o<jl::c>& cls,
+	o<jl::string>& name,
+	o<jl::i::method_type>& mt
 ) {
 	c& c = cls.c();
 
@@ -117,10 +117,10 @@ try_lookup_find_static(
 }
 
 static expected<reference, reference> try_lookup_find_special(
-	object_of<jl::c>& refc,
-	object_of<jl::string>& name,
-	object_of<jl::i::method_type>& mt,
-	object_of<jl::c>& special_caller
+	o<jl::c>& refc,
+	o<jl::string>& name,
+	o<jl::i::method_type>& mt,
+	o<jl::c>& special_caller
 ) {
 	return name.view_on_stack_as_utf8([&](auto name_utf8)
 	-> expected<reference, reference>
@@ -161,7 +161,7 @@ static expected<reference, reference> try_lookup_find_special(
 }
 
 static expected<reference, reference> try_lookup_find_constructor(
-	object_of<jl::c>& refc, object_of<jl::i::method_type>& mt
+	o<jl::c>& refc, o<jl::i::method_type>& mt
 ) {
 	c& c = refc.c();
 	method& m
@@ -188,11 +188,12 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::string>* name,
-			object_of<jl::c>* c
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::string>* name,
+			o<jl::c>* c
+		) -> o<jl::object>* {
 			if(cls == nullptr || name == nullptr || c == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return nullptr;
@@ -220,11 +221,12 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::string>* name,
-			object_of<jl::c>* c
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::string>* name,
+			o<jl::c>* c
+		) -> o<jl::object>* {
 			if(cls == nullptr || name == nullptr || c == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return nullptr;
@@ -252,11 +254,12 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::string>* name,
-			object_of<jl::i::method_type>* mt
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::string>* name,
+			o<jl::i::method_type>* mt
+		) -> o<jl::object>* {
 			if(cls == nullptr || name == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return nullptr;
@@ -286,11 +289,12 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::string>* name,
-			object_of<jl::i::method_type>* mt
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::string>* name,
+			o<jl::i::method_type>* mt
+		) -> o<jl::object>* {
 			if(cls == nullptr || name == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return nullptr;
@@ -319,10 +323,11 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::i::method_type>* mt
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::i::method_type>* mt
+		) -> o<jl::object>* {
 			if(cls == nullptr || mt == nullptr) {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return nullptr;
@@ -353,12 +358,13 @@ static void init_java_lang_invoke_method_handles_lookup() {
 		}
 	).native_function(
 		(void*)+[](
-			native_environment*, object*,
-			object_of<jl::c>* cls,
-			object_of<jl::string>* name,
-			object_of<jl::i::method_type>* mt,
-			object_of<jl::c>* caller
-		) -> object* {
+			native_environment*,
+			o<jl::object>*,
+			o<jl::c>* cls,
+			o<jl::string>* name,
+			o<jl::i::method_type>* mt,
+			o<jl::c>* caller
+		) -> o<jl::object>* {
 			if(
 				cls == nullptr || name   == nullptr ||
 				mt  == nullptr || caller == nullptr

@@ -7,9 +7,9 @@
 namespace mh {
 
 [[nodiscard]] inline optional<reference> try_invoke_checked(
-	object_of<jl::i::method_handle>& ori_mh,
-	object_of<jl::i::method_type>& new_mt,
-	object_of<jl::i::method_type>& ori_mt,
+	o<jl::i::method_handle>& ori_mh,
+	o<jl::i::method_type>& new_mt,
+	o<jl::i::method_type>& ori_mt,
 	nuint args_beginning
 ) {
 	c& new_ret = new_mt.return_type();
@@ -26,7 +26,7 @@ namespace mh {
 		return possible_throwable.move();
 	}
 
-	possible_throwable = mh::try_invoke_exact(ori_mh, args_beginning);
+	possible_throwable = ori_mh.try_invoke_exact(args_beginning);
 	
 	if(possible_throwable.has_value()) {
 		return possible_throwable.move();

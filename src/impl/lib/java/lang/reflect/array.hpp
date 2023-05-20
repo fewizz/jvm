@@ -12,8 +12,8 @@ static void init_java_lang_reflect_array() {
 		c_string{ u8"(Ljava/lang/Class;I)Ljava/lang/Object;" }
 	).native_function(
 		(void*)+[](
-			native_environment*, object* component_type, int32 len
-		) -> object* {
+			native_environment*, o<jl::object>* component_type, int32 len
+		) -> o<jl::object>* {
 			if(len < 0) {
 				thrown_in_native
 					= try_create_negative_array_size_exception().get();

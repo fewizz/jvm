@@ -17,7 +17,7 @@ static optional<c&> string_class{};
 inline layout::position string_value_field_position;
 
 template<typename Handler>
-inline void for_each_string_codepoint(object& str, Handler&& handler) {
+inline void for_each_string_codepoint(o<jl::object>& str, Handler&& handler) {
 	reference& value = str.get<reference>(string_value_field_position);
 
 	uint8* it = array_data<uint8>(value);
@@ -32,11 +32,11 @@ inline void for_each_string_codepoint(object& str, Handler&& handler) {
 	}
 }
 
-inline nuint string_utf8_length(object& str);
+inline nuint string_utf8_length(o<jl::object>& str);
 
 template<typename Handler>
 inline decltype(auto) view_string_on_stack_as_utf8(
-	object& str, Handler&& handler
+	o<jl::object>& str, Handler&& handler
 ) {
 	return view_on_stack<utf8::unit>{ string_utf8_length(str) }(
 		[&](span<utf8::unit> utf8_str) -> decltype(auto) {
@@ -68,7 +68,7 @@ try_create_string_from_utf8(String&& str_utf8) {
 		units += utf16::encoder{}.units(cp);
 	}
 
-	span<uint16> data = posix::allocate_raw_memory_of<uint16>(units);
+	auto data = posix::allocate_raw<sizeof(uint16), alignof(uint16)>(units);
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {
@@ -76,12 +76,12 @@ try_create_string_from_utf8(String&& str_utf8) {
 		utf16::encoder{}(cp.get_expected(), data_it);
 	}
 
-	return try_create_string(data);
+	return try_create_string(data.cast<uint16>());
 }
 
 template<>
-struct object_of<jl::string> : object {
-	using object::object;
+struct o<jl::string> : o<jl::object> {
+	using o<jl::object>::o;
 
 	nuint length() {
 		return string_utf8_length(*this);

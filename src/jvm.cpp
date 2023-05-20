@@ -119,7 +119,7 @@ int main (int argc, const char** argv) {
 	expected<c&, reference> possible_c
 		= classes.try_load_class(
 			main_class_name,
-			(object_of<jl::c_loader>*) app_cl_ref.object_ptr()
+			(o<jl::c_loader>*) app_cl_ref.object_ptr()
 		);
 
 	if(possible_c.is_unexpected()) {

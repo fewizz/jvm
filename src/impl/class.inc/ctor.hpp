@@ -3,17 +3,17 @@
 inline c::c(
 	constants&& constants,
 	bootstrap_methods&& bootstrap_methods,
-	posix::memory_for_range_of<uint8> bytes,
+	posix::memory<> bytes,
 	class_file::access_flags access_flags,
 	class_file::constant::utf8 name,
-	posix::memory_for_range_of<utf8::unit> descriptor,
+	posix::memory<utf8::unit> descriptor,
 	class_file::constant::utf8 source_file,
 	optional<c&> super_class,
-	posix::memory_for_range_of<c*> declared_interfaces,
-	posix::memory_for_range_of<static_field> declared_static_fields,
-	posix::memory_for_range_of<instance_field> declared_instance_fields,
-	posix::memory_for_range_of<static_method> declared_static_methods,
-	posix::memory_for_range_of<instance_method> declared_instance_methods,
+	posix::memory<c*> declared_interfaces,
+	posix::memory<static_field> declared_static_fields,
+	posix::memory<instance_field> declared_instance_fields,
+	posix::memory<static_method> declared_static_methods,
+	posix::memory<instance_method> declared_instance_methods,
 	optional<method> initialisation_method,
 	is_array_class is_array,
 	is_primitive_class is_primitive,
@@ -58,16 +58,17 @@ inline c::c(
 		if(has_super()) {
 			count += range_size(super().instance_fields());
 		}
-		::list fields = posix::allocate_memory_for<instance_field*>(count);
+		::list fields = posix::allocate<instance_field*>(count);
+
 		if(has_super()) {
 			for(instance_field& f : super().instance_fields()) {
-				fields.emplace_back(&f);
+				fields.emplace_back<instance_field*>(&f);
 			}
 		}
 		for(instance_field& f : declared_instance_fields_.as_span()) {
-			fields.emplace_back(&f);
+			fields.emplace_back<instance_field*>(&f);
 		}
-		return fields.move_storage_range();
+		return move(fields.storage_range());
 	}()},
 	instance_methods_ { [&] {
 		nuint count = range_size(this->declared_instance_methods());
@@ -83,7 +84,8 @@ inline c::c(
 				}
 			}
 		}
-		::list methods = posix::allocate_memory_for<instance_method*>(count);
+		::list methods = posix::allocate<instance_method*>(count);
+
 		if(has_super()) {
 			for(instance_method& m : super().instance_methods()) {
 				methods.emplace_back(&m);
@@ -102,7 +104,7 @@ inline c::c(
 				methods.emplace_back(&m);
 			}
 		}
-		return methods.move_storage_range();
+		return move(methods.storage_range());
 	}()},
 	initialisation_method_{ [&] {
 		if(initialisation_method.has_value()) {
@@ -127,7 +129,7 @@ inline c::c(
 	defining_loader_     { move(defining_loader) },
 	mutex_ { posix::create_mutex(mutex_attribute_recursive) },
 	declared_static_fields_data_ {
-		posix::allocate_memory_for<uint8>(
+		posix::allocate<>(
 			declared_static_layout().size()
 		)
 	}

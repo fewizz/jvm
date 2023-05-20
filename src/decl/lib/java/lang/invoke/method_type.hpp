@@ -39,8 +39,8 @@ try_create_method_type_generic(nuint count) {
 }
 
 template<>
-struct object_of<jl::i::method_type> : object_of<jl::object> {
-	using object_of<jl::object>::object_of;
+struct o<jl::i::method_type> : o<jl::object> {
+	using o<jl::object>::o;
 
 	span<utf8::unit> descriptor() {
 		reference& utf8_desc = get<reference>(

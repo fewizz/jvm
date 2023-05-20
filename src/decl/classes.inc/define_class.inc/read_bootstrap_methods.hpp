@@ -19,7 +19,7 @@ bootstrap_method read_bootstrap_method(
 	};
 
 	::list arguments_indices_raw {
-		posix::allocate_memory_for<class_file::constant::index>(arguments_count)
+		posix::allocate<class_file::constant::index>(arguments_count)
 	};
 
 	arguments_reader.read(
@@ -30,7 +30,7 @@ bootstrap_method read_bootstrap_method(
 	);
 
 	return {
-		reference_index, arguments_indices_raw.move_storage_range()
+		reference_index, move(arguments_indices_raw.storage_range())
 	};
 }
 
@@ -43,7 +43,7 @@ template<typename Iterator>
 		};
 
 		::list bootstrap_methods_raw {
-			posix::allocate_memory_for<bootstrap_method>(count)
+			posix::allocate<bootstrap_method>(count)
 		};
 
 		bootstrap_methods_reader.read(
@@ -56,6 +56,6 @@ template<typename Iterator>
 		);
 
 		return ::bootstrap_methods {
-			bootstrap_methods_raw.move_storage_range()
+			move(bootstrap_methods_raw.storage_range())
 		};
 	};

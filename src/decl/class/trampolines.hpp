@@ -16,15 +16,17 @@ using trampoline = optional<
 >;
 
 struct trampolines :
-	protected posix::memory_for_range_of<trampoline>
+	protected posix::memory<trampoline>
 {
-	using base_type = posix::memory_for_range_of<trampoline>;
+	using base_type = posix::memory<trampoline>;
 
 	trampolines(uint16 count) :
-		base_type{ posix::allocate_memory_for<::trampoline>(count) }
+		base_type {
+			posix::allocate<::trampoline>(count)
+		}
 	{
 		for(storage<::trampoline>& s : *this) {
-			s.construct(::trampoline{});
+			s.construct<::trampoline>(::trampoline{});
 		}
 	}
 

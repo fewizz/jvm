@@ -12,8 +12,8 @@
 template<basic_range Name>
 expected<c&, reference> classes::try_define_class(
 	Name&& name,
-	posix::memory_for_range_of<uint8> bytes,
-	object_of<jl::c_loader>* defining_loader // L
+	posix::memory<> bytes,
+	o<jl::c_loader>* defining_loader // L
 ) {
 	mutex_->lock();
 	on_scope_exit unlock_classes_mutex { [&] {
@@ -67,7 +67,7 @@ expected<c&, reference> classes::try_define_class(
 
 	uint16 constants_count = constant_pool_reader.read_count();
 	::list const_pool_raw {
-		posix::allocate_memory_for<::constant>(constants_count)
+		posix::allocate<::constant>(constants_count)
 	};
 
 	auto access_flags_reader {
@@ -83,7 +83,7 @@ expected<c&, reference> classes::try_define_class(
 		)
 	};
 
-	constants const_pool = const_pool_raw.move_storage_range();
+	constants const_pool = move(const_pool_raw.storage_range());
 
 	auto [access_flags, this_class_reader] {
 		access_flags_reader.read_and_get_this_class_reader()
@@ -123,7 +123,7 @@ expected<c&, reference> classes::try_define_class(
 	/* 4. If C has any direct superinterfaces, the symbolic references from C to
 	      its direct superinterfaces are resolved using the algorithm of
 	      §5.4.3.1. */
-	::list interfaces = posix::allocate_memory_for<c*>(
+	::list interfaces = posix::allocate<c*>(
 		interfaces_reader.read_count()
 	);
 
@@ -157,7 +157,7 @@ expected<c&, reference> classes::try_define_class(
 	}
 
 	::list fields {
-		posix::allocate_memory_for<field>(fields_reader.read_count())
+		posix::allocate<field>(fields_reader.read_count())
 	};
 
 	nuint static_fields_count = 0;
@@ -176,11 +176,11 @@ expected<c&, reference> classes::try_define_class(
 	);
 
 	::list static_fields {
-		posix::allocate_memory_for<static_field>(static_fields_count)
+		posix::allocate<static_field>(static_fields_count)
 	};
 
 	::list instance_fields {
-		posix::allocate_memory_for<instance_field>(instance_fields_count)
+		posix::allocate<instance_field>(instance_fields_count)
 	};
 
 	for(field& f : fields) {
@@ -193,7 +193,7 @@ expected<c&, reference> classes::try_define_class(
 	}
 
 	::list methods {
-		posix::allocate_memory_for<method>(methods_reader.read_count())
+		posix::allocate<method>(methods_reader.read_count())
 	};
 
 	nuint static_methods_count = 0;
@@ -215,10 +215,10 @@ expected<c&, reference> classes::try_define_class(
 	);
 
 	::list static_methods {
-		posix::allocate_memory_for<static_method>(static_methods_count)
+		posix::allocate<static_method>(static_methods_count)
 	};
 	::list instance_methods {
-		posix::allocate_memory_for<instance_method>(instance_methods_count)
+		posix::allocate<instance_method>(instance_methods_count)
 	};
 	optional<method> initialisation_method{};
 
@@ -268,8 +268,7 @@ expected<c&, reference> classes::try_define_class(
 		const_pool.utf8_constant(this_class_constant.name_index)
 	};
 
-	posix::memory_for_range_of<utf8::unit> descriptor_utf8
-		= posix::allocate_memory_for<utf8::unit>(name_utf8.size() + 2);
+	auto descriptor_utf8 = posix::allocate<utf8::unit>(name_utf8.size() + 2);
 
 	name_utf8.copy_to(
 		span {
@@ -292,11 +291,11 @@ expected<c&, reference> classes::try_define_class(
 		move(descriptor_utf8),
 		source_file,
 		super,
-		interfaces.move_storage_range(),
-		static_fields.move_storage_range(),
-		instance_fields.move_storage_range(),
-		static_methods.move_storage_range(),
-		instance_methods.move_storage_range(),
+		move(interfaces.storage_range()),
+		move(static_fields.storage_range()),
+		move(instance_fields.storage_range()),
+		move(static_methods.storage_range()),
+		move(instance_methods.storage_range()),
 		move(initialisation_method),
 		is_array_class{ false },
 		is_primitive_class{ false },

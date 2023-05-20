@@ -12,6 +12,6 @@ namespace jl {
 inline instance_method_index class_loader_load_class_method_index;
 
 template<>
-struct object_of<jl::c_loader> : object {
-	using object::object;
+struct o<jl::c_loader> : o<jl::object> {
+	using o<jl::object>::o;
 };

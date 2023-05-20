@@ -6,7 +6,10 @@
 #include <class_file/field_reader.hpp>
 
 template<basic_iterator Iterator>
-tuple<field, Iterator> read_field(constants& const_pool, class_file::field::reader<Iterator> field_reader) {
+tuple<field, Iterator> read_field(
+	constants& const_pool,
+	class_file::field::reader<Iterator> field_reader
+) {
 	auto [access_flags, name_index_reader] {
 		field_reader.read_access_flags_and_get_name_index_reader()
 	};

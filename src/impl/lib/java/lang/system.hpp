@@ -23,8 +23,8 @@ static inline void init_java_lang_system() {
 	).native_function(
 		(void*)+[](
 			native_environment*,
-			object* src, int32 src_pos,
-			object* dst, int32 dst_pos,
+			o<jl::object>* src, int32 src_pos,
+			o<jl::object>* dst, int32 dst_pos,
 			int32 len
 		) {
 			/* If dest is null, then a NullPointerException is thrown.
