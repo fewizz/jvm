@@ -11,14 +11,6 @@
 #include <optional.hpp>
 #include <overloaded.hpp>
 
-namespace jl::i {
-	struct method_handle {
-		static inline optional<::c&> c;
-		static inline instance_method_index invoke_exact_ptr_index;
-		static inline layout::position method_type_field_position;
-	};
-}
-
 namespace j {
 
 struct method_handle : object {
@@ -31,7 +23,7 @@ struct method_handle : object {
 	[[nodiscard]] inline optional<reference>
 	try_invoke_exact(nuint args_beginning) {
 		method& m = object::c().instance_methods()
-			[jl::i::method_handle::invoke_exact_ptr_index];
+			[j::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
@@ -46,7 +38,7 @@ struct method_handle : object {
 		nuint args_beginning
 	) {
 		method& m = object::c().instance_methods()
-			[jl::i::method_handle::invoke_exact_ptr_index];
+			[j::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(

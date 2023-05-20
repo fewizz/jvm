@@ -24,7 +24,7 @@ inline bool method::is_signature_polymorphic() const {
 	const ::c& c = this->c();
 
 	bool c_is_mh_or_vh =
-		c.is(jl::i::method_handle::c.get()) ||
+		c.is(j::method_handle::c.get()) ||
 		c.is(var_handle_class.get());
 	
 	bool param_is_object_array =
