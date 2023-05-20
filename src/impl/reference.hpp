@@ -12,18 +12,18 @@ inline void reference::reset() {
 	obj_ptr_ = nullptr;
 }
 
-inline reference::reference(o<jl::object>& obj) : obj_ptr_{ &obj }{
+inline reference::reference(::object& obj) : obj_ptr_{ &obj }{
 	obj.on_reference_added();
 }
 
-inline reference::reference(o<jl::object>* obj_ptr) : obj_ptr_{ obj_ptr } {
+inline reference::reference(::object* obj_ptr) : obj_ptr_{ obj_ptr } {
 	if(obj_ptr != nullptr) {
 		obj_ptr->on_reference_added();
 	}
 }
 
-inline const o<jl::object>* reference::object_ptr() const { return obj_ptr_; }
-inline       o<jl::object>* reference::object_ptr()       { return obj_ptr_; }
+inline const object* reference::object_ptr() const { return obj_ptr_; }
+inline       object* reference::object_ptr()       { return obj_ptr_; }
 
 inline reference::reference(const reference& other) :
 	obj_ptr_{ other.obj_ptr_ }
@@ -58,7 +58,7 @@ inline reference& reference::operator = (reference&& other) {
 	return *this;
 }
 
-inline reference& reference::operator = (o<jl::object>& o) {
+inline reference& reference::operator = (::object& o) {
 	if(&o == obj_ptr_) {
 		return *this;
 	}
@@ -68,19 +68,19 @@ inline reference& reference::operator = (o<jl::object>& o) {
 	return *this;
 }
 
-inline void abort_if_null(const o<jl::object>* obj_ptr) {
+inline void abort_if_null(const object* obj_ptr) {
 	if(obj_ptr == nullptr) {
 		print::err("obj_ is nullptr\n");
 		posix::abort();
 	}
 }
 
-inline const o<jl::object>& reference::object() const {
+inline const object& reference::object() const {
 	abort_if_null(object_ptr());
 	return *object_ptr();
 }
 
-inline       o<jl::object>& reference::object() {
+inline       object& reference::object() {
 	abort_if_null(object_ptr());
 	return *object_ptr();
 }
@@ -98,9 +98,9 @@ inline reference::~reference() {
 	}
 }
 
-inline o<jl::object>& reference::unsafe_release_without_destroing() {
+inline object& reference::unsafe_release_without_destroing() {
 	object().unsafe_decrease_reference_count_without_destroing();
-	o<jl::object>& o = object();
+	::object& o = object();
 	exchange(obj_ptr_, nullptr);
 	return o;
 }

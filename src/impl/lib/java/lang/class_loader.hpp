@@ -14,7 +14,7 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"java/lang/ClassLoader" }
 	);
 
-	class_loader_load_class_method_index
+	j::c_loader::load_class_method_index
 		= c.instance_methods().find_index_of(
 			c_string{ u8"loadClass" },
 			c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
@@ -25,13 +25,13 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;[BII)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		o<jl::c_loader>* ths,
-		o<jl::string>* name,
-		o<jl::object>* b,
+		j::c_loader* ths,
+		j::string* name,
+		object* b,
 		int32 off,
 		int32 len
 	)
-	-> o<jl::object>*
+	-> object*
 	{
 		if(b == nullptr) {
 			expected<reference, reference> possible_npe
@@ -71,8 +71,8 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		o<jl::string>* name
-	) -> o<jl::object>* {
+		j::string* name
+	) -> object* {
 		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
 			[](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				for(utf8::unit& cp : name_utf8) {
@@ -97,9 +97,9 @@ static void init_java_lang_class_loader() {
 		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
 	).native_function((void*)+[](
 		native_environment*,
-		o<jl::c_loader>* ths,
-		o<jl::string>* name
-	) -> o<jl::object>* {
+		j::c_loader* ths,
+		j::string* name
+	) -> object* {
 		optional<::c&> possible_c
 		= name->view_on_stack_as_utf8(
 			[&](span<utf8::unit> name_utf8) -> optional<::c&> {

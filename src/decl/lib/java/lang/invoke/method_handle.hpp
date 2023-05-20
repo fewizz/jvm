@@ -19,13 +19,18 @@ namespace jl::i {
 	};
 }
 
-template<>
-struct o<jl::i::method_handle> : o<jl::object> {
-	using o<jl::object>::o;
+namespace j {
+
+struct method_handle : object {
+	using object::object;
+
+	static inline optional<::c&> c;
+	static inline instance_method_index invoke_exact_ptr_index;
+	static inline layout::position method_type_field_position;
 
 	[[nodiscard]] inline optional<reference>
 	try_invoke_exact(nuint args_beginning) {
-		method& m = c().instance_methods()
+		method& m = object::c().instance_methods()
 			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
@@ -37,10 +42,10 @@ struct o<jl::i::method_handle> : o<jl::object> {
 
 	[[nodiscard]] inline optional<reference>
 	try_invoke(
-		o<jl::i::method_type>& new_mt,
+		j::method_type& new_mt,
 		nuint args_beginning
 	) {
-		method& m = c().instance_methods()
+		method& m = object::c().instance_methods()
 			[jl::i::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
@@ -50,6 +55,8 @@ struct o<jl::i::method_handle> : o<jl::object> {
 		return ((f)ptr0)(*this, new_mt, args_beginning);
 	}
 };
+
+}
 
 #include "./method_handle.inc/convert.hpp"
 #include "./method_handle.inc/invoke.hpp"

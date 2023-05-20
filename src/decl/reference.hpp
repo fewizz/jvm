@@ -6,16 +6,11 @@
 
 struct c;
 
-namespace jl {
-	struct object;
-}
-
-template<typename Type>
-struct o;
+struct object;
 
 struct reference {
 private:
-	o<jl::object>* obj_ptr_ = nullptr;
+	object* obj_ptr_ = nullptr;
 
 	friend expected<reference, reference> try_create_object(::c& c);
 
@@ -29,13 +24,13 @@ private:
 
 public:
 
-	reference(o<jl::object>& obj);
-	reference(o<jl::object>* obj_ptr);
+	reference(object& obj);
+	reference(object* obj_ptr);
 
 	reference() = default;
 
 	~reference();
-	o<jl::object>& unsafe_release_without_destroing();
+	object& unsafe_release_without_destroing();
 
 	reference(const reference& );
 	reference(      reference&&);
@@ -43,28 +38,28 @@ public:
 	reference& operator = (const reference& );
 	reference& operator = (      reference&&);
 
-	reference& operator = (o<jl::object>&);
+	reference& operator = (object&);
 
 	reference operator = (decltype(nullptr)) {
 		try_reset();
 		return *this;
 	}
 
-	const o<jl::object>& object() const;
-	      o<jl::object>& object();
+	const ::object& object() const;
+	      ::object& object();
 
-	const o<jl::object>* object_ptr() const;
-	      o<jl::object>* object_ptr();
+	const ::object* object_ptr() const;
+	      ::object* object_ptr();
 
-	o<jl::object>* operator -> () { return object_ptr(); }
+	::object* operator -> () { return object_ptr(); }
 
 	bool is_null() const;
 
 	const ::c& c() const;
 	      ::c& c()      ;
 
-	operator const o<jl::object>& () const & { return *object_ptr(); }
-	operator       o<jl::object>& ()       & { return *object_ptr(); }
+	operator const ::object& () const & { return *object_ptr(); }
+	operator       ::object& ()       & { return *object_ptr(); }
 };
 
 static inline reference nullptr_ref{};

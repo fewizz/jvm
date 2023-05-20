@@ -27,8 +27,8 @@ static inline void init_java_lang_throwable() {
 	.find(
 		c_string{ u8"fillInStackTrace" }, c_string{ u8"()Ljava/lang/Throwable;" }
 	).native_function((void*)+[](
-		native_environment*, o<jl::object>* ths
-	) -> o<jl::object>* {
+		native_environment*, object* ths
+	) -> object* {
 		// lets skip constructors/fillInStackTrace frames
 		execution_context* ctx_begin = latest_execution_context.ptr();
 		auto this_class_name = ths->c().name();

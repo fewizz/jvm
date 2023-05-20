@@ -20,7 +20,7 @@ static void init_java_lang_short() {
 
 	java_lang_short_class->declared_static_methods().find(
 		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
-	).native_function((void*)+[](native_environment*) -> o<jl::object>* {
+	).native_function((void*)+[](native_environment*) -> object* {
 		return short_class->object_ptr();
 	});
 }

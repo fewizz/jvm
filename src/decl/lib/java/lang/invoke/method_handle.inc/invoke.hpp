@@ -7,9 +7,9 @@
 namespace mh {
 
 [[nodiscard]] inline optional<reference> try_invoke_checked(
-	o<jl::i::method_handle>& ori_mh,
-	o<jl::i::method_type>& new_mt,
-	o<jl::i::method_type>& ori_mt,
+	j::method_handle& ori_mh,
+	j::method_type& new_mt,
+	j::method_type& ori_mt,
 	nuint args_beginning
 ) {
 	c& new_ret = new_mt.return_type();

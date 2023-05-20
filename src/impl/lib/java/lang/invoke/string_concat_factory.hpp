@@ -21,12 +21,12 @@ static void init_java_lang_invoke_string_concat_factory() {
 
 	make_concat_with_constants.native_function(
 		(void*)+[](
-			[[maybe_unused]] o<jl::object>* lookup,
-			o<jl::object>*,
-			o<jl::object>*,
-			o<jl::object>*,
-			o<jl::object>*
-		) -> o<jl::object>* {
+			[[maybe_unused]] object* lookup,
+			object*,
+			object*,
+			object*,
+			object*
+		) -> object* {
 			posix::abort();
 		}
 	);

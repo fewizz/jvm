@@ -21,26 +21,26 @@ void view_object_type(auto name, Handler&& handler) {
 	if(name.has_equal_size_and_elements(
 		c_string{"java/lang/invoke/MethodHandle"})
 	) {
-		return handler.template operator () <jl::i::method_handle>();
+		return handler.template operator () <j::method_handle>();
 	}
 	if(name.has_equal_size_and_elements(
 		c_string{"java/lang/invoke/MethodType"})
 	) {
-		return handler.template operator () <jl::i::method_type>();
+		return handler.template operator () <j::method_type>();
 	}
 	if(name.has_equal_size_and_elements(c_string{"java/lang/String"})) {
-		return handler.template operator () <jl::string>();
+		return handler.template operator () <j::string>();
 	}
 	if(name.has_equal_size_and_elements(c_string{"java/lang/Class"})) {
-		return handler.template operator () <jl::c>();
+		return handler.template operator () <j::c>();
 	}
 	if(name.has_equal_size_and_elements(c_string{"java/lang/ClassLoader"})) {
-		return handler.template operator () <jl::c_loader>();
+		return handler.template operator () <j::c_loader>();
 	}
-	return handler.template operator () <jl::object>();
+	return handler.template operator () <object>();
 }
 
-inline o<jl::object>::o(::c& c) :
+inline object::object(::c& c) :
 	class_{ c },
 	mutex_{ posix::create_mutex(mutex_attribute_recursive) },
 	data_ {
@@ -62,7 +62,7 @@ inline o<jl::object>::o(::c& c) :
 	});
 }
 
-inline o<jl::object>::~o() {
+inline object::~object() {
 	if(info) {
 		tabs();
 		auto name = c().name();
@@ -89,7 +89,7 @@ inline o<jl::object>::~o() {
 	);
 }
 
-inline void o<jl::object>::on_reference_added() {
+inline void object::on_reference_added() {
 	++references_;
 	if(info) {
 		tabs();
@@ -100,7 +100,7 @@ inline void o<jl::object>::on_reference_added() {
 	}
 }
 
-inline void o<jl::object>::unsafe_decrease_reference_count_without_destroing() {
+inline void object::unsafe_decrease_reference_count_without_destroing() {
 	if(references_ == 0) {
 		print::err(
 			"'unsafe_decrease_reference_count_without_destroing'"
@@ -111,7 +111,7 @@ inline void o<jl::object>::unsafe_decrease_reference_count_without_destroing() {
 	--references_;
 }
 
-inline void o<jl::object>::on_reference_removed() {
+inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		print::err("# removing reference on object without references\n");
 		posix::abort();
@@ -126,10 +126,10 @@ inline void o<jl::object>::on_reference_removed() {
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 
-		//((o<jl::object>*)this)->~o<jl::object>();
+		//((object*)this)->~object();
 
 		view_object_type(this->class_.name(), [&]<typename Type>() {
-			((o<Type>*)this)->~o<Type>();
+			((Type*)this)->~Type();
 		});
 
 		posix::free_raw_memory(ptr_to_this);
@@ -143,10 +143,10 @@ try_create_object(c& c) {
 		return unexpected{ possible_throwable.move() };
 	}
 
-	storage<o<jl::object>>* ptr
-		= posix::allocate_raw<o<jl::object>>(1).iterator();
+	storage<object>* ptr
+		= posix::allocate_raw<object>(1).iterator();
 
-	//new(ptr) o<jl::object>(c);
+	//new(ptr) object(c);
 
 	view_object_type(c.name(), [&]<typename Type>() {
 		ptr->construct(c);

@@ -13,7 +13,7 @@ inline c& c::get_array_class() {
 
 		array_class_ = classes.load_array_class(
 			array_class_name,
-			(o<jl::c_loader>*) defining_loader_.object_ptr()
+			(j::c_loader*) defining_loader_.object_ptr()
 		);
 
 		array_class_->component_class_ = *this;

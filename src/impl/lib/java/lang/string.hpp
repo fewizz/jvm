@@ -1,4 +1,4 @@
-#include "lib/java/lang/string.hpp"
+#include "decl/lib/java/lang/string.hpp"
 
 #include "decl/classes.hpp"
 
@@ -23,7 +23,7 @@ try_create_string(span<uint16> data) {
 	data.copy_to(array_as_span<uint16>(data_ref));
 
 	expected<reference, reference> possible_string_ref
-		= try_create_object(string_class.get());
+		= try_create_object(j::string::c.get());
 	
 	if(possible_string_ref.is_unexpected()) {
 		return unexpected{ possible_string_ref.move_unexpected() };
@@ -31,24 +31,16 @@ try_create_string(span<uint16> data) {
 
 	reference string_ref = possible_string_ref.move_expected();
 
-	string_ref->set(string_value_field_position, move(data_ref));
+	string_ref->set(j::string::value_field_position, move(data_ref));
 	return string_ref;
 }
 
-inline nuint string_utf8_length(o<jl::object>& str) {
-	nuint utf8_length = 0;
-	for_each_string_codepoint(str, [&](unicode::code_point cp) {
-		utf8_length += utf8::encoder{}.units(cp);
-	});
-	return utf8_length;
-}
-
 static inline void init_java_lang_string() {
-	string_class = classes.load_class_by_bootstrap_class_loader(
+	j::string::c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ u8"java/lang/String" }
 	);
 
-	string_value_field_position = string_class->instance_field_position(
+	j::string::value_field_position = j::string::c->instance_field_position(
 		c_string{ u8"value_" }, c_string{ u8"[C" }
 	);
 }

@@ -5,21 +5,20 @@
 
 #include <optional.hpp>
 
-namespace jl {
-	struct c{};
-}
-
 static optional<c&> class_class{};
 inline layout::position class_ptr_field_position;
 
-static inline c& class_from_class_instance(o<jl::object>& class_instance);
+static inline c& class_from_class_instance(object& class_instance);
 
-template<>
-struct o<jl::c> : o<jl::object> {
-	using o<jl::object>::o;
+namespace j {
 
-	::c& c() {
+struct c : object {
+	using object::object;
+
+	::c& get_c() {
 		return class_from_class_instance(*this);
 	}
 
 };
+
+}

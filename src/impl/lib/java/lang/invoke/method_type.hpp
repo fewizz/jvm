@@ -36,7 +36,7 @@ template<
 	reference params_array_ref = possible_params_array_ref.move_expected();
 
 	params_classes
-		.transform_view([](c& c) -> o<jl::object>& { return c.object(); })
+		.transform_view([](c& c) -> object& { return c.object(); })
 		.copy_to(array_as_span<reference>(params_array_ref));
 
 	expected<reference, reference> possible_descriptor_ref
@@ -116,42 +116,42 @@ template<range_of<c&> ParamClasses>
 }
 
 static void init_java_lang_invoke_method_type() {
-	jl::i::method_type::c = classes.load_class_by_bootstrap_class_loader(
+	j::method_type::c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ u8"java/lang/invoke/MethodType" }
 	);
 
-	method_type_constructor = jl::i::method_type::c->instance_methods().find(
+	method_type_constructor = j::method_type::c->instance_methods().find(
 		c_string{ u8"<init>" },
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V" }
 	);
 
-	jl::i::method_type::parameter_types_instance_field_position =
-		jl::i::method_type::c->instance_field_position(
+	j::method_type::parameter_types_instance_field_position =
+		j::method_type::c->instance_field_position(
 			c_string{ u8"parameterTypes_" },
 			c_string{ u8"[Ljava/lang/Class;" }
 		);
 
-	jl::i::method_type::return_type_instance_field_position =
-		jl::i::method_type::c->instance_field_position(
+	j::method_type::return_type_instance_field_position =
+		j::method_type::c->instance_field_position(
 			c_string{ u8"returnType_" },
 			c_string{ u8"Ljava/lang/Class;" }
 		);
 
-	jl::i::method_type::descriptor_instance_field_position =
-		jl::i::method_type::c->instance_field_position(
+	j::method_type::descriptor_instance_field_position =
+		j::method_type::c->instance_field_position(
 			c_string{ u8"descriptorUTF8_" },
 			c_string{ u8"[B" }
 		);
 
-	jl::i::method_type::c->declared_static_methods().find(
+	j::method_type::c->declared_static_methods().find(
 		c_string{ u8"descriptorUTF8" },
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
 	).native_function(
 		(void*)+[](
 			native_environment*,
-			o<jl::object>* ret_class,
-			o<jl::object>* params_class_array
-		) -> o<jl::object>*
+			object* ret_class,
+			object* params_class_array
+		) -> object*
 		{
 			auto params
 				= array_as_span<reference>(*params_class_array)

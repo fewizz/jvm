@@ -39,7 +39,7 @@ struct class_and_initiating_loaders {
 		initiating_loaders.emplace_back<reference>(class_.defining_loader());
 	}
 
-	void record_as_initiating(o<jl::c_loader>* cl) {
+	void record_as_initiating(j::c_loader* cl) {
 		if(loader_is_recorded_as_initiating(cl)) {
 			print::err("class-loader is already recorded as initiating\n");
 			posix::abort();
@@ -47,7 +47,7 @@ struct class_and_initiating_loaders {
 		initiating_loaders.emplace_back<reference>(*cl);
 	}
 
-	bool loader_is_recorded_as_initiating(o<jl::c_loader>* cl) const {
+	bool loader_is_recorded_as_initiating(j::c_loader* cl) const {
 		for(const reference& l : initiating_loaders) {
 			if(l.object_ptr() == cl) {
 				return true;
@@ -75,7 +75,7 @@ public:
 
 private:
 	void mark_class_loader_as_initiating_for_class(
-		c& c, o<jl::c_loader>* cl
+		c& c, j::c_loader* cl
 	) {
 		for(class_and_initiating_loaders& c_and_cl : *this) {
 			if(&c_and_cl.class_ == &c) {
@@ -89,7 +89,7 @@ public:
 
 	template<basic_range Name>
 	optional<c&> try_find_class_which_loading_was_initiated_by(
-		Name&& name, o<jl::c_loader>* cl
+		Name&& name, j::c_loader* cl
 	) {
 		mutex_->lock();
 		on_scope_exit unlock_classes_mutex { [&] {
@@ -149,17 +149,17 @@ public:
 	template<basic_range Name>
 	expected<c&, reference>
 	try_load_non_array_class_by_user_class_loader(
-		Name&& name, o<jl::c_loader>* l
+		Name&& name, j::c_loader* l
 	);
 
 	template<basic_range Name>
 	expected<c&, reference> try_load_array_class(
-		Name&& name, o<jl::c_loader>* l
+		Name&& name, j::c_loader* l
 	);
 
 	template<basic_range Name>
 	c& load_array_class(
-		Name&& name, o<jl::c_loader>* l
+		Name&& name, j::c_loader* l
 	) {
 		expected<c&, reference> r = try_load_array_class(
 			forward<Name>(name), l
@@ -175,13 +175,13 @@ public:
 	expected<c&, reference> try_define_class(
 		Name&& name,
 		posix::memory<> bytes,
-		o<jl::c_loader>* defining_loader // L
+		j::c_loader* defining_loader // L
 	);
 
 	template<basic_range Name>
 	c& define_array_class(
 		Name&& name,
-		o<jl::c_loader>* defining_loader
+		j::c_loader* defining_loader
 	);
 
 	template<basic_range Name>
@@ -213,7 +213,7 @@ public:
 
 	template<basic_range Name>
 	expected<c&, reference>
-	try_load_non_array_class(Name&& name, o<jl::c_loader>* l) {
+	try_load_non_array_class(Name&& name, j::c_loader* l) {
 		return l == nullptr ?
 			try_load_non_array_class_by_bootstrap_class_loader(
 				forward<Name>(name)
@@ -226,7 +226,7 @@ public:
 
 	template<basic_range Name>
 	expected<c&, reference>
-	try_load_class(Name&& name, o<jl::c_loader>* class_loader) {
+	try_load_class(Name&& name, j::c_loader* class_loader) {
 		if(range{name}.starts_with('[')) {
 			return try_load_array_class(
 				forward<Name>(name), class_loader

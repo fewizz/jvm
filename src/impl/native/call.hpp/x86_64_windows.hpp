@@ -169,11 +169,11 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				same_as<Type, class_file::array>
 			) {
 				// increment reference count before possible deletion on stack
-				o<jl::object>* obj_ptr = (::o<jl::object>*) result;
+				object* obj_ptr = (::object*) result;
 				reference ref =
 					obj_ptr == nullptr ?
 					reference{} :
-					reference { * (::o<jl::object>*) result };
+					reference { * (::object*) result };
 				stack.pop_back_until(jstack_begin);
 				stack.emplace_back(move(ref));
 			} else {

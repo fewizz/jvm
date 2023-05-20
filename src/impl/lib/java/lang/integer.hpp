@@ -25,7 +25,7 @@ static void init_java_lang_integer() {
 	java_lang_integer_class->declared_static_methods().find(
 		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[](native_environment*) -> o<jl::object>* {
+		(void*)+[](native_environment*) -> object* {
 			return int_class->object_ptr();
 		}
 	);
@@ -33,7 +33,7 @@ static void init_java_lang_integer() {
 	java_lang_integer_class->declared_static_methods().find(
 		c_string{ u8"toString" }, c_string{ u8"(II)Ljava/lang/String;" }
 	).native_function(
-		(void*)+[](native_environment*, int32 value, int32 radix) -> o<jl::object>* {
+		(void*)+[](native_environment*, int32 value, int32 radix) -> object* {
 			int32 max_radix = 10 + 26;
 			int32 min_radix = 2;
 			if(radix < min_radix || radix > max_radix) {

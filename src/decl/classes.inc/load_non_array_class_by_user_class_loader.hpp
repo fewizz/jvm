@@ -7,7 +7,7 @@
 template<basic_range Name>
 expected<c&, reference>
 classes::try_load_non_array_class_by_user_class_loader(
-	Name&& name, o<jl::c_loader>* l
+	Name&& name, j::c_loader* l
 ) {
 	if(l == nullptr) {
 		posix::abort();
@@ -49,7 +49,7 @@ classes::try_load_non_array_class_by_user_class_loader(
 		return unexpected{ possible_name_ref.move_unexpected() };
 	}
 	reference name_ref = possible_name_ref.move_expected();
-	method& load_method = l_c[class_loader_load_class_method_index];
+	method& load_method = l_c[j::c_loader::load_class_method_index];
 
 	optional<reference> possible_exception
 		= try_execute(load_method, reference{*l}, name_ref);

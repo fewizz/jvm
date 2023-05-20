@@ -10,7 +10,7 @@ static void init_java_lang_void() {
 	c.declared_static_methods().find(
 		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
 	).native_function(
-		(void*)+[](native_environment*) -> o<jl::object>* {
+		(void*)+[](native_environment*) -> object* {
 			return void_class->object_ptr();
 		}
 	);

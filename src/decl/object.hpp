@@ -12,19 +12,11 @@
 
 struct layout;
 
-namespace jl {
-	struct object{};
-}
-
-template<typename Type>
-struct o;
-
 struct _class;
 struct reference;
 
-template<>
-struct o<jl::object> :
-	layout_view_extension<o<jl::object>, instance_field_index>
+struct object :
+	layout_view_extension<object, instance_field_index>
 {
 private:
 	uint32 references_ = 0;
@@ -41,7 +33,7 @@ private:
 	void unsafe_decrease_reference_count_without_destroing();
 
 	// required member functions for layout_view_extension:
-	friend layout_view_extension<o<jl::object>, instance_field_index>;
+	friend layout_view_extension<object, instance_field_index>;
 
 	const ::layout& layout_for_view() {
 		return class_.instance_layout();
@@ -54,11 +46,11 @@ private:
 
 public:
 
-	o<jl::object>(const o<jl::object>&  c) = delete;
-	o<jl::object>(      o<jl::object>&& c) = delete;
+	object(const object&  c) = delete;
+	object(      object&& c) = delete;
 
-	o<jl::object>(c& c);
-	~o<jl::object>();
+	object(c& c);
+	~object();
 
 	const ::c& c() const {
 		//if(!class_.has_value()) {

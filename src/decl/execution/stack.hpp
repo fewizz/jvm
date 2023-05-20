@@ -131,7 +131,7 @@ public:
 		base_type::emplace_back<reference>(ref.object_ptr());
 		mark_reference(size() - 1);
 	}
-	void emplace_back(o<jl::object>& obj) {
+	void emplace_back(object& obj) {
 		base_type::emplace_back<reference>(&obj);
 		mark_reference(size() - 1);
 	}
@@ -160,7 +160,7 @@ public:
 			mark_reference(index);
 		}
 	}
-	void emplace_at(nuint index, o<jl::object>& obj) {
+	void emplace_at(nuint index, object& obj) {
 		if(is_reference_at(index)) {
 			get<reference>(index) = obj;
 		} else {

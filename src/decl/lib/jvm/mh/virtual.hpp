@@ -9,7 +9,7 @@ static optional<instance_method&> mh_virtual_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_virtual_mh(
-	o<jl::i::method_type>& mt,
+	j::method_type& mt,
 	method& resolved_method
 ) {
 	declared_instance_method_index resolved_method_index =

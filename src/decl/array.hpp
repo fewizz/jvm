@@ -17,22 +17,22 @@ constexpr inline layout::position
 	array_length_field_position{ bytes_in<int64> };
 
 template<typename Type>
-static Type* array_data(o<jl::object>& o) {
+static Type* array_data(object& o) {
 	return (Type*) o.get<int64>(array_data_field_position);
 }
 
-static inline int32 array_length(o<jl::object>& o) {
+static inline int32 array_length(object& o) {
 	return o.get<int32>(array_length_field_position);
 }
 
-static inline int32 array_length(o<jl::object>& o);
+static inline int32 array_length(object& o);
 
-static inline void array_length(o<jl::object>& o, int32 length) {
+static inline void array_length(object& o, int32 length) {
 	o.set(array_length_field_position, length);
 }
 
 template<typename Type>
-static inline span<Type> array_as_span(o<jl::object>& o) {
+static inline span<Type> array_as_span(object& o) {
 	return { array_data<Type>(o), (nuint) array_length(o) };
 }
 

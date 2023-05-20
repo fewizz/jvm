@@ -7,48 +7,6 @@
 #include <unicode/utf8.hpp>
 #include <unicode/utf16.hpp>
 
-namespace jl {
-
-	struct string{};
-
-}
-
-static optional<c&> string_class{};
-inline layout::position string_value_field_position;
-
-template<typename Handler>
-inline void for_each_string_codepoint(o<jl::object>& str, Handler&& handler) {
-	reference& value = str.get<reference>(string_value_field_position);
-
-	uint8* it = array_data<uint8>(value);
-	int32 len = array_length(value);
-	auto end = it + len * sizeof(uint16);
-
-	while(it != end) {
-		auto cp = utf16::decoder{}(it);
-		if(cp.is_unexpected()) { posix::abort(); }
-		// TODO unexpected
-		handler(cp.get_expected());
-	}
-}
-
-inline nuint string_utf8_length(o<jl::object>& str);
-
-template<typename Handler>
-inline decltype(auto) view_string_on_stack_as_utf8(
-	o<jl::object>& str, Handler&& handler
-) {
-	return view_on_stack<utf8::unit>{ string_utf8_length(str) }(
-		[&](span<utf8::unit> utf8_str) -> decltype(auto) {
-			auto it = utf8_str.iterator();
-			for_each_string_codepoint(str, [&](unicode::code_point cp) {
-				utf8::encoder{}(cp, it);
-			});
-			return handler(utf8_str);
-		}
-	);
-}
-
 [[nodiscard]] inline expected<reference, reference>
 try_create_string(span<uint16> data);
 
@@ -79,17 +37,51 @@ try_create_string_from_utf8(String&& str_utf8) {
 	return try_create_string(data.cast<uint16>());
 }
 
-template<>
-struct o<jl::string> : o<jl::object> {
-	using o<jl::object>::o;
+namespace j {
+
+struct string : object {
+	using object::object;
+
+	inline static optional<::c&> c{};
+	inline static layout::position value_field_position;
+
+	template<typename Handler>
+	inline void for_each_codepoint(Handler&& handler) {
+		reference& value = get<reference>(value_field_position);
+
+		uint8* it = array_data<uint8>(value);
+		int32 len = array_length(value);
+		auto end = it + len * sizeof(uint16);
+
+		while(it != end) {
+			auto cp = utf16::decoder{}(it);
+			if(cp.is_unexpected()) { posix::abort(); }
+			// TODO unexpected
+			handler(cp.get_expected());
+		}
+	}
 
 	nuint length() {
-		return string_utf8_length(*this);
+		nuint utf8_length = 0;
+		for_each_codepoint([&](unicode::code_point cp) {
+			utf8_length += utf8::encoder{}.units(cp);
+		});
+		return utf8_length;
 	}
 
 	template<typename Handler>
 	decltype(auto) view_on_stack_as_utf8(Handler&& handler) {
-		return view_string_on_stack_as_utf8(*this, forward<Handler>(handler));
+		return view_on_stack<utf8::unit>{ length() }(
+			[&](span<utf8::unit> utf8_str) -> decltype(auto) {
+				auto it = utf8_str.iterator();
+				for_each_codepoint([&](unicode::code_point cp) {
+					utf8::encoder{}(cp, it);
+				});
+				return handler(utf8_str);
+			}
+		);
 	}
 
 };
+
+}

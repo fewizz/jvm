@@ -3,15 +3,12 @@
 #include "decl/class.hpp"
 #include "decl/object.hpp"
 
-namespace jl {
+namespace j {
 
-	struct c_loader{};
+struct c_loader : object {
+	using object::object;
+
+	inline static instance_method_index load_class_method_index;
+};
 
 }
-
-inline instance_method_index class_loader_load_class_method_index;
-
-template<>
-struct o<jl::c_loader> : o<jl::object> {
-	using o<jl::object>::o;
-};

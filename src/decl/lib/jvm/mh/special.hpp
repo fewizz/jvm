@@ -9,7 +9,7 @@ inline optional<instance_method&> mh_special_constructor;
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_special_mh(
-	o<jl::i::method_type>& mt,
+	j::method_type& mt,
 	c& c,
 	declared_instance_method_index index
 ) {
@@ -20,7 +20,7 @@ try_create_special_mh(
 }
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_special_mh(o<jl::i::method_type>& mt, instance_method& m) {
+try_create_special_mh(j::method_type& mt, instance_method& m) {
 	declared_instance_method_index index = m.c()
 		.declared_instance_methods().find_index_of(m);
 

@@ -119,7 +119,7 @@ int main (int argc, const char** argv) {
 	expected<c&, reference> possible_c
 		= classes.try_load_class(
 			main_class_name,
-			(o<jl::c_loader>*) app_cl_ref.object_ptr()
+			(j::c_loader*) app_cl_ref.object_ptr()
 		);
 
 	if(possible_c.is_unexpected()) {
@@ -136,7 +136,7 @@ int main (int argc, const char** argv) {
 	}).get();
 
 	expected<reference, reference> possible_args_array
-		= try_create_array_of(string_class.get(), 0);
+		= try_create_array_of(j::string::c.get(), 0);
 
 	if(possible_args_array.is_unexpected()) {
 		return on_exit(possible_args_array.move_unexpected());

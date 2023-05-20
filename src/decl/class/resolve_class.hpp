@@ -17,7 +17,7 @@ try_resolve_class(c& d, Name&& name) {
 	expected<c&, reference> possible_c
 		= classes.try_load_class(
 			name,
-			(o<jl::c_loader>*) defining_loader.object_ptr()
+			(j::c_loader*) defining_loader.object_ptr()
 		);
 
 	if(possible_c.is_unexpected()) {
