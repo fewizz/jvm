@@ -513,4 +513,11 @@ public:
 		}
 	}
 
+	nuint stack_size() {
+		if(is(double_class.get()) || is(long_class.get())) {
+			return 2;
+		}
+		return 1;
+	}
+
 };

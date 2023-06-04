@@ -18,34 +18,54 @@ struct method_handle : object {
 
 	static inline optional<::c&> c;
 	static inline instance_method_index invoke_exact_ptr_index;
+	static inline instance_method_index invoke_ptr_index;
 	static inline layout::position method_type_field_position;
 
 	[[nodiscard]] inline optional<reference>
-	try_invoke_exact(nuint args_beginning) {
+	try_invoke_exact() {
 		method& m = object::c().instance_methods()
 			[j::method_handle::invoke_exact_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
-			reference mh_ref, nuint args_beginning
+			j::method_handle& mh
 		);
-		return ((f)ptr0)(*this, args_beginning);
+		return ((f)ptr0)(*this);
 	}
 
 	[[nodiscard]] inline optional<reference>
 	try_invoke(
-		j::method_type& new_mt,
-		nuint args_beginning
+		j::method_type& t0_mt
 	) {
 		method& m = object::c().instance_methods()
-			[j::method_handle::invoke_exact_ptr_index];
+			[j::method_handle::invoke_ptr_index];
 
 		void* ptr0 = m.native_function();
 		using f = optional<reference>(*)(
-			reference mh_ref, reference new_mt, nuint args_beginning
+			j::method_type& t0_mt,
+			j::method_handle& mh
 		);
-		return ((f)ptr0)(*this, new_mt, args_beginning);
+		return ((f)ptr0)(t0_mt, *this);
 	}
+
+	j::method_type& method_type() {
+		object& obj = get<reference>(
+			j::method_handle::method_type_field_position
+		).object();
+		return (j::method_type&) obj;
+	}
+
+	[[nodiscard]] inline optional<reference>
+	try_invoke_with_arguments(object& args_array);
+
+	nuint compute_args_stack_size() {
+		nuint s = 0;
+		for(::c& c : this->method_type().parameter_types_view()) {
+			s += c.stack_size();
+		}
+		return s;
+	}
+
 };
 
 }

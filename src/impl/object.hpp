@@ -126,11 +126,11 @@ inline void object::on_reference_removed() {
 	if(references_ == 0) {
 		uint8* ptr_to_this = (uint8*) this;
 
-		//((object*)this)->~object();
+		((object*)this)->~object();
 
-		view_object_type(this->class_.name(), [&]<typename Type>() {
+		/*view_object_type(this->class_.name(), [&]<typename Type>() {
 			((Type*)this)->~Type();
-		});
+		});*/
 
 		posix::free_raw_memory(ptr_to_this);
 	}
@@ -146,11 +146,11 @@ try_create_object(c& c) {
 	storage<object>* ptr
 		= posix::allocate_raw<object>(1).iterator();
 
-	//new(ptr) object(c);
+	new(ptr) object(c);
 
-	view_object_type(c.name(), [&]<typename Type>() {
+	/*view_object_type(c.name(), [&]<typename Type>() {
 		ptr->construct(c);
-	});
+	});*/
 
 	return { ptr->get() };
 }

@@ -8,7 +8,7 @@
 
 #include <loop_action.hpp>
 
-inline bool can_cast(c& t, c& s) {
+inline bool can_cast(c& s, c& t) {
 	/* If S is a class type, then: */
 	if(!s.is_array()) {
 		/* If T is a class type, then S must be the same class as T, or S

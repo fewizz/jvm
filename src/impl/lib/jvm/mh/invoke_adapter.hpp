@@ -6,15 +6,13 @@
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 
-static layout::position jvm_mh_invoke_adapter_original_field_position;
-
 static void init_jvm_mh_invoke_adapter() {
-	mh_invoke_adapter_class = classes.load_class_by_bootstrap_class_loader(
+	jvm::invoke_adapter::c = classes.load_class_by_bootstrap_class_loader(
 		c_string{ u8"jvm/mh/InvokeAdapter" }
 	);
 
-	mh_invoke_adapter_constructor =
-		mh_invoke_adapter_class->declared_instance_methods()
+	jvm::invoke_adapter::constructor =
+		jvm::invoke_adapter::c->declared_instance_methods()
 		.find(
 			c_string{ u8"<init>" },
 			c_string {
@@ -25,58 +23,35 @@ static void init_jvm_mh_invoke_adapter() {
 			}
 		);
 
-	jvm_mh_invoke_adapter_original_field_position
-		= mh_invoke_adapter_class->instance_field_position(
+	jvm::invoke_adapter::original_field_position
+		= jvm::invoke_adapter::c->instance_field_position(
 			c_string{ u8"original_" },
 			c_string{ u8"Ljava/lang/invoke/MethodHandle;" }
 		);
 	
-	mh_invoke_adapter_class->declared_instance_methods()
+	jvm::invoke_adapter::c->declared_instance_methods()
 	.find(c_string{ u8"check" }, c_string{ u8"()Z" })
 	.native_function(
-		(void*)+[](native_environment*, object* new_mh) -> bool {
-			j::method_type& new_mt =
-				(j::method_type&) new_mh->get<reference>(
-					j::method_handle::method_type_field_position
-				).object();
+		(void*)+[](native_environment*, jvm::invoke_adapter* new_mh) -> bool {
+			j::method_type& new_mt = new_mh->method_type();
 
-			object& ori_mh = new_mh->get<reference>(
-				jvm_mh_invoke_adapter_original_field_position
-			);
-			j::method_type& ori_mt =
-				(j::method_type&) ori_mh.get<reference>(
-					j::method_handle::method_type_field_position
-				).object();
+			j::method_handle& ori_mh = new_mh->original();
+			j::method_type& ori_mt = ori_mh.method_type();
 
 			return mh::is_convertible(new_mt, ori_mt);
 		}
 	);
 
-	mh_invoke_adapter_class->declared_instance_methods()
+	jvm::invoke_adapter::c->declared_instance_methods()
 	.find(c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" })
 	.native_function(
 		(void*)+[](
-			reference new_mh,
-			[[maybe_unused]] nuint args_beginning
+			jvm::invoke_adapter& t0_mh
 		) -> optional<reference> {
-			j::method_type& new_mt =
-				(j::method_type&) new_mh->get<reference>(
-					j::method_handle::method_type_field_position
-				).object();
+			j::method_handle& t1_mh = t0_mh.original();
 
-			j::method_handle& ori_mh =
-				(j::method_handle&)
-				new_mh->get<reference>(
-					jvm_mh_invoke_adapter_original_field_position
-				).object();
-
-			j::method_type& ori_mt =
-				(j::method_type&) ori_mh.get<reference>(
-					j::method_handle::method_type_field_position
-				).object();
-
-			return mh::try_invoke_checked(
-				ori_mh, new_mt, ori_mt, args_beginning
+			return mh::try_invoke_unchecked(
+				t0_mh.method_type(), t1_mh
 			);
 		}
 	);

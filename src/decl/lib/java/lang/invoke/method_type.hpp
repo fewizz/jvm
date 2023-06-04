@@ -13,7 +13,7 @@
 
 template<range_of<c&> ParamClasses>
 [[nodiscard]] inline expected<reference, reference> try_create_method_type(
-	::c& ret_class,
+	c& ret_class,
 	ParamClasses&& params_classes
 );
 
@@ -34,6 +34,7 @@ struct method_type : object {
 		return_type_instance_field_position,
 		parameter_types_instance_field_position,
 		descriptor_instance_field_position;
+	static inline optional<instance_method&> constructor;
 
 	using object::object;
 
@@ -62,6 +63,13 @@ struct method_type : object {
 		return move(parameter_types).transform_view([](reference& ref) -> ::c& {
 			return class_from_class_instance(ref);
 		});
+	}
+
+	nuint parameter_types_size() {
+		reference& parameter_types_array = get<reference>(
+			j::method_type::parameter_types_instance_field_position
+		);
+		return array_length(parameter_types_array);
 	}
 
 };

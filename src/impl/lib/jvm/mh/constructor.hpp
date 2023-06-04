@@ -4,6 +4,7 @@
 #include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/object.hpp"
 #include "decl/lib/java/lang/class.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 #include "decl/execute.hpp"
 
@@ -22,11 +23,10 @@ static void init_jvm_mh_constructor() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			reference mh,
-			nuint args_beginning
+			j::method_handle& mh
 		) -> optional<reference> {
 			reference& c_ref
-				= mh->get<reference>(mh_class_member_class_position);
+				= mh.get<reference>(mh_class_member_class_position);
 			c& c = class_from_class_instance(c_ref);
 
 			optional<reference> optional_throwable
@@ -44,10 +44,13 @@ static void init_jvm_mh_constructor() {
 
 			reference result = possible_result.move_expected();
 
+			nuint args_beginning =
+				stack.size() - mh.compute_args_stack_size();
+
 			stack.insert_at(args_beginning, result);
 
 			declared_instance_method_index method_index {
-				mh->get<uint16>(mh_class_member_index_position)
+				mh.get<uint16>(mh_class_member_index_position)
 			};
 			instance_method& constructor = c[method_index];
 

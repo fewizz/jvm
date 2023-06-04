@@ -4,6 +4,7 @@
 #include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/object.hpp"
 #include "decl/lib/java/lang/class.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/execute.hpp"
 
 static void init_jvm_mh_static() {
@@ -20,11 +21,10 @@ static void init_jvm_mh_static() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			reference ths,
-			[[maybe_unused]] nuint args_beginning
+			j::method_handle& ths
 		) -> optional<reference> {
 			reference& c_ref
-				= ths->get<reference>(mh_class_member_class_position);
+				= ths.get<reference>(mh_class_member_class_position);
 
 			c& c = class_from_class_instance(c_ref);
 
@@ -35,7 +35,7 @@ static void init_jvm_mh_static() {
 			}
 
 			declared_static_method_index method_index {
-				ths->get<uint16>(mh_class_member_index_position)
+				ths.get<uint16>(mh_class_member_index_position)
 			};
 
 			static_method& resolved_method = c[method_index];

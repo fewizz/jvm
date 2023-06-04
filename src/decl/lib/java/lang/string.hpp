@@ -46,7 +46,7 @@ struct string : object {
 	inline static layout::position value_field_position;
 
 	template<typename Handler>
-	inline void for_each_codepoint(Handler&& handler) {
+	void for_each_codepoint(Handler&& handler) {
 		reference& value = get<reference>(value_field_position);
 
 		uint8* it = array_data<uint8>(value);
@@ -61,17 +61,30 @@ struct string : object {
 		}
 	}
 
-	nuint length() {
-		nuint utf8_length = 0;
+	template<typename Handler>
+	void for_each_utf16_unit(Handler&& handler) {
+		reference& value = get<reference>(value_field_position);
+		for(uint16 unit : array_as_span<uint16>(value)) {
+			handler(unit);
+		}
+	}
+
+	nuint length_utf8() {
+		nuint len = 0;
 		for_each_codepoint([&](unicode::code_point cp) {
-			utf8_length += utf8::encoder{}.units(cp);
+			len += utf8::encoder{}.units(cp);
 		});
-		return utf8_length;
+		return len;
+	}
+
+	nuint length_utf16() {
+		reference& value = get<reference>(value_field_position);
+		return array_length(value);
 	}
 
 	template<typename Handler>
 	decltype(auto) view_on_stack_as_utf8(Handler&& handler) {
-		return view_on_stack<utf8::unit>{ length() }(
+		return view_on_stack<utf8::unit>{ length_utf8() }(
 			[&](span<utf8::unit> utf8_str) -> decltype(auto) {
 				auto it = utf8_str.iterator();
 				for_each_codepoint([&](unicode::code_point cp) {
@@ -80,6 +93,11 @@ struct string : object {
 				return handler(utf8_str);
 			}
 		);
+	}
+
+	span<uint16> as_span_utf16() {
+		reference& value = get<reference>(value_field_position);
+		return array_as_span<uint16>(value);
 	}
 
 };

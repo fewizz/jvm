@@ -14,8 +14,6 @@
 #include <ranges.hpp>
 #include <span.hpp>
 
-static optional<instance_method&> method_type_constructor;
-
 template<
 	range_of<c&> ParamClasses,
 	range_of_decayed<utf8::unit> Descriptor
@@ -52,7 +50,7 @@ template<
 
 	expected<reference, reference> possible_mt
 		= try_create_object(
-			method_type_constructor.get(),
+			j::method_type::constructor.get(),
 			reference{ ret_class.object() },
 			move(params_array_ref),
 			move(descriptor_ref)
@@ -120,7 +118,7 @@ static void init_java_lang_invoke_method_type() {
 		c_string{ u8"java/lang/invoke/MethodType" }
 	);
 
-	method_type_constructor = j::method_type::c->instance_methods().find(
+	j::method_type::constructor = j::method_type::c->instance_methods().find(
 		c_string{ u8"<init>" },
 		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V" }
 	);
@@ -149,7 +147,7 @@ static void init_java_lang_invoke_method_type() {
 	).native_function(
 		(void*)+[](
 			native_environment*,
-			object* ret_class,
+			j::c* ret_class,
 			object* params_class_array
 		) -> object*
 		{
@@ -161,7 +159,7 @@ static void init_java_lang_invoke_method_type() {
 
 			expected<reference, reference> possible_result
 			= method_type_view_descriptor_utf8(
-				class_from_class_instance(*ret_class),
+				ret_class->get_c(),
 				params,
 				[](auto destriptor) -> expected<reference, reference> {
 					expected<reference, reference> possible_array
@@ -172,7 +170,7 @@ static void init_java_lang_invoke_method_type() {
 						};
 					}
 					reference array = possible_array.move_expected();
-					destriptor.copy_to(array_as_span<char>(array));
+					destriptor.copy_to(array_as_span<utf8::unit>(array));
 					return array;
 				}
 			);

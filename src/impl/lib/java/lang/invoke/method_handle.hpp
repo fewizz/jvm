@@ -15,6 +15,11 @@ inline void init_java_lang_invoke_method_handle() {
 			c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 		);
 
+	j::method_handle::invoke_ptr_index
+		= j::method_handle::c->instance_methods().find_index_of(
+			c_string{ u8"invokePtr" }, c_string{ u8"()V" }
+		);
+
 	j::method_handle::method_type_field_position
 		= j::method_handle::c->instance_field_position(
 			c_string{ u8"methodType_" },
@@ -25,19 +30,12 @@ inline void init_java_lang_invoke_method_handle() {
 		c_string{ u8"invokePtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			reference mh_ref, reference new_mt, nuint args_beginning
+			j::method_type& t0_mt,
+			j::method_handle& t1_mh
 		) -> optional<reference> {
-			reference& mt = mh_ref->get<reference>(
-				j::method_handle::method_type_field_position
-			);
-			j::method_handle& mh =
-				(j::method_handle&) mh_ref.object();
-
-			return mh::try_invoke_checked(
-				mh,
-				(j::method_type&) new_mt.object(),
-				(j::method_type&)mt,
-				args_beginning
+			return mh::try_invoke_unchecked(
+				t0_mt,
+				t1_mh
 			);
 		}
 	);
@@ -53,7 +51,7 @@ inline void init_java_lang_invoke_method_handle() {
 		-> object*
 		{
 			expected<reference, reference> possible_adapter = try_create_object(
-				mh_invoke_adapter_constructor.get(),
+				jvm::invoke_adapter::constructor.get(),
 				reference{*mt}  /* new MethodType */,
 				reference{*ths} /* original MethodHandle */
 			);
@@ -63,5 +61,39 @@ inline void init_java_lang_invoke_method_handle() {
 			reference adapter = possible_adapter.move();
 			return & adapter.unsafe_release_without_destroing();
 		}
+	);
+}
+
+[[nodiscard]] inline optional<reference>
+j::method_handle::try_invoke_with_arguments(object& params_array) {
+	nuint args_count = array_length(params_array);
+
+	for(reference ref : array_as_span<reference>(params_array)) {
+		stack.emplace_back(move(ref));
+	}
+
+	j::method_type& t1_mt = method_type();
+	auto t1_params = t1_mt.parameter_types_view();
+	::c& t1_ret = t1_mt.return_type();
+	::c& t0_ret = object_class.get();
+
+	if(args_count != t1_mt.parameter_types_size()) {
+		posix::abort();
+	}
+
+	// TODO
+	return view_on_stack<char>(args_count)([&](span<char> s)
+	-> optional<reference> {
+		auto t0_params = s.transform_view([](auto) -> ::c& {
+			return object_class.get();
+		});
+
+		if(!mh::is_convertible(t0_params, t0_ret, t1_params, t1_ret)) {
+			posix::abort();
+		}
+
+		j::method_handle& t1_mh = *this;
+		return mh::try_invoke_unchecked(t0_params, t0_ret, t1_mh);
+	}
 	);
 }

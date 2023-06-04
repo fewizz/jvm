@@ -13,7 +13,7 @@ template<typename T0, typename T1>
 	}
 	/* If T0 and T1 are references */
 	if constexpr(same_as<T0, reference> && same_as<T1, reference>) {
-		return can_cast(t0, t1);
+		return true;//can_cast(t0, t1);
 	}
 	/* If T0 and T1 are primitives */
 	if constexpr(widening_conversion_allowed<T0, T1>) {
@@ -62,39 +62,59 @@ template<typename T0, typename T1>
 	});
 }
 
+template<
+	range_of<c&> T0Params,
+	range_of<c&> T1Params
+>
 [[nodiscard]] inline bool is_convertible(
-	j::method_type& new_mt,
-	j::method_type& ori_mt
+	T0Params&& t0_params, c& t0_ret,
+	T1Params&& t1_params, c& t1_ret
 ) {
-	auto new_params = new_mt.parameter_types_view();
-	auto ori_params = ori_mt.parameter_types_view();
-
-	if(new_params.size() != ori_params.size()) {
+	if(range_size(t1_params) != range_size(t0_params)) {
 		return false;
 	}
 
-	for(nuint i = 0; i < new_params.size(); ++i) {
-		c& new_p = new_params[i];
-		c& ori_p = ori_params[i];
+	for(nuint i = 0; i < range_size(t1_params); ++i) {
+		c& t0_param = t0_params[i];
+		c& t1_param = t1_params[i];
 
-		if(!is_type_convertible(new_p, ori_p)) {
+		if(!is_type_convertible(t0_param, t1_param)) {
 			return false;
 		}
 	}
 
-	c& new_ret = new_mt.return_type();
-	c& ori_ret = ori_mt.return_type();
+	return is_type_convertible(t1_ret, t0_ret);
+}
 
-	return is_type_convertible(ori_ret, new_ret);
+[[nodiscard]] inline bool is_convertible(
+	j::method_type& t0_mt,
+	j::method_type& t1_mt
+) {
+	auto t0_params = t0_mt.parameter_types_view();
+	auto t1_params = t1_mt.parameter_types_view();
+
+	c& t0_ret = t0_mt.return_type();
+	c& t1_ret = t1_mt.return_type();
+
+	return is_convertible(
+		t0_params, t0_ret,
+		t1_params, t1_ret
+	);
 }
 
 template<typename T0, typename T1>
 [[nodiscard]] inline optional<reference>
 try_convert_and_save_on_stack(
-	T0& t0
+	T0& t0, c& t1
 ) {
 	/* If T0 and T1 are references */
 	if constexpr(same_as<reference, T0> && same_as<reference, T1>) {
+		if(!t0.is_null()) {
+			c& s = t0.c();
+			if(!can_cast(s, t1)) {
+				posix::abort();
+			}
+		}
 		return {};
 	}
 	/* If T0 and T1 are primitives */
@@ -149,19 +169,19 @@ try_convert_and_save_on_stack(
 
 [[nodiscard]] inline optional<reference>
 try_convert_return_value_and_save_on_stack(
-	c& new_ret, c& ori_ret
+	c& t0_ret, c& t1_ret
 ) {
-	bool ori_is_void = ori_ret.is(void_class.get());
-	bool new_is_void = new_ret.is(void_class.get());
+	bool t0_is_void = t0_ret.is(void_class.get());
+	bool t1_is_void = t1_ret.is(void_class.get());
 
-	if(ori_is_void && new_is_void) {
+	if(t0_is_void && t1_is_void) {
 		return {};
 	}
 
 	/* If the return type T1 is marked as void, any returned value is
 	   discarded */
-	if(new_is_void && !ori_is_void) {
-		ori_ret.view_raw_type_non_void([]<typename T0>() {
+	if(!t0_is_void && t1_is_void) {
+		t0_ret.view_raw_type_non_void([]<typename T0>() {
 			stack.pop_back<T0>();
 		});
 		return {};
@@ -170,46 +190,46 @@ try_convert_return_value_and_save_on_stack(
 	   introduced. */
 	/* If the return type T0 is void and T1 a primitive, a zero value is
 	   introduced. */
-	if(ori_is_void && !new_is_void) {
+	if(t0_is_void && !t1_is_void) {
 		stack.emplace_back(reference{});
-		new_ret.view_raw_type_non_void([]<typename T1>() {
+		t1_ret.view_raw_type_non_void([]<typename T1>() {
 			stack.emplace_back(T1{});
 		});
 		return {};
 	}
 
-	return ori_ret.view_raw_type_non_void(
-	[&]<typename T0>() -> optional<reference> {
+	return t0_ret.view_raw_type_non_void([&]<typename T0>()
+	-> optional<reference> {
 		T0 t0 = stack.pop_back<T0>();
 	
-		return new_ret.view_raw_type_non_void([&]<typename T1>()
+		return t1_ret.view_raw_type_non_void([&]<typename T1>()
 		-> optional<reference> {
 			return try_convert_and_save_on_stack<
 				T0, T1
-			>(t0);
+			>(t0, t1_ret);
 		});
 	});
 }
 
-template<range_of<c&> NewArgs, range_of<c&> OriArgs>
+template<range_of<c&> T0Params, range_of<c&> T1Params>
 [[nodiscard]] inline optional<reference>
 try_convert_arguments_on_stack(
-	NewArgs&& new_args, OriArgs&& ori_args, nuint index
+	T0Params&& t0_params, T1Params&& t1_params, nuint index
 ) {
 	--index;
 
-	c& new_a = new_args[index];
-	c& ori_a = ori_args[index];
+	c& t0_param = t0_params[index];
+	c& t1_param = t1_params[index];
 
-	return new_a.view_raw_type_non_void([&]<typename T0>()
+	return t0_param.view_raw_type_non_void([&]<typename T0>()
 	-> optional<reference> {
 		T0 t0 = stack.pop_back<T0>();
 
 		if(index > 0) {
 			optional<reference> possible_throwable
 				= try_convert_arguments_on_stack(
-					forward<NewArgs>(new_args),
-					forward<OriArgs>(ori_args),
+					forward<T0Params>(t0_params),
+					forward<T1Params>(t1_params),
 					index
 				);
 			if(possible_throwable.has_value()) {
@@ -217,10 +237,10 @@ try_convert_arguments_on_stack(
 			}
 		}
 
-		return ori_a.view_raw_type_non_void(
+		return t1_param.view_raw_type_non_void(
 			[&]<typename T1>() -> optional<reference> {
 				optional<reference> possible_thowable
-				= try_convert_and_save_on_stack<T0, T1>(t0);
+					= try_convert_and_save_on_stack<T0, T1>(t0, t1_param);
 
 				if(possible_thowable.has_value()) {
 					return possible_thowable.move();
@@ -231,17 +251,17 @@ try_convert_arguments_on_stack(
 	});
 }
 
-template<range_of<c&> NewArgs, range_of<c&> OriArgs>
+template<range_of<c&> T0Params, range_of<c&> T1Params>
 [[nodiscard]] inline optional<reference>
 try_convert_arguments_on_stack(
-	NewArgs&& new_args, OriArgs&& ori_args
+	T0Params&& t0_params, T1Params&& t1_params
 ) {
-	auto size = range_size(new_args);
+	auto size = range_size(t0_params);
 	if(size == 0) return {};
 
 	return try_convert_arguments_on_stack(
-		forward<NewArgs>(new_args),
-		forward<OriArgs>(ori_args),
+		forward<T0Params>(t0_params),
+		forward<T1Params>(t1_params),
 		size
 	);
 }

@@ -6,38 +6,52 @@
 
 namespace mh {
 
-[[nodiscard]] inline optional<reference> try_invoke_checked(
-	j::method_handle& ori_mh,
-	j::method_type& new_mt,
-	j::method_type& ori_mt,
-	nuint args_beginning
+template<range_of<c&> T0Params>
+[[nodiscard]] optional<reference> try_invoke_unchecked(
+	T0Params&& t0_params,
+	c& t0_ret,
+	j::method_handle& t1_mh
 ) {
-	c& new_ret = new_mt.return_type();
-	c& ori_ret = ori_mt.return_type();
+	j::method_type& t1_mt = t1_mh.method_type();
 
-	auto new_params = new_mt.parameter_types_view();
-	auto ori_params = ori_mt.parameter_types_view();
+	c& t1_ret = t1_mt.return_type();
+
+	auto t1_params = t1_mt.parameter_types_view();
 
 	optional<reference> possible_throwable
 		= try_convert_arguments_on_stack(
-			new_params, ori_params
+			t0_params, t1_params
 		);
+
 	if(possible_throwable.has_value()) {
 		return possible_throwable.move();
 	}
 
-	possible_throwable = ori_mh.try_invoke_exact(args_beginning);
-	
+	possible_throwable = t1_mh.try_invoke_exact();
+
 	if(possible_throwable.has_value()) {
 		return possible_throwable.move();
 	}
 
 	possible_throwable
 		= try_convert_return_value_and_save_on_stack(
-			new_ret, ori_ret
+			t1_ret, t0_ret
 		);
 
+	if(possible_throwable.has_value()) {
+		return possible_throwable.move();
+	}
+
 	return {};
+}
+
+[[nodiscard]] inline optional<reference> try_invoke_unchecked(
+	j::method_type& t0_mt,
+	j::method_handle& t1_mh
+) {
+	auto t0_params = t0_mt.parameter_types_view();
+	c& t0_ret = t0_mt.return_type();
+	return try_invoke_unchecked(t0_params, t0_ret, t1_mh);
 }
 
 }

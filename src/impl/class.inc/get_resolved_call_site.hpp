@@ -23,7 +23,6 @@
 inline expected<reference, reference> c::try_get_resolved_call_site(
 	class_file::constant::invoke_dynamic_index index
 ) {
-
 	mutex_->lock();
 	on_scope_exit unlock {[&] {
 		mutex_->unlock();
@@ -47,14 +46,14 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 		);
 	/*    The bootstrap method handle is resolved (§5.4.3.5) to obtain a
 	      reference to an instance of java.lang.invoke.MethodHandle. */
-	expected<reference, reference> possible_mh
+	expected<reference, reference> possible_mh_ref
 		= try_get_resolved_method_handle(bm.method_handle_index);
 	
-	if(possible_mh.is_unexpected()) {
-		return unexpected{ possible_mh.move_unexpected() };
+	if(possible_mh_ref.is_unexpected()) {
+		return unexpected{ possible_mh_ref.move_unexpected() };
 	}
 
-	reference mh = possible_mh.move_expected();
+	reference mh_ref = possible_mh_ref.move_expected();
 
 	/* 2. If R is a symbolic reference to a dynamically-computed call site, then
 	      it gives a method descriptor. */
@@ -78,7 +77,22 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
-	nuint args_count_stack = 0;
+	nuint n = class_file::method_descriptor::try_read_parameters_count(
+		descriptor.iterator(),
+		[](auto) { posix::abort(); }
+	).get();
+
+	n += 3;
+
+	expected<reference, reference> possible_arr
+		= try_create_array_of(object_class.get(), n);
+	
+	if(possible_arr.is_unexpected()) {
+		return unexpected{ possible_arr.move_unexpected() };
+	}
+
+	reference arr_ref = possible_arr.move_expected();
+	span<reference> arr = array_as_span<reference>(arr_ref);
 
 	/* The zeroth component of the array is set to a reference to an instance of
 	   java.lang.invoke.MethodHandles.Lookup for the class in which R occurs,
@@ -90,8 +104,8 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 		return unexpected{ possible_lookup.move_unexpected() };
 	}
 
-	stack.emplace_back(possible_lookup.move_expected());
-	++args_count_stack;
+	nuint args_count_stack = 0;
+	arr[args_count_stack++] = possible_lookup.move_expected();
 
 	/* The first component of the array is set to a reference to an instance of
 	   String that denotes N, the unqualified name given by R. */
@@ -102,15 +116,13 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 		return possible_name_ref.move_unexpected();
 	}
 
-	stack.emplace_back(possible_name_ref.move_expected());
-	++args_count_stack;
+	arr[args_count_stack++] = possible_name_ref.move_expected();
 
 	/* The second component of the array is set to the reference to an instance
 	   of Class or java.lang.invoke.MethodType that was obtained earlier for the
 	   field descriptor or method descriptor given by R. */
 	// TODO "to an instance of Class" ???
-	stack.emplace_back(mt);
-	++args_count_stack;
+	arr[args_count_stack++] = mt;
 
 	/* Subsequent components of the array are set to the references that were
 	   obtained earlier from resolving R's static arguments, if any.
@@ -135,8 +147,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 					return;
 				}
 
-				stack.emplace_back(possible_string.move_expected());
-				++args_count_stack;
+				arr[args_count_stack++] = possible_string.move_expected();
 			}
 			/* If A is a numeric constant, then a reference to an instance of
 			   java.lang.invoke.MethodHandle is obtained by the following
@@ -153,8 +164,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 					thrown = possible_mt.move_unexpected();
 					return;
 				}
-				stack.emplace_back(possible_mt.move_expected());
-				++args_count_stack;
+				arr[args_count_stack++] = possible_mt.move_expected();
 			}
 			else if constexpr(
 				same_as<Type, class_file::constant::method_handle>
@@ -169,8 +179,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 					return;
 				}
 
-				stack.emplace_back(possible_mh.move_expected());
-				++args_count_stack;
+				arr[args_count_stack++] = possible_mh.move_expected();
 			}
 			else {
 				posix::abort();
@@ -185,12 +194,18 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	/* The bootstrap method handle is invoked, as if by the invocation
 	   BMH.invokeWithArguments(args), where BMH is the bootstrap method handle
 	   and args is the array allocated above. */
-	//method_handle_invoke_exact(mh, args_count_stack);
-	posix::abort();
-	
-	reference result = stack.pop_back<reference>();
 
-	trampoline(index) = result;
+	j::method_handle& mh = (j::method_handle&) mh_ref.object();
+	optional<reference> possible_throwable
+		= mh.try_invoke_with_arguments(arr_ref);
 
-	return move(result);
+	if(possible_throwable.has_value()) {
+		return unexpected{ possible_throwable.move() };
+	}
+
+	reference call_site_ref = stack.pop_back<reference>();
+
+	trampoline(index) = call_site_ref;
+
+	return move(call_site_ref);
 }

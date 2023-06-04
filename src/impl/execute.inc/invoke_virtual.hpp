@@ -104,41 +104,35 @@ template<basic_range Desriptor>
 
 		// reference to method handle is popped from stack
 		// before calling invoke[Exact]!
-		nuint args_beginning_positoin = stack.size() - args_count_stack;
 
 		reference mh_ref; {
+			nuint args_beginning_positoin = stack.size() - args_count_stack;
+
 			nuint mh_ref_stack_position = args_beginning_positoin - 1;
 			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
-			--args_beginning_positoin;
 		}
-		j::method_handle& mh
-			= (j::method_handle&) mh_ref.object();
+
+		j::method_handle& mh = (j::method_handle&) mh_ref.object();
 
 		if(resolved_method.name().has_equal_size_and_elements(
 			c_string{ u8"invokeExact" }
 		)) {
-			return mh.try_invoke_exact(
-				args_beginning_positoin
-			);
+			return mh.try_invoke_exact();
 		}
-		else if(resolved_method.name().has_equal_size_and_elements(
+		if(resolved_method.name().has_equal_size_and_elements(
 			c_string{ u8"invoke" }
 		)) {
-			expected<reference, reference> possible_new_mt
+			expected<reference, reference> possible_t0_mt
 				= try_resolve_method_type(d, resolved_method.descriptor());
 
-			if(possible_new_mt.is_unexpected()) {
-				return possible_new_mt.move_unexpected();
+			if(possible_t0_mt.is_unexpected()) {
+				return possible_t0_mt.move_unexpected();
 			}
 
-			reference new_mt_ref = possible_new_mt.move_expected();
-			j::method_type& new_mt
-				= (j::method_type&) new_mt_ref.object();
+			reference t0_mt_ref = possible_t0_mt.move_expected();
+			j::method_type& t0_mt = (j::method_type&) t0_mt_ref.object();
 
-			return mh.try_invoke(
-				new_mt,
-				args_beginning_positoin
-			);
+			return mh.try_invoke(t0_mt);
 		}
 
 		return {};

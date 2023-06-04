@@ -1,5 +1,8 @@
 #include "decl/classes.hpp"
 #include "decl/object.hpp"
+#include "decl/native/environment.hpp"
+#include "decl/lib/java/lang/invoke/method_type.hpp"
+#include "decl/lib/jvm/mh/string_concat.hpp"
 
 static void init_java_lang_invoke_string_concat_factory() {
 	c& scf = classes.load_class_by_bootstrap_class_loader(
@@ -21,13 +24,14 @@ static void init_java_lang_invoke_string_concat_factory() {
 
 	make_concat_with_constants.native_function(
 		(void*)+[](
-			[[maybe_unused]] object* lookup,
+			native_environment*,
 			object*,
-			object*,
-			object*,
+			j::string*,
+			j::method_type*,
+			j::string*,
 			object*
 		) -> object* {
-			posix::abort();
+			
 		}
 	);
 }

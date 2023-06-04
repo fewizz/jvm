@@ -8,7 +8,7 @@
 #include <posix/default_unhandled.cpp>
 #include <print/print.hpp>
 
-int main (int argc, const char** argv) {
+int main(int argc, const char** argv) {
 	if(argc != 2) {
 		print::err("usage: 'class name'\n");
 		return 1;
@@ -17,18 +17,17 @@ int main (int argc, const char** argv) {
 	// TODO replace with somethig more reliable
 	executable_path = c_string{ (const utf8::unit*) argv[0] }.sized();
 
-	// TODO replace with algo
 	lib_path = [] {
-		auto exe = executable_path.get();
-		nuint last_slash = exe.size() - 1;
+		optional<nuint> last_slash_index =
+			executable_path->
+			try_find_index_of_last_satisfying([](utf8::unit ch) {
+				return ch == '\\' || ch == '/';
+			});
 
-		while(
-			last_slash >= 0 &&
-			(exe[last_slash] != '\\' && exe[last_slash] != '/')
-		){
-			--last_slash;
-		}
-		return c_string_of_known_size<utf8::unit>{ exe.begin(), last_slash };
+		return c_string_of_known_size<utf8::unit> {
+			executable_path->iterator(),
+			last_slash_index.get()
+		};
 	}();
 
 	init_java_lang_object();
@@ -94,6 +93,7 @@ int main (int argc, const char** argv) {
 
 	optional<reference> possible_exception
 		= app_cl_class.try_initialise_if_need();
+
 	if(possible_exception.has_value()) {
 		posix::abort();
 	}
@@ -126,14 +126,19 @@ int main (int argc, const char** argv) {
 		return on_exit(possible_c.move_unexpected());
 	}
 
-	c& c = possible_c.get_expected();
-	method& m = c.declared_static_methods().try_find(
+	c& main_c = possible_c.get_expected();
+	expected<method&, reference> possible_main = try_resolve_method(
+		main_c,
+		main_c,
 		c_string{ u8"main" },
 		c_string{ u8"([Ljava/lang/String;)V" }
-	).if_has_no_value([] {
-		print::err("main method is not found\n");
-		posix::abort();
-	}).get();
+	);
+
+	if(possible_main.is_unexpected()) {
+		return on_exit(possible_main.move_unexpected());
+	}
+
+	static_method& main = (static_method&) possible_main.get_expected();
 
 	expected<reference, reference> possible_args_array
 		= try_create_array_of(j::string::c.get(), 0);
@@ -142,9 +147,9 @@ int main (int argc, const char** argv) {
 		return on_exit(possible_args_array.move_unexpected());
 	}
 
-	reference args_array = possible_args_array.move_unexpected();
+	reference args_array = possible_args_array.move_expected();
 
 	stack.emplace_back(args_array);
 
-	return on_exit(try_execute(m));
+	return on_exit(try_invoke_static_resolved(main));
 }
