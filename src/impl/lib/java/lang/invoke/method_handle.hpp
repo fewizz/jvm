@@ -20,6 +20,11 @@ inline void init_java_lang_invoke_method_handle() {
 			c_string{ u8"invokePtr" }, c_string{ u8"()V" }
 		);
 
+	j::method_handle::is_varargs_instance_method
+		= j::method_handle::c->instance_methods().find(
+			c_string{ u8"isVarargsCollector" }, c_string{ u8"()Z" }
+		);
+
 	j::method_handle::method_type_field_position
 		= j::method_handle::c->instance_field_position(
 			c_string{ u8"methodType_" },
@@ -77,7 +82,7 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 	::c& t1_ret = t1_mt.return_type();
 	::c& t0_ret = object_class.get();
 
-	if(args_count != t1_mt.parameter_types_size()) {
+	if(!is_varargs() && args_count != t1_mt.parameter_types_count()) {
 		posix::abort();
 	}
 
@@ -88,7 +93,11 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 			return object_class.get();
 		});
 
-		if(!mh::is_convertible(t0_params, t0_ret, t1_params, t1_ret)) {
+		// TODO check varargs
+		if(
+			!is_varargs() &&
+			!mh::is_convertible(t0_params, t0_ret, t1_params, t1_ret)
+		) {
 			posix::abort();
 		}
 

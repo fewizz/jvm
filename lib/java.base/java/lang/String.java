@@ -26,6 +26,26 @@ public final class String {
 		return value_[index];
 	}
 
+	@Override
+	public boolean equals(Object anObject) {
+		if(anObject == null || !(anObject instanceof String)) {
+			return false;
+		}
+		String s = (String) anObject;
+
+		if(s.value_.length != this.value_.length) {
+			return false;
+		}
+
+		for(int i = 0; i < value_.length; ++i) {
+			if(s.value_[i] != this.value_[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public boolean startsWith(String prefix) {
 		int prefix_len = prefix.length();
 

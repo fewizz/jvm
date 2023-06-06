@@ -5,6 +5,7 @@ public class ConstantCallSite extends CallSite {
 	private final MethodHandle target_;
 
 	public ConstantCallSite(MethodHandle target) {
+		super(target.type());
 		this.target_ = target;
 	}
 

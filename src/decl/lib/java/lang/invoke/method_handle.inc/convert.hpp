@@ -115,6 +115,7 @@ try_convert_and_save_on_stack(
 				posix::abort();
 			}
 		}
+		stack.emplace_back(move(t0));
 		return {};
 	}
 	/* If T0 and T1 are primitives */
@@ -130,6 +131,7 @@ try_convert_and_save_on_stack(
 		not_same_as<reference, T0> && not_same_as<reference, T1> &&
 		same_as<T0, T1>
 	) {
+		stack.emplace_back(t0);
 		return {};
 	}
 	/* If T0 is a primitive and T1 a reference, a Java casting
@@ -228,8 +230,8 @@ try_convert_arguments_on_stack(
 		if(index > 0) {
 			optional<reference> possible_throwable
 				= try_convert_arguments_on_stack(
-					forward<T0Params>(t0_params),
-					forward<T1Params>(t1_params),
+					t0_params,
+					t1_params,
 					index
 				);
 			if(possible_throwable.has_value()) {

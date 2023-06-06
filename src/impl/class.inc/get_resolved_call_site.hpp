@@ -48,7 +48,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	      reference to an instance of java.lang.invoke.MethodHandle. */
 	expected<reference, reference> possible_mh_ref
 		= try_get_resolved_method_handle(bm.method_handle_index);
-	
+
 	if(possible_mh_ref.is_unexpected()) {
 		return unexpected{ possible_mh_ref.move_unexpected() };
 	}
@@ -77,10 +77,11 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 
 	/* An array is allocated with component type Object and length n+3, where n
 	is the number of static arguments given by R (n ≥ 0). */
-	nuint n = class_file::method_descriptor::try_read_parameters_count(
+	nuint n = bm.arguments_indices.size();
+	/*class_file::method_descriptor::try_read_parameters_count(
 		descriptor.iterator(),
 		[](auto) { posix::abort(); }
-	).get();
+	).get();*/
 
 	n += 3;
 
@@ -189,6 +190,10 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 		if(!thrown.is_null()) {
 			return unexpected{ move(thrown) };
 		}
+	}
+
+	if(args_count_stack != n) {
+		posix::abort();
 	}
 
 	/* The bootstrap method handle is invoked, as if by the invocation

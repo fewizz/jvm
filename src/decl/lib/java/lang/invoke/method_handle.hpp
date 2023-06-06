@@ -19,6 +19,7 @@ struct method_handle : object {
 	static inline optional<::c&> c;
 	static inline instance_method_index invoke_exact_ptr_index;
 	static inline instance_method_index invoke_ptr_index;
+	static inline optional<instance_method&> is_varargs_instance_method;
 	static inline layout::position method_type_field_position;
 
 	[[nodiscard]] inline optional<reference>
@@ -58,12 +59,15 @@ struct method_handle : object {
 	[[nodiscard]] inline optional<reference>
 	try_invoke_with_arguments(object& args_array);
 
-	nuint compute_args_stack_size() {
-		nuint s = 0;
-		for(::c& c : this->method_type().parameter_types_view()) {
-			s += c.stack_size();
-		}
-		return s;
+	bool is_varargs() {
+		stack.emplace_back(*this);
+
+		try_invoke_virtual_resolved_non_polymorphic(
+			is_varargs_instance_method.get()
+		).if_has_value([](auto){ posix::abort(); });
+
+		bool result = stack.pop_back<bool>();
+		return result;
 	}
 
 };

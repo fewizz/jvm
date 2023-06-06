@@ -126,6 +126,7 @@ public:
 	bool is_native() const { return access_flags_.native; }
 	bool is_synchronized() const { return access_flags_.super_or_synchronized; }
 	bool is_abstract() const { return access_flags_.abstract; }
+	bool is_varargs() const { return access_flags_.varargs; }
 
 	bool has_variable_number_of_arguments() const {
 		return access_flags_.varargs;

@@ -13,4 +13,7 @@ public class Static extends ClassMember {
 		super(methodType, c, declaredStaticMethodIndex);
 	}
 
+	@Override
+	public native boolean isVarargsCollector();
+
 }

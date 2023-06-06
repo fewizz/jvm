@@ -65,11 +65,19 @@ struct method_type : object {
 		});
 	}
 
-	nuint parameter_types_size() {
+	nuint parameter_types_count() {
 		reference& parameter_types_array = get<reference>(
 			j::method_type::parameter_types_instance_field_position
 		);
 		return array_length(parameter_types_array);
+	}
+
+	nuint compute_args_stack_size() {
+		nuint s = 0;
+		for(::c& c : parameter_types_view()) {
+			s += c.stack_size();
+		}
+		return s;
 	}
 
 };

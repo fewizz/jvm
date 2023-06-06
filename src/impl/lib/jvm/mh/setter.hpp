@@ -23,17 +23,11 @@ static void init_jvm_mh_setter() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			j::method_handle& mh
+			jvm::class_member& mh
 		) -> optional<reference> {
-			reference& c_ref
-				= mh.get<reference>(mh_class_member_class_position);
-			c& c = class_from_class_instance(c_ref);
 
-			instance_field_index index {
-				mh.get<uint16>(mh_class_member_index_position)
-			};
-
-			instance_field& resolved_field = c[index];
+			instance_field& resolved_field
+				= mh.member<instance_field_index>();
 
 			optional<reference> possible_throwable
 				= try_put_field_resolved(resolved_field);

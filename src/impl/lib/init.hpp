@@ -3,6 +3,7 @@
 #include "./java/io/file_descriptor.hpp"
 #include "./java/io/file_output_stream.hpp"
 #include "./java/io/serializable.hpp"
+#include "./java/lang/invoke/call_site.hpp"
 #include "./java/lang/invoke/lambda_meta_factory.hpp"
 #include "./java/lang/invoke/method_handle.hpp"
 #include "./java/lang/invoke/method_handles.hpp"
@@ -55,6 +56,7 @@
 #include "./jvm/mh/static_getter.hpp"
 #include "./jvm/mh/static_setter.hpp"
 #include "./jvm/mh/static.hpp"
+#include "./jvm/mh/string_concat.hpp"
 #include "./jvm/mh/virtual.hpp"
 #include "./jvm/app_class_loader.hpp"
 
@@ -62,6 +64,7 @@ static inline void init_lib() {
 	init_java_io_file_descriptor();
 	init_java_io_file_output_stream();
 	init_java_io_serializable();
+	init_java_lang_invoke_call_site();
 	init_java_lang_invoke_lambda_meta_factory();
 	init_java_lang_invoke_method_handle();
 	init_java_lang_invoke_method_handles();
@@ -108,6 +111,7 @@ static inline void init_lib() {
 	init_jvm_mh_static_getter();
 	init_jvm_mh_static_setter();
 	init_jvm_mh_static();
+	init_jvm_mh_string_concat();
 	init_jvm_mh_virtual();
 	init_jvm_app_class_loader();
 }

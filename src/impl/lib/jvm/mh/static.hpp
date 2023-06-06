@@ -5,6 +5,7 @@
 #include "decl/object.hpp"
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/execute.hpp"
 
 static void init_jvm_mh_static() {
@@ -21,26 +22,33 @@ static void init_jvm_mh_static() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			j::method_handle& ths
+			jvm::class_member& ths
 		) -> optional<reference> {
-			reference& c_ref
-				= ths.get<reference>(mh_class_member_class_position);
+			static_method& resolved_method
+				= ths.member<declared_static_method_index>();
 
-			c& c = class_from_class_instance(c_ref);
+			optional<reference> init_error
+				= resolved_method.c().try_initialise_if_need();
 
-			// TODO
-			optional<reference> init_error = c.try_initialise_if_need();
 			if(init_error.has_value()) {
 				return move(init_error.get());
 			}
 
-			declared_static_method_index method_index {
-				ths.get<uint16>(mh_class_member_index_position)
-			};
-
-			static_method& resolved_method = c[method_index];
-
 			return try_invoke_static_resolved(resolved_method);
+		}
+	);
+
+	mh_static_class->declared_instance_methods().find(
+		c_string{ u8"isVarargsCollector" },
+		c_string{ u8"()Z" }
+	).native_function(
+		(void*)+[](
+			native_environment*,
+			jvm::class_member* ths
+		) -> bool {
+			static_method& resolved_method
+				= ths->member<declared_static_method_index>();
+			return resolved_method.is_varargs();
 		}
 	);
 }

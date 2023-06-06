@@ -13,4 +13,7 @@ public class Virtual extends ClassMember {
 		super(methodType, c, declaredStaticMethodIndex);
 	}
 
+	@Override
+	public native boolean isVarargsCollector();
+
 }

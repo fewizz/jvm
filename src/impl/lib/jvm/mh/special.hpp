@@ -22,17 +22,10 @@ static void init_jvm_mh_special() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			j::method_handle& mh
+			jvm::class_member& mh
 		) -> optional<reference> {
-			declared_instance_method_index method_index {
-				mh.get<uint16>(mh_class_member_index_position)
-			};
-
-			reference& c_ref
-				= mh.get<reference>(mh_class_member_class_position);
-			c& c = class_from_class_instance(c_ref);
-
-			instance_method& selected_method = c[method_index];
+			instance_method& selected_method
+				= mh.member<declared_instance_method_index>();
 
 			return try_invoke_special_selected(selected_method);
 		}

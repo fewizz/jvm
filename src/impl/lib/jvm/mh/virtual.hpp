@@ -6,6 +6,7 @@
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
+#include "decl/native/environment.hpp"
 #include "decl/execute.hpp"
 
 static void init_jvm_mh_virtual() {
@@ -21,21 +22,27 @@ static void init_jvm_mh_virtual() {
 	mh_virtual_class->declared_instance_methods().find(
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
-		(void*)+[](j::method_handle& mh)
-		-> optional<reference>
-		{
-			reference& c_ref
-				= mh.get<reference>(mh_class_member_class_position);
+		(void*)+[](jvm::class_member& mh)
+		-> optional<reference> {
 
-			c& c = class_from_class_instance(c_ref);
-
-			declared_instance_method_index resolved_method_index {
-				mh.get<uint16>(mh_class_member_index_position)
-			};
-
-			method& resolved_method = c[resolved_method_index];
+			method& resolved_method
+				= mh.member<declared_instance_method_index>();
 
 			return try_invoke_virtual_resolved_non_polymorphic(resolved_method);
+		}
+	);
+
+	mh_virtual_class->declared_instance_methods().find(
+		c_string{ u8"isVarargsCollector" },
+		c_string{ u8"()Z" }
+	).native_function(
+		(void*)+[](
+			native_environment*,
+			jvm::class_member& ths
+		) -> bool {
+			method& resolved_method
+				= ths.member<declared_instance_method_index>();
+			return resolved_method.is_varargs();
 		}
 	);
 }

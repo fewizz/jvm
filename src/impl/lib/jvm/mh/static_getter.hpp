@@ -23,23 +23,17 @@ static void init_jvm_mh_static_getter() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			j::method_handle& mh
+			jvm::class_member& mh
 		) -> optional<reference> {
-			declared_static_field_index index {
-				mh.get<uint16>(mh_class_member_index_position)
-			};
 
-			reference& c_ref
-				= mh.get<reference>(mh_class_member_class_position);
-			c& c = class_from_class_instance(c_ref);
-
+			static_field& resolved_field
+				= mh.member<declared_static_field_index>();
+			
 			optional<reference> optional_throwable
-				= c.try_initialise_if_need();//TODO
+				= resolved_field.c().try_initialise_if_need();
 			if(optional_throwable.has_value()) {
 				return move(optional_throwable.get());
 			}
-
-			static_field& resolved_field = c[index];
 
 			get_static_resolved(resolved_field);
 

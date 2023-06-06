@@ -87,58 +87,57 @@ try_invoke_virtual_resolved_non_polymorphic(
 	return try_execute(selected_method);
 }
 
-template<basic_range Desriptor>
+template<basic_range Descriptor>
 [[nodiscard]] inline optional<reference> try_invoke_virtual_resolved(
-	c& d, method& resolved_method, Desriptor&& desc
+	c& d, method& resolved_method, Descriptor&& desc
 ) {
-	if(resolved_method.is_signature_polymorphic()) {
-		nuint args_count_stack = 0;
-
-		class_file::method_descriptor::reader reader{ desc.iterator() };
-		reader.try_read_parameter_types_and_get_return_type_reader(
-		[&]<typename ParamType>(ParamType) {
-				args_count_stack += descriptor_type_stack_size<ParamType>;
-			},
-			[](auto) { posix::abort(); }
-		);
-
-		// reference to method handle is popped from stack
-		// before calling invoke[Exact]!
-
-		reference mh_ref; {
-			nuint args_beginning_positoin = stack.size() - args_count_stack;
-
-			nuint mh_ref_stack_position = args_beginning_positoin - 1;
-			mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
-		}
-
-		j::method_handle& mh = (j::method_handle&) mh_ref.object();
-
-		if(resolved_method.name().has_equal_size_and_elements(
-			c_string{ u8"invokeExact" }
-		)) {
-			return mh.try_invoke_exact();
-		}
-		if(resolved_method.name().has_equal_size_and_elements(
-			c_string{ u8"invoke" }
-		)) {
-			expected<reference, reference> possible_t0_mt
-				= try_resolve_method_type(d, resolved_method.descriptor());
-
-			if(possible_t0_mt.is_unexpected()) {
-				return possible_t0_mt.move_unexpected();
-			}
-
-			reference t0_mt_ref = possible_t0_mt.move_expected();
-			j::method_type& t0_mt = (j::method_type&) t0_mt_ref.object();
-
-			return mh.try_invoke(t0_mt);
-		}
-
-		return {};
+	if(!resolved_method.is_signature_polymorphic()) {
+		return try_invoke_virtual_resolved_non_polymorphic(resolved_method);
 	}
 
-	return try_invoke_virtual_resolved_non_polymorphic(resolved_method);
+	nuint args_count_stack = 0;
+
+	class_file::method_descriptor::reader reader{ desc.iterator() };
+	reader.try_read_parameter_types_and_get_return_type_reader(
+	[&]<typename ParamType>(ParamType) {
+			args_count_stack += descriptor_type_stack_size<ParamType>;
+		},
+		[](auto) { posix::abort(); }
+	);
+
+	// reference to method handle is popped from stack
+	// before calling invoke[Exact]!
+	reference mh_ref; {
+		nuint args_beginning_positoin = stack.size() - args_count_stack;
+
+		nuint mh_ref_stack_position = args_beginning_positoin - 1;
+		mh_ref = stack.pop_at<reference>(mh_ref_stack_position);
+	}
+
+	j::method_handle& mh = (j::method_handle&) mh_ref.object();
+
+	if(resolved_method.name().has_equal_size_and_elements(
+		c_string{ u8"invokeExact" }
+	)) {
+		return mh.try_invoke_exact();
+	}
+	if(resolved_method.name().has_equal_size_and_elements(
+		c_string{ u8"invoke" }
+	)) {
+		expected<reference, reference> possible_t0_mt
+			= try_resolve_method_type(d, desc);
+
+		if(possible_t0_mt.is_unexpected()) {
+			return possible_t0_mt.move_unexpected();
+		}
+
+		reference t0_mt_ref = possible_t0_mt.move_expected();
+		j::method_type& t0_mt = (j::method_type&) t0_mt_ref.object();
+
+		return mh.try_invoke(t0_mt);
+	}
+
+	posix::abort();
 }
 
 [[nodiscard]] inline optional<reference> try_invoke_virtual(

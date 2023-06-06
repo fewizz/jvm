@@ -3,14 +3,14 @@
 #include "decl/classes.hpp"
 
 static void init_jvm_mh_string_concat() {
-	jvm::string_concat::c = classes.load_non_array_class_by_bootstrap_class_loader(
-		c_string{"jvm/mh/StringConcat"}
+	jvm::string_concat::c = classes.load_class_by_bootstrap_class_loader(
+		c_string{ u8"jvm/mh/StringConcat" }
 	);
 
 	jvm::string_concat::constructor
 		= jvm::string_concat::c->declared_instance_methods().find(
 			c_string{ u8"<init>" },
-			c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/String;S)V" }
+			c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/String;)V" }
 		);
 
 	jvm::string_concat::recipe_field_position
@@ -29,7 +29,8 @@ static void init_jvm_mh_string_concat() {
 			
 			nuint size = 0;
 
-			nuint beginning = stack.size() - ths.compute_args_stack_size();
+			nuint beginning
+				= stack.size() - ths.method_type().compute_args_stack_size();
 			nuint arg_index = beginning;
 
 			recipe.for_each_utf16_unit([&](uint16 unit) {
@@ -90,7 +91,9 @@ static void init_jvm_mh_string_concat() {
 				return possible_resulting_string.move_unexpected();
 			}
 
-			return possible_resulting_string.move_expected();
+			stack.emplace_back(possible_resulting_string.move_expected());
+
+			return {};
 		}
 	);
 }
