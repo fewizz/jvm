@@ -100,7 +100,7 @@ static inline void init_java_lang_system() {
 			}
 
 			if(both_are_primitives) {
-				src_component_class.view_raw_type_non_void([&]<typename Type>()
+				src_component_class.view_non_void_raw_type([&]<typename Type>()
 				{
 					Type* src_data = array_data<Type>(*src);
 					Type* dst_data = array_data<Type>(*dst);

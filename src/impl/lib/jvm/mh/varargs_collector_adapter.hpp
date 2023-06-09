@@ -14,7 +14,7 @@ static void init_jvm_mh_varargs_collector_adapter() {
 		(void*)+[](
 			[[maybe_unused]] reference ths
 		) -> optional<reference> {
-
+			
 		}
 	);
 }

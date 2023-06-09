@@ -16,7 +16,14 @@ static void init_jvm_mh_virtual() {
 
 	mh_virtual_constructor = mh_virtual_class->declared_instance_methods().find(
 		c_string{ u8"<init>" },
-		c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V" }
+		c_string {
+			u8"("
+				"Ljava/lang/invoke/MethodType;"
+				"Z"
+				"Ljava/lang/Class;"
+				"S"
+			")V"
+		}
 	);
 
 	mh_virtual_class->declared_instance_methods().find(
@@ -32,17 +39,4 @@ static void init_jvm_mh_virtual() {
 		}
 	);
 
-	mh_virtual_class->declared_instance_methods().find(
-		c_string{ u8"isVarargsCollector" },
-		c_string{ u8"()Z" }
-	).native_function(
-		(void*)+[](
-			native_environment*,
-			jvm::class_member& ths
-		) -> bool {
-			method& resolved_method
-				= ths.member<declared_instance_method_index>();
-			return resolved_method.is_varargs();
-		}
-	);
 }

@@ -8,12 +8,10 @@ public class Virtual extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Virtual(
-		MethodType methodType, Class<?> c, short declaredStaticMethodIndex
+		MethodType methodType, boolean isVarargs,
+		Class<?> c, short declaredStaticMethodIndex
 	) {
-		super(methodType, c, declaredStaticMethodIndex);
+		super(methodType, isVarargs, c, declaredStaticMethodIndex);
 	}
-
-	@Override
-	public native boolean isVarargsCollector();
 
 }

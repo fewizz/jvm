@@ -11,7 +11,6 @@
 #include "./java/lang/invoke/method_type.hpp"
 #include "./java/lang/invoke/string_concat_factory.hpp"
 #include "./java/lang/invoke/var_handle.hpp"
-#include "./java/lang/invoke/wrong_method_type_exception.hpp"
 #include "./java/lang/reflect/array.hpp"
 #include "./java/lang/abstract_method_error.hpp"
 #include "./java/lang/array_store_exception.hpp"
@@ -72,7 +71,6 @@ static inline void init_lib() {
 	init_java_lang_invoke_method_type();
 	init_java_lang_invoke_string_concat_factory();
 	init_java_lang_invoke_var_handle();
-	init_java_lang_invoke_wrong_method_type_exception();
 	init_java_lang_reflect_array();
 	init_java_lang_array_store_exception();
 	init_java_lang_boolean();

@@ -10,7 +10,7 @@ public class StaticGetter extends ClassMember {
 	private StaticGetter(
 		MethodType methodType, Class<?> c, short staticFieldIndex
 	) {
-		super(methodType, c, staticFieldIndex);
+		super(methodType, false, c, staticFieldIndex);
 	}
 
 }

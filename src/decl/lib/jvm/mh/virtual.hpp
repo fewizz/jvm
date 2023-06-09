@@ -18,6 +18,7 @@ try_create_virtual_mh(
 
 	return try_create_object(
 		mh_virtual_constructor.get(),
+		resolved_method.is_varargs(),
 		mt,
 		resolved_method.c().object(),
 		uint16{ resolved_method_index }

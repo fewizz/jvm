@@ -16,8 +16,9 @@ static void init_jvm_mh_invoke_adapter() {
 		.find(
 			c_string{ u8"<init>" },
 			c_string {
-				"("
+				u8"("
 					"Ljava/lang/invoke/MethodType;"
+					"Z"
 					"Ljava/lang/invoke/MethodHandle;"
 				")V"
 			}
@@ -38,7 +39,7 @@ static void init_jvm_mh_invoke_adapter() {
 			j::method_handle& ori_mh = new_mh->original();
 			j::method_type& ori_mt = ori_mh.method_type();
 
-			return mh::is_convertible(new_mt, ori_mt);
+			return mh::check(new_mt, ori_mt, ori_mh.is_varargs());
 		}
 	);
 
@@ -55,4 +56,5 @@ static void init_jvm_mh_invoke_adapter() {
 			);
 		}
 	);
+
 }

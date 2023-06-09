@@ -14,7 +14,7 @@ public class VarargsCollectorAdapter extends MethodHandle {
 		MethodType methodType,
 		MethodHandle original
 	) {
-		super(methodType);
+		super(methodType, true);
 		this.original_ = original;
 		if(!check()) {
 			throw new WrongMethodTypeException();
@@ -23,10 +23,5 @@ public class VarargsCollectorAdapter extends MethodHandle {
 
 	@Override
 	protected native void invokeExactPtr();
-
-	@Override
-	public boolean isVarargsCollector() {
-		return true;
-	}
 
 }

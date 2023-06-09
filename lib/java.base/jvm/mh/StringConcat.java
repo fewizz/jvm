@@ -7,7 +7,7 @@ public class StringConcat extends MethodHandle {
 	final String recipe_;
 
 	StringConcat(MethodType mt, String recipe) {
-		super(mt);
+		super(mt, false);
 		this.recipe_ = recipe;
 	}
 

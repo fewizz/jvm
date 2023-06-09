@@ -11,9 +11,10 @@ public final class InvokeAdapter extends MethodHandle {
 
 	private InvokeAdapter(
 		MethodType methodType,
+		boolean isVarargs,
 		MethodHandle original
 	) {
-		super(methodType);
+		super(methodType, isVarargs);
 		this.original_ = original;
 		if(!check()) {
 			throw new WrongMethodTypeException();

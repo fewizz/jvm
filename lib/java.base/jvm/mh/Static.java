@@ -8,12 +8,10 @@ public class Static extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Static(
-		MethodType methodType, Class<?> c, short declaredStaticMethodIndex
+		MethodType methodType, boolean isVarargs,
+		Class<?> c, short declaredStaticMethodIndex
 	) {
-		super(methodType, c, declaredStaticMethodIndex);
+		super(methodType, isVarargs, c, declaredStaticMethodIndex);
 	}
-
-	@Override
-	public native boolean isVarargsCollector();
 
 }

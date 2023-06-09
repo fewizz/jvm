@@ -4,6 +4,7 @@
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
 #include "decl/lib/jvm/mh/invoke_adapter.hpp"
+#include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 
 inline void init_java_lang_invoke_method_handle() {
 	j::method_handle::c = classes.load_class_by_bootstrap_class_loader(
@@ -20,9 +21,9 @@ inline void init_java_lang_invoke_method_handle() {
 			c_string{ u8"invokePtr" }, c_string{ u8"()V" }
 		);
 
-	j::method_handle::is_varargs_instance_method
-		= j::method_handle::c->instance_methods().find(
-			c_string{ u8"isVarargsCollector" }, c_string{ u8"()Z" }
+	j::method_handle::is_varargs_field_position
+		= j::method_handle::c->instance_field_position(
+			c_string{ u8"isVarargs_" }, c_string{ u8"Z" }
 		);
 
 	j::method_handle::method_type_field_position
@@ -52,13 +53,16 @@ inline void init_java_lang_invoke_method_handle() {
 			  "Ljava/lang/invoke/MethodHandle;"
 		}
 	).native_function(
-		(void*)+[](native_environment*, object* ths, object* mt)
+		(void*)+[](
+			native_environment*, j::method_handle* ths, j::method_type* mt
+		)
 		-> object*
 		{
 			expected<reference, reference> possible_adapter = try_create_object(
 				jvm::invoke_adapter::constructor.get(),
-				reference{*mt}  /* new MethodType */,
-				reference{*ths} /* original MethodHandle */
+				ths->is_varargs(),
+				*mt  /* new MethodType */,
+				*ths /* original MethodHandle */
 			);
 			if(possible_adapter.is_unexpected()) {
 				thrown_in_native = possible_adapter.move_unexpected();
@@ -82,10 +86,6 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 	::c& t1_ret = t1_mt.return_type();
 	::c& t0_ret = object_class.get();
 
-	if(!is_varargs() && args_count != t1_mt.parameter_types_count()) {
-		posix::abort();
-	}
-
 	// TODO
 	return view_on_stack<char>(args_count)([&](span<char> s)
 	-> optional<reference> {
@@ -93,12 +93,10 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 			return object_class.get();
 		});
 
-		// TODO check varargs
 		if(
-			!is_varargs() &&
-			!mh::is_convertible(t0_params, t0_ret, t1_params, t1_ret)
+			!mh::check(t0_params, t0_ret, t1_params, t1_ret, is_varargs())
 		) {
-			posix::abort();
+			return try_create_wrong_method_type_exception().move();
 		}
 
 		j::method_handle& t1_mh = *this;

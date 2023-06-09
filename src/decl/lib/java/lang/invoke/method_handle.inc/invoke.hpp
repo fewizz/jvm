@@ -34,7 +34,7 @@ template<range_of<c&> T0Params>
 	c& t1_ret = t1_mt.return_type();
 
 	possible_throwable
-		= try_convert_return_value_and_save_on_stack(
+		= try_convert_return_value_on_stack(
 			t1_ret, t0_ret
 		);
 
@@ -83,7 +83,7 @@ template<range_of<c&> T0Params>
 
 		reference varargs_array_ref = possible_varargs_array.move_expected();
 
-		array_component.view_raw_type_non_void([&]<typename Type>() {
+		array_component.view_non_void_raw_type([&]<typename Type>() {
 			span<Type> varargs_array = array_as_span<Type>(varargs_array_ref);
 
 			nuint varargs_left = varargs_length;

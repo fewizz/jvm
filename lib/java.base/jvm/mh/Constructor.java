@@ -8,9 +8,10 @@ public class Constructor extends ClassMember {
 	protected native void invokeExactPtr();
 
 	private Constructor(
-		MethodType methodType, Class<?> c, short instanceFieldIndex
+		MethodType methodType, boolean isVarargs,
+		Class<?> c, short instanceFieldIndex
 	) {
-		super(methodType, c, instanceFieldIndex);
+		super(methodType, isVarargs, c, instanceFieldIndex);
 	}
 
 }

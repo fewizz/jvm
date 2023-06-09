@@ -170,6 +170,7 @@ public:
 	bool is_primitive() const { return is_primitive_; }
 	bool is_not_primitive() const { return !is_primitive_; }
 	bool is_reference() const { return !is_primitive_; }
+	bool is_not_reference() const { return is_primitive_; }
 	bool is(const c& c) const { return c.ptr() == this; }
 	bool is_not(const c& c) const { return c.ptr() != this; }
 
@@ -202,7 +203,7 @@ public:
 			declared_static_fields_.as_span()
 		};
 	}
-	//
+	// ******************************************************
 
 	layout::position instance_field_position(
 		instance_field_index index
@@ -470,7 +471,7 @@ public:
 	}
 
 	template<typename Handler>
-	decltype(auto) view_raw_type_non_void(Handler&& handler) {
+	decltype(auto) view_non_void_raw_type(Handler&& handler) {
 		if(is_reference()) {
 			return handler.template operator()<reference>();
 		}
@@ -509,7 +510,7 @@ public:
 		if(is(void_class.get())) {
 			return handler.template operator()<void_t>();
 		} else {
-			return view_raw_type_non_void(forward<Handler>(handler));
+			return view_non_void_raw_type(forward<Handler>(handler));
 		}
 	}
 

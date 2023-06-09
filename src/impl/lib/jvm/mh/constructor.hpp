@@ -1,8 +1,9 @@
 #include "decl/lib/jvm/mh/constructor.hpp"
 
 #include "decl/classes.hpp"
-#include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/object.hpp"
+#include "decl/native/environment.hpp"
+#include "decl/lib/jvm/mh/class_member.hpp"
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
@@ -16,7 +17,14 @@ static void init_jvm_mh_constructor() {
 	mh_constructor_constructor =
 		mh_constructor_class->declared_instance_methods().find(
 			c_string{ u8"<init>" },
-			c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/Class;S)V" }
+			c_string {
+				u8"("
+					"Ljava/lang/invoke/MethodType;"
+					"Z"
+					"Ljava/lang/Class;"
+					"S"
+				")V"
+			}
 		);
 
 	mh_constructor_class->declared_instance_methods().find(

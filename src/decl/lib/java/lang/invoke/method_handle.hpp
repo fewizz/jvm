@@ -19,7 +19,7 @@ struct method_handle : object {
 	static inline optional<::c&> c;
 	static inline instance_method_index invoke_exact_ptr_index;
 	static inline instance_method_index invoke_ptr_index;
-	static inline optional<instance_method&> is_varargs_instance_method;
+	static inline layout::position is_varargs_field_position;
 	static inline layout::position method_type_field_position;
 
 	[[nodiscard]] inline optional<reference>
@@ -60,19 +60,13 @@ struct method_handle : object {
 	try_invoke_with_arguments(object& args_array);
 
 	bool is_varargs() {
-		stack.emplace_back(*this);
-
-		try_invoke_virtual_resolved_non_polymorphic(
-			is_varargs_instance_method.get()
-		).if_has_value([](auto){ posix::abort(); });
-
-		bool result = stack.pop_back<bool>();
-		return result;
+		return get<bool>(is_varargs_field_position);
 	}
 
 };
 
 }
 
+#include "./method_handle.inc/check.hpp"
 #include "./method_handle.inc/convert.hpp"
 #include "./method_handle.inc/invoke.hpp"

@@ -10,7 +10,7 @@ public class Getter extends ClassMember {
 	private Getter(
 		MethodType methodType, Class<?> c, short instanceFieldIndex
 	) {
-		super(methodType, c, instanceFieldIndex);
+		super(methodType, false, c, instanceFieldIndex);
 	}
 
 }

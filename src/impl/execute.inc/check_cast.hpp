@@ -8,6 +8,7 @@
 
 #include <loop_action.hpp>
 
+// (T) S
 inline bool can_cast(c& s, c& t) {
 	/* If S is a class type, then: */
 	if(!s.is_array()) {
@@ -50,24 +51,17 @@ inline bool can_cast(c& s, c& t) {
 }
 
 inline optional<reference>
-try_check_cast(c& c, class_file::constant::class_index index) {
-	reference& objectref = stack.back<reference>();
-
+try_check_cast(reference& from, c& to) {
 	/* If objectref is null, then the operand stack is unchanged. */
-	if(objectref.is_null()) {
+	if(from.is_null()) {
 		return {};
 	}
 
 	/* Otherwise, the named class, array, or interface type is resolved
 	   (§5.4.3.1). */
-	expected<::c&, reference> possible_t = c.try_get_resolved_class(index);
-	
-	if(possible_t.is_unexpected()) {
-		return possible_t.move_unexpected();
-	}
 
-	::c& t = possible_t.get_expected();
-	::c& s = objectref.c();
+	::c& t = to;
+	::c& s = from.c();
 
 	bool result = can_cast(s, t);
 
@@ -79,4 +73,26 @@ try_check_cast(c& c, class_file::constant::class_index index) {
 	}
 
 	return {};
+}
+
+inline optional<reference>
+try_check_cast(c& d, class_file::constant::class_index index) {
+	reference& objectref = stack.back<reference>();
+
+	/* If objectref is null, then the operand stack is unchanged. */
+	if(objectref.is_null()) {
+		return {};
+	}
+
+	/* Otherwise, the named class, array, or interface type is resolved
+	   (§5.4.3.1). */
+	expected<::c&, reference> possible_t = d.try_get_resolved_class(index);
+	
+	if(possible_t.is_unexpected()) {
+		return possible_t.move_unexpected();
+	}
+
+	c& t = possible_t.get_expected();
+
+	return try_check_cast(objectref, t);
 }

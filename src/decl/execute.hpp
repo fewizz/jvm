@@ -12,6 +12,9 @@ template<typename... Args>
 	return try_execute(m);
 }
 
+inline optional<reference>
+try_check_cast(reference& from, c& to);
+
 // s - class type of objectref, t - resolved class
 inline bool can_cast(c& s, c& t);
 

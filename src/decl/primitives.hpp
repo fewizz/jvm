@@ -2,6 +2,26 @@
 
 #include <optional.hpp>
 
+template<typename Type>
+concept primitive =
+	same_as<Type, bool> ||
+	same_as<Type, int8> ||
+	same_as<Type, int16> ||
+	same_as<Type, uint16> ||
+	same_as<Type, int32> ||
+	same_as<Type, int64> ||
+	same_as<Type, float> ||
+	same_as<Type, double>;
+
+using primitive_types = types<
+	bool, int8, int16, uint16, int32, int64, float, double
+>;
+
+using void_t = decltype(nullptr);
+
+template<typename Type>
+concept primitive_or_void = primitive<Type> || same_as<Type, void_t>;
+
 struct c;
 
 static optional<c&> void_class{};
@@ -14,31 +34,11 @@ static optional<c&> long_class{};
 static optional<c&> float_class{};
 static optional<c&> double_class{};
 
-using void_t = decltype(nullptr);
-
 #include <integer.hpp>
 #include <type.hpp>
 #include <optional.hpp>
 
-template<typename From, typename To>
-inline constexpr bool widening_conversion_allowed =
-	(
-		same_as<From, int8> &&
-		same_as_any<To, int16, int32, int64, float, double>
-	) ||
-	(
-		same_as<From, int16> &&
-		same_as_any<To, int32, int64, float, double>
-	) ||
-	(
-		same_as<From, uint16> &&
-		same_as_any<To, int32, int64, float, double>
-	) ||
-	( same_as<From, int32> && same_as_any<To, int64, float, double>) ||
-	( same_as<From, int64> && same_as_any<To, float, double>) ||
-	( same_as<From, float> && same_as_any<To, double>);
-
-template<typename Type>
+template<primitive_or_void Type>
 struct class_by_primitive_type_t {
 	c& operator () () const requires same_as<Type, bool> {
 		return bool_class.get();
@@ -74,7 +74,7 @@ static constexpr class_by_primitive_type_t<Type> class_by_primitive_type{};
 
 #include <overloaded.hpp>
 
-template<typename Type>
+template<primitive_or_void Type>
 static constexpr auto primitive_identifier = overloaded {
 	[]<same_as<bool>>()   { return 'Z'; },
 	[]<same_as<int8>>()   { return 'B'; },
@@ -96,7 +96,7 @@ static constexpr auto primitive_identifier = overloaded {
 #include "decl/lib/java/lang/float.hpp"
 #include "decl/lib/java/lang/double.hpp"
 
-template<typename Type>
+template<primitive Type>
 struct wrapper_class_by_primitive_type_t {
 	c& operator() () const requires same_as<Type, bool> {
 		return java_lang_boolean_class.get();
@@ -124,11 +124,11 @@ struct wrapper_class_by_primitive_type_t {
 	}
 };
 
-template<typename Type>
+template<primitive Type>
 static constexpr wrapper_class_by_primitive_type_t<Type>
 	wrapper_class_by_primitive_type{};
 
-template<typename Type>
+template<primitive Type>
 struct wrapper_value_field_position_by_primitive_type_t {
 	layout::position operator() () const requires same_as<Type, bool> {
 		return java_lang_boolean_value_field_position;
@@ -156,11 +156,11 @@ struct wrapper_value_field_position_by_primitive_type_t {
 	}
 };
 
-template<typename Type>
+template<primitive Type>
 static constexpr wrapper_value_field_position_by_primitive_type_t<Type>
 	wrapper_value_field_position_by_primitive_type{};
 
-template<typename Type>
+template<primitive Type>
 struct wrapper_constructor_by_primitive_type_t {
 	instance_method& operator () () const requires same_as<Type, bool> {
 		return java_lang_boolean_constructor.get();
@@ -188,6 +188,6 @@ struct wrapper_constructor_by_primitive_type_t {
 	}
 };
 
-template<typename Type>
+template<primitive Type>
 static constexpr wrapper_constructor_by_primitive_type_t<Type>
 	wrapper_constructor_by_primitive_type{};
