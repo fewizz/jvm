@@ -22,9 +22,9 @@ struct identity_conversion {
 		return same_as<From, To>;
 	}
 
-	template<same_as<reference> From, primitive To>
+	template<typename From, typename To>
 	static inline optional<reference> try_on_stack(
-		[[maybe_unused]] reference from,
+		From from,
 		[[maybe_unused]] c& to
 	) {
 		stack.emplace_back(move(from));

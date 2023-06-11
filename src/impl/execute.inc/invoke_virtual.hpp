@@ -134,6 +134,10 @@ template<basic_range Descriptor>
 		reference t0_mt_ref = possible_t0_mt.move_expected();
 		j::method_type& t0_mt = (j::method_type&) t0_mt_ref.object();
 
+		if(!mh::check(t0_mt, mh.method_type(), mh.is_varargs())) {
+			return try_create_wrong_method_type_exception().move();
+		}
+
 		return mh.try_invoke(t0_mt);
 	}
 

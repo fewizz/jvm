@@ -9,6 +9,8 @@ namespace mh {
 try_convert_return_value_on_stack(
 	c& t0_ret, c& t1_ret
 ) {
+	// T0 and T1 are reversed here (vs javadoc)
+
 	bool t0_is_void = t0_ret.is(void_class.get());
 	bool t1_is_void = t1_ret.is(void_class.get());
 
@@ -18,21 +20,20 @@ try_convert_return_value_on_stack(
 
 	/* If the return type T1 is marked as void, any returned value is
 	   discarded */
-	if(!t0_is_void && t1_is_void) {
-		t0_ret.view_non_void_raw_type([]<typename T0>() {
-			stack.pop_back<T0>();
+	if(!t1_is_void && t0_is_void) {
+		t1_ret.view_non_void_raw_type([]<typename T1>() {
+			stack.pop_back<T1>();
 		});
 		return {};
 	}
-	/* If the return type T0 is void and T1 a reference, a null value is
-	   introduced. */
-	/* If the return type T0 is void and T1 a primitive, a zero value is
-	   introduced. */
-	// T0 and T1 are reversed here
 	if(t1_is_void && !t0_is_void) {
+		/* If the return type T0 is void and T1 a reference, a null value is
+		   introduced. */
 		if(t0_ret.is_reference()) {
 			stack.emplace_back(reference{});
 		}
+		/* If the return type T0 is void and T1 a primitive, a zero value is
+		   introduced. */
 		else {
 			t0_ret.view_non_void_raw_type([]<typename T0>() {
 				stack.emplace_back(T0{});

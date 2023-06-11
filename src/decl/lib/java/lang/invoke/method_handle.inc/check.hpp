@@ -30,7 +30,7 @@ template<
 		}
 	}
 
-
+	// conversion is always allowed if one of tX_ret is void
 	if(!t0_ret.is(void_class.get()) && !t1_ret.is(void_class.get())) {
 		return is_conversion_allowed<method_handle_invoke_context>(
 			t1_ret, t0_ret

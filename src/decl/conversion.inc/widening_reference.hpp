@@ -88,10 +88,10 @@ struct widening_reference_conversion {
 					return try_create_null_pointer_exception().move();
 				}
 
-				return primitive_types::
+				primitive_types::
 				view_first_satisfying_predicate_or_default(
 					[&]<typename FromPrimitiveType> {
-						c& wrapper_c = wrapper_class_by_primitive_type_t<
+						c& wrapper_c = wrapper_class_by_primitive_type<
 							FromPrimitiveType
 						>();
 						return
@@ -101,7 +101,7 @@ struct widening_reference_conversion {
 					},
 					[&]<typename FromPrimitiveType> () {
 						FromPrimitiveType value = from->get<FromPrimitiveType>(
-							wrapper_value_field_position_by_primitive_type_t<
+							wrapper_value_field_position_by_primitive_type<
 								FromPrimitiveType
 							>()
 						);

@@ -31,6 +31,12 @@ class T08_MethodHandle {
 			System.exit(1);
 		}
 
+		// static invoke
+		long result_l = (long) mh_static.invoke(Integer.valueOf(42));
+		if(result_l != 42 + 21) {
+			System.exit(2);
+		}
+
 		// virtual
 		MethodHandle mh_virtual = l.findVirtual(
 			A.class,
@@ -39,7 +45,7 @@ class T08_MethodHandle {
 		);
 		result = (int) mh_virtual.invokeExact(new B());
 		if(result != 1) {
-			System.exit(2);
+			System.exit(3);
 		}
 
 		// constructor
@@ -49,7 +55,7 @@ class T08_MethodHandle {
 		);
 		result = ((B) mh_constructor.invokeExact()).a();
 		if(result != 1) {
-			System.exit(2);
+			System.exit(4);
 		}
 
 		// special
@@ -61,7 +67,7 @@ class T08_MethodHandle {
 		);
 		result = (int) mh_special.invokeExact(new B());
 		if(result != 0) {
-			System.exit(2);
+			System.exit(5);
 		}
 
 	}
