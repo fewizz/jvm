@@ -42,10 +42,9 @@ tuple<method, Iterator> read_method(
 
 		if constexpr (Type::attribute_type == attribute::type::code) {
 			using namespace attribute::code;
-			Type max_stack_reader = reader;
 
 			auto [max_stack, max_locals_reader]
-				= max_stack_reader.read_and_get_max_locals_reader();
+				= reader.read_max_stack_and_get_max_locals_reader();
 			auto [max_locals, code_reader]
 				= max_locals_reader.read_and_get_code_reader();
 
@@ -82,10 +81,8 @@ tuple<method, Iterator> read_method(
 						CodeAttributeType::attribute_type ==
 						attribute::type::line_numbers
 					) {
-						CodeAttributeType count_reader = reader;
 						auto [count, line_numbers_reader]
-							= count_reader
-							.read_and_get_line_numbers_reader();
+							= reader.read_count_and_get_line_numbers_reader();
 						
 						::list line_numbers_list {
 							posix::allocate<

@@ -1109,7 +1109,7 @@ struct execute_instruction {
 		int32 index = stack.pop_back<int32>();
 
 		/* If index is less than low or index is greater than high, ... */
-		if(index < x.low || index > x.hight) {
+		if(index < x.low || index > x.high) {
 			/* ... then a target address is calculated by adding default to
 				the address of the opcode of this tableswitch instruction */
 			next_instruction_ptr = instruction_ptr + x._default;

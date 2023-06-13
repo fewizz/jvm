@@ -53,10 +53,10 @@ expected<c&, reference> classes::try_define_class(
 	        this_class item which specifies a name other than N, or an
 	        access_flags item which has the ACC_MODULE flag set. */
 
-	class_file::reader magic_reader{ (uint8*) bytes.iterator() };
+	class_file::reader class_reader{ (uint8*) bytes.iterator() };
 
 	auto [magic_exists, version_reader] =
-		magic_reader.read_and_check_and_get_version_reader();
+		class_reader.read_and_check_magic_and_get_version_reader();
 
 	if(!magic_exists) {
 		posix::abort();
@@ -243,19 +243,18 @@ expected<c&, reference> classes::try_define_class(
 		[&](auto attribute_name_index) {
 			return const_pool.utf8_constant(attribute_name_index);
 		},
-		[&]<typename Type>(Type attribute_reader) {
+		[&]<typename Type>(Type reader) {
 			if constexpr(
 				Type::attribute_type ==
 				class_file::attribute::type::bootstrap_methods
 			) {
-				bootstrap_methods = read_bootstap_methods(attribute_reader);
+				bootstrap_methods = read_bootstap_methods(reader);
 			}
 			if constexpr(
 				Type::attribute_type == class_file::attribute::type::source_file
 			) {
-				Type index_reader = attribute_reader;
 				auto [utf8_index, it]
-					= index_reader.read_and_get_advanced_iterator();
+					= reader.read_index_and_get_advanced_iterator();
 				source_file = const_pool.utf8_constant(utf8_index);
 			}
 		}
