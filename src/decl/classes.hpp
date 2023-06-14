@@ -3,19 +3,20 @@
 #include "./mutex_attribute_recursive.hpp"
 #include "./class.hpp"
 
-#include "execution/info.hpp"
-#include "executable_path.hpp"
-#include "lib/java/lang/string.hpp"
-#include "lib/java/lang/class_loader.hpp"
-#include "lib/java/lang/class.hpp"
-#include "lib/java/lang/object.hpp"
-#include "lib/java/lang/class_not_found_exception.hpp"
-#include "lib/java/lang/linkage_error.hpp"
-#include "execute.hpp"
-#include "primitives.hpp"
-#include "try_load_class_file_data_at.hpp"
-#include "class/bootstrap_methods.hpp"
-#include "object.hpp"
+#include "decl/blocky_memory.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/executable_path.hpp"
+#include "decl/lib/java/lang/string.hpp"
+#include "decl/lib/java/lang/class_loader.hpp"
+#include "decl/lib/java/lang/class.hpp"
+#include "decl/lib/java/lang/object.hpp"
+#include "decl/lib/java/lang/class_not_found_exception.hpp"
+#include "decl/lib/java/lang/linkage_error.hpp"
+#include "decl/execute.hpp"
+#include "decl/primitives.hpp"
+#include "decl/try_load_class_file_data_at.hpp"
+#include "decl/class/bootstrap_methods.hpp"
+#include "decl/object.hpp"
 
 #include <list.hpp>
 #include <optional.hpp>
@@ -24,17 +25,19 @@
 #include <posix/memory.hpp>
 #include <class_file/reader.hpp>
 
+static_assert(storage_range<blocky_memory<reference, 1024>>);
+
 struct class_and_initiating_loaders {
 	c class_;
 	// TODO make resizeable
-	list<posix::memory<reference>> initiating_loaders;
+	list<blocky_memory<reference, 16>> initiating_loaders;
 
 	template<typename... Args>
 	class_and_initiating_loaders(
 		Args&&... args
 	) :
 		class_ { forward<Args>(args)... },
-		initiating_loaders { posix::allocate<reference>(16) }
+		initiating_loaders{}
 	{
 		initiating_loaders.emplace_back<reference>(class_.defining_loader());
 	}
@@ -58,10 +61,10 @@ struct class_and_initiating_loaders {
 };
 
 static struct classes :
-	private list<posix::memory<class_and_initiating_loaders>>
+	private list<blocky_memory<class_and_initiating_loaders, 256>>
 {
 private:
-	using base_type = list<posix::memory<class_and_initiating_loaders>>;
+	using base_type = list<blocky_memory<class_and_initiating_loaders, 256>>;
 	using base_type::base_type;
 
 	body<posix::mutex> mutex_ = posix::create_mutex(mutex_attribute_recursive);
@@ -243,9 +246,7 @@ public:
 			);
 	}
 
-} classes {
-	posix::allocate<class_and_initiating_loaders>(65536)
-};
+} classes {};
 
 #include "./classes.inc/define_array_class.hpp"
 #include "./classes.inc/define_class.hpp"
