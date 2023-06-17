@@ -26,6 +26,5 @@ using one_of_descriptor_field_types = one_of_descriptor_parameter_types;
 template<class_file::descriptor_type Type>
 static constexpr nuint descriptor_type_stack_size =
 	same_as_any<Type, class_file::j, class_file::d> ?
-	2 :
-	1;
+	2 : 1;
 

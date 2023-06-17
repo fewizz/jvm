@@ -67,19 +67,19 @@ public:
 		line_numbers_      { move(line_numbers)             }
 	{
 		class_file::method_descriptor::reader reader{ descriptor.iterator() };
-		uint8 parameter_count = reader.try_read_parameters_count(
+		uint8 parameters_count = reader.try_read_parameters_count(
 			[]([[maybe_unused]] auto err) { posix::abort(); }
 		).get();
 
-		list parameter_types_list =
+		list parameters_types_list =
 			posix::allocate<one_of_descriptor_parameter_types>(
-				parameter_count
+				parameters_count
 			);
 
 		auto return_type_reader
 			= reader.try_read_parameter_types_and_get_return_type_reader(
 				[&]<typename ParamType>(ParamType parameter_type) {
-					parameter_types_list.emplace_back(parameter_type);
+					parameters_types_list.emplace_back(parameter_type);
 				},
 				[](auto) { posix::abort(); }
 			).get();
@@ -94,12 +94,12 @@ public:
 		if(!access_flags._static) {
 			++parameters_stack_size_; // this
 		}
-		for(one_of_descriptor_parameter_types t : parameter_types_list) {
+		for(one_of_descriptor_parameter_types t : parameters_types_list) {
 			t.view([&]<typename Type>(Type) {
 				parameters_stack_size_ += descriptor_type_stack_size<Type>;
 			});
 		}
-		parameter_types_ = move(parameter_types_list.storage_range());
+		parameter_types_ = move(parameters_types_list.storage_range());
 	}
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }

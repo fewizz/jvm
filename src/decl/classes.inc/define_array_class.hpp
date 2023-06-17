@@ -30,6 +30,7 @@ c& classes::define_array_class(
 
 	posix::memory<utf8::unit> descriptor
 		= posix::allocate<utf8::unit>(range_size(name));
+
 	range{ name }.copy_to(descriptor.as_span());
 
 	posix::memory<> data = posix::allocate<>(name.size());
