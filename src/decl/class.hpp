@@ -1,5 +1,6 @@
 #pragma once
 
+#include "decl/blocky_memory.hpp"
 #include "./class/layout.hpp"
 #include "./class/layout_view_extension.hpp"
 
@@ -20,6 +21,8 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
+using class_data_t = list<blocky_memory<posix::memory<>, 16>>;
+
 struct c :
 	layout_view_extension< // for static fields
 		c,
@@ -33,10 +36,10 @@ private:
 	// mutable
 	optional<c&> super_;
 
-	const posix::memory<> bytes_;
+	::class_data_t data_;
 	const class_file::access_flags access_flags_;
 	const class_file::constant::utf8 name_;
-	const posix::memory<utf8::unit> descriptor_;
+	const class_file::constant::utf8 descriptor_;
 	const class_file::constant::utf8 source_file_;
 
 	const posix::memory<c*> declared_interfaces_;
@@ -74,11 +77,12 @@ private:
 public:
 
 	c(
-		constants&&, bootstrap_methods&&,
-		posix::memory<> bytes,
+		constants&&,
+		bootstrap_methods&&,
+		class_data_t bytes,
 		class_file::access_flags,
 		class_file::constant::utf8 name,
-		posix::memory<utf8::unit> descriptor,
+		class_file::constant::utf8 descriptor,
 		class_file::constant::utf8 source_file,
 		optional<c&> super,
 		posix::memory<c*>,
@@ -91,6 +95,10 @@ public:
 		is_primitive_class,
 		reference loader = {}
 	);
+
+	~c() {
+		data_.clear();
+	}
 
 	c(c&&) = delete;
 	c(const c&) = delete;
@@ -129,8 +137,8 @@ public:
 	class_file::constant::utf8 name() const {
 		return name_;
 	}
-	span<const utf8::unit, uint16> descriptor() const {
-		return descriptor_.as_span();
+	auto descriptor() const {
+		return descriptor_;
 	}
 
 	span<const utf8::unit> package() const {

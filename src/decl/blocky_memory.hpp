@@ -40,6 +40,11 @@ struct blocky_memory {
 			return *this;
 		}
 
+		iterator_t& operator -- () {
+			--index_;
+			return *this;
+		}
+
 		iterator_t operator ++ (int) {
 			iterator_t cpy{ *this };
 			++index_;
@@ -54,8 +59,17 @@ struct blocky_memory {
 			return index_ - other.index_;
 		}
 
+		iterator_t operator - (nuint n) const {
+			return { blocks_, index_ - n };
+		}
+
 		iterator_t operator + (nuint n) const {
 			return { blocks_, index_ + n };
+		}
+
+		iterator_t& operator += (nuint n) {
+			index_ += n;
+			return *this;
 		}
 
 	};
@@ -76,12 +90,9 @@ struct blocky_memory {
 			posix::allocate<Type>(BlockSize)
 		);
 
-		//new (new_blocks.iterator() + new_blocks.size() - 1)
-		//	posix::memory<Type>(posix::allocate<Type>(BlockSize));
-
 		posix::free_raw_memory(blocks.iterator());
 
-		blocks = //new_blocks.template cast<posix::memory<Type>>();
+		blocks =
 			span<posix::memory<Type>> {
 				(posix::memory<Type>*) new_blocks.iterator(),
 				new_blocks.size()

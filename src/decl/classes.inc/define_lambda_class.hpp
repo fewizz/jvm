@@ -118,95 +118,119 @@ expected<c&, reference> try_define_lamda_class(
 		constructor_descriptor_const
 	); /* 7 */
 
-	for(auto p : parameter_types_list) {
-		p.view([&]<typename Type>(Type param) {
-			if constexpr(
-				same_as_any<Type, class_file::object, class_file::array>
-			) {
-				data_size += param.size();
-			}
-			else {
-				data_size += 1;
-			}
-		});
-	}
-
-	posix::memory<> constructor_code = posix::allocate<uint8>(1024);
+	list<posix::memory<>> constructor_code = posix::allocate<uint8>(1024);
 	{
-		uint8* iterator = constructor_code.as_span().iterator();
-		uint8* begin = iterator;
+		auto os = constructor_code.output_stream();
+		uint8* begin = constructor_code.iterator();
 
 		using namespace class_file::attribute::code;
 
 		// load this
 		instruction::write(
-			iterator,
+			os,
 			instruction::a_load_0{},
 			begin
 		);
 		instruction::write(
-			iterator,
+			os,
 			instruction::invoke_special{ .index{ 6 } },
 			begin
 		);
 
 		parameter_types_list.for_each_indexed([&](
 			auto param, nuint param_index
-		) {
-			param.view_type([&]<typename Type>() {
-				uint8 load_index = (uint8) (param_index + 1);
+		) { param.view_type([&]<typename Type>() {
+			class_file::constant::name_index name_index {
+				(uint16) consts.size()
+			};
+			class_file::constant::utf8 name = concat_utf8(
+				ranges {
+					c_string{ "field_" },
+					array{ '0' + param_index }
+				}.concat_view()
+			);
 
-				if constexpr(same_as_any<Type,
-					class_file::object, class_file::array
-				>) {
-					instruction::write(
-						iterator,
-						instruction::a_load{ .index = load_index },
-						begin
-					);
-				}
-				else if constexpr(same_as<Type, class_file::d>) {
-					instruction::write(
-						iterator,
-						instruction::d_load{ .index = load_index },
-						begin
-					);
-				}
-				else if constexpr(same_as<Type, class_file::j>) {
-					instruction::write(
-						iterator,
-						instruction::l_load{ .index = load_index },
-						begin
-					);
-				}
-				else if constexpr(same_as<Type, class_file::f>) {
-					instruction::write(
-						iterator,
-						instruction::f_load{ .index = load_index },
-						begin
-					);
-				}
-				else {
-					instruction::write(
-						iterator,
-						instruction::i_load{ .index = load_index },
-						begin
-					);
-				}
+			class_file::constant::descriptor_index descriptor_index {
+				(uint16) consts.size()
+			};
+			class_file::constant::utf8 descriptor = concat_utf8(
+				param.utf8_index()
+			);
+
+			class_file::constant::name_and_type_index nat_index {
+				(uint16) consts.size()
+			};
+			consts.emplace_back(class_file::constant::name_and_type {
+				.name_index = name_index,
+				.descriptor_index = descriptor_index
 			});
-		});
+
+			class_file::constant::field_ref_index field_ref_index {
+				(uint16) consts.size()
+			};
+			consts.emplace_back(class_file::constant::field_ref {
+				.class_index{ 0 },
+				.name_and_type_index = nat_index
+			});
+
+			uint8 load_index = (uint8) (param_index + 1);
+
+			if constexpr(same_as_any<Type,
+				class_file::object, class_file::array
+			>) {
+				instruction::write(
+					os,
+					instruction::a_load{ .index = load_index },
+					begin
+				);
+			}
+			else if constexpr(same_as<Type, class_file::d>) {
+				instruction::write(
+					os,
+					instruction::d_load{ .index = load_index },
+					begin
+				);
+			}
+			else if constexpr(same_as<Type, class_file::j>) {
+				instruction::write(
+					os,
+					instruction::l_load{ .index = load_index },
+					begin
+				);
+			}
+			else if constexpr(same_as<Type, class_file::f>) {
+				instruction::write(
+					os,
+					instruction::f_load{ .index = load_index },
+					begin
+				);
+			}
+			else {
+				instruction::write(
+					os,
+					instruction::i_load{ .index = load_index },
+					begin
+				);
+			}
+
+			instruction::write(
+				os,
+				instruction::put_field{ .index = field_ref_index },
+				begin
+			);
+
+		});});
 	}
 
 	method constructor {
 		class_file::access_flags {
 			class_file::access_flag::_public
 		},
-		constructor_name_const,
+		c_string{ u8"<init>" },
 		constructor_descriptor_const,
 		code_or_native_function_ptr{native_function_ptr{nullptr}},
 		posix::memory<class_file::attribute::code::exception_handler>{},
 		posix::memory<tuple<uint16, class_file::line_number>>{}
 	};
-
 
 }

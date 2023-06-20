@@ -187,8 +187,10 @@ public:
 		j::c_loader* defining_loader
 	);
 
-	template<basic_range Name>
-	c& define_primitive_class(Name&& name, char ch);
+	inline c& define_primitive_class(
+		class_file::constant::utf8 name,
+		const utf8::unit& ch
+	);
 
 	template<basic_range Name>
 	expected<c&, reference>

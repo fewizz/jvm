@@ -267,27 +267,32 @@ expected<c&, reference> classes::try_define_class(
 		const_pool.utf8_constant(this_class_constant.name_index)
 	};
 
-	auto descriptor_utf8 = posix::allocate<utf8::unit>(name_utf8.size() + 2);
-
+	class_data_t data{};
+	data.emplace_back(move(bytes));
+	data.emplace_back(posix::allocate(name_utf8.size() + 2));
 	name_utf8.copy_to(
 		span {
-			descriptor_utf8.as_span().iterator() + 1,
-			descriptor_utf8.size() - 2
+			data[1].as_span().iterator() + 1,
+			data[1].as_span().size() - 2
 		}
 	);
+	data[1][0].construct((uint8)'L');
+	data[1][data[1].size() - 1].construct((uint8)';');
 
-	descriptor_utf8[0].construct((uint8)'L');
-	descriptor_utf8[descriptor_utf8.size() - 1].construct((uint8)';');
+	class_file::constant::utf8 descriptor
+		= data[1].as_span().cast<utf8::unit>();
 
 	/* If no exception is thrown in steps 1-4, then derivation of the class or
 	   interface C succeeds. The Java Virtual Machine marks C to have L as its
 	   defining loader, records that L is an initiating loader of C (§5.3.4),
 	   and creates C in the method area (§2.5.4). */
 	return emplace_back(
-		move(const_pool), move(bootstrap_methods),
-		move(bytes), access_flags,
+		move(const_pool),
+		move(bootstrap_methods),
+		move(data),
+		access_flags,
 		name_utf8,
-		move(descriptor_utf8),
+		descriptor,
 		source_file,
 		super,
 		move(interfaces.storage_range()),

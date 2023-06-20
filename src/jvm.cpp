@@ -32,16 +32,16 @@ int main(int argc, const char** argv) {
 
 	init_java_lang_object();
 
-	void_class = classes.define_primitive_class(c_string{ u8"void" }, 'V');
+	void_class = classes.define_primitive_class(
+		c_string{ u8"void" }, u8"V"[0]
+	);
 
-	auto define_primitive_and_its_array_class = []<basic_range Name>(
-		Name&& name, utf8::unit ch
+	auto define_primitive_and_its_array_class = [](
+		auto name, auto array
 	) -> c& {
-		 c& component_class = classes.define_primitive_class(name, ch);
+		c& component_class = classes.define_primitive_class(name, array[1]);
 
-		array<utf8::unit, 2> array_class_name{ u8'[', ch };
-		c& array_class
-			= classes.define_array_class(array_class_name, nullptr);
+		c& array_class = classes.define_array_class(array, nullptr);
 
 		array_class.component_class(component_class);
 		component_class.array_class(array_class);
@@ -49,22 +49,30 @@ int main(int argc, const char** argv) {
 		return component_class;
 	};
 
-	bool_class
-		= define_primitive_and_its_array_class(c_string{ u8"boolean" }, 'Z');
-	byte_class
-		= define_primitive_and_its_array_class(c_string{ u8"byte" }, 'B');
-	short_class
-		= define_primitive_and_its_array_class(c_string{ u8"short" }, 'S');
-	char_class
-		= define_primitive_and_its_array_class(c_string{ u8"char" }, 'C');
-	int_class
-		= define_primitive_and_its_array_class(c_string{ u8"int" }, 'I');
-	long_class
-		= define_primitive_and_its_array_class(c_string{ u8"long" }, 'J');
-	float_class
-		= define_primitive_and_its_array_class(c_string{ u8"float" }, 'F');
-	double_class
-		= define_primitive_and_its_array_class(c_string{ u8"double" }, 'D');
+	bool_class = define_primitive_and_its_array_class(
+		c_string{ u8"boolean" }, c_string{ u8"[Z" }
+	);
+	byte_class = define_primitive_and_its_array_class(
+		c_string{ u8"byte" }, c_string{ u8"[B" }
+	);
+	short_class = define_primitive_and_its_array_class(
+		c_string{ u8"short" }, c_string{ u8"[S" }
+	);
+	char_class = define_primitive_and_its_array_class(
+		c_string{ u8"char" }, c_string{ u8"[C" }
+	);
+	int_class = define_primitive_and_its_array_class(
+		c_string{ u8"int" }, c_string{ u8"[I" }
+	);
+	long_class = define_primitive_and_its_array_class(
+		c_string{ u8"long" }, c_string{ u8"[J" }
+	);
+	float_class = define_primitive_and_its_array_class(
+		c_string{ u8"float" }, c_string{ u8"[F" }
+	);
+	double_class = define_primitive_and_its_array_class(
+		c_string{ u8"double" }, c_string{ u8"[D" }
+	);
 
 	bool_array_class   = bool_class  ->get_array_class();
 	byte_array_class   = byte_class  ->get_array_class();

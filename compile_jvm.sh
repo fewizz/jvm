@@ -13,16 +13,15 @@ done
 if [[ $OS != Windows_NT ]]; then
 	additional_args+=(-fsanitize=undefined)
 	additional_args+=(-fsanitize=memory)
-	additional_args+=(-pthreads)
 fi
 
 if ! clang++ \
+	-static \
 	-fverbose-asm \
 	-ferror-limit=64 \
 	-std=c++2b \
 	-Wall -Wextra \
-	-g \
-	-O0 \
+	-O3 \
 	-nostdinc++ \
 	-nostdinc \
 	-fno-exceptions \
@@ -36,6 +35,7 @@ if ! clang++ \
 	-I ${root}/../posix-wrapper/include \
 	-I ${root}/../print/include \
 	-o ${root}/build/jvm \
+	-pthread \
 	${additional_args[@]} \
 	${root}/src/jvm.cpp
 then

@@ -19,32 +19,32 @@ c& classes::define_array_class(
 	declared_instance_fields[0].construct(
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
-		class_file::constant::utf8{ c_string{ u8"J" } }
+		class_file::constant::utf8{ u8"J" }
 	);
 	// length
 	declared_instance_fields[1].construct(
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
-		class_file::constant::utf8{ c_string{ u8"I" } }
+		class_file::constant::utf8{ u8"I" }
 	);
 
-	posix::memory<utf8::unit> descriptor
-		= posix::allocate<utf8::unit>(range_size(name));
+	class_data_t data{};
 
-	range{ name }.copy_to(descriptor.as_span());
+	data.emplace_back(posix::allocate(range_size(name)));
 
-	posix::memory<> data = posix::allocate<>(name.size());
+	range{ name }.copy_to(data.back().as_span().cast<utf8::unit>());
 
-	range{ name }.copy_to(data.as_span());
+	class_file::constant::utf8 this_name = data.back().cast<utf8::unit>();
 
-	class_file::constant::utf8 this_name = data.as_span().cast<utf8::unit>();
+	class_file::constant::utf8 descriptor = this_name;
 
 	return emplace_back(
-		constants{}, bootstrap_methods{},
+		constants{},
+		bootstrap_methods{},
 		move(data),
 		class_file::access_flags{ class_file::access_flag::_public },
 		this_name,
-		move(descriptor),
+		descriptor,
 		class_file::constant::utf8{},
 		object_class.get(),
 		posix::memory<c*>{},
