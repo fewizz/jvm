@@ -21,7 +21,8 @@ if ! clang++ \
 	-ferror-limit=64 \
 	-std=c++2b \
 	-Wall -Wextra \
-	-O3 \
+	-g \
+	-O0 \
 	-nostdinc++ \
 	-nostdinc \
 	-fno-exceptions \

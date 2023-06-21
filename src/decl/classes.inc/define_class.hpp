@@ -273,14 +273,14 @@ expected<c&, reference> classes::try_define_class(
 	name_utf8.copy_to(
 		span {
 			data[1].as_span().iterator() + 1,
-			data[1].as_span().size() - 2
+			name_utf8.size()
 		}
 	);
-	data[1][0].construct((uint8)'L');
-	data[1][data[1].size() - 1].construct((uint8)';');
+	data[1][0].construct(u8'L');
+	data[1][data[1].size() - 1].construct(u8';');
 
 	class_file::constant::utf8 descriptor
-		= data[1].as_span().cast<utf8::unit>();
+		= data[1].as_span().cast<utf8::unit, uint16>();
 
 	/* If no exception is thrown in steps 1-4, then derivation of the class or
 	   interface C succeeds. The Java Virtual Machine marks C to have L as its
