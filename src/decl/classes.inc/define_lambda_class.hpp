@@ -14,7 +14,7 @@ template<basic_range Name, basic_range Descriptor>
 expected<c&, reference> try_define_lamda_class(
 	Name&& this_class_name,
 	c& interface_to_implement,
-	Descriptor constructor_descriptor,
+	Descriptor&& ctor_descriptor,
 	j::c_loader* defining_loader // L
 ) {
 	uint8 parameters_count;
@@ -22,7 +22,7 @@ expected<c&, reference> try_define_lamda_class(
 
 	{
 		class_file::method_descriptor::reader reader {
-			constructor_descriptor.iterator()
+			ctor_descriptor.iterator()
 		};
 		parameters_count = reader.try_read_parameters_count(
 			[]([[maybe_unused]] auto err) { posix::abort(); }
@@ -41,32 +41,14 @@ expected<c&, reference> try_define_lamda_class(
 		);
 	}
 	
-	nuint data_size =
-		range_size(this_class_name) +
-		c_string{ u8"java/lang/Object" }.size() +
-		c_string{ u8"<init>" }.size() +
-		range_size(constructor_descriptor).size();
+	class_data_t data{};
 
-	for(auto p : parameter_types_list) {
-		p.view([&]<typename Type>(Type param) {
-			if constexpr(
-				same_as_any<Type, class_file::object, class_file::array>
-			) {
-				data_size += param.size();
-			}
-			else {
-				data_size += 1;
-			}
-		});
-	}
-
-	list data { posix::allocate<uint8>(data_size) };
-
-	auto concat_utf8 = [&]<basic_range Range>(Range&& r)
+	auto concat_utf8 = [&]<range_of<utf8::unit&> Range>(Range&& r)
 	-> class_file::constant::utf8 {
-		utf8::unit* beginning = (utf8::unit*) (data.iterator() + data.size());
-		data.emplace_back_elements_of(r);
-		return { beginning, range_size(r) };
+		data.emplace_back(posix::allocate(range_size(r)));
+		span s = data.back().as_span().cast<utf8::unit>();
+		range{ r }.copy_to(s);
+		return { s };
 	};
 
 	nuint constants_count =
@@ -89,33 +71,39 @@ expected<c&, reference> try_define_lamda_class(
 	consts.emplace_back(class_file::constant::utf8 {
 		u8"java/lang/Object"
 	}); /* 1 */
+	class_file::constant::name_index super_class_name_index{ 1 };
 
 	consts.emplace_back(class_file::constant::_class {
-		.name_index{ 1 }
+		.name_index = super_class_name_index
 	}); /* 2 */
+	class_file::constant::class_index super_class_index{ 2 };
 
 	consts.emplace_back(class_file::constant::utf8 {
 		u8"<init>"
 	}); /* 3 */
+	class_file::constant::name_index ctor_name_index{ 3 };
 
 	consts.emplace_back(class_file::constant::utf8 {
 		u8"()V"
 	}); /* 4 */
+	class_file::constant::descriptor_index super_class_ctor_desc_index{ 4 };
 
 	consts.emplace_back(class_file::constant::name_and_type {
-		.name_index{ 3 },
-		.descriptor_index{ 4 }
+		.name_index = ctor_name_index,
+		.descriptor_index = super_class_ctor_desc_index
 	}); /* 5 */
+	class_file::constant::name_and_type_index super_class_ctor_nat_index{ 5 };
 
 	consts.emplace_back(class_file::constant::method_ref {
-		.class_index{ 2 },
-		.name_and_type_index{ 5 }
+		.class_index = super_class_index,
+		.name_and_type_index = super_class_ctor_nat_index
 	}); /* 6 */
+	class_file::constant::method_ref_index super_class_ctor_ref_index{ 6 };
 
-	class_file::constant::utf8 constructor_descriptor_const
-		= concat_utf8(constructor_descriptor);
+	class_file::constant::utf8 ctor_desc_const
+		= concat_utf8(ctor_descriptor);
 	consts.emplace_back(
-		constructor_descriptor_const
+		ctor_desc_const
 	); /* 7 */
 
 	list<posix::memory<>> constructor_code = posix::allocate<uint8>(1024);
@@ -125,7 +113,7 @@ expected<c&, reference> try_define_lamda_class(
 
 		using namespace class_file::attribute::code;
 
-		// load this
+		// load *this*
 		instruction::write(
 			os,
 			instruction::a_load_0{},
@@ -133,7 +121,7 @@ expected<c&, reference> try_define_lamda_class(
 		);
 		instruction::write(
 			os,
-			instruction::invoke_special{ .index{ 6 } },
+			instruction::invoke_special { super_class_ctor_ref_index },
 			begin
 		);
 
@@ -227,7 +215,7 @@ expected<c&, reference> try_define_lamda_class(
 			class_file::access_flag::_public
 		},
 		c_string{ u8"<init>" },
-		constructor_descriptor_const,
+		ctor_desc_const,
 		code_or_native_function_ptr{native_function_ptr{nullptr}},
 		posix::memory<class_file::attribute::code::exception_handler>{},
 		posix::memory<tuple<uint16, class_file::line_number>>{}
