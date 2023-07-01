@@ -65,7 +65,7 @@ expected<c&, reference> classes::try_define_class(
 	auto [version, constant_pool_reader] =
 		version_reader.read_and_get_constant_pool_reader();
 
-	uint16 constants_count = constant_pool_reader.read_count();
+	uint16 constants_count = constant_pool_reader.get_count();
 	::list const_pool_raw {
 		posix::allocate<::constant>(constants_count)
 	};
@@ -124,7 +124,7 @@ expected<c&, reference> classes::try_define_class(
 	      its direct superinterfaces are resolved using the algorithm of
 	      §5.4.3.1. */
 	::list interfaces = posix::allocate<c*>(
-		interfaces_reader.read_count()
+		interfaces_reader.get_count()
 	);
 
 	reference thrown;
@@ -157,7 +157,7 @@ expected<c&, reference> classes::try_define_class(
 	}
 
 	::list fields {
-		posix::allocate<field>(fields_reader.read_count())
+		posix::allocate<field>(fields_reader.get_count())
 	};
 
 	nuint static_fields_count = 0;
@@ -193,7 +193,7 @@ expected<c&, reference> classes::try_define_class(
 	}
 
 	::list methods {
-		posix::allocate<method>(methods_reader.read_count())
+		posix::allocate<method>(methods_reader.get_count())
 	};
 
 	nuint static_methods_count = 0;
@@ -239,7 +239,7 @@ expected<c&, reference> classes::try_define_class(
 	bootstrap_methods bootstrap_methods{};
 	class_file::constant::utf8 source_file{};
 
-	attributes_reader.read_and_get_advanced_iterator(
+	attributes_reader.read(
 		[&](auto attribute_name_index) {
 			return const_pool.utf8_constant(attribute_name_index);
 		},

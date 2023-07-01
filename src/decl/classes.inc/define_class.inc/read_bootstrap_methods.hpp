@@ -23,7 +23,6 @@ bootstrap_method read_bootstrap_method(
 	};
 
 	arguments_reader.read(
-		arguments_count,
 		[&](class_file::constant::index index) {
 			arguments_indices_raw.emplace_back(index);
 		}
@@ -47,7 +46,6 @@ template<typename Iterator>
 		};
 
 		bootstrap_methods_reader.read(
-			count,
 			[&](auto bm_reader) {
 				bootstrap_methods_raw.emplace_back(
 					read_bootstrap_method(bm_reader)

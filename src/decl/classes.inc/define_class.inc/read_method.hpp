@@ -48,7 +48,7 @@ tuple<method, Iterator> read_method(
 			auto [max_locals, code_reader]
 				= max_locals_reader.read_and_get_code_reader();
 
-			auto code_span = code_reader.read_as_span();
+			auto code_span = code_reader.get_as_span();
 			auto exception_table_reader
 				= code_reader.skip_and_get_exception_table_reader();
 
@@ -59,7 +59,7 @@ tuple<method, Iterator> read_method(
 			::list exception_handlers_list {
 				posix::allocate<
 					class_file::attribute::code::exception_handler
-				>(exception_table_reader.read_count())
+				>(exception_table_reader.get_count())
 			};
 
 			auto attributes_reader =

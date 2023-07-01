@@ -46,7 +46,7 @@ static optional<reference> try_execute(method& m) {
 		if(info) {
 			tabs();
 			print::out(
-				"finishing executing: ",
+				"finishing execution of: ",
 				c.name(), ".", m.name(), m.descriptor(),
 				"\n"
 			);
@@ -126,53 +126,45 @@ static optional<reference> try_execute(method& m) {
 		}
 	}
 
-	const uint8* instruction_ptr = m.code().iterator();
-	const uint8* instructions_end_ptr = m.code().sentinel();
+	execute_instruction exe {
+		.m = m,
+		.c = c,
+		.instructions_beginning_ptr = m.code().iterator(),
+		.instruction_ptr = m.code().iterator(),
+		.next_instruction_ptr = m.code().iterator(),
+		.locals_begin = locals_begin,
+		.stack_begin = stack_begin
+	};
 
-	reference thrown;
-
-	while(instruction_ptr < instructions_end_ptr) {
-		const uint8* next_instruction_ptr = instruction_ptr;
-
+	while(true) {
 		loop_action action = class_file::attribute::code::instruction::read(
-			next_instruction_ptr,
+			exe.next_instruction_ptr,
 			[&]<typename Type>(Type instruction) -> loop_action {
 				on_scope_exit update_instruction_ptr{[&] {
-					instruction_ptr = next_instruction_ptr;
+					exe.instruction_ptr = exe.next_instruction_ptr;
 				}};
 
-				ctx.instruction_ptr = instruction_ptr;
-
-				execute_instruction instr_exe {
-					.m = m,
-					.c = c,
-					.instructions_beginning_ptr = m.code().iterator(),
-					.instruction_ptr = instruction_ptr,
-					// TODO
-					.next_instruction_ptr = (const uint8*&)next_instruction_ptr,
-					.locals_begin = locals_begin,
-					.stack_begin = stack_begin,
-					.thrown = thrown
-				};
+				ctx.instruction_ptr = exe.instruction_ptr;
 
 				if constexpr(
-					same_as<decltype(instr_exe(instruction)), loop_action>
+					same_as<decltype(exe(instruction)), loop_action>
 				) {
-					return instr_exe(instruction);
+					return exe(instruction);
 				}
 				else {
-					instr_exe(instruction);
-
+					exe(instruction);
 					return loop_action::next;
 				}
 			}
 		);
 
-		if(action == loop_action::stop) break;
+		if(action == loop_action::stop) {
+			break;
+		}
 	}
 
-	if(!thrown.is_null()) {
-		return thrown;
+	if(!exe.thrown.is_null()) {
+		return move(exe.thrown);
 	}
 
 	return {};

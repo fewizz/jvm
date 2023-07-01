@@ -27,12 +27,12 @@ struct execute_instruction {
 	method& m;
 	c& c;
 	const uint8* const instructions_beginning_ptr;
-	const uint8* const instruction_ptr;
-	const uint8*& next_instruction_ptr;
+	const uint8* instruction_ptr;
+	const uint8* next_instruction_ptr;
 
 	const nuint locals_begin;
 	const nuint stack_begin;
-	reference& thrown;
+	reference thrown;
 
 	[[nodiscard]] loop_action handle_thrown(reference thrown) {
 		if(info) {
