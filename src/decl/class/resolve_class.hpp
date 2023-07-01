@@ -92,14 +92,7 @@ template<class_file::possibly_void_descriptor_type Type>
 	}
 	else if constexpr(same_as<Type, class_file::object>) {
 		return try_resolve_class(
-			d,
-			type
-		);
-	}
-	else if constexpr(same_as<Type, class_file::array>) {
-		return try_resolve_class(
-			d,
-			type
+			d, type
 		);
 	}
 	else {

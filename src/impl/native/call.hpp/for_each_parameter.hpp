@@ -19,7 +19,7 @@ void for_each_parameter(method& m, nuint stack_begin, Handler&& handler) {
 
 	for(one_of_descriptor_parameter_types pt : m.parameter_types()) {
 		pt.view_type(overloaded {
-			[&]<same_as_any<class_file::object, class_file::array>> {
+			[&]<same_as<class_file::object>> {
 				reference& r = stack.get<reference>(stack_at);
 				object* ptr = r.object_ptr();
 				handler(ptr);

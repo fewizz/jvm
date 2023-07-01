@@ -163,9 +163,7 @@ expected<c&, reference> try_define_lamda_class(
 
 			uint8 load_index = (uint8) (param_index + 1);
 
-			if constexpr(same_as_any<Type,
-				class_file::object, class_file::array
-			>) {
+			if constexpr(same_as<Type, class_file::object>) {
 				instruction::write(
 					os,
 					instruction::a_load{ .index = load_index },

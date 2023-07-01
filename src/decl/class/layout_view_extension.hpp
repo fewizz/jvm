@@ -34,8 +34,7 @@ public:
 
 		return f.type.view([&]<typename Type>(Type) -> decltype(auto) {
 			if constexpr(
-				same_as<Type, class_file::object> ||
-				same_as<Type, class_file::array>
+				same_as<Type, class_file::object>
 			) {
 				return handler((reference*) ptr);
 			}

@@ -176,8 +176,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				stack.emplace_back<double>(((__m128d) arg_0_f)[0]);
 			}
 			else if constexpr(
-				same_as<Type, class_file::object> ||
-				same_as<Type, class_file::array>
+				same_as<Type, class_file::object>
 			) {
 				// increment reference count before possible deletion on stack
 				object* obj_ptr = (::object*) result;
