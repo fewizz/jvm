@@ -59,7 +59,7 @@ try_resolve_class(c& d, Name&& name) {
 	return c;
 }
 
-template<class_file::descriptor_type Type>
+template<class_file::possibly_void_descriptor_type Type>
 [[nodiscard]] inline expected<c&, reference> try_resolve_class_from_type(
 	c& d, Type type
 ) {

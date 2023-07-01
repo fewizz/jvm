@@ -101,9 +101,11 @@ inline expected<reference, reference> c::try_get_resolved_method_handle(
 
 			/* 3 */
 			expected<::c&, reference> possible_t
-				= r.type.view([&]<class_file::descriptor_type Type>(Type t) {
-					return try_resolve_class_from_type(*this, t);
-				});
+				= r.type.view(
+					[&]<class_file::field_descriptor_type Type>(Type t) {
+						return try_resolve_class_from_type(*this, t);
+					}
+				);
 			if(possible_t.is_unexpected()) {
 				return unexpected{ possible_t.move_unexpected() };
 			}

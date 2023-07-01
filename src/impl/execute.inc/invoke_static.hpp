@@ -9,6 +9,7 @@
 #include <class_file/constant.hpp>
 
 #include <overloaded.hpp>
+#include <on_scope_exit.hpp>
 
 [[nodiscard]] inline optional<reference>
 try_invoke_static_resolved(static_method& resolved_method) {

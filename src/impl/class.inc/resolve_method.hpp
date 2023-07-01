@@ -3,6 +3,7 @@
 #include "decl/method.hpp"
 #include "decl/class.hpp"
 #include "decl/class/access_control.hpp"
+#include "decl/class/resolve_class.hpp"
 #include "decl/lib/java/lang/object.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
 #include "decl/lib/java/lang/illegal_access_error.hpp"
@@ -41,23 +42,32 @@ inline expected<optional<method&>, reference> try_method_resolution_step_2(
 		if(is_signature_polymorphic) {
 			reference thrown;
 
+			auto resolve = [&](class_file::object name) {
+				expected<::c&, reference> possible_c
+					= try_resolve_class_from_type(d, name);
+				if(possible_c.is_unexpected()) {
+					thrown = possible_c.move_unexpected();
+					return;
+				}
+			};
+
 			class_file::method_descriptor::try_read_parameter_and_return_types(
 				descriptor.iterator(),
-				[&]<typename ParamType>(ParamType p) {
-					expected<::c&, reference> possible_c
-						= try_resolve_class_from_type(d, p);
-					if(possible_c.is_unexpected()) {
-						thrown = possible_c.move_unexpected();
-						return;
+				overloaded {
+					[]<class_file::primitive_type>{},
+					[&](class_file::object name) {
+						if(thrown.is_null()) {
+							resolve(name);
+						}
 					}
 				},
-				[&]<typename ReturnType>(ReturnType r) {
-					if(!thrown.is_null()) return;
-					expected<::c&, reference> possible_c
-						= try_resolve_class_from_type(d, r);
-					if(possible_c.is_unexpected()) {
-						thrown = possible_c.move_unexpected();
-						return;
+				overloaded {
+					[]<same_as<class_file::v>>{},
+					[]<class_file::primitive_type>{},
+					[&](class_file::object name) {
+						if(thrown.is_null()) {
+							resolve(name);
+						}
 					}
 				},
 				[](auto) { posix::abort(); }

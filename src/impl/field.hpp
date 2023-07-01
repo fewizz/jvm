@@ -1,6 +1,6 @@
 #include "decl/field.hpp"
 
-#include <class_file/descriptor/read_type.hpp>
+#include <class_file/descriptor/field.hpp>
 #include <posix/abort.hpp>
 
 inline field::field(
@@ -10,16 +10,24 @@ inline field::field(
 ) :
 	class_member{ access_flags, name, desc },
 	type {
-		[&] {
-			optional<one_of_descriptor_parameter_types> type;
-			class_file::read_field_type_descriptor(
-				desc.iterator(),
-				[&]<typename Type>(Type t) {
-					type = t;
-				}, [](auto){ posix::abort(); }
-			);
-			return type.get();
-		}()
+		class_file::read_field_descriptor(
+			desc.iterator(),
+			overloaded {
+				[&]<class_file::primitive_type Type>
+				-> one_of_descriptor_field_types
+				{
+					return Type{};
+				},
+				[&](class_file::reference_type auto ref_type)
+				-> one_of_descriptor_field_types
+				{
+					return ref_type;
+				}
+			},
+			[](auto) -> one_of_descriptor_field_types {
+				posix::abort();
+			}
+		)
 	},
 	stack_size {
 		(uint8) ((

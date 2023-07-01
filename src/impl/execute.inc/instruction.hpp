@@ -15,6 +15,7 @@
 #include "./new_array.hpp"
 
 #include <class_file/attribute/code/instruction.hpp>
+#include <class_file/attribute/code/reader.hpp>
 
 #include <posix/math.hpp>
 
@@ -25,6 +26,7 @@ namespace instr = class_file::attribute::code::instruction;
 struct execute_instruction {
 	method& m;
 	c& c;
+	const uint8* const instructions_beginning_ptr;
 	const uint8* const instruction_ptr;
 	const uint8*& next_instruction_ptr;
 
@@ -1102,49 +1104,79 @@ struct execute_instruction {
 		uint32 address = stack.get<int32>(x.index);
 		next_instruction_ptr = m.code().iterator() + address;
 	}
-	void operator () (instr::table_switch x) {
-		if(info) { tabs(); print::out("table_switch\n"); }
+
+	void operator () (instr::table_switch::reader<const uint8*&> reader) {
+		if(::info) { tabs(); print::out("table_switch\n"); }
+
 		/* The index must be of type int and is popped from the operand
 			stack. */
 		int32 index = stack.pop_back<int32>();
 
+		auto info_reader = reader.align_and_get_info_reader(
+			[&](const uint8*& is) {
+				nuint rem = (is - instructions_beginning_ptr) % 4;
+				if(rem > 0) {
+					is += 4 - rem;
+				}
+			}
+		);
+
+		auto [info, offsets_reader] = info_reader.read_and_get_offsets_reader();
+
 		/* If index is less than low or index is greater than high, ... */
-		if(index < x.low || index > x.high) {
+		if(index < info.low || index > info.high) {
 			/* ... then a target address is calculated by adding default to
 				the address of the opcode of this tableswitch instruction */
-			next_instruction_ptr = instruction_ptr + x._default;
+			next_instruction_ptr = instruction_ptr + info._default;
 		}
 		else {
 			/* Otherwise, the offset at position index - low of the jump
 			table is extracted */
-			uint32 position = index - x.low;
-			int32 offset = x.offsets[position];
+			instr::table_switch::offset offset
+				= offsets_reader.read_offset(index - info.low);
+
 			/* The target address is calculated by adding that offset to the
 			address of the opcode of this tableswitch instruction.
 			Execution then continues at the target address. */
 			next_instruction_ptr = instruction_ptr + offset;
 		}
 	}
-	loop_action operator () (instr::lookup_switch x) {
+	void operator () (instr::lookup_switch::reader<const uint8*&> reader) {
 		if(info) { tabs(); print::out("lookup_switch\n"); }
 
 		int32 key = stack.pop_back<int32>();
 
-		for(instr::match_offset mo : x.pairs) {
-			/*  The key is compared against the match values. */
-			if(mo.match == key) {
-				/* If it is equal to one of them, then a target address is
+		auto info_reader = reader.align_and_get_info_reader(
+			[&](const uint8*& is) {
+				nuint rem = (is - instructions_beginning_ptr) % 4;
+				if(rem > 0) {
+					is += 4 - rem;
+				}
+			}
+		);
+
+		auto [info, offsets_reader]
+			= info_reader.read_and_get_matches_and_offsets_reader();
+		
+		offsets_reader.read(
+			[&](instr::lookup_switch::match_and_offset pair) {
+				/*  The key is compared against the match values. */
+				if(pair.match == key) {
+					/* If it is equal to one of them, then a target address is
 					calculated by adding the corresponding offset to the
 					address of the opcode of this lookupswitch instruction.*/
-				next_instruction_ptr = instruction_ptr + mo.offset;
+					next_instruction_ptr = instruction_ptr + pair.offset;
+					return loop_action::stop;
+				}
 				return loop_action::next;
+			},
+			/* If the key does not match any of the match values, the target
+			   address is calculated by adding default to the address of the
+			   opcode of this lookupswitch instruction. */
+			[&] {
+				next_instruction_ptr = instruction_ptr + info._default;
 			}
-		}
-		/*  If the key does not match any of the match values, the target
-			address is calculated by adding default to the address of the
-			opcode of this lookupswitch instruction. */
-		next_instruction_ptr = instruction_ptr + x._default;
-		return loop_action::next;
+		);
 	}
 	loop_action operator () (instr::i_return) {
 		if(info) { tabs(); print::out("i_return "); }

@@ -21,6 +21,7 @@
 #include <list.hpp>
 #include <optional.hpp>
 #include <ranges.hpp>
+#include <on_scope_exit.hpp>
 
 #include <posix/memory.hpp>
 #include <class_file/reader.hpp>

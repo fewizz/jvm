@@ -62,13 +62,14 @@ tuple<method, Iterator> read_method(
 				>(exception_table_reader.read_count())
 			};
 
-			auto attributes_reader
-				= exception_table_reader.read_and_get_attributes_reader(
-				[&](exception_handler eh) {
-					exception_handlers_list.emplace_back(eh);
-					return loop_action::next;
-				}
-			);
+			auto attributes_reader =
+				exception_table_reader
+				.read_and_get_attributes_reader(
+					[&](exception_handler eh) {
+						exception_handlers_list.emplace_back(eh);
+						return loop_action::next;
+					}
+				);
 
 			attributes_reader.read_and_get_advanced_iterator(
 				mapper,
@@ -102,8 +103,7 @@ tuple<method, Iterator> read_method(
 								);
 							}
 						);
-						line_numbers
-							= move(line_numbers_list.storage_range());
+						line_numbers = move(line_numbers_list.storage_range());
 					}
 				}
 			);

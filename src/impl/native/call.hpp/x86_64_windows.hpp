@@ -7,7 +7,7 @@
 #include "decl/execution/info.hpp"
 #include "decl/native/thrown.hpp"
 
-#include <class_file/descriptor/method_reader.hpp>
+#include <class_file/descriptor/method.hpp>
 #include <overloaded.hpp>
 #include <types.hpp>
 #include <numbers.hpp>

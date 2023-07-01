@@ -25,7 +25,7 @@
 #include "decl/lib/java/lang/stack_overflow_error.hpp"
 
 #include <class_file/reader.hpp>
-#include <class_file/descriptor/method_reader.hpp>
+#include <class_file/descriptor/method.hpp>
 #include <class_file/attribute/code/read_instruction.hpp>
 
 #include <print/print.hpp>
@@ -127,17 +127,15 @@ static optional<reference> try_execute(method& m) {
 	}
 
 	const uint8* instruction_ptr = m.code().iterator();
-	const uint8* instruction_end_ptr = m.code().sentinel();
+	const uint8* instructions_end_ptr = m.code().sentinel();
 
 	reference thrown;
 
-	while(instruction_ptr < instruction_end_ptr) {
+	while(instruction_ptr < instructions_end_ptr) {
 		const uint8* next_instruction_ptr = instruction_ptr;
 
 		loop_action action = class_file::attribute::code::instruction::read(
 			next_instruction_ptr,
-			// beginning, required for table_swith and others
-			m.code().iterator(),
 			[&]<typename Type>(Type instruction) -> loop_action {
 				on_scope_exit update_instruction_ptr{[&] {
 					instruction_ptr = next_instruction_ptr;
@@ -148,6 +146,7 @@ static optional<reference> try_execute(method& m) {
 				execute_instruction instr_exe {
 					.m = m,
 					.c = c,
+					.instructions_beginning_ptr = m.code().iterator(),
 					.instruction_ptr = instruction_ptr,
 					// TODO
 					.next_instruction_ptr = (const uint8*&)next_instruction_ptr,

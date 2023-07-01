@@ -8,7 +8,7 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 #include <class_file/descriptor/type.hpp>
-#include <class_file/descriptor/method_reader.hpp>
+#include <class_file/descriptor/method.hpp>
 #include <class_file/attribute/code/exception_handler.hpp>
 #include <class_file/attribute/line_numbers/reader.hpp>
 
@@ -66,29 +66,43 @@ public:
 		exception_handlers_{ move(exception_handlers)       },
 		line_numbers_      { move(line_numbers)             }
 	{
-		class_file::method_descriptor::reader reader{ descriptor.iterator() };
-		uint8 parameters_count = reader.try_read_parameters_count(
-			[]([[maybe_unused]] auto err) { posix::abort(); }
-		).get();
+		uint8 parameters_count =
+			class_file::method_descriptor::reader {
+				descriptor.iterator()
+			}.try_read_parameters_count(
+				[]([[maybe_unused]] auto err) { posix::abort(); }
+			).get();
 
 		list parameters_types_list =
 			posix::allocate<one_of_descriptor_parameter_types>(
 				parameters_count
 			);
 
-		auto return_type_reader
-			= reader.try_read_parameter_types_and_get_return_type_reader(
-				[&]<typename ParamType>(ParamType parameter_type) {
-					parameters_types_list.emplace_back(parameter_type);
+		auto return_type_reader =
+			class_file::method_descriptor::reader {
+				descriptor.iterator()
+			}.try_read_parameter_types_and_get_return_type_reader(
+				overloaded {
+					[&]<class_file::parameter_descriptor_type Type> {
+						parameters_types_list.emplace_back(Type{});
+					},
+					[&](class_file::reference_type auto ref_type) {
+						parameters_types_list.emplace_back(ref_type);
+					}
 				},
 				[](auto) { posix::abort(); }
 			).get();
 
 		return_type_reader.try_read_and_get_advanced_iterator(
-			[&](auto ret_type) {
-				return_type_ = ret_type;
+			overloaded {
+				[&]<class_file::return_descriptor_type Type> {
+					return_type_ = Type{};
+				},
+				[&](class_file::reference_type auto ref_type) {
+					return_type_ = ref_type;
+				}
 			},
-			[](auto) { posix::abort(); }
+			[](auto) -> one_of_descriptor_return_types { posix::abort(); }
 		);
 
 		if(!access_flags._static) {

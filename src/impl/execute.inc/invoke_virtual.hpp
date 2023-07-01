@@ -99,8 +99,13 @@ template<basic_range Descriptor>
 
 	class_file::method_descriptor::reader reader{ desc.iterator() };
 	reader.try_read_parameter_types_and_get_return_type_reader(
-	[&]<typename ParamType>(ParamType) {
-			args_count_stack += descriptor_type_stack_size<ParamType>;
+		overloaded {
+			[&]<class_file::primitive_type Type> {
+				args_count_stack += descriptor_type_stack_size<Type>;
+			},
+			[&]<class_file::reference_type Type>(Type) {
+				args_count_stack += descriptor_type_stack_size<Type>;
+			}
 		},
 		[](auto) { posix::abort(); }
 	);

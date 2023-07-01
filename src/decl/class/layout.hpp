@@ -76,23 +76,21 @@ struct layout {
 				}
 			};
 
-			auto add = [&]<typename Type, typename... Types>() {
+			auto add = [&]<typename RawType, typename DescType>() {
 				nuint field_index = initial_field_index;
 				for(field& f : declared_instance_fields) {
-					if((f.type.is_same_as<Types>() || ... )) {
-						align(bytes_in_atoms<alignof(Type)>);
+					if((f.type.is_same_as<DescType>())) {
+						align(bytes_in_atoms<alignof(RawType)>);
 						field_index_to_slot[field_index].construct(
-							layout::position{ current_position }, bytes_in<Type>
+							layout::position{ current_position }, bytes_in<RawType>
 						);
-						current_position += bytes_in<Type>;
+						current_position += bytes_in<RawType>;
 					}
 					++field_index;
 				}
 			};
 
-			add.template operator () <
-				reference, class_file::object, class_file::array
-			>();
+			add.template operator () <reference, class_file::object>();
 			add.template operator () <int64,  class_file::j>();
 			add.template operator () <double, class_file::d>();
 			add.template operator () <int32,  class_file::i>();

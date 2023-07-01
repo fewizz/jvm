@@ -27,28 +27,49 @@ try_resolve_method_type(c& d, Descriptor&& descriptor) {
 
 	reference thrown{};
 
+	auto resolve = [&](auto p) -> c* {
+		expected<c&, reference> possible_c = try_resolve_class_from_type(d, p);
+		if(possible_c.is_unexpected()) {
+			thrown = possible_c.move_unexpected();
+			return nullptr;
+		}
+		c& c = possible_c.get_expected();
+		return &c;
+	};
+
 	class_file::method_descriptor::try_read_parameter_and_return_types(
 		descriptor.iterator(),
-		[&]<typename ParamType>(ParamType p) {
-			expected<c&, reference> possible_c
-				= try_resolve_class_from_type(d, p);
-			if(possible_c.is_unexpected()) {
-				thrown = possible_c.move_unexpected();
-				return;
+		overloaded {
+			[&]<typename Type> {
+				if(!thrown.is_null()) return;
+				c* ptr = resolve(Type{});
+				if(ptr != nullptr) {
+					params_classes[parameters_count++] = ptr;
+				}
+			},
+			[&](class_file::reference_type auto p) {
+				if(!thrown.is_null()) return;
+				c* ptr = resolve(p);
+				if(ptr != nullptr) {
+					params_classes[parameters_count++] = ptr;
+				}
 			}
-			c& c = possible_c.get_expected();
-			params_classes[parameters_count++] = &c;
 		},
-		[&]<typename ReturnType>(ReturnType r) {
-			if(!thrown.is_null()) return;
-			expected<c&, reference> possible_c
-				= try_resolve_class_from_type(d, r);
-			if(possible_c.is_unexpected()) {
-				thrown = possible_c.move_unexpected();
-				return;
+		overloaded {
+			[&]<typename Type> {
+				if(!thrown.is_null()) return;
+				c* ptr = resolve(Type{});
+				if(ptr != nullptr) {
+					ret_class = ptr;
+				}
+			},
+			[&](class_file::reference_type auto r) {
+				if(!thrown.is_null()) return;
+				c* ptr = resolve(r);
+				if(ptr != nullptr) {
+					ret_class = ptr;
+				}
 			}
-			c& c = possible_c.get_expected();
-			ret_class = &c;
 		},
 		[](auto) { posix::abort(); }
 	);
