@@ -29,8 +29,10 @@ static void init_jvm_mh_static() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			jvm::class_member& ths
+			j::method_handle& ths0
 		) -> optional<reference> {
+			jvm::class_member& ths = (jvm::class_member&) ths0;
+
 			static_method& resolved_method
 				= ths.member<declared_static_method_index>();
 

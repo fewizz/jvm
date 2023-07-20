@@ -33,7 +33,7 @@ static void init_jvm_mh_string_concat() {
 				= stack.size() - ths.method_type().compute_args_stack_size();
 			nuint arg_index = beginning;
 
-			recipe.for_each_utf16_unit([&](uint16 unit) {
+			recipe.for_each_utf16_unit([&](utf16::unit unit) {
 				if(unit == 1) {
 					reference& ref = stack.get<reference>(arg_index++);
 					if(ref.c().is_not(j::string::c.get())) {
@@ -51,12 +51,12 @@ static void init_jvm_mh_string_concat() {
 				size += 1;
 			});
 
-			uint16 string_data_raw[size];
-			span<uint16> string_data{ string_data_raw, size };
+			utf16::unit string_data_raw[size];
+			span<utf16::unit> string_data{ string_data_raw, size };
 			nuint written = 0;
 			arg_index = beginning;
 
-			recipe.for_each_utf16_unit([&](uint16 unit) {
+			recipe.for_each_utf16_unit([&](utf16::unit unit) {
 				if(unit == 1) {
 					reference& ref = stack.get<reference>(arg_index++);
 					if(ref.c().is_not(j::string::c.get())) {

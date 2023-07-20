@@ -29,11 +29,12 @@ static void init_jvm_mh_virtual() {
 	mh_virtual_class->declared_instance_methods().find(
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
-		(void*)+[](jvm::class_member& mh)
+		(void*)+[](j::method_handle& ths0)
 		-> optional<reference> {
+			jvm::class_member& ths = (jvm::class_member&) ths0;
 
 			method& resolved_method
-				= mh.member<declared_instance_method_index>();
+				= ths.member<declared_instance_method_index>();
 
 			return try_invoke_virtual_resolved_non_polymorphic(resolved_method);
 		}

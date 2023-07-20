@@ -22,11 +22,12 @@ static void init_jvm_mh_static_setter() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			jvm::class_member& mh
+			j::method_handle& ths0
 		) -> optional<reference> {
+			jvm::class_member& ths = (jvm::class_member&) ths0;
 
 			static_field& resolved_field
-				= mh.member<declared_static_field_index>();
+				= ths.member<declared_static_field_index>();
 
 			optional<reference> optional_throwable
 				= resolved_field.c().try_initialise_if_need();//TODO

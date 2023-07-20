@@ -49,11 +49,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 		nuint arg = 0;
 
 		for_each_parameter(m, jstack_begin, [&]<typename Type>(Type x) {
-			if constexpr(same_as<Type, void*>) {
-				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
-					(uint64) x;
-			}
-			else if constexpr(same_as<Type, object*>) {
+			if constexpr(type_is_pointer<Type>) {
 				(arg >= 6 ? stack_storage[arg - 6] : i_regs[arg]) =
 					(uint64) x;
 			}
@@ -106,19 +102,15 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 		register uint64* stack_beginning asm("r11")  = stack_storage;
 		register void* function_ptr asm("r12") = ptr;
 
-		void* rsp_beginning = nullptr;
-
 		asm volatile(
-				"movq %%rsp, %%rax\n"
-				"movq %%rax, %[rsp_beginning]\n"
-				// alignment to 16
+				"pushq %%rbp\n"
+				"movq %%rsp, %%rbp\n"
+				// align rsp to 16
 				"movq %[stack_remaining], %%rax\n"
 				"salq $3, %%rax\n" // rax * 8
-				"addq %%rsp, %%rax\n"
-				"movq $0x10, %%r10\n" // r10 = 0x10
-				"subq %%rax, %%r10\n" // r10 -= rax
-				"andq $0xF,  %%r10\n" // r10 &= 0xF
-				"addq %%r10, %%rsp\n" // rsp += rax
+				"subq %%rsp, %%rax\n"
+				"andq $0xF,  %%rax\n" // rax &= 0xF
+				"subq %%rax, %%rsp\n" // rsp -= (rsp - stack_remaining * 8) % 16
 			"loop_begin:\n"
 				"cmpq $0, %[stack_remaining]\n"
 				"je loop_end\n"
@@ -128,19 +120,19 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				"jmp loop_begin\n"
 			"loop_end:\n"
 				"callq *%[function_ptr]\n"
-				"movq %[rsp_beginning], %%rsp\n"
+				"movq %%rbp, %%rsp\n"
+				"popq %%rbp\n"
 			:
 				"=r"(result),
 				"+r"(arg_1), "+r"(arg_0), "+r"(arg_2),
 				"+r"(arg_3), "+r"(arg_4), "+r"(arg_5),
 				"+r"(arg_0_f), "+r"(arg_1_f), "+r"(arg_2_f), "+r"(arg_3_f),
 				"+r"(arg_4_f), "+r"(arg_5_f), "+r"(arg_6_f), "+r"(arg_7_f),
-				[rsp_beginning]"=m"(rsp_beginning),
 				[stack_remaining]"+r"(stack_remaining)
 			:
 				[stack_beginning]"r"(stack_beginning),
 				[function_ptr]"r"(function_ptr)
-			: "r10", "r13", "r13", "r14", "r15", "memory", "cc"
+			: "r10", "r13", "r14", "r15", "memory", "cc"
 		);
 	}
 

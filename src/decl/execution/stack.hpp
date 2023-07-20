@@ -70,17 +70,14 @@ thread_local static class stack :
 	}
 
 	reference destruct_reference_at(nuint index) {
-		reference& ref = get<reference>(index);
-		reference ref_moved = move(ref);
-		ref.~reference();
-		base_type::pop_back<reference>();
+		reference moved = base_type::pop_back<reference>();
 
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
 		uint64& bitmap = reference_bits_[bitmap_index].get();
 		bitmap &= ~(uint64(1) << bit_index);
 
-		return ref_moved;
+		return move(moved);
 	}
 
 public:

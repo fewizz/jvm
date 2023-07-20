@@ -47,8 +47,10 @@ static void init_jvm_mh_invoke_adapter() {
 	.find(c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" })
 	.native_function(
 		(void*)+[](
-			jvm::invoke_adapter& t0_mh
+			j::method_handle& ths
 		) -> optional<reference> {
+			jvm::invoke_adapter& t0_mh = (jvm::invoke_adapter&) ths;
+
 			j::method_handle& t1_mh = t0_mh.original();
 
 			return mh::try_invoke_unchecked(

@@ -11,13 +11,12 @@ while getopts "i" o; do
 done
 
 if [[ $OS != Windows_NT ]]; then
-	#additional_args+=(-fsanitize=undefined)
+	#additional_args+=(-fsanitize=address)
+	additional_args+=(-fsanitize=undefined)
 	#additional_args+=(-fsanitize=memory)
-	echo
 fi
 
 if ! clang++ \
-	-static \
 	-fverbose-asm \
 	-ferror-limit=64 \
 	-std=c++2b \

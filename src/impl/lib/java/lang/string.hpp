@@ -11,7 +11,7 @@
 #include <unicode/utf8.hpp>
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_string(span<uint16> data) {
+try_create_string(span<utf16::unit> data) {
 	expected<reference, reference> possible_data_ref
 		= try_create_char_array(data.size());
 	
@@ -20,7 +20,7 @@ try_create_string(span<uint16> data) {
 	}
 	reference data_ref = possible_data_ref.move_expected();
 
-	data.copy_to(array_as_span<uint16>(data_ref));
+	data.copy_to(array_as_span<utf16::unit>(data_ref));
 
 	expected<reference, reference> possible_string_ref
 		= try_create_object(j::string::c.get());

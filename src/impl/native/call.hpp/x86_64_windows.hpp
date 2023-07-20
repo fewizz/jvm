@@ -49,16 +49,11 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 		nuint arg = 0;
 
 		for_each_parameter(m, jstack_begin, overloaded {
-			[&](void* ptr) {
+			[&](auto* ptr) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
 					(uint64) ptr;
 			},
-			[&](reference ref) {
-				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
-					(uint64) ref.object_ptr();
-			},
-			[&]<same_as_any<int32, int64> Type>
-			(Type x) {
+			[&]<same_as_any<int32, int64> Type>(Type x) {
 				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) = (uint64) x;
 			},
 			[&](float f) {
@@ -173,6 +168,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 					obj_ptr == nullptr ?
 					reference{} :
 					reference { * (::object*) result };
+
 				stack.pop_back_until(jstack_begin);
 				stack.emplace_back(move(ref));
 			} else {

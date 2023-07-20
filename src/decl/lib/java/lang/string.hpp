@@ -8,7 +8,7 @@
 #include <unicode/utf16.hpp>
 
 [[nodiscard]] inline expected<reference, reference>
-try_create_string(span<uint16> data);
+try_create_string(span<utf16::unit> data);
 
 template<basic_range String>
 [[nodiscard]] expected<reference, reference>
@@ -26,7 +26,7 @@ try_create_string_from_utf8(String&& str_utf8) {
 		units += utf16::encoder{}.units(cp);
 	}
 
-	auto data = posix::allocate_raw<sizeof(uint16), alignof(uint16)>(units);
+	auto data = posix::allocate<utf16::unit>(units);
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {
@@ -34,7 +34,7 @@ try_create_string_from_utf8(String&& str_utf8) {
 		utf16::encoder{}(cp.get_expected(), data_it);
 	}
 
-	return try_create_string(data.cast<uint16>());
+	return try_create_string(data.as_span());
 }
 
 namespace j {
@@ -64,7 +64,7 @@ struct string : object {
 	template<typename Handler>
 	void for_each_utf16_unit(Handler&& handler) {
 		reference& value = get<reference>(value_field_position);
-		for(uint16 unit : array_as_span<uint16>(value)) {
+		for(utf16::unit unit : array_as_span<utf16::unit>(value)) {
 			handler(unit);
 		}
 	}
