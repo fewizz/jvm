@@ -10,7 +10,7 @@ static optional<c&> lambda_meta_factory_class;
 static void init_java_lang_invoke_lambda_meta_factory() {
 
 	lambda_meta_factory_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/LambdaMetaFactory" }
+		c_string{ u8"java/lang/invoke/LambdaMetafactory" }
 	);
 
 	lambda_meta_factory_class->declared_static_methods().find(

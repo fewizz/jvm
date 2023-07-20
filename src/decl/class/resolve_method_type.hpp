@@ -86,7 +86,7 @@ try_resolve_method_type(c& d, Descriptor&& descriptor) {
 		descriptor. */
 	return try_create_method_type(
 		*ret_class,
-		span<c&>{ params_classes, parameters_count },
+		span<c*>{ params_classes, parameters_count }.dereference_view(),
 		descriptor
 	);
 }

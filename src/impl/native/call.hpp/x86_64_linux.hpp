@@ -8,7 +8,7 @@
 
 #include <numbers.hpp>
 
-#include <class_file/descriptor/method_reader.hpp>
+#include <class_file/descriptor/method.hpp>
 
 #include <posix/abort.hpp>
 
