@@ -65,7 +65,7 @@ static void init_jvm_mh_constructor() {
 				return possible_throwable.move();
 			}
 
-			stack.emplace_back(result);
+			stack.emplace_back(move(result));
 			return {};
 		}
 	);

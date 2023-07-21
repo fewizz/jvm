@@ -157,7 +157,7 @@ int main(int argc, const char** argv) {
 
 	reference args_array = possible_args_array.move_expected();
 
-	stack.emplace_back(args_array);
+	stack.emplace_back(move(args_array));
 
 	return on_exit(try_invoke_static_resolved(main));
 }

@@ -106,7 +106,7 @@ struct execute_instruction {
 
 	void operator () (instr::a_const_null) {
 		if(info) { tabs(); print::out("a_const_null\n"); }
-		stack.emplace_back(reference{});
+		stack.emplace_back(reference{ nullptr });
 	}
 
 	void operator () (instr::i_const_m1) {

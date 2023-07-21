@@ -30,7 +30,7 @@ try_convert_return_value_on_stack(
 		/* If the return type T0 is void and T1 a reference, a null value is
 		   introduced. */
 		if(t0_ret.is_reference()) {
-			stack.emplace_back(reference{});
+			stack.emplace_back(reference{ nullptr });
 		}
 		/* If the return type T0 is void and T1 a primitive, a zero value is
 		   introduced. */

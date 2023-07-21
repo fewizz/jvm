@@ -151,14 +151,6 @@ public:
 			mark_reference(index);
 		}
 	}
-	void emplace_at(nuint index, object& obj) {
-		if(is_reference_at(index)) {
-			get<reference>(index) = obj;
-		} else {
-			base_type::operator [] (index).construct<reference>(&obj);
-			mark_reference(index);
-		}
-	}
 
 	template<stack_primitive_element Type>
 	void emplace_at(nuint index, Type value) {
