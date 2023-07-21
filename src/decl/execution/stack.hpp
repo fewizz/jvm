@@ -21,11 +21,10 @@ concept stack_primitive_element =
 	same_as<Type, uint8> || same_as<Type, bool>;
 
 thread_local static class stack :
-	list<posix::memory_of_size_and_alignment<sizeof(uint64), alignof(uint64)>>
+	list<posix::memory<storage_of_size_and_alignment_same_as<uint64>>>
 {
-	using base_type = list<posix::memory_of_size_and_alignment<
-		sizeof(uint64), alignof(uint64)
-	>>;
+	using base_type
+		= list<posix::memory<storage_of_size_and_alignment_same_as<uint64>>>;
 
 	using base_type::base_type;
 
@@ -70,20 +69,26 @@ thread_local static class stack :
 	}
 
 	reference destruct_reference_at(nuint index) {
-		reference moved = base_type::pop_back<reference>();
+		auto& s = base_type::operator [] (index);
+		reference moved = s.move<reference>();
+		s.destruct<reference>();
 
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
 		uint64& bitmap = reference_bits_[bitmap_index].get();
 		bitmap &= ~(uint64(1) << bit_index);
 
-		return move(moved);
+		return moved;
 	}
 
 public:
 
 	stack(nuint size) :
-		base_type{ posix::allocate<sizeof(uint64), alignof(uint64)>(size) },
+		base_type {
+			posix::allocate<
+				storage_of_size_and_alignment<sizeof(uint64), alignof(uint64)>
+			>(size)
+		},
 		reference_bits_ {
 			posix::allocate_zeroed<uint64>(
 				(size / 64) + (size % 64 != 0)
@@ -103,7 +108,7 @@ public:
 			pop_back<reference>();
 		}
 		else {
-			base_type::pop_back<uint64>();
+			base_type::pop_back();
 		}
 	}
 
@@ -125,23 +130,23 @@ public:
 	}
 
 	void emplace_back(reference ref) {
-		base_type::emplace_back<reference>(ref.object_ptr());
+		base_type::emplace_back().construct<reference>(move(ref));
 		mark_reference(size() - 1);
 	}
 	void emplace_back(object& obj) {
-		base_type::emplace_back<reference>(&obj);
+		base_type::emplace_back().construct<reference>(&obj);
 		mark_reference(size() - 1);
 	}
 	template<stack_primitive_element Type>
 	requires (bytes_in<Type> == 4)
 	void emplace_back(Type v) {
-		base_type::emplace_back<uint64>((uint64) bit_cast<uint32>(v));
+		base_type::emplace_back().construct<Type>(v);
 	}
 	template<stack_primitive_element Type>
 	requires (bytes_in<Type> == 8)
 	void emplace_back(Type v) {
-		base_type::emplace_back<uint64>(bit_cast<uint64>(v));
-		base_type::emplace_back<uint64>(uint64(-1));
+		base_type::emplace_back().construct<Type>(v);
+		base_type::emplace_back();
 	}
 	void emplace_back(int16 v) { emplace_back((int32)(uint16)(uint32) v); }
 	void emplace_back(uint16 v) { emplace_back((int32)(uint32) v); }
@@ -152,8 +157,7 @@ public:
 		if(is_reference_at(index)) {
 			get<reference>(index) = move(ref);
 		} else {
-			base_type::operator [] (index)
-				.construct<reference>(move(ref));
+			base_type::operator [] (index).construct<reference>(move(ref));
 			mark_reference(index);
 		}
 	}
@@ -161,8 +165,7 @@ public:
 		if(is_reference_at(index)) {
 			get<reference>(index) = obj;
 		} else {
-			base_type::operator [] (index)
-				.construct<reference>(&obj);
+			base_type::operator [] (index).construct<reference>(&obj);
 			mark_reference(index);
 		}
 	}
@@ -179,9 +182,9 @@ public:
 	Type& get(nuint index) {
 		return base_type::operator[](index).get<Type>();
 	}
-	template<same_as<reference>>
-	reference& get(nuint i) {
-		return *(reference*) &base_type::operator[](i);
+	template<same_as<reference> Type>
+	reference& get(nuint index) {
+		return base_type::operator[](index).get<reference>();
 	}
 
 	template<stack_primitive_element Type>
@@ -206,12 +209,14 @@ public:
 	template<stack_primitive_element Type>
 	Type pop_back() {
 		Type v = back<Type>();
-		base_type::pop_back<uint64>(sizeof(Type) == 4? 1 : 2);
+		base_type::pop_back(sizeof(Type) == 4? 1 : 2);
 		return v;
 	}
 	template<same_as<reference>>
 	reference pop_back() {
-		return destruct_reference_at(size() - 1);
+		reference ref = destruct_reference_at(size() - 1);
+		base_type::pop_back();
+		return ref;
 	}
 	template<same_as<int16>>
 	int16 pop_back() { return (uint16)(uint32) pop_back<int32>(); }
