@@ -83,7 +83,7 @@ static void init_jvm_mh_string_concat() {
 				string_data[written++] = unit;
 			});
 
-			stack.pop_back_until(beginning);
+			stack.erase_back_until(beginning);
 			expected<reference, reference> possible_resulting_string
 				= try_create_string(string_data);
 			

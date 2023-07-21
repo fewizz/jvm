@@ -113,7 +113,7 @@ public:
 				parameters_stack_size_ += descriptor_type_stack_size<Type>;
 			});
 		}
-		parameter_types_ = move(parameters_types_list.storage_range());
+		parameter_types_ = parameters_types_list.move_storage_range();
 	}
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }

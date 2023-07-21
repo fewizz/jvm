@@ -143,7 +143,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 	m.return_type().view(
 		[&]<typename Type>(Type) {
 			if constexpr(same_as<Type, class_file::v>) {
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 			}
 			else if constexpr(
 				same_as<Type, class_file::z> ||
@@ -152,19 +152,19 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				same_as<Type, class_file::s> ||
 				same_as<Type, class_file::i>
 			) {
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 				stack.emplace_back<int32>((int32)(uint32) result);
 			}
 			else if constexpr(same_as<Type, class_file::j>) {
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 				stack.emplace_back<int64>((int64) result);
 			}
 			else if constexpr(same_as<Type, class_file::f>) {
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 				stack.emplace_back<float>(arg_0_f[0]);
 			}
 			else if constexpr(same_as<Type, class_file::d>) {
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 				stack.emplace_back<double>(((__m128d) arg_0_f)[0]);
 			}
 			else if constexpr(
@@ -177,10 +177,10 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 					reference{} :
 					reference { * (::object*) result };
 
-				stack.pop_back_until(jstack_begin);
+				stack.erase_back_until(jstack_begin);
 				stack.emplace_back(move(ref));
 			} else {
-				posix::abort();
+				[]<bool b = false>{ static_assert(b); };
 			}
 		}
 	);

@@ -83,7 +83,7 @@ expected<c&, reference> classes::try_define_class(
 		)
 	};
 
-	constants const_pool = move(const_pool_raw.storage_range());
+	constants const_pool = const_pool_raw.move_storage_range();
 
 	auto [access_flags, this_class_reader] {
 		access_flags_reader.read_and_get_this_class_reader()
@@ -295,11 +295,11 @@ expected<c&, reference> classes::try_define_class(
 		descriptor,
 		source_file,
 		super,
-		move(interfaces.storage_range()),
-		move(static_fields.storage_range()),
-		move(instance_fields.storage_range()),
-		move(static_methods.storage_range()),
-		move(instance_methods.storage_range()),
+		interfaces.move_storage_range(),
+		static_fields.move_storage_range(),
+		instance_fields.move_storage_range(),
+		static_methods.move_storage_range(),
+		instance_methods.move_storage_range(),
 		move(initialisation_method),
 		is_array_class{ false },
 		is_primitive_class{ false },

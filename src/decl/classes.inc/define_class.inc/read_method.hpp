@@ -103,12 +103,12 @@ tuple<method, Iterator> read_method(
 								);
 							}
 						);
-						line_numbers = move(line_numbers_list.storage_range());
+						line_numbers = line_numbers_list.move_storage_range();
 					}
 				}
 			);
 
-			exception_handlers = move(exception_handlers_list.storage_range());
+			exception_handlers = exception_handlers_list.move_storage_range();
 		}
 	});
 

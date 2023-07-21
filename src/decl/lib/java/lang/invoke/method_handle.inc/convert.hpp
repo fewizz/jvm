@@ -22,7 +22,7 @@ try_convert_return_value_on_stack(
 	   discarded */
 	if(!t1_is_void && t0_is_void) {
 		t1_ret.view_non_void_raw_type([]<typename T1>() {
-			stack.pop_back<T1>();
+			stack.erase_back<T1>();
 		});
 		return {};
 	}

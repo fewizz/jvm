@@ -36,7 +36,7 @@ try_put_field_resolved(instance_field& resolved_field) {
 		}
 	);
 
-	stack.pop_back<reference>(); // pop 'this'
+	stack.erase_back<reference>(); // 'this'
 
 	return {};
 }

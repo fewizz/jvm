@@ -29,7 +29,7 @@ bootstrap_method read_bootstrap_method(
 	);
 
 	return {
-		reference_index, move(arguments_indices_raw.storage_range())
+		reference_index, arguments_indices_raw.move_storage_range()
 	};
 }
 
@@ -54,6 +54,6 @@ template<typename Iterator>
 		);
 
 		return ::bootstrap_methods {
-			move(bootstrap_methods_raw.storage_range())
+			bootstrap_methods_raw.move_storage_range()
 		};
 	};

@@ -8,11 +8,11 @@ template<typename Type, nuint BlockSize>
 struct blocky_memory {
 
 	struct iterator_t {
-		span<posix::memory<Type>>& blocks_{};
+		posix::memory<posix::memory<Type>>* blocks_;
 		nuint index_ = 0;
 
-		iterator_t(span<posix::memory<Type>>& blocks, nuint index) :
-			blocks_{ blocks },
+		iterator_t(posix::memory<posix::memory<Type>>& blocks, nuint index) :
+			blocks_{ &blocks },
 			index_{ index }
 		{}
 
@@ -28,11 +28,11 @@ struct blocky_memory {
 		}
 
 		storage<Type>& operator * () {
-			return blocks_[index_ / BlockSize][index_ % BlockSize];
+			return (*blocks_)[index_ / BlockSize].get()[index_ % BlockSize];
 		}
 
 		storage<Type>& operator * () const {
-			return blocks_[index_ / BlockSize][index_ % BlockSize];
+			return (*blocks_)[index_ / BlockSize].get()[index_ % BlockSize];
 		}
 
 		iterator_t& operator ++ () {
@@ -60,11 +60,11 @@ struct blocky_memory {
 		}
 
 		iterator_t operator - (nuint n) const {
-			return { blocks_, index_ - n };
+			return { *blocks_, index_ - n };
 		}
 
 		iterator_t operator + (nuint n) const {
-			return { blocks_, index_ + n };
+			return { *blocks_, index_ + n };
 		}
 
 		iterator_t& operator += (nuint n) {
@@ -74,29 +74,34 @@ struct blocky_memory {
 
 	};
 
-	mutable span<posix::memory<Type>> blocks{};
+	mutable posix::memory<posix::memory<Type>> blocks{};
+
+	blocky_memory() = default;
+	blocky_memory(blocky_memory&&) = default;
+
+	~blocky_memory() {
+		for(auto& block_storage : blocks) {
+			block_storage.destruct();
+		}
+	}
 
 	nuint size() const { return blocks.size() * BlockSize; }
 
 	void grow() const {
-		span<storage<posix::memory<Type>>> new_blocks
-			= posix::allocate_raw<posix::memory<Type>>(blocks.size() + 1);
-		
-		blocks.for_each_indexed([&](posix::memory<Type>& m, nuint index) {
-			new_blocks[index].construct(move(m));
-		});
+		posix::memory<posix::memory<Type>> new_blocks
+			= posix::allocate<posix::memory<Type>>(blocks.size() + 1);
+
+		blocks.as_span().for_each_indexed(
+			[&](posix::memory<Type>& m, nuint index) {
+				new_blocks[index].construct(move(m));
+			}
+		);
 
 		new_blocks[new_blocks.size() - 1].construct(
 			posix::allocate<Type>(BlockSize)
 		);
 
-		posix::free_raw_memory(blocks.iterator());
-
-		blocks =
-			span<posix::memory<Type>> {
-				(posix::memory<Type>*) new_blocks.iterator(),
-				new_blocks.size()
-			};
+		blocks = move(new_blocks);
 	}
 
 	iterator_t iterator()       { return { blocks, 0 }; }

@@ -26,14 +26,13 @@
 #include <posix/memory.hpp>
 #include <class_file/reader.hpp>
 
-static_assert(storage_range<blocky_memory<reference, 1024>>);
-
 struct class_and_initiating_loaders {
 	c class_;
 	// TODO make resizeable
 	list<blocky_memory<reference, 16>> initiating_loaders;
 
 	template<typename... Args>
+	requires constructible_from<c, Args...>
 	class_and_initiating_loaders(
 		Args&&... args
 	) :
@@ -64,6 +63,7 @@ struct class_and_initiating_loaders {
 static struct classes :
 	private list<blocky_memory<class_and_initiating_loaders, 256>>
 {
+
 private:
 	using base_type = list<blocky_memory<class_and_initiating_loaders, 256>>;
 	using base_type::base_type;

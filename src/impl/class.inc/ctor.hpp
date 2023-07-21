@@ -23,7 +23,7 @@ inline c::c(
 	::trampolines        { (uint16) ::constants::size() },
 	::bootstrap_methods  { move(bootstrap_methods)      },
 	super_               { super_class                  },
-	data_                { move(bytes.storage_range())  },
+	data_                { bytes.move_storage_range()   },
 	access_flags_        { access_flags                 },
 	name_                { name                         },
 	descriptor_          { descriptor                   },
@@ -68,7 +68,7 @@ inline c::c(
 		for(instance_field& f : declared_instance_fields_.as_span()) {
 			fields.emplace_back<instance_field*>(&f);
 		}
-		return move(fields.storage_range());
+		return fields.move_storage_range();
 	}()},
 	instance_methods_ { [&] {
 		nuint count = range_size(this->declared_instance_methods());
@@ -104,7 +104,7 @@ inline c::c(
 				methods.emplace_back(&m);
 			}
 		}
-		return move(methods.storage_range());
+		return methods.move_storage_range();
 	}()},
 	initialisation_method_{ [&] {
 		if(initialisation_method.has_value()) {

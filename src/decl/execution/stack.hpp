@@ -7,24 +7,20 @@
 
 #include <posix/memory.hpp>
 
-static_assert(
-	sizeof(int32) == 4 && sizeof(float) == 4 && sizeof(reference) == 8 &&
-	sizeof(int64) == 8 && sizeof(double) == 8
-);
-
 // inefficient for now..
 template<typename Type>
 concept stack_primitive_element =
 	same_as<Type, int32> || same_as<Type, int64>  ||
 	same_as<Type, float> || same_as<Type, double> ||
 	same_as<Type, int16> || same_as<Type, uint16> ||
-	same_as<Type, uint8> || same_as<Type, bool>;
+	same_as<Type, int8> || same_as<Type, bool>;
 
 thread_local static class stack :
 	list<posix::memory<storage_of_size_and_alignment_same_as<uint64>>>
 {
-	using base_type
-		= list<posix::memory<storage_of_size_and_alignment_same_as<uint64>>>;
+	using base_type = list<
+		posix::memory<storage_of_size_and_alignment_same_as<uint64>>
+	>;
 
 	using base_type::base_type;
 
@@ -59,26 +55,20 @@ thread_local static class stack :
 		}
 	}
 
-	void mark_reference(
-		nuint index
-	) {
+	void mark_reference(nuint index) {
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
 		uint64& bitmap = reference_bits_[bitmap_index].get();
 		bitmap |= (uint64(1) << bit_index);
 	}
 
-	reference destruct_reference_at(nuint index) {
-		auto& s = base_type::operator [] (index);
-		reference moved = s.move<reference>();
-		s.destruct<reference>();
+	void destruct_reference_at(nuint index) {
+		base_type::operator [] (index).destruct<reference>();
 
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
 		uint64& bitmap = reference_bits_[bitmap_index].get();
 		bitmap &= ~(uint64(1) << bit_index);
-
-		return moved;
 	}
 
 public:
@@ -99,34 +89,34 @@ public:
 	stack(stack&& other) = default;
 	stack& operator = (stack&& other) = default;
 
+	~stack() {
+		erase_back_until(0);
+	}
+
 	bool back_is_reference() const {
 		return is_reference_at(size() - 1);
 	}
 
-	void pop_back() {
+	void erase_back() {
 		if(back_is_reference()) {
-			pop_back<reference>();
+			erase_back<reference>();
 		}
 		else {
-			base_type::pop_back();
+			base_type::erase_back();
 		}
 	}
 
-	void pop_back_until(nuint n) {
+	void erase_back_until(nuint n) {
 		while(size() > n) {
-			pop_back();
+			erase_back();
 		}
 	}
 
-	void pop_back(nuint n) {
+	void erase_back(nuint n) {
 		while(n > 0) {
-			pop_back();
+			erase_back();
 			--n;
 		}
-	}
-
-	~stack() {
-		//pop_back_until(0);
 	}
 
 	void emplace_back(reference ref) {
@@ -146,12 +136,12 @@ public:
 	requires (bytes_in<Type> == 8)
 	void emplace_back(Type v) {
 		base_type::emplace_back().construct<Type>(v);
-		base_type::emplace_back();
+		base_type::emplace_back(); // two slots
 	}
-	void emplace_back(int16 v) { emplace_back((int32)(uint16)(uint32) v); }
-	void emplace_back(uint16 v) { emplace_back((int32)(uint32) v); }
-	void emplace_back(int8 v) { emplace_back((int32)(uint32)(uint8) v); }
-	void emplace_back(bool v) { emplace_back((int32) v); }
+	void emplace_back(int16 v)  { emplace_back((int32)(uint16)(uint32) v); }
+	void emplace_back(uint16 v) { emplace_back((int32)(uint32)         v); }
+	void emplace_back(int8 v)   { emplace_back((int32)(uint32)(uint8)  v); }
+	void emplace_back(bool v)   { emplace_back((int32)                 v); }
 
 	void emplace_at(nuint index, reference ref) {
 		if(is_reference_at(index)) {
@@ -207,15 +197,25 @@ public:
 	reference& back() { return get<reference>(size() - 1); }
 
 	template<stack_primitive_element Type>
+	void erase_back() {
+		base_type::erase_back(sizeof(Type) == 4? 1 : 2);
+	}
+	template<same_as<reference>>
+	void erase_back() {
+		destruct_reference_at(size() - 1);
+		base_type::erase_back();
+	}
+
+	template<stack_primitive_element Type>
 	Type pop_back() {
 		Type v = back<Type>();
-		base_type::pop_back(sizeof(Type) == 4? 1 : 2);
+		erase_back<Type>();
 		return v;
 	}
 	template<same_as<reference>>
 	reference pop_back() {
-		reference ref = destruct_reference_at(size() - 1);
-		base_type::pop_back();
+		reference ref = move(back<reference>());
+		erase_back<reference>();
 		return ref;
 	}
 	template<same_as<int16>>

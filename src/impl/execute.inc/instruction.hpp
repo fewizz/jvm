@@ -71,7 +71,7 @@ struct execute_instruction {
 
 			next_instruction_ptr = m.code().iterator() + handler.handler_pc;
 
-			stack.pop_back_until(stack_begin);
+			stack.erase_back_until(stack_begin);
 			stack.emplace_back(move(thrown));
 			return loop_action::next;
 		}
@@ -79,7 +79,7 @@ struct execute_instruction {
 			tabs();
 			print::out("didn't find any exception handlers\n");
 		}
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		this->thrown = move(thrown);
 		return loop_action::stop;
 	}
@@ -574,11 +574,11 @@ struct execute_instruction {
 	}
 	void operator () (instr::pop) {
 		if(info) { tabs(); print::out("pop\n"); }
-		stack.pop_back();
+		stack.erase_back();
 	}
 	void operator () (instr::pop_2) {
 		if(info) { tabs(); print::out("pop_2\n"); }
-		stack.pop_back(2);
+		stack.erase_back(2);
 	}
 	void operator () (instr::dup) {
 		if(info) { tabs(); print::out("dup @", stack.size(), "\n"); }
@@ -1196,7 +1196,7 @@ struct execute_instruction {
 				result = int16(result);
 			}
 		});
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		stack.emplace_back(result);
 		if(info) { print::out(result, "\n"); }
 		return loop_action::stop;
@@ -1204,34 +1204,34 @@ struct execute_instruction {
 	loop_action operator () (instr::l_return) {
 		if(info) { tabs(); print::out("l_return\n"); }
 		int64 result = stack.pop_back<int64>();
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::f_return) {
 		if(info) { tabs(); print::out("f_return\n"); }
 		float result = stack.pop_back<float>();
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::d_return) {
 		if(info) { tabs(); print::out("d_return\n"); }
 		double result = stack.pop_back<double>();
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		stack.emplace_back(result);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::a_return) {
 		if(info) { tabs(); print::out("a_return\n"); }
 		reference result = stack.pop_back<reference>();
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		stack.emplace_back(move(result));
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::_return) {
 		if(info) { tabs(); print::out("return\n"); }
-		stack.pop_back_until(locals_begin);
+		stack.erase_back_until(locals_begin);
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::get_static x) {
@@ -1532,7 +1532,7 @@ struct execute_instruction {
 	loop_action operator () (instr::a_throw) {
 		if(info) { tabs(); print::out("a_throw\n"); }
 
-		reference ref = move(stack.pop_back<reference>());
+		reference ref = stack.pop_back<reference>();
 		if(ref.is_null()) {
 			return handle_thrown(try_create_null_pointer_exception().get());
 		}

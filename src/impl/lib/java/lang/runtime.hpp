@@ -17,7 +17,7 @@ static inline void init_java_lang_runtime() {
 		(void*)+[](native_environment*, object*, int32 status) {
 			thrown_in_native = reference{};
 			thread = reference{};
-			stack.pop_back_until(0);
+			stack.erase_back_until(0);
 			exit(status);
 		}
 	);
