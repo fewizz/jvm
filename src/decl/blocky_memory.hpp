@@ -80,7 +80,7 @@ struct blocky_memory {
 	blocky_memory(blocky_memory&&) = default;
 
 	~blocky_memory() {
-		for(auto& block_storage : blocks) {
+		for(storage<posix::memory<Type>>& block_storage : blocks) {
 			block_storage.destruct();
 		}
 	}

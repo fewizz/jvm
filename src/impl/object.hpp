@@ -144,8 +144,7 @@ try_create_object(c& c) {
 		return unexpected{ possible_throwable.move() };
 	}
 
-	storage<object>* ptr
-		= posix::allocate_raw<object>(1).iterator();
+	storage<object>* ptr = posix::allocate_raw<object>(1).iterator();
 
 	//new(ptr) object(c);
 

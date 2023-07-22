@@ -58,6 +58,11 @@ struct class_and_initiating_loaders {
 		}
 		return false;
 	}
+
+	void reset() {
+		initiating_loaders.clear();
+		class_.reset();
+	}
 };
 
 static struct classes :
@@ -73,7 +78,7 @@ public:
 
 	~classes() {
 		for(class_and_initiating_loaders& c_and_cl : *this) {
-			c_and_cl.class_.destruct_declared_static_fields_values();
+			c_and_cl.reset();
 		}
 	}
 

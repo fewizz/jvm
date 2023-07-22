@@ -40,4 +40,10 @@ struct trampolines :
 		return base_type::as_span()[index - 1];
 	}
 
+	void reset() {
+		for(::trampoline& trampoline : this->as_span()) {
+			trampoline.reset();
+		}
+	}
+
 };

@@ -1,6 +1,6 @@
 #include "./class.inc/ctor.hpp"
 #include "./class.inc/access_control.hpp"
-#include "./class.inc/destruct_declared_static_fields_values.hpp"
+#include "./class.inc/reset.hpp"
 #include "./class.inc/get_array_class.hpp"
 #include "./class.inc/get_component_class.hpp"
 #include "./class.inc/get_resolved_call_site.hpp"

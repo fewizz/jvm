@@ -99,12 +99,8 @@ int main(int argc, const char** argv) {
 		c_string{ u8"jvm/AppClassLoader" }
 	);
 
-	optional<reference> possible_exception
-		= app_cl_class.try_initialise_if_need();
-
-	if(possible_exception.has_value()) {
-		posix::abort();
-	}
+	app_cl_class.try_initialise_if_need()
+		.if_has_value([]{ posix::abort(); });
 
 	optional<field&> possible_app_cl_instance_field
 		= try_resolve_field0(

@@ -3,6 +3,7 @@
 
 #include <c_string.hpp>
 #include <ranges.hpp>
+#include <on_scope_exit.hpp>
 
 inline optional<reference> c::try_initialise_if_need() {
 	mutex_->lock();
@@ -40,7 +41,10 @@ inline optional<reference> c::try_initialise_if_need() {
 
 	if(initialisation_method_.has_value()) {
 		method& clinit = initialisation_method_.get();
-		return try_execute(clinit);
+		optional<reference> possible_throwable = try_execute(clinit);
+		if(possible_throwable.has_value()) {
+			return possible_throwable;
+		}
 	}
 
 	initialisation_state_ = initialisation_state::done;

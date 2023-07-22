@@ -23,7 +23,7 @@ inline c::c(
 	::trampolines        { (uint16) ::constants::size() },
 	::bootstrap_methods  { move(bootstrap_methods)      },
 	super_               { super_class                  },
-	data_                { bytes.move_storage_range()   },
+	data_                { move(bytes)                  },
 	access_flags_        { access_flags                 },
 	name_                { name                         },
 	descriptor_          { descriptor                   },

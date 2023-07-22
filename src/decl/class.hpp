@@ -21,7 +21,9 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
-using class_data_t = list<blocky_memory<posix::memory<>, 16>>;
+struct class_data_t : list<blocky_memory<posix::memory<>, 16>> {
+	using list::list;
+};
 
 struct c :
 	layout_view_extension< // for static fields
@@ -97,7 +99,11 @@ public:
 	);
 
 	~c() {
-		data_.clear();
+		for(auto& m : declared_instance_methods_) { m.destruct(); }
+		for(auto& m : declared_static_methods_) { m.destruct(); }
+
+		for(auto& f : declared_instance_fields_) { f.destruct(); }
+		for(auto& f : declared_static_fields_) { f.destruct(); }
 	}
 
 	c(c&&) = delete;
@@ -192,7 +198,7 @@ public:
 		return declared_static_layout_;
 	}
 
-	inline void destruct_declared_static_fields_values();
+	inline void reset();
 
 	// required member functions for layout_view_extension:
 	friend layout_view_extension<object, instance_field_index>;
