@@ -11,6 +11,7 @@
 #include <overloaded.hpp>
 #include <types.hpp>
 #include <numbers.hpp>
+#include <integer.hpp>
 
 #include <posix/abort.hpp>
 
@@ -29,14 +30,15 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 		uint8 i_stack_count = 0;
 		uint8 f_stack_count = 0;
 		for_each_parameter(m, jstack_begin, [&]<typename Type>(Type) {
-			if(arg >= 4) { return; }
+			++arg;
+			if(arg <= 4) { return; }
+
 			if constexpr(same_as<Type, float> || same_as<Type, double>) {
 				++f_stack_count;
 			}
 			else {
 				++i_stack_count;
 			}
-			++arg;
 		});
 		return i_stack_count + f_stack_count;
 	}();
@@ -48,38 +50,31 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 	{
 		nuint arg = 0;
 
-		for_each_parameter(m, jstack_begin, overloaded {
-			[&](auto* ptr) {
-				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) =
-					(uint64) ptr;
-			},
-			[&]<same_as_any<int32, int64> Type>(Type x) {
-				(arg >= 4 ? stack_storage[arg - 4] : i_regs[arg]) = (uint64) x;
-			},
-			[&](float f) {
-				if(arg >= 4) {
-					stack_storage[arg - 4] = bit_cast<uint32>(f);
+		for_each_parameter(m, jstack_begin, [&]<typename Type>(Type x) {
+			if(arg < 4) {
+				if constexpr(
+					type_is_pointer<Type> || same_as_any<Type, int32, int64>
+				) {
+					i_regs[arg] = (uint64) x;
 				}
-				else {
-					f_regs[arg] = __extension__ (__m128){ f, 0, 0, 0 };
+				else if constexpr(same_as<Type, float>) {
+					f_regs[arg] = __extension__ (__m128){ x, 0, 0, 0 };
 				}
-			},
-			[&](double d) {
-				if(arg >= 4) {
-					stack_storage[arg - 4] = bit_cast<uint64>(d);
+				else if constexpr(same_as<Type, double>) {
+					f_regs[arg] = __extension__ (__m128d){ x, 0 };
 				}
-				else {
-					f_regs[arg] = __extension__ (__m128d){ d, 0 };
-				}
+				else { []<bool b = false>{ static_assert(b); }; }
 			}
-		}.then([&]{ ++arg; }));
+			else {
+				stack_storage[arg - 4] = (uint_of_atoms<sizeof(Type)>) x;
+			}
+			++arg;
+		});
 	}
 
 	register uint64 result asm("rax") = 0;
 	register __m128 arg_0_f asm("xmm0") = f_regs[0];
 	{
-		register uint64 stack_remaining asm("rbx") = stack_count;
-
 		register uint64 arg_0 asm("rcx") = i_regs[0];
 		register uint64 arg_1 asm("rdx") = i_regs[1];
 		register uint64 arg_2 asm("r8")  = i_regs[2];
@@ -89,22 +84,20 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 		register __m128 arg_2_f asm("xmm2") = f_regs[2];
 		register __m128 arg_3_f asm("xmm3") = f_regs[3];
 
-		void* rsp_beginning = nullptr;
-
 		register uint64* stack_beginning asm("r11")  = stack_storage;
 		register void* function_ptr asm("r12") = ptr;
+		register uint64 stack_remaining asm("r13") = stack_count;
 
 		asm volatile(
-				"movq %%rsp, %%rax\n"
-				"movq %%rax, %[rsp_beginning]\n"
-				// alignment to 16
-				"movq %[stack_remaining], %%rax\n"
-				"salq $3, %%rax\n" // rax * 8
-				"addq %%rsp, %%rax\n"
-				"movq $0x10, %%r10\n" // r10 = 0x10
-				"subq %%rax, %%r10\n" // r10 -= rax
-				"andq $0xF,  %%r10\n" // r10 &= 0xF
-				"addq %%r10, %%rsp\n" // rsp += rax
+				"pushq %%rbx\n"
+				"movq %%rsp, %%rbx\n" // rbx is non-volatile
+				// align rsp to 16
+				"movq %[stack_remaining], %%r10\n"
+				"salq $3, %%r10\n"    // r10 <<= 3
+				"movq %%rsp, %%rax\n" // rax = rsp
+				"subq %%r10, %%rax\n" // rax -= r10
+				"andq $0xF,  %%rax\n" // rax &= 0xF
+				"subq %%rax, %%rsp\n" // rsp -= rax
 			"loop_begin:\n"
 				"cmpq $0, %[stack_remaining]\n"
 				"je loop_end\n"
@@ -113,18 +106,19 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				"pushq %%rax\n"
 				"jmp loop_begin\n"
 			"loop_end:\n"
+				"subq $0x20, %%rsp\n" // rsp -= 32 for shadow store
 				"callq *%[function_ptr]\n"
-				"movq %[rsp_beginning], %%rsp\n"
+				"movq %%rbx, %%rsp\n"
+				"popq %%rbx\n"
 			:
 				"=r"(result),
 				"+r"(arg_1), "+r"(arg_0), "+r"(arg_2), "+r"(arg_3),
 				"+r"(arg_0_f), "+r"(arg_1_f), "+r"(arg_2_f), "+r"(arg_3_f),
-				[rsp_beginning]"=m"(rsp_beginning),
 				[stack_remaining]"+r"(stack_remaining)
 			:
 				[stack_beginning]"r"(stack_beginning),
 				[function_ptr]"r"(function_ptr)
-			: "r10", "r13", "r14", "r15", "memory", "cc"
+			: "rbx", "r10", "memory", "cc"
 		);
 	}
 

@@ -107,8 +107,8 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				"movq %%rsp, %%rbp\n"
 				// align rsp to 16
 				"movq %[stack_remaining], %%rax\n"
-				"salq $3, %%rax\n" // rax * 8
-				"subq %%rsp, %%rax\n"
+				"salq $3, %%rax\n"    // rax <<= 8
+				"subq %%rsp, %%rax\n" // rax -= rsp
 				"andq $0xF,  %%rax\n" // rax &= 0xF
 				"subq %%rax, %%rsp\n" // rsp -= (rsp - stack_remaining * 8) % 16
 			"loop_begin:\n"
