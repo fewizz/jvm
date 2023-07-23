@@ -198,6 +198,14 @@ public:
 		const utf8::unit& ch
 	);
 
+	template<basic_range Name, basic_range Descriptor>
+	expected<c&, reference> try_define_lamda_class(
+		Name&& this_class_name,
+		c& interface_to_implement,
+		Descriptor&& ctor_descriptor,
+		j::c_loader* defining_loader // L
+	)
+
 	template<basic_range Name>
 	expected<c&, reference>
 	try_load_class_by_bootstrap_class_loader(Name&& name) {

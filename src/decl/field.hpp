@@ -12,7 +12,7 @@ struct field : class_member {
 	uint8 stack_size;
 
 	field(
-		class_file::access_flags   access_flags,
+		class_file::access_flags access_flags,
 		class_file::constant::utf8 name,
 		class_file::constant::utf8 desc
 	);
