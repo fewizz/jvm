@@ -26,7 +26,7 @@ try_create_string_from_utf8(String&& str_utf8) {
 		units += utf16::encoder{}.units(cp);
 	}
 
-	auto data = posix::allocate<utf16::unit>(units);
+	auto data = initialised{ posix::allocate<utf16::unit>(units) };
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
 	while(it != end) {
@@ -34,7 +34,7 @@ try_create_string_from_utf8(String&& str_utf8) {
 		utf16::encoder{}(cp.get_expected(), data_it);
 	}
 
-	return try_create_string(data.as_span());
+	return try_create_string(data);
 }
 
 namespace j {

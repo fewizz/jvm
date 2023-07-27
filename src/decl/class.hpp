@@ -44,16 +44,20 @@ private:
 	const class_file::constant::utf8 descriptor_;
 	const class_file::constant::utf8 source_file_;
 
-	const posix::memory<c*> declared_interfaces_;
+	const initialised<posix::memory<c*>> declared_interfaces_;
 
-	mutable posix::memory<static_field> declared_static_fields_;
-	mutable posix::memory<instance_field> declared_instance_fields_;
+	mutable initialised<posix::memory<static_field>>
+		declared_static_fields_;
+	mutable initialised<posix::memory<instance_field>>
+		declared_instance_fields_;
 
-	mutable posix::memory<static_method> declared_static_methods_;
-	mutable posix::memory<instance_method> declared_instance_methods_;
+	mutable initialised<posix::memory<static_method>>
+		declared_static_methods_;
+	mutable initialised<posix::memory<instance_method>>
+		declared_instance_methods_;
 
-	const posix::memory<instance_field*> instance_fields_;
-	const posix::memory<instance_method*> instance_methods_;
+	const initialised<posix::memory<instance_field*>> instance_fields_;
+	const initialised<posix::memory<instance_method*>> instance_methods_;
 
 	optional<method> initialisation_method_;
 
@@ -74,7 +78,7 @@ private:
 		pending,
 		done
 	} initialisation_state_ = not_started;
-	posix::memory<> declared_static_fields_data_;
+	initialised<posix::memory<>> declared_static_fields_data_;
 
 public:
 
@@ -87,24 +91,16 @@ public:
 		class_file::constant::utf8 descriptor,
 		class_file::constant::utf8 source_file,
 		optional<c&> super,
-		posix::memory<c*>,
-		posix::memory<static_field> declared_static_fields,
-		posix::memory<instance_field> declared_instance_fields,
-		posix::memory<static_method> declared_static_methods,
-		posix::memory<instance_method> declared_instance_methods,
+		initialised<posix::memory<c*>>,
+		initialised<posix::memory<static_field>> declared_static_fields,
+		initialised<posix::memory<instance_field>> declared_instance_fields,
+		initialised<posix::memory<static_method>> declared_static_methods,
+		initialised<posix::memory<instance_method>> declared_instance_methods,
 		optional<method> initialisation_method,
 		is_array_class,
 		is_primitive_class,
 		reference loader = {}
 	);
-
-	~c() {
-		for(auto& m : declared_instance_methods_) { m.destruct(); }
-		for(auto& m : declared_static_methods_) { m.destruct(); }
-
-		for(auto& f : declared_instance_fields_) { f.destruct(); }
-		for(auto& f : declared_static_fields_) { f.destruct(); }
-	}
 
 	c(c&&) = delete;
 	c(const c&) = delete;
@@ -207,14 +203,14 @@ public:
 		return declared_static_layout_;
 	}
 	inline uint8* data_for_layout_view() {
-		return declared_static_fields_data_.as_span().iterator();
+		return declared_static_fields_data_.iterator();
 	}
 	inline auto fields_view_for_layout_view() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_fields_.as_span()),
+			decltype((declared_static_fields_)),
 			declared_static_field_index
 		> {
-			declared_static_fields_.as_span()
+			declared_static_fields_
 		};
 	}
 	// ******************************************************
@@ -238,61 +234,57 @@ public:
 
 	auto declared_static_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_fields_.as_span()),
+			decltype((declared_static_fields_)),
 			declared_static_field_index
 		> {
-			declared_static_fields_.as_span()
+			declared_static_fields_
 		};
 	}
 	auto instance_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(
-				instance_fields_.as_span().dereference_view()
-			),
+			decltype(instance_fields_.dereference_view()),
 			instance_field_index
 		> {
-			instance_fields_.as_span().dereference_view()
+			instance_fields_.dereference_view()
 		};
 	}
 
 	auto declared_static_methods() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_static_methods_.as_span()),
+			decltype((declared_static_methods_)),
 			declared_static_method_index
 		> {
-			declared_static_methods_.as_span()
+			declared_static_methods_
 		};
 	}
 	auto declared_instance_methods() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_instance_methods_.as_span()),
+			decltype((declared_instance_methods_)),
 			declared_instance_method_index
 		> {
-			declared_instance_methods_.as_span()
+			declared_instance_methods_
 		};
 	}
 
 	auto declared_instance_fields() const {
 		return find_by_name_and_descriptor_view<
-			decltype(declared_instance_fields_.as_span()),
+			decltype((declared_instance_fields_)),
 			declared_instance_field_index
 		> {
-			declared_instance_fields_.as_span()
+			declared_instance_fields_
 		};
 	}
 	auto instance_methods() const {
 		return find_by_name_and_descriptor_view<
-			decltype(
-				instance_methods_.as_span().dereference_view()
-			),
+			decltype(instance_methods_.dereference_view()),
 			instance_method_index
 		> {
-			instance_methods_.as_span().dereference_view()
+			instance_methods_.dereference_view()
 		};
 	}
 
 	auto declared_interfaces() const {
-		return declared_interfaces_.as_span().dereference_view();
+		return declared_interfaces_.dereference_view();
 	}
 
 private:

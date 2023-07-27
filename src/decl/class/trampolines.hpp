@@ -16,32 +16,32 @@ using trampoline = optional<
 >;
 
 struct trampolines :
-	protected posix::memory<trampoline>
+	protected initialised<posix::memory<trampoline>>
 {
-	using base_type = posix::memory<trampoline>;
+	using base_type = initialised<posix::memory<trampoline>>;
 
 	trampolines(uint16 count) :
-		base_type {
-			posix::allocate<::trampoline>(count)
-		}
-	{
-		for(storage<::trampoline>& s : *this) {
-			s.construct<::trampoline>(::trampoline{});
-		}
-	}
+		base_type ( [&] {
+			auto uninitialised = posix::allocate<::trampoline>(count);
+			for(storage<::trampoline>& s : uninitialised) {
+				s.construct<::trampoline>(::trampoline{});
+			}
+			return initialised{ move(uninitialised) };
+		}() )
+	{}
 
 	using base_type::size;
 
 	const ::trampoline& trampoline(uint16 index) const {
-		return base_type::as_span()[index - 1];
+		return base_type::operator [] (index - 1);
 	}
 
 	      ::trampoline& trampoline(uint16 index)       {
-		return base_type::as_span()[index - 1];
+		return base_type::operator [] (index - 1);
 	}
 
 	void reset() {
-		for(::trampoline& trampoline : this->as_span()) {
+		for(::trampoline& trampoline : *this) {
 			trampoline.reset();
 		}
 	}

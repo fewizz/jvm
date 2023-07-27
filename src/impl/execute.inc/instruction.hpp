@@ -43,7 +43,7 @@ struct execute_instruction {
 
 		auto& exception_handlers = m.exception_handlers();
 
-		for(auto handler : exception_handlers.as_span()) {
+		for(auto handler : exception_handlers) {
 			uint32 pc = instruction_ptr - m.code().iterator();
 			bool in_range = pc >= handler.start_pc && pc < handler.end_pc;
 			if(!in_range) {

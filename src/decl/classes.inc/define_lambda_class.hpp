@@ -65,7 +65,7 @@ expected<c&, reference> classes::try_define_lamda_class(
 	auto concat_utf8 = [&]<range_of<utf8::unit&> Range>(Range&& r)
 	-> class_file::constant::utf8 {
 		data.emplace_back(posix::allocate(range_size(r)));
-		span s = data.back().as_span().cast<utf8::unit>();
+		span s = data.back().cast<utf8::unit>();
 		range{ r }.copy_to(s);
 		return { s };
 	};

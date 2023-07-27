@@ -9,11 +9,11 @@ inline c::c(
 	class_file::constant::utf8 descriptor,
 	class_file::constant::utf8 source_file,
 	optional<c&> super_class,
-	posix::memory<c*> declared_interfaces,
-	posix::memory<static_field> declared_static_fields,
-	posix::memory<instance_field> declared_instance_fields,
-	posix::memory<static_method> declared_static_methods,
-	posix::memory<instance_method> declared_instance_methods,
+	initialised<posix::memory<c*>> declared_interfaces,
+	initialised<posix::memory<static_field>> declared_static_fields,
+	initialised<posix::memory<instance_field>> declared_instance_fields,
+	initialised<posix::memory<static_method>> declared_static_methods,
+	initialised<posix::memory<instance_method>> declared_instance_methods,
 	optional<method> initialisation_method,
 	is_array_class is_array,
 	is_primitive_class is_primitive,
@@ -30,25 +30,25 @@ inline c::c(
 	source_file_         { source_file                  },
 	declared_interfaces_ { move(declared_interfaces)    },
 	declared_static_fields_ { [&] {
-		for(static_field& f : declared_static_fields.as_span()) {
+		for(static_field& f : declared_static_fields) {
 			f.class_ = *this;
 		}
 		return move(declared_static_fields);
 	}()},
 	declared_instance_fields_ { [&] {
-		for(instance_field& f : declared_instance_fields.as_span()) {
+		for(instance_field& f : declared_instance_fields) {
 			f.class_ = *this;
 		}
 		return move(declared_instance_fields);
 	}()},
 	declared_static_methods_ { [&] {
-		for(static_method& m : declared_static_methods.as_span()) {
+		for(static_method& m : declared_static_methods) {
 			m.class_ = *this;
 		}
 		return move(declared_static_methods);
 	}()},
 	declared_instance_methods_ { [&] {
-		for(instance_method& m : declared_instance_methods.as_span()) {
+		for(instance_method& m : declared_instance_methods) {
 			m.class_ = *this;
 		}
 		return move(declared_instance_methods);
@@ -65,7 +65,7 @@ inline c::c(
 				fields.emplace_back<instance_field*>(&f);
 			}
 		}
-		for(instance_field& f : declared_instance_fields_.as_span()) {
+		for(instance_field& f : declared_instance_fields_) {
 			fields.emplace_back<instance_field*>(&f);
 		}
 		return fields.move_storage_range();

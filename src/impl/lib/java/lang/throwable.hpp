@@ -116,10 +116,7 @@ static inline void init_java_lang_throwable() {
 				uint32 pc =
 					ctx->instruction_ptr - ctx->method.code().iterator();
 
-				for(
-					auto start_pc_and_line_number :
-					ctx->method.line_numbers().as_span()
-				) {
+				for(auto start_pc_and_line_number : ctx->method.line_numbers()){
 					auto [start_pc, possible_line_number]
 						= start_pc_and_line_number;
 					if(start_pc <= pc) {

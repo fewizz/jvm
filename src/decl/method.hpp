@@ -40,13 +40,13 @@ struct method : class_member {
 private:
 
 	code_or_native_function_ptr code_;
-	posix::memory<class_file::attribute::code::exception_handler>
+	initialised<posix::memory<class_file::attribute::code::exception_handler>>
 		exception_handlers_;
 	uint8 parameters_stack_size_ = 0;
-	posix::memory<one_of_descriptor_parameter_types>
+	initialised<posix::memory<one_of_descriptor_parameter_types>>
 		parameter_types_;
 	one_of_descriptor_return_types return_type_{ class_file::v{} };
-	posix::memory<tuple<uint16, class_file::line_number>>
+	initialised<posix::memory<tuple<uint16, class_file::line_number>>>
 		line_numbers_;
 
 public:
@@ -56,10 +56,12 @@ public:
 		class_file::constant::utf8             name,
 		class_file::constant::utf8             descriptor,
 		code_or_native_function_ptr            code,
-		posix::memory<class_file::attribute::code::exception_handler>&&
-			exception_handlers,
-		posix::memory<tuple<uint16, class_file::line_number>>&&
-			line_numbers
+		initialised<
+			posix::memory<class_file::attribute::code::exception_handler>
+		>&& exception_handlers,
+		initialised<
+			posix::memory<tuple<uint16, class_file::line_number>>
+		>&& line_numbers
 	) :
 		class_member       { access_flags, name, descriptor },
 		code_              { code                           },
@@ -113,13 +115,13 @@ public:
 				parameters_stack_size_ += descriptor_type_stack_size<Type>;
 			});
 		}
-		parameter_types_ = parameters_types_list.move_storage_range();
+		parameter_types_ = move(parameters_types_list).as_initialised();
 	}
 
 	uint8 parameters_stack_size() const { return parameters_stack_size_; }
 
-	auto parameter_types() const {
-		return parameter_types_.as_span();
+	auto& parameter_types() const {
+		return parameter_types_;
 	}
 
 	parameters_count parameters_count() {

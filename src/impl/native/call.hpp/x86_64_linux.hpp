@@ -82,8 +82,6 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 	register uint64 result asm("rax") = 0;
 	register __m128 arg_0_f asm("xmm0") = f_regs[0];
 	{
-		register uint64 stack_remaining asm("rbx") = stack_count;
-
 		register uint64 arg_0 asm("rdi") = i_regs[0];
 		register uint64 arg_1 asm("rsi") = i_regs[1];
 		register uint64 arg_2 asm("rdx") = i_regs[2];
@@ -101,16 +99,18 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 
 		register uint64* stack_beginning asm("r11")  = stack_storage;
 		register void* function_ptr asm("r12") = ptr;
+		register uint64 stack_remaining asm("r13") = stack_count;
 
 		asm volatile(
-				"pushq %%rbp\n"
-				"movq %%rsp, %%rbp\n"
+				"pushq %%rbx\n"
+				"movq %%rsp, %%rbx\n"
 				// align rsp to 16
-				"movq %[stack_remaining], %%rax\n"
-				"salq $3, %%rax\n"    // rax <<= 8
-				"subq %%rsp, %%rax\n" // rax -= rsp
+				"movq %[stack_remaining], %%r10\n"
+				"salq $3, %%r10\n"    // r10 <<= 3
+				"movq %%rsp, %%rax\n" // rax = rsp
+				"subq %%r10, %%rax\n" // rax -= r10
 				"andq $0xF,  %%rax\n" // rax &= 0xF
-				"subq %%rax, %%rsp\n" // rsp -= (rsp - stack_remaining * 8) % 16
+				"subq %%rax, %%rsp\n" // rsp -= rax
 			"loop_begin:\n"
 				"cmpq $0, %[stack_remaining]\n"
 				"je loop_end\n"
@@ -120,8 +120,8 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 				"jmp loop_begin\n"
 			"loop_end:\n"
 				"callq *%[function_ptr]\n"
-				"movq %%rbp, %%rsp\n"
-				"popq %%rbp\n"
+				"movq %%rbx, %%rsp\n"
+				"popq %%rbx\n"
 			:
 				"=r"(result),
 				"+r"(arg_1), "+r"(arg_0), "+r"(arg_2),
@@ -132,7 +132,7 @@ try_native_interface_call(native_function_ptr ptr, method& m) {
 			:
 				[stack_beginning]"r"(stack_beginning),
 				[function_ptr]"r"(function_ptr)
-			: "r10", "r13", "r14", "r15", "memory", "cc"
+			: "rbx", "r10", "memory", "cc"
 		);
 	}
 

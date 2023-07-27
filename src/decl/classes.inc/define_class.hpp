@@ -12,7 +12,7 @@
 template<basic_range Name>
 expected<c&, reference> classes::try_define_class(
 	Name&& name,
-	posix::memory<> bytes,
+	initialised<posix::memory<>> bytes,
 	j::c_loader* defining_loader // L
 ) {
 	mutex_->lock();
@@ -280,7 +280,7 @@ expected<c&, reference> classes::try_define_class(
 	data[1][data[1].size() - 1].construct(u8';');
 
 	class_file::constant::utf8 descriptor
-		= data[1].as_span().cast<utf8::unit, uint16>();
+		= data[1].cast<utf8::unit, uint16>();
 
 	/* If no exception is thrown in steps 1-4, then derivation of the class or
 	   interface C succeeds. The Java Virtual Machine marks C to have L as its

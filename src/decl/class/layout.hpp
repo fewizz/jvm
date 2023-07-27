@@ -39,7 +39,7 @@ struct layout {
 	};
 
 	nuint ending_ = 0;
-	posix::memory<slot> field_index_to_slot_{};
+	initialised<posix::memory<slot>> field_index_to_slot_{};
 
 	layout(layout&&) = default;
 
@@ -60,7 +60,7 @@ struct layout {
 			uint32 current_position = 0;
 			uint32 initial_field_index = 0;
 			if(super.has_value()) {
-				super->field_index_to_slot_.as_span().for_each_indexed(
+				super->field_index_to_slot_.for_each_indexed(
 					[&](slot s, nuint index) {
 						field_index_to_slot[index].construct(s);
 					}
@@ -111,7 +111,7 @@ struct layout {
 	}
 
 	slot slot_for_field_index(field_member_index index) const {
-		return field_index_to_slot_.as_span()[uint16{ index }];
+		return field_index_to_slot_[uint16{ index }];
 	}
 
 };

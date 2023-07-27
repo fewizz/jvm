@@ -40,10 +40,9 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	
 	/* The first task involves the following steps: */
 	/* 1. R gives a symbolic reference to a bootstrap method handle. */
-	bootstrap_method& bm
-		= bootstrap_methods::as_span().operator [] (
-			invoke_dynamic.bootstrap_method_attr_index
-		);
+	bootstrap_method& bm = bootstrap_methods::operator [] (
+		invoke_dynamic.bootstrap_method_attr_index
+	);
 	/*    The bootstrap method handle is resolved (§5.4.3.5) to obtain a
 	      reference to an instance of java.lang.invoke.MethodHandle. */
 	expected<reference, reference> possible_mh_ref
@@ -133,7 +132,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	/* R gives zero or more static arguments, which communicate
 	   application-specific metadata to the bootstrap method. Each static
 	   argument A is resolved, in the order given by R, as follows: */
-	for(class_file::constant::index index : bm.arguments_indices.as_span()) {
+	for(class_file::constant::index index : bm.arguments_indices) {
 		reference thrown{};
 
 		constant(index).view([&]<typename Type>(Type v) {

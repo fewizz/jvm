@@ -27,10 +27,8 @@ using constant = variant<
 	class_file::constant::skip
 >;
 
-struct constants :
-	private posix::memory<constant>
-{
-	using base_type = posix::memory<constant>;
+struct constants : private initialised<posix::memory<constant>> {
+	using base_type = initialised<posix::memory<constant>>;
 	using base_type::base_type;
 
 public:
@@ -42,11 +40,11 @@ public:
 	using base_type::size;
 
 	const ::constant& constant(class_file::constant::index index) const {
-		return base_type::as_span()[index - 1];
+		return base_type::operator [] (index - 1);
 	}
 
 	::constant& constant(class_file::constant::index index) {
-		return base_type::as_span()[index - 1];
+		return base_type::operator [] (index - 1);
 	}
 
 	template<typename Type>
