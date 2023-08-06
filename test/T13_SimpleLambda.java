@@ -1,4 +1,4 @@
-public class T13_EmptyLambda {
+public class T13_SimpleLambda {
 
 	public interface I {
 

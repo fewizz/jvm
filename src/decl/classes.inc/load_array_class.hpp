@@ -1,6 +1,7 @@
 #pragma once
 
 #include "decl/classes.hpp"
+#include "decl/execution/info.hpp"
 
 /* The following steps are used to create the array class C denoted by the name
    N in association with the class loader L. L may be either the bootstrap class
@@ -105,15 +106,24 @@ expected<c&, reference> classes::try_load_array_class(
 		}
 	);
 
-	c& c = c_and_l.has_value() ?
-		c_and_l.get().class_ :
-		define_array_class(name, defining_class_loader);
+	optional<c&> c;
+	if(c_and_l.has_value()) {
+		c = c_and_l.get().class_;
+	}
+	else {
+		expected<::c&, reference> possible_c
+			= try_define_array_class(name, defining_class_loader);
+		if(possible_c.is_unexpected()) {
+			return unexpected{ possible_c.move_unexpected() };
+		}
+		c = possible_c.get_expected();
+	}
 
 	/*    In any case, the Java Virtual Machine then records that L is an
 	      initiating loader for C (§5.3.4). */
 	
 	if(component_class.defining_loader().object_ptr() != l) {
-		mark_class_loader_as_initiating_for_class(c, l);
+		mark_class_loader_as_initiating_for_class(c.get(), l);
 	}
 
 	/*    If the component type is a reference type, the accessibility of the
@@ -122,5 +132,5 @@ expected<c&, reference> classes::try_load_array_class(
 	      interfaces. */
 	// TODO
 
-	return c;
+	return c.get();
 }

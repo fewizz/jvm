@@ -5,7 +5,7 @@
 #include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/call_site.hpp"
 
-namespace jvm {
+namespace j {
 
 struct constant_call_site : j::call_site {
 	using j::call_site::call_site;

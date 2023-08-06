@@ -6,6 +6,11 @@
 #include "./define_class.inc/read_field.hpp"
 #include "./define_class.inc/read_bootstrap_methods.hpp"
 
+inline expected<c&, reference> try_define_class0(
+	posix::memory<> bytes,
+	j::c_loader* defining_loader // L
+);
+
 /* The following steps are used to derive a nonarray class or interface C
    denoted by N from a purported representation in class file format using the
    class loader L. */
@@ -15,25 +20,22 @@ expected<c&, reference> classes::try_define_class(
 	posix::memory<> bytes,
 	j::c_loader* defining_loader // L
 ) {
-	mutex_->lock();
-	on_scope_exit unlock_classes_mutex { [&] {
-		mutex_->unlock();
-	}};
-
 	/* 1. First, the Java Virtual Machine determines whether L has already
-			been recorded as an initiating loader of a class or interface
-			denoted by N. If so, this derivation attempt is invalid and
-			derivation throws a LinkageError. */
-	{
-		optional<c&> c
-			= try_find_class_which_loading_was_initiated_by(
-				name,
-				defining_loader
-			);
-		if(c.has_value()) {
-			return unexpected { try_create_linkage_error().get() };
+	      been recorded as an initiating loader of a class or interface
+	      denoted by N. If so, this derivation attempt is invalid and
+	      derivation throws a LinkageError. */
+	return lock_or_throw_linkage_error(
+		forward<Name>(name),
+		defining_loader, [&] -> expected<c&, reference> {
+			return try_define_class0(move(bytes), defining_loader);
 		}
-	}
+	);
+}
+
+inline expected<c&, reference> try_define_class0(
+	posix::memory<> bytes,
+	j::c_loader* defining_loader // L
+) {
 	/* 2. Otherwise, the Java Virtual Machine attempts to parse the purported
 	      representation. The purported representation may not in fact be a
 	      valid representation of C, so derivation must detect the following
@@ -110,7 +112,7 @@ expected<c&, reference> classes::try_define_class(
 			= const_pool[super_class_constant.name_constant_index];
 
 		expected<c&, reference> possible_super_class
-			= try_load_non_array_class(
+			= classes.try_load_non_array_class(
 				super_class_name, defining_loader
 			);
 		if(possible_super_class.is_unexpected()) {
@@ -139,7 +141,7 @@ expected<c&, reference> classes::try_define_class(
 			class_file::constant::name interface_name
 				= const_pool[c.name_constant_index];
 			expected<::c&, reference> possible_interface
-				= try_load_non_array_class(
+				= classes.try_load_non_array_class(
 					interface_name, defining_loader
 				);
 			if(possible_interface.is_unexpected()) {
@@ -285,7 +287,7 @@ expected<c&, reference> classes::try_define_class(
 	   interface C succeeds. The Java Virtual Machine marks C to have L as its
 	   defining loader, records that L is an initiating loader of C (§5.3.4),
 	   and creates C in the method area (§2.5.4). */
-	return emplace_back(
+	return classes.emplace_back(
 		move(const_pool),
 		move(bootstrap_methods),
 		move(data),
@@ -302,6 +304,8 @@ expected<c&, reference> classes::try_define_class(
 		move(initialisation_method),
 		is_array_class{ false },
 		is_primitive_class{ false },
-		defining_loader == nullptr ? nullptr_ref : reference{ *defining_loader }
+		defining_loader == nullptr ?
+			nullptr_ref
+			: reference{ *defining_loader }
 	);
 }

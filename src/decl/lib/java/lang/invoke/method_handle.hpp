@@ -1,12 +1,8 @@
 #pragma once
 
 #include "decl/class.hpp"
-#include "decl/descriptor.hpp"
 #include "decl/primitives.hpp"
-#include "decl/lib/java/lang/invoke/method_handle.hpp"
-#include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
-#include "decl/lib/java/lang/object.hpp"
 
 #include <optional.hpp>
 #include <overloaded.hpp>

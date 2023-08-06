@@ -1,7 +1,6 @@
 #pragma once
 
 #include "decl/object.hpp"
-#include "decl/lib/java/lang/invoke/method_handle.hpp"
 
 namespace j {
 

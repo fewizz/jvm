@@ -4,18 +4,9 @@
 #include "./class.hpp"
 
 #include "decl/blocky_memory.hpp"
-#include "decl/execution/info.hpp"
-#include "decl/executable_path.hpp"
-#include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class_loader.hpp"
-#include "decl/lib/java/lang/class.hpp"
-#include "decl/lib/java/lang/object.hpp"
-#include "decl/lib/java/lang/class_not_found_exception.hpp"
 #include "decl/lib/java/lang/linkage_error.hpp"
-#include "decl/execute.hpp"
 #include "decl/primitives.hpp"
-#include "decl/try_load_class_file_data_at.hpp"
-#include "decl/class/bootstrap_methods.hpp"
 #include "decl/object.hpp"
 
 #include <list.hpp>
@@ -188,7 +179,7 @@ public:
 	);
 
 	template<basic_range Name>
-	c& define_array_class(
+	expected<c&, reference> try_define_array_class(
 		Name&& name,
 		j::c_loader* defining_loader
 	);
@@ -196,19 +187,6 @@ public:
 	inline c& define_primitive_class(
 		class_file::constant::utf8 name,
 		const utf8::unit& ch
-	);
-
-	template<
-		basic_range Name,
-		basic_range CtorDescriptor,
-		basic_range IDescriptor
-	>
-	expected<c&, reference> try_define_lamda_class(
-		Name&& this_class_name,
-		c& interface_to_implement,
-		CtorDescriptor&& ctor_descriptor,
-		IDescriptor&& method_descriptor,
-		j::c_loader* defining_loader // L
 	);
 
 	template<basic_range Name>
@@ -267,10 +245,32 @@ public:
 			);
 	}
 
+	template<typename Name, typename Handler>
+	expected<c&, reference> lock_or_throw_linkage_error(
+		Name&& class_name,
+		j::c_loader* defining_loader,
+		Handler&& handler
+	) {
+		mutex_->lock();
+		on_scope_exit unlock_mutex { [&] { mutex_->unlock(); }};
+
+		{
+			optional<c&> c = try_find_class_which_loading_was_initiated_by(
+				class_name,
+				defining_loader
+			);
+			if(c.has_value()) {
+				return unexpected { try_create_linkage_error().get() };
+			}
+		}
+
+		return handler();
+	}
+
 } classes {};
 
-#include "./classes.inc/define_array_class.hpp"
 #include "./classes.inc/define_class.hpp"
+#include "./classes.inc/define_array_class.hpp"
 #include "./classes.inc/define_primitive_class.hpp"
 #include "./classes.inc/load_array_class.hpp"
 #include "./classes.inc/load_non_array_class_by_bootstrap_class_loader.hpp"

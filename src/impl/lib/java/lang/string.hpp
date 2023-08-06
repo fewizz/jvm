@@ -1,6 +1,7 @@
 #include "decl/lib/java/lang/string.hpp"
 
 #include "decl/classes.hpp"
+#include "decl/native/environment.hpp"
 
 #include <range.hpp>
 
@@ -42,5 +43,29 @@ static inline void init_java_lang_string() {
 
 	j::string::value_field_position = j::string::c->instance_field_position(
 		c_string{ u8"value_" }, c_string{ u8"[C" }
+	);
+
+	j::string::c.get().declared_instance_methods().find(
+		c_string{ u8"startsWith" },
+		c_string{ u8"(Ljava/lang/String;)Z" }
+	).native_function(
+		(void*)+[](native_environment*, j::string* ths, j::string* prefix)
+		-> bool {
+			if(prefix == nullptr) {
+				return false;
+			}
+
+			nuint prefix_size = prefix->length_utf16_units();
+
+			if(prefix_size > ths->length_utf16_units()) {
+				return false;
+			}
+
+			return ths->as_utf16_units_span()
+				.shrink_view(prefix_size)
+				.has_equal_size_and_elements(
+					prefix->as_utf16_units_span()
+				);
+		}
 	);
 }

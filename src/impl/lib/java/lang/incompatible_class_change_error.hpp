@@ -9,7 +9,7 @@
 try_create_incompatible_class_change_error() {
 	expected<c&, reference> possible_c
 		= classes.try_load_class_by_bootstrap_class_loader(
-			c_string{ u8"java/lanf/IncompatibleClassChangeError" }
+			c_string{ u8"java/lang/IncompatibleClassChangeError" }
 		);
 	
 	if(possible_c.is_unexpected()) {

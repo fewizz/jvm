@@ -104,9 +104,9 @@ static optional<reference> try_execute(method& m) {
 
 	if(info) {
 		print::out(" ",
-			"max_stack: ", m.code().max_stack,
-			" locals begin: ", locals_begin,
-			" stack begin: ", stack_begin, "\n"
+			"max_stack: ", m.code().max_stack, " "
+			"locals begin: ", locals_begin, " "
+			"stack begin: ", stack_begin, "\n"
 		);
 	}
 

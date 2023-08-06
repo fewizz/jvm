@@ -213,18 +213,16 @@ struct execute_instruction {
 		stack.emplace_back(stack.get<int64>(locals_begin + x.index));
 	}
 	void operator () (instr::f_load x) {
-		if(info) {
-			tabs();
-			print::out("f_load ", x.index, "\n");
-		}
-		stack.emplace_back(stack.get<float>(locals_begin + x.index));
+		if(info) { tabs(); print::out("f_load ", x.index); }
+		float value = stack.get<float>(locals_begin + x.index);
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	void operator () (instr::d_load x) {
-		if(info) {
-			tabs();
-			print::out("d_load ", x.index, "\n");
-		}
-		stack.emplace_back(stack.get<double>(locals_begin + x.index));
+		if(info) { tabs(); print::out("d_load ", x.index); }
+		double value = stack.get<double>(locals_begin + x.index);
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	void operator () (instr::a_load x) {
 		if(info) {
@@ -291,7 +289,9 @@ struct execute_instruction {
 	}
 	void operator () (instr::f_load_2) {
 		if(info) { tabs(); print::out("f_load_2\n"); }
-		stack.emplace_back(stack.get<float>(locals_begin + 2));
+		float value = stack.get<float>(locals_begin + 2);
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	void operator () (instr::f_load_3) {
 		if(info) { tabs(); print::out("f_load_3\n"); }
@@ -306,12 +306,16 @@ struct execute_instruction {
 		stack.emplace_back(stack.get<double>(locals_begin + 1));
 	}
 	void operator () (instr::d_load_2) {
-		if(info) { tabs(); print::out("d_load_2\n"); }
-		stack.emplace_back(stack.get<double>(locals_begin + 2));
+		if(info) { tabs(); print::out("d_load_2"); }
+		double value = stack.get<double>(locals_begin + 2);
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	void operator () (instr::d_load_3) {
-		if(info) { tabs(); print::out("d_load_3\n"); }
-		stack.emplace_back(stack.get<double>(locals_begin + 3));
+		if(info) { tabs(); print::out("d_load_3"); }
+		double value = stack.get<double>(locals_begin + 3);
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	void operator () (instr::a_load_0) {
 		reference ref = stack.get<reference>(locals_begin + 0);
@@ -495,8 +499,10 @@ struct execute_instruction {
 		stack.emplace_at(locals_begin + 2, stack.pop_back<double>());
 	}
 	void operator () (instr::d_store_3) {
-		if(info) { tabs(); print::out("d_store_3\n"); }
-		stack.emplace_at(locals_begin + 3, stack.pop_back<double>());
+		if(info) { tabs(); print::out("d_store_3"); }
+		double value = stack.pop_back<double>();
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_at(locals_begin + 3, value);
 	}
 	void operator () (instr::a_store_0) {
 		if(info) { tabs(); print::out("a_store_0\n"); }
@@ -622,10 +628,12 @@ struct execute_instruction {
 		stack.emplace_back(int64{ value1 + value2 });
 	}
 	void operator () (instr::f_add) {
-		if(info) { tabs(); print::out("f_add\n"); }
+		if(info) { tabs(); print::out("f_add "); }
 		float value2 = stack.pop_back<float>();
 		float value1 = stack.pop_back<float>();
-		stack.emplace_back(float{ value1 + value2 });
+		float result = float{ value1 + value2 };
+		if(info) { print::out(value2, " + ", value1, " = ", result, "\n"); }
+		stack.emplace_back(result);
 	}
 	void operator () (instr::d_add) {
 		if(info) { tabs(); print::out("d_add\n"); }
@@ -843,9 +851,11 @@ struct execute_instruction {
 		stack.emplace_back((int64) value);
 	}
 	void operator () (instr::i_to_f) {
-		if(info) { tabs(); print::out("i_to_f\n"); }
+		if(info) { tabs(); print::out("i_to_f"); }
 		int32 value = stack.pop_back<int32>();
-		stack.emplace_back((float) value);
+		float result = (float) value;
+		if(info) { print::out(" ", value, " -> ", result, "\n"); }
+		stack.emplace_back(result);
 	}
 	void operator () (instr::i_to_d) {
 		if(info) { tabs(); print::out("i_to_d\n"); }
@@ -885,9 +895,11 @@ struct execute_instruction {
 		stack.emplace_back((int64) value);
 	}
 	void operator () (instr::f_to_d) {
-		if(info) { tabs(); print::out("f_to_d\n"); }
+		if(info) { tabs(); print::out("f_to_d"); }
 		float value = stack.pop_back<float>();
-		stack.emplace_back((double) value);
+		double result = (double) value;
+		if(info) { print::out(" ", value, " -> ", result, "\n"); }
+		stack.emplace_back(result);
 	}
 	void operator () (instr::d_to_i) {
 		if(info) { tabs(); print::out("d_to_i\n"); }
@@ -982,10 +994,12 @@ struct execute_instruction {
 		stack.emplace_back(result);
 	}
 	void operator () (instr::if_eq x) {
-		if(info) { tabs(); print::out("if_eq "); }
+		if(info) {
+			tabs(); print::out("if_eq +", x.branch);
+		}
 		int32 value = stack.pop_back<int32>();
 		if(info) {
-			print::out(value, " +", x.branch, "\n");
+			print::out(", ", value, " == 0 ? ", value == 0, "\n");
 		}
 		if(value == 0) {
 			next_instruction_ptr = instruction_ptr + x.branch;

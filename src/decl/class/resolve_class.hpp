@@ -66,36 +66,39 @@ template<class_file::possibly_void_descriptor_type Type>
 	if constexpr(same_as<Type, class_file::v>) {
 		return void_class.get();
 	}
-	if constexpr(same_as<Type, class_file::b>) {
+	else if constexpr(same_as<Type, class_file::b>) {
 		return byte_class.get();
 	}
-	if constexpr(same_as<Type, class_file::c>) {
+	else if constexpr(same_as<Type, class_file::c>) {
 		return char_class.get();
 	}
-	if constexpr(same_as<Type, class_file::d>) {
+	else if constexpr(same_as<Type, class_file::d>) {
 		return double_class.get();
 	}
-	if constexpr(same_as<Type, class_file::f>) {
+	else if constexpr(same_as<Type, class_file::f>) {
 		return float_class.get();
 	}
-	if constexpr(same_as<Type, class_file::i>) {
+	else if constexpr(same_as<Type, class_file::i>) {
 		return int_class.get();
 	}
-	if constexpr(same_as<Type, class_file::j>) {
+	else if constexpr(same_as<Type, class_file::j>) {
 		return long_class.get();
 	}
-	if constexpr(same_as<Type, class_file::s>) {
+	else if constexpr(same_as<Type, class_file::s>) {
 		return short_class.get();
 	}
-	if constexpr(same_as<Type, class_file::z>) {
+	else if constexpr(same_as<Type, class_file::z>) {
 		return bool_class.get();
 	}
-	else if constexpr(same_as<Type, class_file::object>) {
+	else if constexpr(
+		same_as<Type, class_file::object> ||
+		same_as<Type, class_file::array>
+	) {
 		return try_resolve_class(
 			d, type
 		);
 	}
 	else {
-		posix::abort();
+		[]<bool b>{ static_assert(b); }();
 	}
 }

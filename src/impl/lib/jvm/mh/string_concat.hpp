@@ -40,7 +40,7 @@ static void init_jvm_mh_string_concat() {
 						posix::abort();
 					}
 					j::string& str = (j::string&) ref.object();
-					size += str.length_utf16();
+					size += str.length_utf16_units();
 					return;
 				}
 				if(unit == 2) {
@@ -64,14 +64,14 @@ static void init_jvm_mh_string_concat() {
 					}
 					j::string& str = (j::string&) ref.object();
 					
-					str.as_span_utf16().copy_to(
+					str.as_utf16_units_span().copy_to(
 						iterator_and_sentinel {
 							string_data_raw + written,
 							string_data_raw + size
 						}.as_range()
 					);
 
-					written += str.as_span_utf16().size();
+					written += str.as_utf16_units_span().size();
 
 					return;
 				}

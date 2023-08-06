@@ -45,7 +45,7 @@ static void init_java_lang_invoke_string_concat_factory() {
 			jvm::string_concat& mh = (jvm::string_concat&) mh_ref.object();
 
 			expected<reference, reference> possible_cs
-				= jvm::constant_call_site::try_create(mh);
+				= j::constant_call_site::try_create(mh);
 
 			if(possible_cs.is_unexpected()) {
 				thrown_in_native = possible_cs.move_unexpected();

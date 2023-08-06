@@ -18,7 +18,7 @@ template<
 	range_of<c&> ParamClasses,
 	range_of_decayed<utf8::unit> Descriptor
 >
-[[nodiscard]]inline expected<reference, reference> try_create_method_type(
+[[nodiscard]] inline expected<reference, reference> try_create_method_type(
 	c& ret_class,
 	ParamClasses&& params_classes,
 	Descriptor&& descriptor

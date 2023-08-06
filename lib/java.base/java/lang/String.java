@@ -46,21 +46,7 @@ public final class String {
 		return true;
 	}
 
-	public boolean startsWith(String prefix) {
-		int prefix_len = prefix.length();
-
-		if(prefix_len > length()) {
-			return false;
-		}
-
-		for(int i = 0; i < prefix_len; ++i) {
-			if(this.charAt(i) != prefix.charAt(i)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
+	public native boolean startsWith(String prefix);
 
 	@Override
 	public int hashCode() {

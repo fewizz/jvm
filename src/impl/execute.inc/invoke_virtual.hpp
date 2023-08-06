@@ -1,5 +1,4 @@
 #include "decl/execute.hpp"
-#include "decl/execution/info.hpp"
 #include "decl/execution/stack.hpp"
 #include "decl/class.hpp"
 #include "decl/object.hpp"
@@ -8,6 +7,7 @@
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
 #include "decl/lib/java/lang/abstract_method_error.hpp"
+#include "decl/lib/java/lang/invoke/wrong_method_type_exception.hpp"
 
 #include <class_file/constant.hpp>
 

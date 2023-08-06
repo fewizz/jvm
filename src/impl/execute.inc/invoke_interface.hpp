@@ -68,7 +68,7 @@
 
 	/* Otherwise, if the selected method is neither public nor private,
 	   invokeinterface throws an IllegalAccessError. */
-	if(!selected_method.is_public() || !selected_method.is_private()) {
+	if(!selected_method.is_public() && !selected_method.is_private()) {
 		return try_create_illegal_access_error().get();
 	}
 

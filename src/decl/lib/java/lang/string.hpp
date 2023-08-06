@@ -77,7 +77,7 @@ struct string : object {
 		return len;
 	}
 
-	nuint length_utf16() {
+	nuint length_utf16_units() {
 		reference& value = get<reference>(value_field_position);
 		return array_length(value);
 	}
@@ -95,9 +95,9 @@ struct string : object {
 		);
 	}
 
-	span<uint16> as_span_utf16() {
+	span<utf16::unit> as_utf16_units_span() {
 		reference& value = get<reference>(value_field_position);
-		return array_as_span<uint16>(value);
+		return array_as_span<utf16::unit>(value);
 	}
 
 };

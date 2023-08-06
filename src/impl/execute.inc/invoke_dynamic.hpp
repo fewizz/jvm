@@ -4,6 +4,7 @@
 #include "decl/execution/stack.hpp"
 #include "decl/execution/info.hpp"
 #include "decl/lib/java/lang/invoke/call_site.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 
 #include <class_file/constant.hpp>
 

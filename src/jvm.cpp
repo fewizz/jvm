@@ -41,8 +41,13 @@ int main(int argc, const char** argv) {
 	) -> c& {
 		c& component_class = classes.define_primitive_class(name, array[1]);
 
-		c& array_class = classes.define_array_class(array, nullptr);
+		expected<c&, reference> possible_array_class =
+			classes.try_define_array_class(array, nullptr);
+		if(possible_array_class.is_unexpected()) {
+			posix::abort();
+		}
 
+		c& array_class = possible_array_class.get_expected();
 		array_class.component_class(component_class);
 		component_class.array_class(array_class);
 

@@ -1,6 +1,10 @@
 #pragma once
 
 #include "decl/classes.hpp"
+#include "decl/executable_path.hpp"
+#include "decl/lib/java/lang/class_not_found_exception.hpp"
+#include "decl/lib/java/lang/string.hpp"
+#include "decl/try_load_class_file_data_at.hpp"
 
 /* The process of loading and creating the nonarray class or interface C denoted
 by N using the bootstrap class loader is as follows. */

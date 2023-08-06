@@ -58,18 +58,22 @@ inline void ldc_2_w(
 ) {
 	if(info) {
 		tabs();
-		print::out("ldc_2_w ", (uint16) const_index, "\n");
+		print::out("ldc_2_w ", (uint16) const_index);
 	}
 	constant constant = c[const_index];
 	if(constant.is_same_as<class_file::constant::_long>()) {
-		stack.emplace_back(int64 {
-			constant.get_same_as<class_file::constant::_long>().value
-		});
+		int64 value = constant.get_same_as<
+			class_file::constant::_long
+		>().value;
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	} else
 	if(constant.is_same_as<class_file::constant::_double>()) {
-		stack.emplace_back(double {
-			constant.get_same_as<class_file::constant::_double>().value
-		});
+		double value = constant.get_same_as<
+			class_file::constant::_double
+		>().value;
+		if(info) { print::out(" ", value, "\n"); }
+		stack.emplace_back(value);
 	}
 	else {
 		print::err("unknown constant\n");
