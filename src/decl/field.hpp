@@ -19,6 +19,8 @@ struct field : class_member {
 };
 
 struct static_field : field {
+	using field::field;
+	static_field(field&& f) : field{ move(f) } {}
 };
 
 struct instance_field : field {

@@ -35,8 +35,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 		return e.get_same_as<reference>();
 	}
 
-	class_file::constant::invoke_dynamic invoke_dynamic
-		= invoke_dynamic_constant(index);
+	class_file::constant::invoke_dynamic invoke_dynamic = (*this)[index];
 	
 	/* The first task involves the following steps: */
 	/* 1. R gives a symbolic reference to a bootstrap method handle. */
@@ -57,11 +56,11 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	/* 2. If R is a symbolic reference to a dynamically-computed call site, then
 	      it gives a method descriptor. */
 	class_file::constant::name_and_type nat
-		= name_and_type_constant(invoke_dynamic.name_and_type_index);
+		= (*this)[invoke_dynamic.name_and_type_index];
 	class_file::constant::utf8 descriptor
-		= utf8_constant(nat.descriptor_index);
+		= (*this)[nat.descriptor_index];
 	[[maybe_unused]] class_file::constant::utf8 name
-		= utf8_constant(nat.name_index);
+		= (*this)[nat.name_index];
 
 	/* A reference to an instance of java.lang.invoke.MethodType is obtained, as
 	   if by resolution of an unresolved symbolic reference to a method type
@@ -156,7 +155,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 			else if constexpr(same_as<Type, class_file::constant::method_type>)
 			{
 				class_file::constant::utf8 descriptor
-					= utf8_constant(v.descriptor_index);
+					= (*this)[v.descriptor_index];
 				expected<reference, reference> possible_mt
 					= try_resolve_method_type(*this, descriptor);
 				

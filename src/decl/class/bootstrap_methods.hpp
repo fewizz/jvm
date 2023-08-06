@@ -6,12 +6,12 @@
 
 struct bootstrap_method {
 	class_file::constant::method_handle_index method_handle_index;
-	initialised<posix::memory<class_file::constant::index>> arguments_indices;
+	posix::memory<class_file::constant::index> arguments_indices;
 
 	bootstrap_method(
 		class_file::constant::method_handle_index
 			method_handle_index,
-		initialised<posix::memory<class_file::constant::index>>
+		posix::memory<class_file::constant::index>
 			arguments_indices
 	) :
 		method_handle_index{ method_handle_index },
@@ -25,12 +25,6 @@ struct bootstrap_method {
 struct bootstrap_methods : initialised<posix::memory<bootstrap_method>> {
 	using base_type = initialised<posix::memory<bootstrap_method>>;
 	using base_type::base_type;
-
-	bootstrap_methods(
-		posix::memory<bootstrap_method> mem
-	) :
-		base_type{ move(mem) }
-	{}
 
 	bootstrap_methods(bootstrap_methods&&) = default;
 	bootstrap_methods& operator = (bootstrap_methods&&) = default;

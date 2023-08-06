@@ -62,7 +62,7 @@ struct layout {
 			if(super.has_value()) {
 				super->field_index_to_slot_.for_each_indexed(
 					[&](slot s, nuint index) {
-						field_index_to_slot[index].construct(s);
+						new (&field_index_to_slot[index]) slot(s);
 					}
 				);
 				current_position = super->ending_;
@@ -81,9 +81,10 @@ struct layout {
 				for(field& f : declared_instance_fields) {
 					if((f.type.is_same_as<DescType>())) {
 						align(bytes_in_atoms<alignof(RawType)>);
-						field_index_to_slot[field_index].construct(
-							layout::position{ current_position }, bytes_in<RawType>
-						);
+						new (&field_index_to_slot[field_index]) slot {
+							layout::position{ current_position },
+							bytes_in<RawType>
+						};
 						current_position += bytes_in<RawType>;
 					}
 					++field_index;

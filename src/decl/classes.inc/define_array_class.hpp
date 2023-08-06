@@ -16,19 +16,19 @@ c& classes::define_array_class(
 	};
 
 	// ptr to data
-	declared_instance_fields[0].construct(
+	new (&declared_instance_fields[0]) instance_field {
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
 		class_file::constant::utf8{ u8"J" }
-	);
+	};
 	// length
-	declared_instance_fields[1].construct(
+	new (&declared_instance_fields[1]) instance_field(
 		class_file::access_flags{ class_file::access_flag::_private },
 		class_file::constant::utf8{ nullptr, 0 },
 		class_file::constant::utf8{ u8"I" }
 	);
 
-	class_data_t data{};
+	class_data data{};
 
 	data.emplace_back(posix::allocate(range_size(name)));
 

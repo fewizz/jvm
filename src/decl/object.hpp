@@ -38,7 +38,7 @@ private:
 	const ::layout& layout_for_view() {
 		return class_.instance_layout();
 	}
-	uint8* data_for_layout_view() { return data_.as_span().begin(); }
+	uint8* data_for_layout_view() { return data_.begin(); }
 
 	auto fields_view_for_layout_view() {
 		return class_.instance_fields();

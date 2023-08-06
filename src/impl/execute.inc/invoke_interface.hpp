@@ -117,13 +117,11 @@ template<basic_range Name, basic_range Desriptor>
 	c& d, class_file::constant::interface_method_ref_index ref_index
 ) {
 	namespace cc = class_file::constant;
-	cc::interface_method_ref method_ref
-		= d.interface_method_ref_constant(ref_index);
-	cc::name_and_type name_and_type_info
-		= d.name_and_type_constant(method_ref.name_and_type_index);
+	cc::interface_method_ref method_ref = d[ref_index];
+	cc::name_and_type nat = d[method_ref.name_and_type_index];
 
-	cc::utf8 name = d[name_and_type_info.name_index];
-	cc::utf8 desc = d[name_and_type_info.descriptor_index];
+	cc::utf8 name = d[nat.name_index];
+	cc::utf8 desc = d[nat.descriptor_index];
 	
 	expected<method&, reference> possible_resolved_method
 	= d.try_get_resolved_interface_method(

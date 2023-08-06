@@ -155,14 +155,13 @@ template<basic_range Descriptor>
 	namespace cf = class_file;
 	namespace cc = cf::constant;
 
-	cc::method_ref method_ref = d.method_ref_constant(ref_index);
-	cc::name_and_type nat =
-			d.name_and_type_constant(method_ref.name_and_type_index);
-	cc::utf8 desc = d.utf8_constant(nat.descriptor_index);
-	cc::utf8 name = d.utf8_constant(nat.name_index);
+	cc::method_ref method_ref = d[ref_index];
+	cc::name_and_type nat = d[method_ref.name_and_type_index];
+	cc::utf8 desc = d[nat.descriptor_index];
+	cc::utf8 name = d[nat.name_index];
 
-	cc::_class c = d.class_constant(method_ref.class_index);
-	cc::utf8 class_name = d.utf8_constant(c.name_index);
+	cc::_class c = d[method_ref.class_index];
+	cc::utf8 class_name = d[c.name_index];
 
 	expected<method&, reference> possible_resolved_method
 		= d.try_get_resolved_method(

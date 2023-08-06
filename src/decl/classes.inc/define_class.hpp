@@ -12,7 +12,7 @@
 template<basic_range Name>
 expected<c&, reference> classes::try_define_class(
 	Name&& name,
-	initialised<posix::memory<>> bytes,
+	posix::memory<> bytes,
 	j::c_loader* defining_loader // L
 ) {
 	mutex_->lock();
@@ -88,7 +88,7 @@ expected<c&, reference> classes::try_define_class(
 	auto [access_flags, this_class_reader] {
 		access_flags_reader.read_and_get_this_class_reader()
 	};
-	auto [this_class_index, super_class_reader] {
+	auto [this_class_constant_index, super_class_reader] {
 		this_class_reader.read_and_get_super_class_reader()
 	};
 	auto [super_class_index, interfaces_reader] {
@@ -104,10 +104,10 @@ expected<c&, reference> classes::try_define_class(
 
 	if(super_class_index > 0) {
 		class_file::constant::_class super_class_constant {
-			const_pool.class_constant(super_class_index)
+			const_pool[super_class_index]
 		};
 		class_file::constant::utf8 super_class_name {
-			const_pool.utf8_constant(super_class_constant.name_index)
+			const_pool[super_class_constant.name_index]
 		};
 		expected<c&, reference> possible_super_class
 			= try_load_non_array_class(
@@ -135,10 +135,9 @@ expected<c&, reference> classes::try_define_class(
 				return;
 			}
 
-			class_file::constant::_class c =
-				const_pool.class_constant(interface_index);
-			class_file::constant::utf8 interface_name =
-				const_pool.utf8_constant(c.name_index);
+			class_file::constant::_class c = const_pool[interface_index];
+			class_file::constant::utf8 interface_name
+				= const_pool[c.name_index];
 			expected<::c&, reference> possible_interface
 				= try_load_non_array_class(
 					interface_name, defining_loader
@@ -241,7 +240,7 @@ expected<c&, reference> classes::try_define_class(
 
 	attributes_reader.read(
 		[&](auto attribute_name_index) {
-			return const_pool.utf8_constant(attribute_name_index);
+			return const_pool[attribute_name_index];
 		},
 		[&]<typename Type>(Type reader) {
 			if constexpr(
@@ -253,21 +252,21 @@ expected<c&, reference> classes::try_define_class(
 			if constexpr(
 				Type::attribute_type == class_file::attribute::type::source_file
 			) {
-				auto [utf8_index, it]
+				auto [utf8_constant_index, it]
 					= reader.read_index_and_get_advanced_iterator();
-				source_file = const_pool.utf8_constant(utf8_index);
+				source_file = const_pool[utf8_constant_index];
 			}
 		}
 	);
 
 	class_file::constant::_class this_class_constant {
-		const_pool.class_constant(this_class_index)
+		const_pool[this_class_constant_index]
 	};
 	class_file::constant::utf8 name_utf8 {
-		const_pool.utf8_constant(this_class_constant.name_index)
+		const_pool[this_class_constant.name_index]
 	};
 
-	class_data_t data{};
+	class_data data{};
 	data.emplace_back(move(bytes));
 	data.emplace_back(posix::allocate(name_utf8.size() + 2));
 	name_utf8.copy_to(
@@ -276,8 +275,8 @@ expected<c&, reference> classes::try_define_class(
 			name_utf8.size()
 		}
 	);
-	data[1][0].construct(u8'L');
-	data[1][data[1].size() - 1].construct(u8';');
+	data[1][0] = u8'L';
+	data[1][data[1].size() - 1] = u8';';
 
 	class_file::constant::utf8 descriptor
 		= data[1].cast<utf8::unit, uint16>();

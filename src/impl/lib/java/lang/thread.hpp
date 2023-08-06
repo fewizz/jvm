@@ -73,9 +73,7 @@ inline void init_java_lang_thread() {
 	thread_class->declared_instance_methods().find(
 		c_string{ u8"start" }, c_string{ u8"()V" }
 	).native_function((void*)+[](native_environment*, object* ths) {
-		auto ref = posix::allocate_raw<
-			sizeof(reference), alignof(reference)
-		>(1);
+		auto ref = posix::allocate_raw<::reference>(1);
 
 		new (ref.iterator()) ::reference(*ths);
 

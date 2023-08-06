@@ -183,7 +183,7 @@ public:
 	template<basic_range Name>
 	expected<c&, reference> try_define_class(
 		Name&& name,
-		initialised<posix::memory<>> bytes,
+		posix::memory<> bytes,
 		j::c_loader* defining_loader // L
 	);
 
@@ -198,11 +198,16 @@ public:
 		const utf8::unit& ch
 	);
 
-	template<basic_range Name, basic_range Descriptor>
+	template<
+		basic_range Name,
+		basic_range CtorDescriptor,
+		basic_range IDescriptor
+	>
 	expected<c&, reference> try_define_lamda_class(
 		Name&& this_class_name,
 		c& interface_to_implement,
-		Descriptor&& ctor_descriptor,
+		CtorDescriptor&& ctor_descriptor,
+		IDescriptor&& method_descriptor,
 		j::c_loader* defining_loader // L
 	);
 

@@ -12,7 +12,7 @@ c& classes::define_primitive_class(
 
 	return emplace_back(
 		constants{}, bootstrap_methods{},
-		class_data_t{},
+		class_data{},
 		class_file::access_flags{ class_file::access_flag::_public },
 		name,
 		descriptor,

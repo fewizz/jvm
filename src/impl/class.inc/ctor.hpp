@@ -3,7 +3,7 @@
 inline c::c(
 	constants&& constants,
 	bootstrap_methods&& bootstrap_methods,
-	class_data_t bytes,
+	class_data bytes,
 	class_file::access_flags access_flags,
 	class_file::constant::utf8 name,
 	class_file::constant::utf8 descriptor,
@@ -20,7 +20,7 @@ inline c::c(
 	reference defining_loader
 ) :
 	::constants          { move(constants)              },
-	::trampolines        { (uint16) ::constants::size() },
+	::trampolines        { (uint16) range_size((::constants&) *this) },
 	::bootstrap_methods  { move(bootstrap_methods)      },
 	super_               { super_class                  },
 	data_                { move(bytes)                  },
@@ -54,7 +54,7 @@ inline c::c(
 		return move(declared_instance_methods);
 	}()},
 	instance_fields_ { [&] {
-		nuint count  = declared_instance_fields_.size();
+		nuint count  = range_size(declared_instance_fields_);
 		if(has_super()) {
 			count += range_size(super().instance_fields());
 		}

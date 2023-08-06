@@ -32,7 +32,7 @@ tuple<method, Iterator> read_method(
 	> line_numbers{};
 
 	auto mapper = [&](auto name_index) {
-		return const_pool.utf8_constant(name_index);
+		return const_pool[name_index];
 	};
 
 	Iterator it = attributes_reader.read_and_get_advanced_iterator(
@@ -112,8 +112,8 @@ tuple<method, Iterator> read_method(
 		}
 	});
 
-	class_file::constant::utf8 name = const_pool.utf8_constant(name_index);
-	class_file::constant::utf8 desc = const_pool.utf8_constant(desc_index);
+	class_file::constant::utf8 name = const_pool[name_index];
+	class_file::constant::utf8 desc = const_pool[desc_index];
 
 	return {
 		method {

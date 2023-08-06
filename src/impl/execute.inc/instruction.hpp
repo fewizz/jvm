@@ -187,14 +187,15 @@ struct execute_instruction {
 			class_file::attribute::code::instruction::ldc_w
 		> auto x
 	) {
-		optional<reference> possible_throwable = ::try_ldc(x.index, c);
+		optional<reference> possible_throwable
+			= ::try_ldc(x.constant_index, c);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.get());
 		}
 		return loop_action::next;
 	}
 	void operator () (class_file::attribute::code::instruction::ldc_2_w x) {
-		::ldc_2_w(x.index, c);
+		::ldc_2_w(x.constant_index, c);
 	}
 	void operator () (instr::i_load x) {
 		int32 value = stack.get<int32>(locals_begin + x.index);
@@ -1106,7 +1107,7 @@ struct execute_instruction {
 	}
 
 	void operator () (instr::table_switch::reader<const uint8*&> reader) {
-		if(::info) { tabs(); print::out("table_switch\n"); }
+		if(info) { tabs(); print::out("table_switch\n"); }
 
 		/* The index must be of type int and is popped from the operand
 			stack. */
@@ -1133,7 +1134,7 @@ struct execute_instruction {
 			/* Otherwise, the offset at position index - low of the jump
 			table is extracted */
 			instr::table_switch::offset offset
-				= offsets_reader.read_offset(index - info.low);
+				= offsets_reader.get_offset(index - info.low);
 
 			/* The target address is calculated by adding that offset to the
 			address of the opcode of this tableswitch instruction.
@@ -1237,19 +1238,20 @@ struct execute_instruction {
 	loop_action operator () (instr::get_static x) {
 		if(info) {
 			tabs(); print::out("get_static ");
-			class_file::constant::field_ref field_ref
-				= c.field_ref_constant(x.index);
+			class_file::constant::field_ref field_ref_const
+				= c[x.field_ref_constant_index];
 			class_file::constant::_class _class
-				= c.class_constant(field_ref.class_index);
+				= c[field_ref_const.class_index];
 			class_file::constant::utf8
-				class_name = c.utf8_constant(_class.name_index);
+				class_name = c[_class.name_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(field_ref.name_and_type_index);
-			class_file::constant::utf8 name = c.utf8_constant(nat.name_index);
+				= c[field_ref_const.name_and_type_index];
+			class_file::constant::utf8 name = c[nat.name_index];
 			print::out(class_name, ".", name, " @", stack.size(), "\n");
 		}
 
-		optional<reference> possible_throwable = try_get_static(c, x.index);
+		optional<reference> possible_throwable
+			= try_get_static(c, x.field_ref_constant_index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.get());
 		}
@@ -1259,14 +1261,15 @@ struct execute_instruction {
 		if(info) {
 			tabs(); print::out("put_static ");
 			class_file::constant::field_ref field_ref
-				= c.field_ref_constant(x.index);
+				= c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(field_ref.name_and_type_index);
-			class_file::constant::utf8 name = c.utf8_constant(nat.name_index);
+				= c[field_ref.name_and_type_index];
+			class_file::constant::utf8 name = c[nat.name_index];
 			print::out(name, "\n");
 		}
 		
-		optional<reference> possible_throwable = try_put_static(m, x.index);
+		optional<reference> possible_throwable
+			= try_put_static(m, x.field_ref_constant_index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.get());
 		}
@@ -1276,19 +1279,17 @@ struct execute_instruction {
 	loop_action operator () (instr::get_field x) {
 		if(info) {
 			tabs(); print::out("get_field ");
-			auto field_ref = c.field_ref_constant(x.index);
+			auto field_ref = c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(field_ref.name_and_type_index);
-			class_file::constant::_class class_
-				= c.class_constant(field_ref.class_index);
-			class_file::constant::utf8 class_name
-				= c.utf8_constant(class_.name_index);
-			class_file::constant::utf8 field_name
-				= c.utf8_constant(nat.name_index);
+				= c[field_ref.name_and_type_index];
+			class_file::constant::_class class_ = c[field_ref.class_index];
+			class_file::constant::utf8 class_name = c[class_.name_index];
+			class_file::constant::utf8 field_name = c[nat.name_index];
 			print::out(class_name, ".", field_name, "\n");
 		}
 
-		optional<reference> possible_throwable = try_get_field(c, x.index);
+		optional<reference> possible_throwable
+			= try_get_field(c, x.field_ref_constant_index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
 		}
@@ -1298,18 +1299,17 @@ struct execute_instruction {
 		if(info) {
 			tabs(); print::out("put_field ");
 			class_file::constant::field_ref field_ref
-				= c.field_ref_constant(x.index);
+				= c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(field_ref.name_and_type_index);
-			class_file::constant::_class class_
-				= c.class_constant(field_ref.class_index);
-			class_file::constant::utf8 class_name
-				= c.utf8_constant(class_.name_index);
-			class_file::constant::utf8 name = c.utf8_constant(nat.name_index);
+				= c[field_ref.name_and_type_index];
+			class_file::constant::_class class_ = c[field_ref.class_index];
+			class_file::constant::utf8 class_name = c[class_.name_index];
+			class_file::constant::utf8 name = c[nat.name_index];
 			print::out(class_name, ".", name, "\n");
 		}
 
-		optional<reference> optional_throwable = try_put_field(m, x.index);
+		optional<reference> optional_throwable
+			= try_put_field(m, x.field_ref_constant_index);
 		if(optional_throwable.has_value()) {
 			return handle_thrown(move(optional_throwable.get()));
 		}
@@ -1319,24 +1319,21 @@ struct execute_instruction {
 	loop_action operator () (instr::invoke_virtual x) {
 		if(info) {
 			class_file::constant::method_ref method_ref
-				= c.method_ref_constant(x.index);
-			class_file::constant::name_and_type nat =
-					c.name_and_type_constant(method_ref.name_and_type_index);
-			class_file::constant::utf8 desc
-				= c.utf8_constant(nat.descriptor_index);
-			class_file::constant::utf8 name
-				= c.utf8_constant(nat.name_index);
+				= c[x.method_ref_constant_index];
+			class_file::constant::name_and_type nat
+				= c[method_ref.name_and_type_index];
+			class_file::constant::utf8 desc = c[nat.descriptor_index];
+			class_file::constant::utf8 name = c[nat.name_index];
 
-			class_file::constant::_class c_info
-				= c.class_constant(method_ref.class_index);
-			class_file::constant::utf8 c_name
-				= c.utf8_constant(c_info.name_index);
+			class_file::constant::_class c_info = c[method_ref.class_index];
+			class_file::constant::utf8 c_name = c[c_info.name_index];
+
 			tabs(); print::out(
 				"invoke_virtual ", c_name, ".", name, desc, "\n"
 			);
 		}
 		optional<reference> possible_throwable
-			= ::try_invoke_virtual(c, x.index);
+			= ::try_invoke_virtual(c, x.method_ref_constant_index);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
@@ -1348,27 +1345,26 @@ struct execute_instruction {
 	) {
 		if(info) {
 			c.view_method_or_interface_method_constant(
-				x.index, [&](auto method_ref) {
+				x.method_or_interface_method_ref_constant_index,
+				[&](auto method_ref) {
 					class_file::constant::name_and_type nat
-						= c.name_and_type_constant(
-							method_ref.name_and_type_index
-						);
-					class_file::constant::utf8 desc
-						= c.utf8_constant(nat.descriptor_index);
+						= c[method_ref.name_and_type_index];
+					class_file::constant::utf8 desc = c[nat.descriptor_index];
 					tabs(); print::out("invoke_special ");
 					class_file::constant::_class c_info
-						= c.class_constant(method_ref.class_index);
-					class_file::constant::utf8 c_name
-						= c.utf8_constant(c_info.name_index);
-					class_file::constant::utf8
-						name = c.utf8_constant(nat.name_index);
+						= c[method_ref.class_index];
+					class_file::constant::utf8 c_name = c[c_info.name_index];
+					class_file::constant::utf8 name = c[nat.name_index];
 					print::out(c_name, ".", name, desc, "\n");
 				}
 			);
 		}
 
 		optional<reference> possible_throwable
-			= ::try_invoke_special(c, x.index);
+			= ::try_invoke_special(
+				c,
+				x.method_or_interface_method_ref_constant_index
+			);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
@@ -1378,7 +1374,7 @@ struct execute_instruction {
 	loop_action operator () (instr::invoke_static x) {
 		if(info) {
 			c.view_method_or_interface_method_constant(
-				x.index,
+				x.method_or_interface_method_ref_constant_index,
 				[&](auto method_ref) {
 					class_file::constant::name_and_type nat
 						= c[method_ref.name_and_type_index];
@@ -1400,7 +1396,10 @@ struct execute_instruction {
 		}
 
 		optional<reference> possible_throwable
-			= ::try_invoke_static(c, x.index);
+			= ::try_invoke_static(
+				c,
+				x.method_or_interface_method_ref_constant_index
+			);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
@@ -1410,22 +1409,22 @@ struct execute_instruction {
 	loop_action operator () (instr::invoke_interface x) {
 		if(info) {
 			class_file::constant::interface_method_ref method_ref
-				= c.interface_method_ref_constant(x.index);
+				= c[x.interface_method_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(method_ref.name_and_type_index);
+				= c[method_ref.name_and_type_index];
 
-			auto name = c.utf8_constant(nat.name_index);
-			auto desc = c.utf8_constant(nat.descriptor_index);
+			auto name = c[nat.name_index];
+			auto desc = c[nat.descriptor_index];
 			class_file::constant::_class c_info
-				= c.class_constant(method_ref.class_index);
-			auto c_name = c.utf8_constant(c_info.name_index);
+				= c[method_ref.class_index];
+			auto c_name = c[c_info.name_index];
 			tabs(); print::out(
 				"invoke_interface ", c_name, ".", name, desc, "\n"
 			);
 		}
 
 		optional<reference> possible_throwable
-			= ::try_invoke_interface(c, x.index);
+			= ::try_invoke_interface(c, x.interface_method_ref_constant_index);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
@@ -1437,13 +1436,11 @@ struct execute_instruction {
 			/* The run-time constant pool entry at the index must be a symbolic
 			reference to a dynamically-computed call site (§5.1) */
 			class_file::constant::invoke_dynamic ref
-				= c.invoke_dynamic_constant(x.index);
+				= c[x.invoke_dynamic_constant_index];
 			class_file::constant::name_and_type nat
-				= c.name_and_type_constant(ref.name_and_type_index);
-			class_file::constant::utf8 name
-				= c.utf8_constant(nat.name_index);
-			class_file::constant::utf8 desc
-				= c.utf8_constant(nat.descriptor_index);
+				= c[ref.name_and_type_index];
+			class_file::constant::utf8 name = c[nat.name_index];
+			class_file::constant::utf8 desc = c[nat.descriptor_index];
 			tabs();
 			print::out(
 				"invoke_dynamic #", ref.bootstrap_method_attr_index, " ",
@@ -1452,7 +1449,7 @@ struct execute_instruction {
 		}
 
 		optional<reference> possible_throwable
-			= ::try_invoke_dynamic(c, x.index);
+			= ::try_invoke_dynamic(c, x.invoke_dynamic_constant_index);
 
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
@@ -1462,13 +1459,13 @@ struct execute_instruction {
 	loop_action operator () (instr::_new x) {
 		if(info) {
 			tabs(); print::out("new ");
-			class_file::constant::utf8 name = c.utf8_constant(
-				c.class_constant(x.index).name_index
-			);
+			class_file::constant::utf8 name = c[
+				c[x.class_constant_index].name_index
+			];
 			print::out(name, " @", stack.size(), "\n");
 		}
 		expected<::c&, reference> possible_c0
-			= c.try_get_resolved_class(x.index);
+			= c.try_get_resolved_class(x.class_constant_index);
 
 		if(possible_c0.is_unexpected()) {
 			return handle_thrown(possible_c0.move_unexpected());
@@ -1493,7 +1490,7 @@ struct execute_instruction {
 	}
 	loop_action operator () (instr::a_new_array x) {
 		expected<::c&, reference> possible_element_class
-			= c.try_get_resolved_class(x.index);
+			= c.try_get_resolved_class(x.class_constant_index);
 		
 		if(possible_element_class.is_unexpected()) {
 			return handle_thrown(possible_element_class.move_unexpected());
@@ -1540,12 +1537,13 @@ struct execute_instruction {
 	}
 	loop_action operator () (instr::check_cast x) {
 		if(info) {
-			class_file::constant::_class c_info = c[x.index];
+			class_file::constant::_class c_info = c[x.class_constant_index];
 			class_file::constant::utf8 name = c[c_info.name_index];
 			tabs();
 			print::out("check_cast ", name, "\n");
 		}
-		optional<reference> possible_throwable = ::try_check_cast(c, x.index);
+		optional<reference> possible_throwable
+			= ::try_check_cast(c, x.class_constant_index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
 		}
@@ -1553,7 +1551,7 @@ struct execute_instruction {
 	}
 	loop_action operator () (instr::instance_of x) {
 		optional<reference> possible_throwable
-			= ::try_check_instance_of(c, x.index);
+			= ::try_check_instance_of(c, x.class_constant_index);
 		if(possible_throwable.has_value()) {
 			return handle_thrown(possible_throwable.move());
 		}

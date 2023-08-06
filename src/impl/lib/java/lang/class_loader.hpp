@@ -47,7 +47,7 @@ static void init_java_lang_class_loader() {
 			return nullptr;
 		}
 
-		auto data = initialised{ posix::allocate<>(bytes.size()) };
+		auto data = posix::allocate<>(bytes.size());
 		bytes.copy_to(data);
 
 		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(

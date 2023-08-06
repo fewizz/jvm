@@ -27,12 +27,12 @@ struct blocky_memory {
 			return *this;
 		}
 
-		storage<Type>& operator * () {
-			return (*blocks_)[index_ / BlockSize].get()[index_ % BlockSize];
+		Type& operator * () {
+			return (*blocks_)[index_ / BlockSize][index_ % BlockSize];
 		}
 
-		storage<Type>& operator * () const {
-			return (*blocks_)[index_ / BlockSize].get()[index_ % BlockSize];
+		Type& operator * () const {
+			return (*blocks_)[index_ / BlockSize][index_ % BlockSize];
 		}
 
 		iterator_t& operator ++ () {
@@ -80,8 +80,8 @@ struct blocky_memory {
 	blocky_memory(blocky_memory&&) = default;
 
 	~blocky_memory() {
-		for(storage<posix::memory<Type>>& block_storage : blocks) {
-			block_storage.destruct();
+		for(posix::memory<Type>& block_storage : blocks) {
+			block_storage.~memory<Type>();
 		}
 	}
 
@@ -91,13 +91,13 @@ struct blocky_memory {
 		posix::memory<posix::memory<Type>> new_blocks
 			= posix::allocate<posix::memory<Type>>(blocks.size() + 1);
 
-		blocks.as_span().for_each_indexed(
+		blocks.for_each_indexed(
 			[&](posix::memory<Type>& m, nuint index) {
-				new_blocks[index].construct(move(m));
+				new (&new_blocks[index]) posix::memory<Type>(move(m));
 			}
 		);
 
-		new_blocks[new_blocks.size() - 1].construct(
+		new (&new_blocks[new_blocks.size() - 1]) posix::memory<Type>(
 			posix::allocate<Type>(BlockSize)
 		);
 

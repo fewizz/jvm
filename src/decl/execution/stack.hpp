@@ -29,7 +29,7 @@ thread_local static class stack :
 	bool is_reference_at(nuint index) const {
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		uint64& bitmap = reference_bits_[bitmap_index].get();
+		uint64& bitmap = reference_bits_[bitmap_index];
 		return (bitmap >> bit_index) & 1;
 	}
 
@@ -58,7 +58,7 @@ thread_local static class stack :
 	void mark_reference(nuint index) {
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		uint64& bitmap = reference_bits_[bitmap_index].get();
+		uint64& bitmap = reference_bits_[bitmap_index];
 		bitmap |= (uint64(1) << bit_index);
 	}
 
@@ -67,7 +67,7 @@ thread_local static class stack :
 
 		nuint bitmap_index = index / 64;
 		nuint bit_index = index % 64;
-		uint64& bitmap = reference_bits_[bitmap_index].get();
+		uint64& bitmap = reference_bits_[bitmap_index];
 		bitmap &= ~(uint64(1) << bit_index);
 	}
 

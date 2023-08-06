@@ -33,7 +33,7 @@ inline expected<reference, reference> c::try_get_resolved_method_handle(
 
 	/* Let MH be the symbolic reference to a method handle (§5.1)
 	   being resolved. Also: */
-	class_file::constant::method_handle mh = method_handle_constant(index);
+	class_file::constant::method_handle mh = (*this)[index];
 
 	/* * Let R be the symbolic reference to the field or method contained within
 	     MH. R is derived from the CONSTANT_Fieldref, CONSTANT_Methodref, or

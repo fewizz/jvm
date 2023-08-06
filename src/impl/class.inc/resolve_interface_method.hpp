@@ -120,9 +120,9 @@ inline expected<method&, reference> c::try_resolve_interface_method(
 
 	c& c = possible_c.get_expected();
 
-	auto nat = name_and_type_constant(ref.name_and_type_index);
-	auto name = utf8_constant(nat.name_index);
-	auto descriptor = utf8_constant(nat.descriptor_index);
+	auto nat = (*this)[ref.name_and_type_index];
+	auto name = (*this)[nat.name_index];
+	auto descriptor = (*this)[nat.descriptor_index];
 
 	return ::try_resolve_interface_method(*this, c, name, descriptor);
 }

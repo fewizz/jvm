@@ -50,10 +50,7 @@ static inline expected<reference, reference> try_create_array_by_class(
 	reference ref = possible_ref.move_expected();
 
 	array_length(ref, length);
-	span<storage<Type>> data =
-		posix::allocate_raw_zeroed<Type>(
-			length
-		);
+	span<Type> data = posix::allocate_raw_zeroed<Type>(length);
 
 	int64 ptr = (int64) data.iterator();
 

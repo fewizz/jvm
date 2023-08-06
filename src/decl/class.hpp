@@ -21,7 +21,7 @@
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
-struct class_data_t : list<blocky_memory<posix::memory<>, 16>> {
+struct class_data : list<blocky_memory<posix::memory<>, 16>> {
 	using list::list;
 };
 
@@ -38,7 +38,7 @@ private:
 	// mutable
 	optional<c&> super_;
 
-	::class_data_t data_;
+	::class_data data_;
 	const class_file::access_flags access_flags_;
 	const class_file::constant::utf8 name_;
 	const class_file::constant::utf8 descriptor_;
@@ -85,7 +85,7 @@ public:
 	c(
 		constants&&,
 		bootstrap_methods&&,
-		class_data_t bytes,
+		class_data bytes,
 		class_file::access_flags,
 		class_file::constant::utf8 name,
 		class_file::constant::utf8 descriptor,
@@ -344,8 +344,7 @@ public:
 	[[nodiscard]] expected<method&, reference> try_resolve_method(
 		class_file::constant::method_ref_index index
 	) {
-		class_file::constant::method_ref method_ref
-			= method_ref_constant(index);
+		class_file::constant::method_ref method_ref = (*this)[index];
 		return try_resolve_method(method_ref);
 	}
 
@@ -357,7 +356,7 @@ public:
 		class_file::constant::interface_method_ref_index index
 	) {
 		class_file::constant::interface_method_ref method_ref
-			= interface_method_ref_constant(index);
+			= (*this)[index];
 		return try_resolve_interface_method(method_ref);
 	}
 
@@ -368,8 +367,7 @@ public:
 	[[nodiscard]] expected<field&, reference> try_resolve_field(
 		class_file::constant::field_ref_index index
 	) {
-		class_file::constant::field_ref field_ref
-			= field_ref_constant(index);
+		class_file::constant::field_ref field_ref = (*this)[index];
 		return try_resolve_field(field_ref);
 	}
 

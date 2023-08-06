@@ -2,6 +2,7 @@
 
 #include "decl/classes.hpp"
 #include "decl/native/environment.hpp"
+#include "decl/lib/java/lang/invoke/method_handle.hpp"
 
 #include <optional.hpp>
 
@@ -29,11 +30,11 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 		(void*)+[](
 			native_environment*,
 			[[maybe_unused]] object* caller,
-			[[maybe_unused]] object* interfaceMethodName,
-			[[maybe_unused]] object* factoryType,
-			[[maybe_unused]] object* interfaceMethodType,
-			[[maybe_unused]] object* implementation,
-			[[maybe_unused]] object* dynamicMethodType
+			[[maybe_unused]] j::string* interfaceMethodName,
+			[[maybe_unused]] j::method_type* factoryType,
+			[[maybe_unused]] j::method_type* interfaceMethodType,
+			[[maybe_unused]] j::method_handle* implementation,
+			[[maybe_unused]] j::method_type* dynamicMethodType
 		) {
 			posix::abort();
 		}

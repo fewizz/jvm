@@ -21,15 +21,14 @@ tuple<field, Iterator> read_field(
 	};
 	auto it = attributes_reader.read_and_get_advanced_iterator(
 		[&](auto name_index) {
-			return const_pool.utf8_constant(name_index);
+			return const_pool[name_index];
 		},
 		[&]<typename Type>(Type) {
 		}
 	);
-	class_file::constant::utf8 name =
-		const_pool.utf8_constant(name_index);
-	class_file::constant::utf8 descriptor =
-		const_pool.utf8_constant(descriptor_index);
+
+	class_file::constant::utf8 name = const_pool[name_index];
+	class_file::constant::utf8 descriptor = const_pool[descriptor_index];
 
 	return {
 		{ access_flags, name, descriptor },

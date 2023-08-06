@@ -125,7 +125,7 @@ public:
 	}
 
 	parameters_count parameters_count() {
-		auto count = parameter_types_.size();
+		auto count = range_size(parameter_types_);
 		return ::parameters_count{ (uint8) count };
 	}
 
@@ -185,6 +185,8 @@ struct static_method : method {
 };
 
 struct instance_method : method {
+	using method::method;
+	instance_method(method&& m) : method{ move(m) } {}
 };
 
 #include <types.hpp>

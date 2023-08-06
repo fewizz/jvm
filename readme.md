@@ -1,8 +1,11 @@
-simple jvm, interpreter. compiles from one TU.
+simple java virtual machine, interpreter
 
 ## compilation
 requires:
 * `clang`, `javac`, `lld`
-* projects in parent directory: `core`, `encoding`, `class-file`
+* projects in a parent directory: `core`, `posix-wrapper`, `class-file`, `encoding`, `print`
 
-command: `compile.sh`
+scripts:
+* `compile_jvm.sh` - compiles jvm
+* `compile_liv.sh` - compiles std library
+* `compile.sh` - both

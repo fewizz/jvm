@@ -15,22 +15,18 @@ using trampoline = optional<
 	instance_method_index, instance_field_index
 >;
 
-struct trampolines :
-	protected initialised<posix::memory<trampoline>>
-{
+struct trampolines : protected initialised<posix::memory<trampoline>> {
 	using base_type = initialised<posix::memory<trampoline>>;
 
 	trampolines(uint16 count) :
 		base_type ( [&] {
 			auto uninitialised = posix::allocate<::trampoline>(count);
-			for(storage<::trampoline>& s : uninitialised) {
-				s.construct<::trampoline>(::trampoline{});
+			for(::trampoline& t : uninitialised) {
+				new (&t) ::trampoline();
 			}
 			return initialised{ move(uninitialised) };
 		}() )
 	{}
-
-	using base_type::size;
 
 	const ::trampoline& trampoline(uint16 index) const {
 		return base_type::operator [] (index - 1);
