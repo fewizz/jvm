@@ -112,7 +112,7 @@ inline expected<method&, reference> c::try_resolve_interface_method(
 	   method in an interface C, the symbolic reference to C given by the
 	   interface method reference is first resolved (§5.4.3.1). */
 	expected<c&, reference> possible_c
-		= try_get_resolved_class(ref.class_index);
+		= try_get_resolved_class(ref.class_constant_index);
 
 	if(possible_c.is_unexpected()) {
 		return unexpected{ possible_c.get_unexpected() };
@@ -120,9 +120,9 @@ inline expected<method&, reference> c::try_resolve_interface_method(
 
 	c& c = possible_c.get_expected();
 
-	auto nat = (*this)[ref.name_and_type_index];
-	auto name = (*this)[nat.name_index];
-	auto descriptor = (*this)[nat.descriptor_index];
+	auto nat = (*this)[ref.name_and_type_constant_index];
+	auto name = (*this)[nat.name_constant_index];
+	auto descriptor = (*this)[nat.descriptor_constant_index];
 
 	return ::try_resolve_interface_method(*this, c, name, descriptor);
 }

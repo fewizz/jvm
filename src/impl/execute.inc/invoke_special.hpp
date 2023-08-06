@@ -109,9 +109,10 @@
 			ref_index,
 			[&](auto index) -> class_file::constant::utf8 {
 				auto reference = current_c[index];
-				class_file::constant::class_index ci = reference.class_index;
+				class_file::constant::class_index ci
+					= reference.class_constant_index;
 				class_file::constant::_class c = current_c[ci];
-				return current_c[c.name_index];
+				return current_c[c.name_constant_index];
 			}
 		);
 

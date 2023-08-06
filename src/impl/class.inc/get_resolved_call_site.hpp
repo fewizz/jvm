@@ -56,11 +56,11 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	/* 2. If R is a symbolic reference to a dynamically-computed call site, then
 	      it gives a method descriptor. */
 	class_file::constant::name_and_type nat
-		= (*this)[invoke_dynamic.name_and_type_index];
+		= (*this)[invoke_dynamic.name_and_type_constant_index];
 	class_file::constant::utf8 descriptor
-		= (*this)[nat.descriptor_index];
+		= (*this)[nat.descriptor_constant_index];
 	[[maybe_unused]] class_file::constant::utf8 name
-		= (*this)[nat.name_index];
+		= (*this)[nat.name_constant_index];
 
 	/* A reference to an instance of java.lang.invoke.MethodType is obtained, as
 	   if by resolution of an unresolved symbolic reference to a method type
@@ -134,7 +134,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 	for(class_file::constant::index index : bm.arguments_indices) {
 		reference thrown{};
 
-		constant(index).view([&]<typename Type>(Type v) {
+		(*this)[index].view([&]<typename Type>(Type v) {
 			/* If A is a string constant, then a reference to its instance of
 			   class String is obtained. */
 			if constexpr(same_as<Type, class_file::constant::string>) {
@@ -155,7 +155,7 @@ inline expected<reference, reference> c::try_get_resolved_call_site(
 			else if constexpr(same_as<Type, class_file::constant::method_type>)
 			{
 				class_file::constant::utf8 descriptor
-					= (*this)[v.descriptor_index];
+					= (*this)[v.descriptor_constant_index];
 				expected<reference, reference> possible_mt
 					= try_resolve_method_type(*this, descriptor);
 				

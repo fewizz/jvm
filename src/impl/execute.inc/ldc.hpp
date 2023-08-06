@@ -11,7 +11,7 @@ inline optional<reference> try_ldc(
 		tabs();
 		print::out("ldc ", (uint8) const_index, "\n");
 	}
-	constant constant = c.constant(const_index);
+	constant constant = c[const_index];
 	if(constant.is_same_as<class_file::constant::_int>()) {
 		stack.emplace_back(int32 {
 			constant.get_same_as<class_file::constant::_int>().value
@@ -60,7 +60,7 @@ inline void ldc_2_w(
 		tabs();
 		print::out("ldc_2_w ", (uint16) const_index, "\n");
 	}
-	constant constant = c.constant(const_index);
+	constant constant = c[const_index];
 	if(constant.is_same_as<class_file::constant::_long>()) {
 		stack.emplace_back(int64 {
 			constant.get_same_as<class_file::constant::_long>().value

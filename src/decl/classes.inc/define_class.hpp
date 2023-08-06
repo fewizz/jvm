@@ -103,12 +103,12 @@ expected<c&, reference> classes::try_define_class(
 	optional<c&> super;
 
 	if(super_class_index > 0) {
-		class_file::constant::_class super_class_constant {
-			const_pool[super_class_index]
-		};
-		class_file::constant::utf8 super_class_name {
-			const_pool[super_class_constant.name_index]
-		};
+		class_file::constant::_class super_class_constant
+			= const_pool[super_class_index];
+
+		class_file::constant::name super_class_name
+			= const_pool[super_class_constant.name_constant_index];
+
 		expected<c&, reference> possible_super_class
 			= try_load_non_array_class(
 				super_class_name, defining_loader
@@ -136,8 +136,8 @@ expected<c&, reference> classes::try_define_class(
 			}
 
 			class_file::constant::_class c = const_pool[interface_index];
-			class_file::constant::utf8 interface_name
-				= const_pool[c.name_index];
+			class_file::constant::name interface_name
+				= const_pool[c.name_constant_index];
 			expected<::c&, reference> possible_interface
 				= try_load_non_array_class(
 					interface_name, defining_loader
@@ -262,17 +262,17 @@ expected<c&, reference> classes::try_define_class(
 	class_file::constant::_class this_class_constant {
 		const_pool[this_class_constant_index]
 	};
-	class_file::constant::utf8 name_utf8 {
-		const_pool[this_class_constant.name_index]
+	class_file::constant::name this_class_name {
+		const_pool[this_class_constant.name_constant_index]
 	};
 
 	class_data data{};
 	data.emplace_back(move(bytes));
-	data.emplace_back(posix::allocate(name_utf8.size() + 2));
-	name_utf8.copy_to(
+	data.emplace_back(posix::allocate(this_class_name.size() + 2));
+	this_class_name.copy_to(
 		span {
 			data[1].as_span().iterator() + 1,
-			name_utf8.size()
+			this_class_name.size()
 		}
 	);
 	data[1][0] = u8'L';
@@ -290,7 +290,7 @@ expected<c&, reference> classes::try_define_class(
 		move(bootstrap_methods),
 		move(data),
 		access_flags,
-		name_utf8,
+		this_class_name,
 		descriptor,
 		source_file,
 		super,

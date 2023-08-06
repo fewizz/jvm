@@ -1241,12 +1241,12 @@ struct execute_instruction {
 			class_file::constant::field_ref field_ref_const
 				= c[x.field_ref_constant_index];
 			class_file::constant::_class _class
-				= c[field_ref_const.class_index];
+				= c[field_ref_const.class_constant_index];
 			class_file::constant::utf8
-				class_name = c[_class.name_index];
+				class_name = c[_class.name_constant_index];
 			class_file::constant::name_and_type nat
-				= c[field_ref_const.name_and_type_index];
-			class_file::constant::utf8 name = c[nat.name_index];
+				= c[field_ref_const.name_and_type_constant_index];
+			class_file::constant::utf8 name = c[nat.name_constant_index];
 			print::out(class_name, ".", name, " @", stack.size(), "\n");
 		}
 
@@ -1263,8 +1263,8 @@ struct execute_instruction {
 			class_file::constant::field_ref field_ref
 				= c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c[field_ref.name_and_type_index];
-			class_file::constant::utf8 name = c[nat.name_index];
+				= c[field_ref.name_and_type_constant_index];
+			class_file::constant::utf8 name = c[nat.name_constant_index];
 			print::out(name, "\n");
 		}
 		
@@ -1281,10 +1281,13 @@ struct execute_instruction {
 			tabs(); print::out("get_field ");
 			auto field_ref = c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c[field_ref.name_and_type_index];
-			class_file::constant::_class class_ = c[field_ref.class_index];
-			class_file::constant::utf8 class_name = c[class_.name_index];
-			class_file::constant::utf8 field_name = c[nat.name_index];
+				= c[field_ref.name_and_type_constant_index];
+			class_file::constant::_class class_
+				= c[field_ref.class_constant_index];
+			class_file::constant::utf8 class_name
+				= c[class_.name_constant_index];
+			class_file::constant::utf8 field_name
+				= c[nat.name_constant_index];
 			print::out(class_name, ".", field_name, "\n");
 		}
 
@@ -1301,10 +1304,13 @@ struct execute_instruction {
 			class_file::constant::field_ref field_ref
 				= c[x.field_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c[field_ref.name_and_type_index];
-			class_file::constant::_class class_ = c[field_ref.class_index];
-			class_file::constant::utf8 class_name = c[class_.name_index];
-			class_file::constant::utf8 name = c[nat.name_index];
+				= c[field_ref.name_and_type_constant_index];
+			class_file::constant::_class class_
+				= c[field_ref.class_constant_index];
+			class_file::constant::utf8 class_name
+				= c[class_.name_constant_index];
+			class_file::constant::utf8 name
+				= c[nat.name_constant_index];
 			print::out(class_name, ".", name, "\n");
 		}
 
@@ -1321,12 +1327,14 @@ struct execute_instruction {
 			class_file::constant::method_ref method_ref
 				= c[x.method_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c[method_ref.name_and_type_index];
-			class_file::constant::utf8 desc = c[nat.descriptor_index];
-			class_file::constant::utf8 name = c[nat.name_index];
+				= c[method_ref.name_and_type_constant_index];
+			class_file::constant::utf8 desc = c[nat.descriptor_constant_index];
+			class_file::constant::utf8 name = c[nat.name_constant_index];
 
-			class_file::constant::_class c_info = c[method_ref.class_index];
-			class_file::constant::utf8 c_name = c[c_info.name_index];
+			class_file::constant::_class c_info
+				= c[method_ref.class_constant_index];
+			class_file::constant::utf8 c_name
+				= c[c_info.name_constant_index];
 
 			tabs(); print::out(
 				"invoke_virtual ", c_name, ".", name, desc, "\n"
@@ -1347,14 +1355,17 @@ struct execute_instruction {
 			c.view_method_or_interface_method_constant(
 				x.method_or_interface_method_ref_constant_index,
 				[&](auto method_ref) {
-					class_file::constant::name_and_type nat
-						= c[method_ref.name_and_type_index];
-					class_file::constant::utf8 desc = c[nat.descriptor_index];
 					tabs(); print::out("invoke_special ");
+					class_file::constant::name_and_type nat
+						= c[method_ref.name_and_type_constant_index];
+					class_file::constant::utf8 desc
+						= c[nat.descriptor_constant_index];
 					class_file::constant::_class c_info
-						= c[method_ref.class_index];
-					class_file::constant::utf8 c_name = c[c_info.name_index];
-					class_file::constant::utf8 name = c[nat.name_index];
+						= c[method_ref.class_constant_index];
+					class_file::constant::utf8 c_name
+						= c[c_info.name_constant_index];
+					class_file::constant::utf8 name
+						= c[nat.name_constant_index];
 					print::out(c_name, ".", name, desc, "\n");
 				}
 			);
@@ -1376,18 +1387,18 @@ struct execute_instruction {
 			c.view_method_or_interface_method_constant(
 				x.method_or_interface_method_ref_constant_index,
 				[&](auto method_ref) {
-					class_file::constant::name_and_type nat
-						= c[method_ref.name_and_type_index];
-
-					class_file::constant::utf8 desc = c[nat.descriptor_index];
-
 					tabs(); print::out("invoke_static ");
 
+					class_file::constant::name_and_type nat
+						= c[method_ref.name_and_type_constant_index];
+					class_file::constant::utf8 desc
+						= c[nat.descriptor_constant_index];
 					class_file::constant::_class c_info
-						= c[method_ref.class_index];
-					class_file::constant::utf8 c_name = c[c_info.name_index];
-
-					class_file::constant::utf8 name = c[nat.name_index];
+						= c[method_ref.class_constant_index];
+					class_file::constant::utf8 c_name
+						= c[c_info.name_constant_index];
+					class_file::constant::utf8 name
+						= c[nat.name_constant_index];
 
 					print::out(c_name, ".", name, desc, "\n");
 				}
@@ -1411,13 +1422,13 @@ struct execute_instruction {
 			class_file::constant::interface_method_ref method_ref
 				= c[x.interface_method_ref_constant_index];
 			class_file::constant::name_and_type nat
-				= c[method_ref.name_and_type_index];
+				= c[method_ref.name_and_type_constant_index];
 
-			auto name = c[nat.name_index];
-			auto desc = c[nat.descriptor_index];
+			auto name = c[nat.name_constant_index];
+			auto desc = c[nat.descriptor_constant_index];
 			class_file::constant::_class c_info
-				= c[method_ref.class_index];
-			auto c_name = c[c_info.name_index];
+				= c[method_ref.class_constant_index];
+			auto c_name = c[c_info.name_constant_index];
 			tabs(); print::out(
 				"invoke_interface ", c_name, ".", name, desc, "\n"
 			);
@@ -1438,9 +1449,9 @@ struct execute_instruction {
 			class_file::constant::invoke_dynamic ref
 				= c[x.invoke_dynamic_constant_index];
 			class_file::constant::name_and_type nat
-				= c[ref.name_and_type_index];
-			class_file::constant::utf8 name = c[nat.name_index];
-			class_file::constant::utf8 desc = c[nat.descriptor_index];
+				= c[ref.name_and_type_constant_index];
+			class_file::constant::utf8 name = c[nat.name_constant_index];
+			class_file::constant::utf8 desc = c[nat.descriptor_constant_index];
 			tabs();
 			print::out(
 				"invoke_dynamic #", ref.bootstrap_method_attr_index, " ",
@@ -1460,7 +1471,7 @@ struct execute_instruction {
 		if(info) {
 			tabs(); print::out("new ");
 			class_file::constant::utf8 name = c[
-				c[x.class_constant_index].name_index
+				c[x.class_constant_index].name_constant_index
 			];
 			print::out(name, " @", stack.size(), "\n");
 		}
@@ -1538,7 +1549,7 @@ struct execute_instruction {
 	loop_action operator () (instr::check_cast x) {
 		if(info) {
 			class_file::constant::_class c_info = c[x.class_constant_index];
-			class_file::constant::utf8 name = c[c_info.name_index];
+			class_file::constant::utf8 name = c[c_info.name_constant_index];
 			tabs();
 			print::out("check_cast ", name, "\n");
 		}

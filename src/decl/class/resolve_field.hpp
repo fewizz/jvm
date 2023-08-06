@@ -86,8 +86,8 @@
 [[nodiscard]] inline expected<field&, reference> c::try_resolve_field(
 	class_file::constant::field_ref ref
 ) {
-	class_file::constant::_class c0 = (*this)[ref.class_index];
-	class_file::constant::utf8 class_name = (*this)[c0.name_index];
+	class_file::constant::_class c0 = (*this)[ref.class_constant_index];
+	class_file::constant::utf8 class_name = (*this)[c0.name_constant_index];
 	expected<c&, reference> possible_c
 		= try_resolve_class(*this, class_name);
 	if(possible_c.is_unexpected()) {
@@ -97,9 +97,9 @@
 	c& c = possible_c.get_expected();
 
 	class_file::constant::name_and_type nat
-		= (*this)[ref.name_and_type_index];
-	class_file::constant::utf8 name = (*this)[nat.name_index];
-	class_file::constant::utf8 desc = (*this)[nat.descriptor_index];
+		= (*this)[ref.name_and_type_constant_index];
+	class_file::constant::utf8 name = (*this)[nat.name_constant_index];
+	class_file::constant::utf8 desc = (*this)[nat.descriptor_constant_index];
 
 	return ::try_resolve_field(*this, c, name, desc);
 }

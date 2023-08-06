@@ -40,7 +40,7 @@ inline expected<reference, reference> c::try_get_resolved_method_handle(
 	     CONSTANT_InterfaceMethodref structure referred to by the
 	     reference_index item of the CONSTANT_MethodHandle from which MH is
 	     derived.*/
-	class_file::constant::index r = mh.reference_index;
+	class_file::constant::index r = mh.reference_constant_index;
 
 	using behavior_kind = class_file::constant::method_handle::behavior_kind;
 

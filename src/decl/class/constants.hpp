@@ -31,10 +31,10 @@ struct constants : initialised<posix::memory<constant>> {
 	using base_type = initialised<posix::memory<constant>>;
 	using base_type::base_type;
 
+private:
 	const ::constant& constant(class_file::constant::index index) const {
 		return base_type::operator [] (index - 1);
 	}
-
 	::constant& constant(class_file::constant::index index) {
 		return base_type::operator [] (index - 1);
 	}
@@ -45,8 +45,20 @@ struct constants : initialised<posix::memory<constant>> {
 		return entry.get_same_as<Type>();
 	}
 
+public:
+
+	const ::constant& operator [] (class_file::constant::index index) const {
+		return constant(index);
+	}
+
 	auto operator [] (class_file::constant::utf8_index index) const {
 		return constant<class_file::constant::utf8>(index);
+	}
+
+	auto operator [] (class_file::constant::name_index index) const {
+		return class_file::constant::name {
+			constant<class_file::constant::utf8>(index)
+		};
 	}
 
 	auto operator [] (class_file::constant::int_index index) const {

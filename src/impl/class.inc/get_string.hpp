@@ -23,7 +23,7 @@ inline expected<reference, reference> c::try_get_string(
 	}
 
 	class_file::constant::string string = (*this)[string_index];
-	class_file::constant::utf8 text_utf8 = (*this)[string.utf8_index];
+	class_file::constant::utf8 text_utf8 = (*this)[string.utf8_constant_index];
 
 	expected<::reference, ::reference> possible_utf16_string_ref
 		= try_create_string_from_utf8(text_utf8);
