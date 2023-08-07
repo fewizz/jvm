@@ -89,7 +89,7 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 	// TODO
 	return view_on_stack<char>(args_count)([&](span<char> s)
 	-> optional<reference> {
-		auto t0_params = s.transform_view([](auto) -> ::c& {
+		auto t0_params = s.transform_view([](auto&) -> ::c& {
 			return object_class.get();
 		});
 
@@ -101,6 +101,5 @@ j::method_handle::try_invoke_with_arguments(object& params_array) {
 
 		j::method_handle& t1_mh = *this;
 		return mh::try_invoke_unchecked(t0_params, t0_ret, t1_mh);
-	}
-	);
+	});
 }
