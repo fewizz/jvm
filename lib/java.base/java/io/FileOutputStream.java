@@ -2,10 +2,10 @@ package java.io;
 
 public class FileOutputStream extends OutputStream {
 
-	private final int fd_value_;
+	private final int fd_;
 
 	public FileOutputStream(FileDescriptor fdObj) {
-		this.fd_value_ = fdObj.value_;
+		this.fd_ = fdObj.value_;
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class FileOutputStream extends OutputStream {
 	native public void close() throws IOException;
 
 	public final FileDescriptor getFD() throws IOException {
-		return new FileDescriptor(fd_value_);
+		return new FileDescriptor(fd_);
 	}
 
 }

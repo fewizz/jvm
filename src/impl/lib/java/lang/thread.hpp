@@ -79,4 +79,16 @@ inline void init_java_lang_thread() {
 
 		posix::create_thread(thread_start, ref[0]);
 	});
+
+	thread_class->declared_static_methods().find(
+		c_string{ u8"sleep" }, c_string{ u8"(J)V" }
+	).native_function((void*)+ [](native_environment*, int64 millis) {
+		posix::nanosleep(
+			posix::seconds_and_nanoseconds {
+				.seconds = (millis / 1'000ll),
+				.nanoseconds = (millis % 1'000) * 1'000'000ll
+			},
+			[](auto){ posix::abort(); }
+		);
+	});
 }

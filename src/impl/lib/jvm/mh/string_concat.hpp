@@ -32,48 +32,88 @@ static void init_jvm_mh_string_concat() {
 
 			nuint beginning
 				= stack.size() - ths.method_type().compute_args_stack_size();
-			nuint arg_index = beginning;
+			nuint arg_index = 0;
+			nuint arg_stack_beginning = beginning;
 
 			recipe.for_each_utf16_unit([&](utf16::unit unit) {
 				if(unit == 1) {
-					reference& ref = stack.get<reference>(arg_index++);
-					if(ref.c().is_not(j::string::c.get())) {
-						posix::abort();
-					}
-					j::string& str = (j::string&) ref.object();
-					size += str.length_utf16_units();
+					ths.method_type().parameter_types_view()[arg_index++]
+					.view_non_void_raw_type([&]<typename Type> {
+						if constexpr(same_as<Type, reference>) {
+							reference& ref = stack.get<reference>(
+								arg_stack_beginning
+							);
+							if(ref.c().is_not(j::string::c.get())) {
+								posix::abort();
+							}
+							j::string& str = (j::string&) ref.object();
+							size += str.length_utf16_units();
+							++arg_stack_beginning;
+						}
+						else if constexpr(same_as<Type, int32>) {
+							int32 val = stack.get<int32>(arg_stack_beginning);
+							if(val < 0) {
+								++size;
+							}
+							number{ val }.for_each_digit(10, [&](auto) {
+								++size;
+							});
+							++arg_stack_beginning;
+						}
+						else {
+							posix::abort();
+						}
+					});
 					return;
 				}
 				if(unit == 2) {
 					posix::abort();
 					return;
 				}
-
 				size += 1;
 			});
 
 			utf16::unit string_data_raw[size];
 			span<utf16::unit> string_data{ string_data_raw, size };
 			nuint written = 0;
-			arg_index = beginning;
+			arg_index = 0;
+			arg_stack_beginning = beginning;
 
 			recipe.for_each_utf16_unit([&](utf16::unit unit) {
 				if(unit == 1) {
-					reference& ref = stack.get<reference>(arg_index++);
-					if(ref.c().is_not(j::string::c.get())) {
-						posix::abort();
-					}
-					j::string& str = (j::string&) ref.object();
-					
-					str.as_utf16_units_span().copy_to(
-						iterator_and_sentinel {
-							string_data_raw + written,
-							string_data_raw + size
-						}.as_range()
-					);
-
-					written += str.as_utf16_units_span().size();
-
+					ths.method_type().parameter_types_view()[arg_index++]
+					.view_non_void_raw_type([&]<typename Type> {
+						if constexpr(same_as<Type, reference>) {
+							reference& ref = stack.get<reference>(
+								arg_stack_beginning
+							);
+							if(ref.c().is_not(j::string::c.get())) {
+								posix::abort();
+							}
+							j::string& str = (j::string&) ref.object();
+							str.as_utf16_units_span().copy_to(
+								iterator_and_sentinel {
+									string_data_raw + written,
+									string_data_raw + size
+								}.as_range()
+							);
+							written += str.as_utf16_units_span().size();
+							++arg_stack_beginning;
+						}
+						else if constexpr(same_as<Type, int32>) {
+							int32 val = stack.get<int32>(arg_stack_beginning);
+							if(val < 0) {
+								string_data_raw[written++] = '-';
+							}
+							number{ val }.for_each_digit(10, [&](auto digit) {
+								string_data_raw[written++] = '0' + digit;
+							});
+							++arg_stack_beginning;
+						}
+						else {
+							posix::abort();
+						}
+					});
 					return;
 				}
 				if(unit == 2) {

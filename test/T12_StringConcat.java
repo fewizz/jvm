@@ -8,6 +8,12 @@ public class T12_StringConcat {
 		if(!res.equals("Hello world!")) {
 			System.exit(1);
 		}
+
+		int value = 42;
+		String withNumbers = res + value;
+		if(!withNumbers.equals("Hello world!42")) {
+			System.exit(1);
+		}
 	}
 
 }

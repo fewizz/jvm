@@ -7,6 +7,8 @@ public class Thread implements Runnable {
 		this.runnable_ = runnable;
 	}
 
+	native public static void sleep(long millis) throws InterruptedException;
+
 	public native void start();
 
 	@Override

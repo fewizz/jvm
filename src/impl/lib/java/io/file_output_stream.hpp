@@ -14,7 +14,7 @@ static inline void init_java_io_file_output_stream() {
 
 	file_output_stream_fd_field_position =
 		file_output_stream_class.instance_field_position(
-			c_string{ u8"fd_value_" }, c_string{ u8"I" }
+			c_string{ u8"fd_" }, c_string{ u8"I" }
 		);
 
 	file_output_stream_class.declared_instance_methods().find(

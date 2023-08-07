@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./java/io/file_descriptor.hpp"
+#include "./java/io/file_input_stream.hpp"
 #include "./java/io/file_output_stream.hpp"
 #include "./java/io/serializable.hpp"
 #include "./java/lang/invoke/call_site.hpp"
@@ -61,6 +62,7 @@
 
 static inline void init_lib() {
 	init_java_io_file_descriptor();
+	init_java_io_file_input_stream();
 	init_java_io_file_output_stream();
 	init_java_io_serializable();
 	init_java_lang_invoke_call_site();

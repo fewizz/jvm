@@ -49,7 +49,7 @@ public:
 		return try_find_index_of(
 			forward<Name>(name), forward<Descriptor>(descriptor)
 		).if_has_no_value([&] {
-			print::err("couldn't find class member with name \"", name, "\"");
+			print::err("couldn't find class member with name \"", name, "\"\n");
 			posix::abort();
 		}).get();
 	}
@@ -63,7 +63,7 @@ public:
 	IndexType find_index_of(auto& value) {
 		optional<IndexType> possible = try_find_index_of(value);
 		if(possible.has_no_value()) {
-			print::err("couldn't find class member");
+			print::err("couldn't find class member\n");
 			posix::abort();
 		}
 		return possible.get();

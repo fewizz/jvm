@@ -2,10 +2,15 @@ package java.lang;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.PrintStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 
 public final class System {
+
+	public static final InputStream in
+		= new FileInputStream(FileDescriptor.in);
 
 	public static final PrintStream out = new PrintStream(
 		new FileOutputStream(FileDescriptor.out), Charset.defaultCharset()
