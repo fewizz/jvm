@@ -1,3 +1,5 @@
+package mh;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandle;
@@ -10,7 +12,7 @@ public class AsType {
 
 	public static void main(String... args) throws Throwable {
 
-		MethodHandle mh = MethodHandles.publicLookup().findStatic(
+		MethodHandle mh = MethodHandles.lookup().findStatic(
 			AsType.class,
 			"f",
 			MethodType.methodType(
@@ -30,7 +32,7 @@ public class AsType {
 			Integer.valueOf(1), (short) 2, 3
 		);
 
-		int resultShouldBe = (float)(1 + 2 + (int)(float)3);
+		float resultShouldBe = (float)(1 + 2 + (int)(float)3);
 
 		if(result != resultShouldBe) {
 			System.exit(1);
@@ -41,8 +43,6 @@ public class AsType {
 		if(result != resultShouldBe) {
 			System.exit(2);
 		}
-
-
 
 	}
 

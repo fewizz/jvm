@@ -18,8 +18,9 @@ concept stack_primitive_element =
 thread_local static class stack :
 	list<posix::memory<storage_of_size_and_alignment_same_as<uint64>>>
 {
+	using storage_type = storage_of_size_and_alignment_same_as<uint64>;
 	using base_type = list<
-		posix::memory<storage_of_size_and_alignment_same_as<uint64>>
+		posix::memory<storage_type>
 	>;
 
 	using base_type::base_type;
@@ -35,23 +36,23 @@ thread_local static class stack :
 
 	template<typename Handler>
 	decltype(auto)
-	view_as_int32_or_reference_at(nuint index, Handler&& handler) {
+	view_as_reference_or_storage_at(nuint index, Handler&& handler) {
 		if(is_reference_at(index)) {
 			return handler(get<reference>(index));
 		}
 		else {
-			return handler(get<int32>(index));
+			return handler(base_type::operator [] (index));
 		}
 	}
 
 	template<typename Handler>
 	decltype(auto)
-	pop_back_and_view_as_int32_or_reference(Handler&& handler) {
+	pop_back_and_view_as_reference_or_storage(Handler&& handler) {
 		if(is_reference_at(size() - 1)) {
 			return handler(pop_back<reference>());
 		}
 		else {
-			return handler(pop_back<int32>());
+			return handler(base_type::pop_back());
 		}
 	}
 
@@ -118,6 +119,12 @@ public:
 			--n;
 		}
 	}
+
+private:
+	void emplace_back(storage_type s) {
+		base_type::emplace_back(s);
+	}
+public:
 
 	void emplace_back(reference ref) {
 		base_type::emplace_back().construct<reference>(move(ref));
@@ -220,14 +227,14 @@ public:
 	bool pop_back() { return (bool) pop_back<int32>(); }
 
 	void dup_cat_1() {
-		view_as_int32_or_reference_at(size() - 1, [&](auto& value) {
+		view_as_reference_or_storage_at(size() - 1, [&](auto& value) {
 			emplace_back(value);
 		});
 	}
 
 	void dup2() {
-		view_as_int32_or_reference_at(size() - 2, [&](auto& value2) {
-			view_as_int32_or_reference_at(size() - 1, [&](auto& value1) {
+		view_as_reference_or_storage_at(size() - 2, [&](auto& value2) {
+			view_as_reference_or_storage_at(size() - 1, [&](auto& value1) {
 				emplace_back(value2);
 				emplace_back(value1);
 			});
@@ -235,17 +242,17 @@ public:
 	}
 
 	void swap_cat_1() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
-				emplace_back(move(value1));
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
+				this->emplace_back(move(value1));
 				emplace_back(move(value2));
 			});
 		});
 	}
 
 	void dup_x1() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
 				emplace_back(value1);
 				emplace_back(move(value2));
 				emplace_back(move(value1));
@@ -254,9 +261,9 @@ public:
 	}
 
 	void dup_x2() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
-				pop_back_and_view_as_int32_or_reference([&](auto value3) {
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
+				pop_back_and_view_as_reference_or_storage([&](auto value3) {
 					emplace_back(value1);
 					emplace_back(move(value3));
 					emplace_back(move(value2));
@@ -267,9 +274,9 @@ public:
 	}
 
 	void dup2_x1() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
-				pop_back_and_view_as_int32_or_reference([&](auto value3) {
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
+				pop_back_and_view_as_reference_or_storage([&](auto value3) {
 					emplace_back(value2);
 					emplace_back(value1);
 					emplace_back(move(value3));
@@ -281,10 +288,10 @@ public:
 	}
 
 	void dup2_x2() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
-				pop_back_and_view_as_int32_or_reference([&](auto value3) {
-					pop_back_and_view_as_int32_or_reference([&](auto value4) {
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
+				pop_back_and_view_as_reference_or_storage([&](auto value3) {
+					pop_back_and_view_as_reference_or_storage([&](auto value4) {
 						emplace_back(value2);
 						emplace_back(value1);
 						emplace_back(move(value4));
@@ -298,8 +305,8 @@ public:
 	}
 
 	void swap() {
-		pop_back_and_view_as_int32_or_reference([&](auto value1) {
-			pop_back_and_view_as_int32_or_reference([&](auto value2) {
+		pop_back_and_view_as_reference_or_storage([&](auto value1) {
+			pop_back_and_view_as_reference_or_storage([&](auto value2) {
 				emplace_back(move(value1));
 				emplace_back(move(value2));
 			});
@@ -316,7 +323,7 @@ public:
 		}
 		// there's something at given index
 		// popping it, continuing recursively
-		pop_back_and_view_as_int32_or_reference([&](auto popped) {
+		pop_back_and_view_as_reference_or_storage([&](auto popped) {
 			insert_at(index, move(ref));
 			emplace_back(move(popped));
 		});
@@ -333,7 +340,7 @@ public:
 		if(index == min_index) {
 			return pop_back<Type>();
 		}
-		return pop_back_and_view_as_int32_or_reference([&](auto popped) {
+		return pop_back_and_view_as_reference_or_storage([&](auto popped) {
 			Type result = pop_at<Type>(index);
 			emplace_back(move(popped));
 			return result;

@@ -171,6 +171,7 @@ struct execute_instruction {
 			tabs();
 			print::out(move(to_print)..., ": ");
 			print::out("stack[", stack.size(), "] = ");
+			print::out("stack[", locals_begin + offset, "] { ");
 			if constexpr(!same_as<Type, reference>) {
 				print::out(value);
 			}
@@ -181,7 +182,7 @@ struct execute_instruction {
 				print::out(" @");
 				print::out.hex((uint64) value.object_ptr());
 			}
-			print::out("\n");
+			print::out(" }\n");
 		}
 		stack.emplace_back(move(value));
 	}

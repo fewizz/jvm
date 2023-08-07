@@ -1,13 +1,14 @@
 root=`dirname ${BASH_SOURCE[0]}`
 
 test() {
-	echo "test \"$1\""
-
+	echo "compiling $1.java..."
 	if ! javac ${root}/test/$1.java
 	then
 		echo "compilation error"
 		exit 1
 	fi
+
+	echo "running $1..."
 
 	pushd ${root}/test > /dev/null
 	../build/jvm $1
@@ -26,6 +27,8 @@ if [ ! -z $1 ]; then
 	exit
 fi
 
-for testfile in `cd 'test' && find -name "*.java" -type f && cd ..`; do
-	test "`dirname $testfile`/`basename $testfile .java`"
+pushd ${root}/test > /dev/null
+for testfile in `find * -name "*.java" -type f`; do
+	test ${testfile%.*}
 done
+popd > /dev/null

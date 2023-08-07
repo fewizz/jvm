@@ -23,8 +23,9 @@ static void init_jvm_mh_string_concat() {
 		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
 	).native_function(
 		(void*)+[](
-			jvm::string_concat& ths
+			j::method_handle& ths0
 		) -> optional<reference> {
+			jvm::string_concat& ths = (jvm::string_concat&) ths0;
 			j::string& recipe = ths.recipe();
 			
 			nuint size = 0;

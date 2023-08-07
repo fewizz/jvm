@@ -60,8 +60,8 @@ inline void init_java_lang_invoke_method_handle() {
 		{
 			expected<reference, reference> possible_adapter = try_create_object(
 				jvm::invoke_adapter::constructor.get(),
-				ths->is_varargs(),
 				*mt  /* new MethodType */,
+				ths->is_varargs(),
 				*ths /* original MethodHandle */
 			);
 			if(possible_adapter.is_unexpected()) {
