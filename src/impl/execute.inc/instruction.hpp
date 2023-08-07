@@ -102,73 +102,40 @@ struct execute_instruction {
 		return loop_action::next;
 	};
 
-	void operator () (instr::nop) {}
-
-	void operator () (instr::a_const_null) {
-		if(info) { tabs(); print::out("a_const_null\n"); }
-		stack.emplace_back(reference{ nullptr });
+	void operator () (instr::nop) {
+		if(info) { tabs(); print::out("nop\n"); }
 	}
 
-	void operator () (instr::i_const_m1) {
-		if(info) { tabs(); print::out("i_const_m1\n"); }
-		stack.emplace_back(int32{ -1 });
-	}
-	void operator () (instr::i_const_0) {
-		if(info) { tabs(); print::out("i_const_0\n"); }
-		stack.emplace_back(int32{ 0 });
-	}
-	void operator () (instr::i_const_1) {
-		if(info) { tabs(); print::out("i_const_1\n"); }
-		stack.emplace_back(int32{ 1 });
-	}
-	void operator () (instr::i_const_2) {
-		if(info) { tabs(); print::out("i_const_2\n"); }
-		stack.emplace_back(int32{ 2 });
-	}
-	void operator () (instr::i_const_3) {
-		if(info) { tabs(); print::out("i_const_3\n"); }
-		stack.emplace_back(int32{ 3 });
-	}
-	void operator () (instr::i_const_4) {
-		if(info) { tabs(); print::out("i_const_4\n"); }
-		stack.emplace_back(int32{ 4 });
-	}
-	void operator () (instr::i_const_5) {
+	template<char Prefix, typename Type>
+	void constant(Type&& value) {
 		if(info) {
-			tabs(); print::out("i_const_5 @", stack.size(), "\n");
+			tabs(); print::out(Prefix, "_const ");
+			if constexpr(!same_as<Type, reference>) {
+				print::out(value);
+			}
+			else {
+				print::out("null");
+			}
+			print::out(": at stack[", stack.size() - 1, "]");
+			print::out("\n");
 		}
-		stack.emplace_back(int32{ 5 });
+		stack.emplace_back(move(value));
 	}
-	void operator () (instr::l_const_0) {
-		if(info) {
-			tabs(); print::out("l_const_0 @", stack.size(), "\n");
-		}
-		stack.emplace_back(int64{ 0 });
-	}
-	void operator () (instr::l_const_1) {
-		if(info) { tabs(); print::out("l_const_1\n"); }
-		stack.emplace_back(int64{ 1 });
-	}
-	void operator () (instr::f_const_0) {
-		if(info) { tabs(); print::out("f_const_0\n"); }
-		stack.emplace_back(float{ 0.0F });
-	}
-	void operator () (instr::f_const_1) {
-		if(info) { tabs(); print::out("f_const_1\n"); }
-		stack.emplace_back(float{ 1.0F });
-	}
-	void operator () (instr::f_const_2) {
-		if(info) { tabs(); print::out("f_const_2\n"); }
-		stack.emplace_back(float{ 2.0F });
-	}
-	void operator () (instr::d_const_0) {
-		if(info) { tabs(); print::out("d_const_0\n"); }
-		stack.emplace_back(double{ 0.0 });
-	}
-	void operator () (instr::d_const_1) {
-		if(info) { tabs(); print::out("d_const_1\n"); }
-		stack.emplace_back(double{ 1.0 });
-	}
+	void operator () (instr::a_const_null) { constant<'a'>(reference{}); }
+	void operator () (instr::i_const_m1) { constant<'i'>(int32{ -1 }); }
+	void operator () (instr::i_const_0) { constant<'i'>(int32{ 0 }); }
+	void operator () (instr::i_const_1) { constant<'i'>(int32{ 1 }); }
+	void operator () (instr::i_const_2) { constant<'i'>(int32{ 2 }); }
+	void operator () (instr::i_const_3) { constant<'i'>(int32{ 3 }); }
+	void operator () (instr::i_const_4) { constant<'i'>(int32{ 4 }); }
+	void operator () (instr::i_const_5) { constant<'i'>(int32{ 5 }); }
+	void operator () (instr::l_const_0) { constant<'l'>(int64{ 0 }); }
+	void operator () (instr::l_const_1) { constant<'l'>(int64{ 1 }); }
+	void operator () (instr::f_const_0) { constant<'f'>(float{ 0.0F }); }
+	void operator () (instr::f_const_1) { constant<'f'>(float{ 1.0F }); }
+	void operator () (instr::f_const_2) { constant<'f'>(float{ 2.0F }); }
+	void operator () (instr::d_const_0) { constant<'d'>(double{ 0.0 }); }
+	void operator () (instr::d_const_1) { constant<'d'>(double{ 1.0 }); }
 	void operator () (instr::bi_push x) {
 		if(info) {
 			tabs(); print::out("bi_push ", x.value, " @", stack.size(), "\n");
@@ -197,387 +164,194 @@ struct execute_instruction {
 	void operator () (class_file::attribute::code::instruction::ldc_2_w x) {
 		::ldc_2_w(x.constant_index, c);
 	}
-	void operator () (instr::i_load x) {
-		int32 value = stack.get<int32>(locals_begin + x.index);
+	template<typename Type>
+	void load(nuint offset, auto&&... to_print) {
+		Type value = stack.get<Type>(locals_begin + offset);
 		if(info) {
 			tabs();
-			print::out("i_load ", x.index, " ", value, "\n");
-		}
-		stack.emplace_back(value);
-	}
-	void operator () (instr::l_load x) {
-		if(info) {
-			tabs();
-			print::out("l_load ", x.index, "\n");
-		}
-		stack.emplace_back(stack.get<int64>(locals_begin + x.index));
-	}
-	void operator () (instr::f_load x) {
-		if(info) { tabs(); print::out("f_load ", x.index); }
-		float value = stack.get<float>(locals_begin + x.index);
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_back(value);
-	}
-	void operator () (instr::d_load x) {
-		if(info) { tabs(); print::out("d_load ", x.index); }
-		double value = stack.get<double>(locals_begin + x.index);
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_back(value);
-	}
-	void operator () (instr::a_load x) {
-		if(info) {
-			tabs();
-			print::out("a_load ", x.index, "\n");
-		}
-		stack.emplace_back(stack.get<reference>(locals_begin + x.index));
-	}
-	void operator () (instr::i_load_0) {
-		int32 value = stack.get<int32>(locals_begin + 0);
-		if(info) {
-			tabs();
-			print::out("i_load_0 ", value, "\n");
-		}
-		stack.emplace_back(value);
-	}
-	void operator () (instr::i_load_1) {
-		int32 value = stack.get<int32>(locals_begin + 1);
-		if(info) {
-			tabs();
-			print::out("i_load_1 ", value, "\n");
-		}
-		stack.emplace_back(value);
-	}
-	void operator () (instr::i_load_2) {
-		int32 value = stack.get<int32>(locals_begin + 2);
-		if(info) {
-			tabs();
-			print::out("i_load_2 ", value, "\n");
-		}
-		stack.emplace_back(value);
-	}
-	void operator () (instr::i_load_3) {
-		int32 value = stack.get<int32>(locals_begin + 3);
-		if(info) {
-			tabs();
-			print::out("i_load_3 ", value, "\n");
-		}
-		stack.emplace_back(value);
-	}
-	void operator () (instr::l_load_0) {
-		if(info) { tabs(); print::out("l_load_0\n"); }
-		stack.emplace_back(stack.get<int64>(locals_begin + 0));
-	}
-	void operator () (instr::l_load_1) {
-		if(info) { tabs(); print::out("l_load_1\n"); }
-		stack.emplace_back(stack.get<int64>(locals_begin + 1));
-	}
-	void operator () (instr::l_load_2) {
-		if(info) { tabs(); print::out("l_load_2\n"); }
-		stack.emplace_back(stack.get<int64>(locals_begin + 2));
-	}
-	void operator () (instr::l_load_3) {
-		if(info) { tabs(); print::out("l_load_3\n"); }
-		stack.emplace_back(stack.get<int64>(locals_begin + 3));
-	}
-	void operator () (instr::f_load_0) {
-		if(info) { tabs(); print::out("f_load_0\n"); }
-		stack.emplace_back(stack.get<float>(locals_begin + 0));
-	}
-	void operator () (instr::f_load_1) {
-		if(info) { tabs(); print::out("f_load_1\n"); }
-		stack.emplace_back(stack.get<float>(locals_begin + 1));
-	}
-	void operator () (instr::f_load_2) {
-		if(info) { tabs(); print::out("f_load_2\n"); }
-		float value = stack.get<float>(locals_begin + 2);
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_back(value);
-	}
-	void operator () (instr::f_load_3) {
-		if(info) { tabs(); print::out("f_load_3\n"); }
-		stack.emplace_back(stack.get<float>(locals_begin + 3));
-	}
-	void operator () (instr::d_load_0) {
-		if(info) { tabs(); print::out("d_load_0\n"); }
-		stack.emplace_back(stack.get<double>(locals_begin + 0));
-	}
-	void operator () (instr::d_load_1) {
-		if(info) { tabs(); print::out("d_load_1\n"); }
-		stack.emplace_back(stack.get<double>(locals_begin + 1));
-	}
-	void operator () (instr::d_load_2) {
-		if(info) { tabs(); print::out("d_load_2"); }
-		double value = stack.get<double>(locals_begin + 2);
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_back(value);
-	}
-	void operator () (instr::d_load_3) {
-		if(info) { tabs(); print::out("d_load_3"); }
-		double value = stack.get<double>(locals_begin + 3);
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_back(value);
-	}
-	void operator () (instr::a_load_0) {
-		reference ref = stack.get<reference>(locals_begin + 0);
-		if(info) {
-			tabs(); print::out("a_load_0 ");
-			if(!ref.is_null()) {
-				print::out(ref.c().name());
+			print::out(move(to_print)..., ": ");
+			print::out("stack[", stack.size(), "] = ");
+			if constexpr(!same_as<Type, reference>) {
+				print::out(value);
 			}
-			print::out(" @");
-			print::out.hex((uint64) ref.object_ptr());
+			else {
+				if(!value.is_null()) {
+					print::out(value.c().name());
+				}
+				print::out(" @");
+				print::out.hex((uint64) value.object_ptr());
+			}
 			print::out("\n");
 		}
-		stack.emplace_back(move(ref));
+		stack.emplace_back(move(value));
 	}
-	void operator () (instr::a_load_1) {
-		if(info) { tabs(); print::out("a_load_1\n"); }
-		reference ref = stack.get<reference>(locals_begin + 1);
-		stack.emplace_back(move(ref));
+	template<typename Type, char Prefix>
+	void load(nuint offset) {
+		load<Type>(offset, Prefix, "_load ", offset);
 	}
-	void operator () (instr::a_load_2) {
-		reference ref = stack.get<reference>(locals_begin + 2);
-		if(info) {
-			tabs(); print::out("a_load_2 ");
-			if(!ref.is_null()) {
-				print::out(ref.c().name());
-			}
-			print::out(" @");
-			print::out.hex((uint64) ref.object_ptr());
-			print::out("\n");
-		}
-		stack.emplace_back(move(ref));
+	void operator () (instr::i_load x) { load<int32, 'i'>(x.index); }
+	void operator () (instr::l_load x) { load<int64, 'l'>(x.index); }
+	void operator () (instr::f_load x) { load<float, 'f'>(x.index); }
+	void operator () (instr::d_load x) { load<double, 'd'>(x.index); }
+	void operator () (instr::a_load x) { load<reference, 'a'>(x.index); }
+
+	template<typename Type, char Prefix, nuint Offset>
+	void load() {
+		load<Type>(Offset, Prefix, "_load_", Offset);
 	}
-	void operator () (instr::a_load_3) {
-		if(info) { tabs(); print::out("a_load_3\n"); }
-		reference ref = stack.get<reference>(locals_begin + 3);
-		stack.emplace_back(move(ref));
+	void operator () (instr::i_load_0) { load<int32, 'i', 0>(); }
+	void operator () (instr::i_load_1) { load<int32, 'i', 1>(); }
+	void operator () (instr::i_load_2) { load<int32, 'i', 2>(); }
+	void operator () (instr::i_load_3) { load<int32, 'i', 3>(); }
+	void operator () (instr::l_load_0) { load<int64, 'l', 0>(); }
+	void operator () (instr::l_load_1) { load<int64, 'l', 1>(); }
+	void operator () (instr::l_load_2) { load<int64, 'l', 2>(); }
+	void operator () (instr::l_load_3) { load<int64, 'l', 3>(); }
+	void operator () (instr::f_load_0) { load<float, 'f', 0>(); }
+	void operator () (instr::f_load_1) { load<float, 'f', 1>(); }
+	void operator () (instr::f_load_2) { load<float, 'f', 2>(); }
+	void operator () (instr::f_load_3) { load<float, 'f', 3>(); }
+	void operator () (instr::d_load_0) { load<double, 'd', 0>(); }
+	void operator () (instr::d_load_1) { load<double, 'd', 1>(); }
+	void operator () (instr::d_load_2) { load<double, 'd', 2>(); }
+	void operator () (instr::d_load_3) { load<double, 'd', 3>(); }
+	void operator () (instr::a_load_0) { load<reference, 'a', 0>(); }
+	void operator () (instr::a_load_1) { load<reference, 'a', 1>(); }
+	void operator () (instr::a_load_2) { load<reference, 'a', 2>(); }
+	void operator () (instr::a_load_3) { load<reference, 'a', 3>(); }
+
+	template<typename Type, char Prefix>
+	loop_action array_load() {
+		if(info) { tabs(); print::out(Prefix, "_a_load\n"); }
+		return view_array<Type>([&](Type& v) {
+			stack.emplace_back(v);
+		});
 	}
 	loop_action operator () (instr::i_a_load) {
-		if(info) { tabs(); print::out("i_a_load\n"); }
-		return view_array<int32>([&](int32& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<int32, 'i'>();
 	}
 	loop_action operator () (instr::l_a_load) {
-		if(info) { tabs(); print::out("l_a_load\n"); }
-		return view_array<int64>([&](int64& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<int64, 'l'>();
 	}
 	loop_action operator () (instr::f_a_load) {
-		if(info) { tabs(); print::out("f_a_load\n"); }
-		return view_array<float>([&](float& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<float, 'f'>();
 	}
 	loop_action operator () (instr::d_a_load) {
-		if(info) { tabs(); print::out("d_a_load\n"); }
-		return view_array<double>([&](double& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<double, 'd'>();
 	}
 	loop_action operator () (instr::a_a_load) {
-		if(info) { tabs(); print::out("a_a_load\n"); }
-		return view_array<reference>([&](reference& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<reference, 'a'>();
 	}
 	loop_action operator () (instr::b_a_load) {
-		if(info) { tabs(); print::out("b_a_load\n"); }
-		return view_array<int8>([&](int8& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<int8, 'b'>();
 	}
 	loop_action operator () (instr::c_a_load) {
-		if(info) { tabs(); print::out("c_a_load\n"); }
-		return view_array<uint16>([&](uint16& v) {
-			stack.emplace_back(v);
-		});
+		return array_load<uint16, 'c'>();
 	}
 	loop_action operator () (instr::s_a_load) {
-		if(info) { tabs(); print::out("s_a_load\n"); }
-		return view_array<int16>([&](int16& v) {
-			stack.emplace_back(v);
+		return array_load<int16, 's'>();
+	}
+
+	template<typename Type>
+	void store(nuint offset, auto&&... to_print) {
+		Type value = stack.pop_back<Type>();
+		if(info) {
+			tabs(); print::out(move(to_print)..., ": ");
+			print::out("stack[", locals_begin + offset, "] = ");
+			if constexpr(!same_as<Type, reference>) {
+				print::out(value);
+			}
+			else {
+				if(!value.is_null()) {
+					print::out(value.c().name());
+				}
+				print::out(" @");
+				print::out.hex((uint64) value.object_ptr());
+			}
+			print::out("\n");
+		}
+		stack.emplace_at(locals_begin + offset, move(value));
+	}
+
+	template<typename Type, char Prefix>
+	void store(nuint offset) {
+		store<Type>(offset, Prefix, "_store ", offset);
+	}
+	void operator () (instr::i_store x) { store<int32, 'i'>(x.index); }
+	void operator () (instr::l_store x) { store<int64, 'l'>(x.index); }
+	void operator () (instr::f_store x) { store<float, 'f'>(x.index); }
+	void operator () (instr::d_store x) { store<double, 'd'>(x.index); }
+	void operator () (instr::a_store x) { store<reference, 'a'>(x.index); }
+
+	template<typename Type, char Prefix, nuint Offset>
+	void store() {
+		store<Type>(Offset, Prefix, "_store_", Offset);
+	}
+	void operator () (instr::i_store_0) { store<int32, 'i', 0>(); }
+	void operator () (instr::i_store_1) { store<int32, 'i', 1>(); }
+	void operator () (instr::i_store_2) { store<int32, 'i', 2>(); }
+	void operator () (instr::i_store_3) { store<int32, 'i', 3>(); }
+	void operator () (instr::l_store_0) { store<int64, 'l', 0>(); }
+	void operator () (instr::l_store_1) { store<int64, 'l', 1>(); }
+	void operator () (instr::l_store_2) { store<int64, 'l', 2>(); }
+	void operator () (instr::l_store_3) { store<int64, 'l', 3>(); }
+	void operator () (instr::f_store_0) { store<float, 'f', 0>(); }
+	void operator () (instr::f_store_1) { store<float, 'f', 1>(); }
+	void operator () (instr::f_store_2) { store<float, 'f', 2>(); }
+	void operator () (instr::f_store_3) { store<float, 'f', 3>(); }
+	void operator () (instr::d_store_0) { store<double, 'd', 0>(); }
+	void operator () (instr::d_store_1) { store<double, 'd', 1>(); }
+	void operator () (instr::d_store_2) { store<double, 'd', 2>(); }
+	void operator () (instr::d_store_3) { store<double, 'd', 3>(); }
+	void operator () (instr::a_store_0) { store<reference, 'a', 0>(); }
+	void operator () (instr::a_store_1) { store<reference, 'a', 1>(); }
+	void operator () (instr::a_store_2) { store<reference, 'a', 2>(); }
+	void operator () (instr::a_store_3) { store<reference, 'a', 3>(); }
+
+	template<typename Type, char Prefix>
+	loop_action array_store() {
+		Type value = stack.pop_back<Type>();
+		if(info) {
+			tabs(); print::out(Prefix, "_a_store ");
+			if constexpr(!same_as<Type, reference>) {
+				print::out(value);
+			}
+			else {
+				if(!value.is_null()) {
+					print::out(value.c().name());
+				}
+				print::out(" @");
+				print::out.hex((uint64) value.object_ptr());
+			}
+			print::out("\n");
+		}
+		return view_array<Type>([&](Type& v) {
+			v = value;
 		});
-	}
-	void operator () (instr::i_store x) {
-		int32 value = stack.pop_back<int32>();
-		if(info) {
-			tabs(); print::out("i_store ", x.index, " ", value, "\n");
-		}
-		stack.emplace_at(locals_begin + x.index, value);
-	}
-	void operator () (instr::l_store x) {
-		if(info) {
-			tabs(); print::out("l_store ", x.index, "\n");
-		}
-		stack.emplace_at(locals_begin + x.index, stack.pop_back<int64>());
-	}
-	void operator () (instr::f_store x) {
-		if(info) {
-			tabs(); print::out("f_store ", x.index, "\n");
-		}
-		stack.emplace_at(locals_begin + x.index, stack.pop_back<float>());
-	}
-	void operator () (instr::d_store x) {
-		if(info) {
-			tabs(); print::out("d_store ", x.index, "\n");
-		}
-		stack.emplace_at(locals_begin + x.index, stack.pop_back<double>());
-	}
-	void operator () (instr::a_store x) {
-		if(info) {
-			tabs(); print::out("a_store ", x.index, "\n");
-		}
-		stack.emplace_at(
-			locals_begin + x.index, stack.pop_back<reference>()
-		);
-	}
-	void operator () (instr::i_store_0) {
-		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print::out("i_store_0 ", value, "\n"); }
-		stack.emplace_at(locals_begin + 0, value);
-	}
-	void operator () (instr::i_store_1) {
-		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print::out("i_store_1 ", value, "\n"); }
-		stack.emplace_at(locals_begin + 1, value);
-	}
-	void operator () (instr::i_store_2) {
-		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print::out("i_store_2 ", value, "\n"); }
-		stack.emplace_at(locals_begin + 2, value);
-	}
-	void operator () (instr::i_store_3) {
-		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print::out("i_store_3 ", value, "\n"); }
-		stack.emplace_at(locals_begin + 3, value);
-	}
-	void operator () (instr::l_store_0) {
-		if(info) { tabs(); print::out("l_store_0\n"); }
-		stack.emplace_at(locals_begin + 0, stack.pop_back<int64>());
-	}
-	void operator () (instr::l_store_1) {
-		if(info) { tabs(); print::out("l_store_1\n"); }
-		stack.emplace_at(locals_begin + 1, stack.pop_back<int64>());
-	}
-	void operator () (instr::l_store_2) {
-		if(info) { tabs(); print::out("l_store_2\n"); }
-		stack.emplace_at(locals_begin + 2, stack.pop_back<int64>());
-	}
-	void operator () (instr::l_store_3) {
-		if(info) { tabs(); print::out("l_store_3\n"); }
-		stack.emplace_at(locals_begin + 3, stack.pop_back<int64>());
-	}
-	void operator () (instr::f_store_0) {
-		if(info) { tabs(); print::out("f_store_0\n"); }
-		stack.emplace_at(locals_begin + 0, stack.pop_back<float>());
-	}
-	void operator () (instr::f_store_1) {
-		if(info) { tabs(); print::out("f_store_1\n"); }
-		stack.emplace_at(locals_begin + 1, stack.pop_back<float>());
-	}
-	void operator () (instr::f_store_2) {
-		if(info) { tabs(); print::out("f_store_2\n"); }
-		stack.emplace_at(locals_begin + 2, stack.pop_back<float>());
-	}
-	void operator () (instr::f_store_3) {
-		if(info) { tabs(); print::out("f_store_3\n"); }
-		stack.emplace_at(locals_begin + 3, stack.pop_back<float>());
-	}
-	void operator () (instr::d_store_0) {
-		if(info) { tabs(); print::out("d_store_0\n"); }
-		stack.emplace_at(locals_begin + 0, stack.pop_back<double>());
-	}
-	void operator () (instr::d_store_1) {
-		if(info) { tabs(); print::out("d_store_1\n"); }
-		stack.emplace_at(locals_begin + 1, stack.pop_back<double>());
-	}
-	void operator () (instr::d_store_2) {
-		if(info) { tabs(); print::out("d_store_2\n"); }
-		stack.emplace_at(locals_begin + 2, stack.pop_back<double>());
-	}
-	void operator () (instr::d_store_3) {
-		if(info) { tabs(); print::out("d_store_3"); }
-		double value = stack.pop_back<double>();
-		if(info) { print::out(" ", value, "\n"); }
-		stack.emplace_at(locals_begin + 3, value);
-	}
-	void operator () (instr::a_store_0) {
-		if(info) { tabs(); print::out("a_store_0\n"); }
-		stack.emplace_at(locals_begin + 0, stack.pop_back<reference>());
-	}
-	void operator () (instr::a_store_1) {
-		if(info) { tabs(); print::out("a_store_1\n"); }
-		stack.emplace_at(locals_begin + 1, stack.pop_back<reference>());
-	}
-	void operator () (instr::a_store_2) {
-		if(info) { tabs(); print::out("a_store_2\n"); }
-		stack.emplace_at(locals_begin + 2, stack.pop_back<reference>());
-	}
-	void operator () (instr::a_store_3) {
-		if(info) { tabs(); print::out("a_store_3\n"); }
-		stack.emplace_at(locals_begin + 3, stack.pop_back<reference>());
 	}
 	loop_action operator () (instr::i_a_store) {
-		int32 value = stack.pop_back<int32>();
-		if(info) { tabs(); print::out("i_a_store ", value, "\n"); }
-		return view_array<int32>([&](int32& v) {
-			v = value;
-		});
+		return array_store<int32, 'i'>();
 	}
 	loop_action operator () (instr::l_a_store) {
-		int64 value = stack.pop_back<int64>();
-		if(info) { tabs(); print::out("l_a_store ", value, "\n"); }
-		return view_array<int64>([&](int64& v) {
-			v = value;
-		});
+		return array_store<int64, 'l'>();
 	}
 	loop_action operator () (instr::f_a_store) {
-		float value = stack.pop_back<float>();
-		if(info) { tabs(); print::out("f_a_store ", value, "\n"); }
-		return view_array<float>([&](float& v) {
-			v = value;
-		});
+		return array_store<float, 'f'>();
 	}
 	loop_action operator () (instr::d_a_store) {
-		double value = stack.pop_back<double>();
-		if(info) { tabs(); print::out("d_a_store ", value, "\n"); }
-		return view_array<double>([&](double& v) {
-			v = value;
-		});
+		return array_store<double, 'd'>();
 	}
 	loop_action operator () (instr::a_a_store) {
-		if(info) { tabs(); print::out("a_a_store\n"); }
-		reference value = stack.pop_back<reference>();
-		return view_array<reference>([&](reference& v) {
-			v = value;
-		});
+		return array_store<reference, 'a'>();
 	}
 	loop_action operator () (instr::b_a_store) {
-		int32 value0 = stack.pop_back<int32>();
-		int8 value = (int8) (uint16) (uint32) value0;
-		if(info) { tabs(); print::out("b_a_store ", value, "\n"); }
-		return view_array<int8>([&](int8& v) {
-			v = value;
-		});
+		return array_store<int8, 'b'>();
 	}
 	loop_action operator () (instr::c_a_store) {
-		int32 value0 = stack.pop_back<int32>();
-		uint16 value = (uint16) (uint32) value0;
-		if(info) { tabs(); print::out("c_a_store ", value, "\n"); }
-		return view_array<uint16>([&](uint16& v) {
-			v = value;
-		});
+		return array_store<uint16, 'c'>();
 	}
 	loop_action operator () (instr::s_a_store) {
-		int32 value0 = stack.pop_back<int32>();
-		int16 value = (int16) (uint16) (uint32) value0;
-		if(info) { tabs(); print::out("c_a_store ", value, "\n"); }
-		return view_array<int16>([&](int16& v) {
-			v = value;
-		});
+		return array_store<int16, 's'>();
 	}
 	void operator () (instr::pop) {
 		if(info) { tabs(); print::out("pop\n"); }
@@ -1211,9 +985,11 @@ struct execute_instruction {
 				result = int16(result);
 			}
 		});
+		if(info) { print::out(result, "\n"); }
+
 		stack.erase_back_until(locals_begin);
 		stack.emplace_back(result);
-		if(info) { print::out(result, "\n"); }
+
 		return loop_action::stop;
 	}
 	loop_action operator () (instr::l_return) {
