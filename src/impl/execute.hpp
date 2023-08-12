@@ -62,10 +62,6 @@ static optional<reference> try_execute(method& m) {
 	};
 
 	if(m.is_native()) {
-		if(info) {
-			print::out("\n");
-		}
-
 		if(!m.native_function_is_loaded()) {
 			posix::abort();
 		}
@@ -100,7 +96,8 @@ static optional<reference> try_execute(method& m) {
 	nuint stack_begin = locals_end;
 
 	if(info) {
-		print::out(" ",
+		tabs();
+		print::out(
 			"max_stack: ", m.code().max_stack, " "
 			"locals begin: ", locals_begin, " "
 			"stack begin: ", stack_begin, "\n"

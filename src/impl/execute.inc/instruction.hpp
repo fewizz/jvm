@@ -101,7 +101,6 @@ struct execute_instruction {
 		}
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
-			print::out(array_ref.c().name(), " " , len, " ", element_index, "\n");
 			::c& exception_c = classes.load_non_array_class(
 				c_string{ u8"java/lang/ArrayIndexOutOfBoundsException" },
 				(j::c_loader*) c.defining_loader().object_ptr()
@@ -152,18 +151,20 @@ struct execute_instruction {
 	void operator () (instr::f_const_2) { constant<'f'>(float{ 2.0F }); }
 	void operator () (instr::d_const_0) { constant<'d'>(double{ 0.0 }); }
 	void operator () (instr::d_const_1) { constant<'d'>(double{ 1.0 }); }
-	void operator () (instr::bi_push x) {
+
+	template<typename Type>
+	void push(c_string_of_known_size<char> prefix, Type value) {
 		if(info) {
-			tabs(); print::out("bi_push ", x.value, " @", stack.size(), "\n");
+			tabs();
+			print::out(
+				prefix, "_push: stack[", stack.size() - 1, "] = ", value, "\n"
+			);
 		}
-		stack.emplace_back(int32{ x.value });
+		stack.emplace_back(int32{ value });
 	}
-	void operator () (instr::si_push x) {
-		if(info) {
-			tabs(); print::out("si_push ", x.value, "\n");
-		}
-		stack.emplace_back(int32{ x.value });
-	}
+	void operator () (instr::bi_push x) { push("bi", x.value); }
+	void operator () (instr::si_push x) { push("si", x.value); }
+
 	loop_action operator () (
 		same_as_any<
 			class_file::attribute::code::instruction::ldc,
@@ -187,7 +188,7 @@ struct execute_instruction {
 			tabs();
 			print::out(move(to_print)..., ": ");
 			print::out("stack[", stack.size(), "] = ");
-			print::out("stack[", locals_begin + offset, "] { ");
+			print::out("stack[", locals_begin + offset, "]{ ");
 			if constexpr(!same_as<Type, reference>) {
 				print::out(value);
 			}
@@ -239,7 +240,10 @@ struct execute_instruction {
 
 	template<typename Type, char Prefix>
 	loop_action array_load() {
-		if(info) { tabs(); print::out(Prefix, "_a_load\n"); }
+		if(info) {
+			tabs();
+			print::out(Prefix, "_a_load\n");
+		}
 		return view_array<Type>([&](Type& v) {
 			stack.emplace_back(v);
 		});
@@ -406,150 +410,104 @@ struct execute_instruction {
 		if(info) { tabs(); print::out("swap\n"); }
 		stack.swap();
 	}
-	void operator () (instr::i_add) {
-		if(info) { tabs(); print::out("i_add\n"); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 + value2 });
+	template<typename Type, char Op>
+	void binary(auto op, auto&&... name) {
+		Type value2 = stack.pop_back<Type>();
+		Type value1 = stack.pop_back<Type>();
+		if(info) {
+			tabs();
+			print::out(
+				name..., ": ",
+				"stack[", stack.size(), "] = ",
+				"stack[", stack.size() + 1, "]{ ", value1, " } ", Op, " ",
+				"stack[", stack.size()    , "]{ ", value2, " }\n"
+			);
+		}
+		stack.emplace_back<Type>(op(value1, value2));
 	}
-	void operator () (instr::l_add) {
-		if(info) { tabs(); print::out("l_add\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 + value2 });
+	template<typename Type, char Prefix>
+	void add() {
+		return binary<Type, '+'>(
+			[](Type a, Type b){ return a + b; },
+			Prefix, "_add"
+		);
 	}
-	void operator () (instr::f_add) {
-		if(info) { tabs(); print::out("f_add "); }
-		float value2 = stack.pop_back<float>();
-		float value1 = stack.pop_back<float>();
-		float result = float{ value1 + value2 };
-		if(info) { print::out(value2, " + ", value1, " = ", result, "\n"); }
-		stack.emplace_back(result);
+	void operator () (instr::i_add) { add<int32,  'i'>(); }
+	void operator () (instr::l_add) { add<int64,  'l'>(); }
+	void operator () (instr::f_add) { add<float,  'f'>(); }
+	void operator () (instr::d_add) { add<double, 'd'>(); }
+
+	template<typename Type, char Prefix>
+	void sub() {
+		return binary<Type, '-'>(
+			[](Type a, Type b){ return a - b; },
+			Prefix, "_sub"
+		);
 	}
-	void operator () (instr::d_add) {
-		if(info) { tabs(); print::out("d_add\n"); }
-		double value2 = stack.pop_back<double>();
-		double value1 = stack.pop_back<double>();
-		stack.emplace_back(double{ value1 + value2 });
+	void operator () (instr::i_sub) { sub<int32,  'i'>(); }
+	void operator () (instr::l_sub) { sub<int64,  'l'>(); }
+	void operator () (instr::f_sub) { sub<float,  'f'>(); }
+	void operator () (instr::d_sub) { sub<double, 'd'>(); }
+
+	template<typename Type, char Prefix>
+	void mul() {
+		return binary<Type, '*'>(
+			[](Type a, Type b){ return a * b; },
+			Prefix, "_mul"
+		);
 	}
-	void operator () (instr::i_sub) {
-		if(info) { tabs(); print::out("i_sub\n"); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 - value2 });
+	void operator () (instr::i_mul) { mul<int32,  'i'>(); }
+	void operator () (instr::l_mul) { mul<int64,  'l'>(); }
+	void operator () (instr::f_mul) { mul<float,  'f'>(); }
+	void operator () (instr::d_mul) { mul<double, 'd'>(); }
+
+	template<typename Type, char Prefix>
+	void div() {
+		return binary<Type, '/'>(
+			[](Type a, Type b){ return a / b; },
+			Prefix, "_div"
+		);
 	}
-	void operator () (instr::l_sub) {
-		if(info) { tabs(); print::out("l_sub\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 - value2 });
+	void operator () (instr::i_div) { div<int32,  'i'>(); }
+	void operator () (instr::l_div) { div<int64,  'l'>(); }
+	void operator () (instr::f_div) { div<float,  'f'>(); }
+	void operator () (instr::d_div) { div<double, 'd'>(); }
+
+	template<typename Type, char Prefix>
+	void rem() {
+		return binary<Type, '%'>(
+			[](Type a, Type b){ return a - a/b*b; },
+			Prefix, "_rem"
+		);
 	}
-	void operator () (instr::f_sub) {
-		if(info) { tabs(); print::out("f_sub\n"); }
-		float value2 = stack.pop_back<float>();
-		float value1 = stack.pop_back<float>();
-		stack.emplace_back(float{ value1 - value2 });
+	void operator () (instr::i_rem) { rem<int32,  'i'>(); }
+	void operator () (instr::l_rem) { rem<int64,  'l'>(); }
+	void operator () (instr::f_rem) { rem<float,  'f'>(); } // TODO spec
+	void operator () (instr::d_rem) { rem<double, 'd'>(); } // TODO spec
+
+	template<typename Type, char Op>
+	void unary(auto op, auto&&... name) {
+		Type value = stack.pop_back<Type>();
+		if(info) {
+			tabs();
+			print::out(
+				name..., ": ",
+				"stack[", stack.size(), "]{ ", value, " } = ",
+				Op, " stack[", stack.size(), "]{ ", value, " }"
+			);
+		}
+		stack.emplace_back<Type>(op(value));
 	}
-	void operator () (instr::d_sub) {
-		if(info) { tabs(); print::out("d_sub\n"); }
-		double value2 = stack.pop_back<double>();
-		double value1 = stack.pop_back<double>();
-		stack.emplace_back(double{ value1 - value2 });
+
+	template<typename Type, char Prefix>
+	void neg() {
+		unary<Type, '-'>([](Type v){ return -v; }, Prefix, "_neg");
 	}
-	void operator () (instr::i_mul) {
-		if(info) { tabs(); print::out("i_mul\n"); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 * value2 });
-	}
-	void operator () (instr::l_mul) {
-		if(info) { tabs(); print::out("l_mul\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 * value2 });
-	}
-	void operator () (instr::f_mul) {
-		if(info) { tabs(); print::out("f_mul\n"); }
-		float value2 = stack.pop_back<float>();
-		float value1 = stack.pop_back<float>();
-		stack.emplace_back(float{ value1 * value2 });
-	}
-	void operator () (instr::d_mul) {
-		if(info) { tabs(); print::out("d_mul\n"); }
-		double value2 = stack.pop_back<double>();
-		double value1 = stack.pop_back<double>();
-		stack.emplace_back(double{ value1 * value2 });
-	}
-	void operator () (instr::i_div) {
-		if(info) { tabs(); print::out("i_div\n"); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 / value2 });
-	}
-	void operator () (instr::l_div) {
-		if(info) { tabs(); print::out("l_div\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 / value2 });
-	}
-	void operator () (instr::f_div) {
-		if(info) { tabs(); print::out("f_div\n"); }
-		float value2 = stack.pop_back<float>();
-		float value1 = stack.pop_back<float>();
-		stack.emplace_back(float{ value1 / value2 });
-	}
-	void operator () (instr::d_div) {
-		if(info) { tabs(); print::out("d_div\n"); }
-		double value2 = stack.pop_back<double>();
-		double value1 = stack.pop_back<double>();
-		stack.emplace_back(double{ value1 / value2 });
-	}
-	void operator () (instr::i_rem) {
-		if(info) { tabs(); print::out("i_rem "); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		int32 result = int32{ value1 - (value1 / value2) * value2 };
-		if(info) { print::out(value1," % ", value2, " = ", result); }
-		stack.emplace_back(result);
-	}
-	void operator () (instr::l_rem) {
-		if(info) { tabs(); print::out("l_rem\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 - (value1 / value2) * value2 });
-	}
-	void operator () (instr::f_rem) { // TODO spec
-		if(info) { tabs(); print::out("f_rem\n"); }
-		float value2 = stack.pop_back<float>();
-		float value1 = stack.pop_back<float>();
-		stack.emplace_back(float{ value1 - (value1 / value2) * value2 });
-	}
-	void operator () (instr::d_rem) { // TODO spec
-		if(info) { tabs(); print::out("d_rem\n"); }
-		double value2 = stack.pop_back<double>();
-		double value1 = stack.pop_back<double>();
-		stack.emplace_back(double{ value1 - (value1 / value2) * value2 });
-	}
-	void operator () (instr::i_neg) {
-		if(info) { tabs(); print::out("i_neg\n"); }
-		int32 value = stack.pop_back<int32>();
-		stack.emplace_back(int32{ -value });
-	}
-	void operator () (instr::l_neg) {
-		if(info) { tabs(); print::out("l_neg\n"); }
-		int64 value = stack.pop_back<int64>();
-		stack.emplace_back(int64{ -value });
-	}
-	void operator () (instr::f_neg) {
-		if(info) { tabs(); print::out("f_neg\n"); }
-		float value = stack.pop_back<float>();
-		stack.emplace_back(float{ -value });
-	}
-	void operator () (instr::d_neg) {
-		if(info) { tabs(); print::out("d_neg\n"); }
-		double value = stack.pop_back<double>();
-		stack.emplace_back(double{ -value });
-	}
+	void operator () (instr::i_neg) { neg<int32,  'i'>(); }
+	void operator () (instr::l_neg) { neg<int64,  'l'>(); }
+	void operator () (instr::f_neg) { neg<float,  'f'>(); }
+	void operator () (instr::d_neg) { neg<double, 'd'>(); }
+
 	void operator () (instr::i_sh_l) {
 		if(info) { tabs(); print::out("i_sh_l\n"); }
 		int32 value2 = stack.pop_back<int32>();
@@ -590,48 +548,28 @@ struct execute_instruction {
 			uint64(value1) >> uint64(value2 & 0x3F)
 		));
 	}
-	void operator () (instr::i_and) {
-		if(info) { tabs(); print::out("i_and "); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		int32 result = value1 & value2;
-		if(info) {
-			print::out(value1, " ", value2, " = ", result, "\n");
-		}
-		stack.emplace_back(result);
+
+	template<typename Type, char Prefix>
+	void bit_and() {
+		binary<Type, '&'>([](Type a, Type b){ return a & b; }, Prefix, "_and");
 	}
-	void operator () (instr::l_and) {
-		if(info) { tabs(); print::out("l_and\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 & value2 });
+	void operator () (instr::i_and) { bit_and<int32, 'i'>(); }
+	void operator () (instr::l_and) { bit_and<int64, 'l'>(); }
+
+	template<typename Type, char Prefix>
+	void bit_or() {
+		binary<Type, '|'>([](Type a, Type b){ return a | b; }, Prefix, "_or");
 	}
-	void operator () (instr::i_or) {
-		if(info) { tabs(); print::out("i_or "); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		int32 result = value1 | value2;
-		if(info) { print::out(value1, " ", value2, " = ", result, "\n"); }
-		stack.emplace_back(result);
+	void operator () (instr::i_or) { bit_or<int32, 'i'>(); }
+	void operator () (instr::l_or) { bit_or<int64, 'l'>(); }
+
+	template<typename Type, char Prefix>
+	void bit_xor() {
+		binary<Type, '^'>([](Type a, Type b){ return a ^ b; }, Prefix, "_xor");
 	}
-	void operator () (instr::l_or) {
-		if(info) { tabs(); print::out("l_or\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 | value2 });
-	}
-	void operator () (instr::i_xor) {
-		if(info) { tabs(); print::out("i_xor\n"); }
-		int32 value2 = stack.pop_back<int32>();
-		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32{ value1 ^ value2 });
-	}
-	void operator () (instr::l_xor) {
-		if(info) { tabs(); print::out("l_xor\n"); }
-		int64 value2 = stack.pop_back<int64>();
-		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64{ value1 ^ value2 });
-	}
+	void operator () (instr::i_xor) { bit_xor<int32, 'i'>(); }
+	void operator () (instr::l_xor) { bit_xor<int64, 'l'>(); }
+
 	void operator () (instr::i_inc x) {
 		if(info) { tabs(); print::out("i_inc ", x.index, " ", x.value, "\n"); }
 		stack.get<int32>(locals_begin + x.index) += x.value;

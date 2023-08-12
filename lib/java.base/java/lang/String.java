@@ -3,15 +3,28 @@ package java.lang;
 public final class String {
 
 	private final char[] value_;
+	private final int hash_;
 	
 	public String(char[] value) {
 		this.value_ = new char[value.length];
 		System.arraycopy(value, 0, this.value_, 0, value.length);
+		this.hash_ = computeHash();
 	}
 
 	public String(char[] value, int offset, int count) {
 		this.value_ = new char[count];
 		System.arraycopy(value, offset, this.value_, 0, count);
+		this.hash_ = computeHash();
+	}
+
+	private int computeHash() {
+		int result = 0;
+		int mul = 1;
+		for(int x = length() - 1; x >= 0; --x) {
+			result += value_[x] * mul;
+			mul *= 31;
+		}
+		return result;
 	}
 
 	public int length() {
@@ -50,15 +63,7 @@ public final class String {
 
 	@Override
 	public int hashCode() {
-		int result = 0;
-		int mul = 1;
-
-		for(int x = length() - 1; x >= 0; --x) {
-			result += value_[x] * mul;
-			mul *= 31;
-		}
-
-		return result;
+		return this.hash_;
 	}
 
 	@Override
@@ -74,14 +79,14 @@ public final class String {
 
 	public String toLowerCase() {
 		// TODO this is dumb, i know
-		char[] newData = toCharArray();
-		for(int i = 0; i < newData.length; ++i) {
-			char ch = newData[i];
+		String str = new String(this.value_);
+		for(int i = 0; i < str.value_.length; ++i) {
+			char ch = str.value_[i];
 			if(ch >= 'A' && ch <= 'Z') {
-				newData[i] = (char)((ch - 'A') + 'a');
+				str.value_[i] = (char)((ch - 'A') + 'a');
 			}
 		}
-		return new String(newData);
+		return str;
 	}
 
 	public boolean equalsIgnoreCase(String anotherString) {
