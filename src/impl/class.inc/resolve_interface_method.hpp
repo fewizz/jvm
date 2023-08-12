@@ -6,6 +6,7 @@
 #include "decl/lib/java/lang/no_such_method_error.hpp"
 
 #include <loop_action.hpp>
+#include <ranges.hpp>
 
 template<basic_range Name, basic_range Descriptor>
 inline expected<method&, reference> try_resolve_interface_method(
@@ -14,7 +15,14 @@ inline expected<method&, reference> try_resolve_interface_method(
 	/* 1. If C is not an interface, interface method resolution throws an
 	      IncompatibleClassChangeError. */
 	if(!c.is_interface()) {
-		return try_create_incompatible_class_change_error().get();
+		return try_create_incompatible_class_change_error(
+			(j::string&) create_string_from_utf8(
+				ranges {
+					c_string{ u8"class is not interface: " },
+					c.name()
+				}.concat_view()
+			).object()
+		).get();
 	}
 
 	/* 2. Otherwise, if C declares a method with the name and descriptor

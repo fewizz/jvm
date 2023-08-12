@@ -34,16 +34,13 @@ static optional<reference> try_execute(method& m) {
 	c& c = m.c();
 	if(info) {
 		tabs();
-		print::out("executing: ", c.name(), ".", m.name(), m.descriptor());
+		print::out("executing: ", c.name(), ".", m.name(), m.descriptor(), "\n");
 		++tab;
 	}
 
-	on_scope_exit bring_tab_back {
-		[] { if(info) { --tab; } }
-	};
-
 	on_scope_exit print_finish { [&] {
 		if(info) {
+			--tab;
 			tabs();
 			print::out(
 				"finishing execution of: ",

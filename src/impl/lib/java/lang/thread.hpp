@@ -85,8 +85,8 @@ inline void init_java_lang_thread() {
 	).native_function((void*)+ [](native_environment*, int64 millis) {
 		posix::nanosleep(
 			posix::seconds_and_nanoseconds {
-				.seconds = (millis / 1'000ll),
-				.nanoseconds = (millis % 1'000) * 1'000'000ll
+				.seconds = millis / uint64(1'000),
+				.nanoseconds = uint32(millis % 1'000) * uint32(1'000'000ll)
 			},
 			[](auto){ posix::abort(); }
 		);

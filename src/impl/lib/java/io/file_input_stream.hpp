@@ -35,4 +35,25 @@ static void init_java_io_file_input_stream() {
 			return ch;
 		}
 	);
+
+	c.declared_instance_methods().find(
+		c_string{ u8"read" }, c_string{ u8"([BII)I" }
+	).native_function(
+		(void*)+[](
+			native_environment*, object* ths, object* b, int off, int len
+		) -> int32 {
+			handle<posix::file> fd {
+				ths->get<int32>(file_input_stream_fd_field_position)
+			};
+			int8* data = array_data<int8>(*b);
+			nuint read = fd->try_read_to(
+				span{ data + off, (nuint) len },
+				[](auto){ posix::abort(); }
+			);
+			if(read == 0) {
+				return -1;
+			}
+			return read;
+		}
+	);
 }

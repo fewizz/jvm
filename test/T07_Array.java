@@ -1,14 +1,14 @@
 public class T07_Array {
 
-	public static void main(String... args) {
+	public static void main(String... args) throws Exception {
 		int arr[] = new int[128];
 		if(arr.length != 128) {
-			System.exit(1);
+			throw new Exception();
 		}
 
 		for(int x = 0; x < arr.length; ++x) {
 			if(arr[x] != 0) {
-				System.exit(2);
+				throw new Exception();
 			}
 		}
 
@@ -18,7 +18,7 @@ public class T07_Array {
 
 		for(int x = 0; x < arr.length; ++x) {
 			if(arr[x] != x) {
-				System.exit(3);
+				throw new Exception();
 			}
 		}
 
@@ -32,7 +32,7 @@ public class T07_Array {
 				outOfBounds = true;
 			}
 			if(outOfBounds) {
-				System.exit(4);
+				throw new Exception();
 			}
 		}
 
@@ -45,7 +45,7 @@ public class T07_Array {
 				outOfBounds = true;
 			}
 			if(!outOfBounds) {
-				System.exit(5);
+				throw new Exception();
 			}
 		}
 
@@ -58,9 +58,26 @@ public class T07_Array {
 				outOfBounds = true;
 			}
 			if(!outOfBounds) {
-				System.exit(6);
+				throw new Exception();
 			}
 		}
+
+		{
+			// i took it from Zombob
+			if(map[0][0] != '-') throw new Exception();
+			if(map[1][0] != 'Z') throw new Exception();
+			if(map[0][1] != 'S') throw new Exception();
+			if(map[1][1] != '-') throw new Exception();
+		}
 	}
+
+	public static char[][] map = {
+		{'-', 'S', 'E', 'Z', 'Z', '-'},
+		{'Z', '-', 'Z', '-', 'S', '-'},
+		{'S', 'S', 'E', 'S', '-', 'Z'},
+		{'E', 'Z', 'S', 'Z', 'E', '-'},
+		{'Z', '-', 'Z', '-', 'S', 'S'},
+		{'S', 'S', '-', 'E', 'Z', '-'},
+	};
 
 }

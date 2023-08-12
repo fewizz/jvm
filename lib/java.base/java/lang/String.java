@@ -72,4 +72,37 @@ public final class String {
 		return copy;
 	}
 
+	public String toLowerCase() {
+		// TODO this is dumb, i know
+		char[] newData = toCharArray();
+		for(int i = 0; i < newData.length; ++i) {
+			char ch = newData[i];
+			if(ch >= 'A' && ch <= 'Z') {
+				newData[i] = (char)((ch - 'A') + 'a');
+			}
+		}
+		return new String(newData);
+	}
+
+	public boolean equalsIgnoreCase(String anotherString) {
+		return this.toLowerCase().equals(anotherString.toLowerCase());
+	}
+
+	public String substring(int beginIndex) {
+		return new String(
+			this.value_,
+			beginIndex,
+			this.value_.length - beginIndex
+		);
+	}
+
+	public int lastIndexOf(int ch) {
+		for(int i = this.value_.length - 1; i >= 0; --i) {
+			if(this.value_[i] == ch) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 }

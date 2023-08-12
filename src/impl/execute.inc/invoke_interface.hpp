@@ -8,6 +8,8 @@
 #include "decl/lib/java/lang/illegal_access_error.hpp"
 #include "decl/lib/java/lang/abstract_method_error.hpp"
 
+#include <ranges.hpp>
+
 #include <print/print.hpp>
 
 [[nodiscard]] inline optional<reference> try_invoke_interface_resolved(
@@ -28,6 +30,16 @@
 	/* Otherwise, if the class of objectref does not implement the resolved
 	   interface, invokeinterface throws an IncompatibleClassChangeError. */
 	if(!obj_ref.c().is_implementing(resolved_interface_method.c())) {
+		return try_create_incompatible_class_change_error(
+			(j::string&) create_string_from_utf8(
+				ranges {
+					c_string{ u8"class " },
+					obj_ref.c().name(),
+					c_string{ u8" does not implement resolved interface " },
+					resolved_interface_method.c().name()
+				}.concat_view()
+			).object()
+		).get();
 		return try_create_incompatible_class_change_error().get();
 	}
 

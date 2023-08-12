@@ -1,6 +1,6 @@
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
-#include "class.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
+#include "decl/class.hpp"
 
 #include <class_file/constant.hpp>
 

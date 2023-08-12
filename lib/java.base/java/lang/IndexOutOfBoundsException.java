@@ -11,11 +11,11 @@ public class IndexOutOfBoundsException extends RuntimeException  {
 	}
 
 	public IndexOutOfBoundsException(int index) {
-		super("Illegal index: " + index);
+		super("illegal index: " + index);
 	}
 
 	public IndexOutOfBoundsException(long index) {
-		super("Illegal index: " + index);
+		super("illegal index: " + index);
 	}
 
 }

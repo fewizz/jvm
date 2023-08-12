@@ -36,7 +36,16 @@ static inline void init_java_lang_class() {
 		(void*)+[](native_environment*, j::c* ths) -> object* {
 			c& c = ths->get_c();
 			expected<reference, reference> possible_string
-				= try_create_string_from_utf8(c.name());
+				= c.name().view_copied_elements_on_stack(
+					[&](span<utf8::unit> name) {
+						for(utf8::unit& u : name) {
+							if(u == u8'/') {
+								u = u8'.';
+							}
+						}
+						return try_create_string_from_utf8(name);
+					}
+				);
 			if(possible_string.is_unexpected()) {
 				thrown_in_native = possible_string.move_unexpected();
 				return nullptr;

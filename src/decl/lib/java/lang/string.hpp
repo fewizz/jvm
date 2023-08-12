@@ -37,6 +37,16 @@ try_create_string_from_utf8(String&& str_utf8) {
 	return try_create_string(data);
 }
 
+template<basic_range String>
+[[nodiscard]] reference create_string_from_utf8(String&& str_utf8) {
+	expected<reference, reference> possible_str
+		= try_create_string_from_utf8(forward<String>(str_utf8));
+	if(possible_str.is_unexpected()) {
+		posix::abort();
+	}
+	return possible_str.move_expected();
+}
+
 namespace j {
 
 struct string : object {

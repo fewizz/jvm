@@ -462,14 +462,17 @@ public:
 		return false;
 	}
 
-	bool is_implementing(c& other) const {
-		for(c& i : declared_interfaces()) {
-			if(&i == &other) {
+	bool is_implementing(c& interface) const {
+		for(c& declared_interface : declared_interfaces()) {
+			if(&declared_interface == &interface) {
 				return true;
 			}
-			if(i.is_implementing(other)) {
+			if(declared_interface.is_sub_of(interface)) {
 				return true;
 			}
+		}
+		if(has_super() && super().is_implementing(interface)) {
+			return true;
 		}
 		return false;
 	}

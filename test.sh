@@ -28,7 +28,9 @@ if [ ! -z $1 ]; then
 fi
 
 pushd ${root}/test > /dev/null
-for testfile in `find * -name "*.java" -type f`; do
+files=`find * -name "*.java" -type f`
+popd > /dev/null
+
+for testfile in $files; do
 	test ${testfile%.*}
 done
-popd > /dev/null

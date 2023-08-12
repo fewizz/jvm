@@ -7,19 +7,22 @@
 
 [[nodiscard]] inline expected<reference, reference>
 try_create_incompatible_class_change_error() {
-	expected<c&, reference> possible_c
-		= classes.try_load_class_by_bootstrap_class_loader(
-			c_string{ u8"java/lang/IncompatibleClassChangeError" }
-		);
-	
-	if(possible_c.is_unexpected()) {
-		return unexpected{ possible_c.move_unexpected() };
-	}
-
-	c& c = possible_c.get_expected();
+	c& c = classes.load_class_by_bootstrap_class_loader(
+		c_string{ u8"java/lang/IncompatibleClassChangeError" }
+	);
 	instance_method& constructor = c.instance_methods().find(
 		c_string{ u8"<init>" }, c_string{ u8"()V" }
 	);
-
 	return try_create_object(constructor);
+}
+
+[[nodiscard]] inline expected<reference, reference>
+try_create_incompatible_class_change_error(j::string& str) {
+	c& c = classes.load_class_by_bootstrap_class_loader(
+		c_string{ u8"java/lang/IncompatibleClassChangeError" }
+	);
+	instance_method& constructor = c.instance_methods().find(
+		c_string{ u8"<init>" }, c_string{ u8"(Ljava/lang/String;)V" }
+	);
+	return try_create_object(constructor, str);
 }

@@ -28,4 +28,13 @@ public class Arrays {
 	//
 	//}
 
+	@SafeVarargs
+	public static <T> List<T> asList(T... a) {
+		ArrayList<T> al = new ArrayList<T>(a.length);
+		for(T t : a) {
+			al.add(t);
+		}
+		return al;
+	}
+
 }

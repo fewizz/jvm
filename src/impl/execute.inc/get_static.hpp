@@ -4,6 +4,7 @@
 #include "decl/lib/java/lang/incompatible_class_change_error.hpp"
 
 #include <class_file/constant.hpp>
+#include <ranges.hpp>
 
 template<typename Type>
 inline Type& get_static_resolved(
@@ -40,7 +41,14 @@ inline void get_static_resolved(
 				   field or an interface field, getstatic throws an
 				   IncompatibleClassChangeError. */
 				if(!f.is_static()) {
-					return try_create_incompatible_class_change_error().get();
+					return try_create_incompatible_class_change_error(
+						(j::string&) create_string_from_utf8(
+							ranges {
+								c_string{ u8"method is not static: " },
+								f.name()
+							}.concat_view()
+						).object()
+					).get();
 				}
 
 				/* On successful resolution of the field, the class or interface

@@ -50,8 +50,8 @@ static void init_jvm_mh_string_concat() {
 							size += str.length_utf16_units();
 							++arg_stack_beginning;
 						}
-						else if constexpr(same_as<Type, int32>) {
-							int32 val = stack.get<int32>(arg_stack_beginning);
+						else if constexpr(same_as_any<Type, int32, int64>) {
+							Type val = stack.get<Type>(arg_stack_beginning);
 							if(val < 0) {
 								++size;
 							}
@@ -100,8 +100,8 @@ static void init_jvm_mh_string_concat() {
 							written += str.as_utf16_units_span().size();
 							++arg_stack_beginning;
 						}
-						else if constexpr(same_as<Type, int32>) {
-							int32 val = stack.get<int32>(arg_stack_beginning);
+						else if constexpr(same_as_any<Type, int32, int64>) {
+							Type val = stack.get<Type>(arg_stack_beginning);
 							if(val < 0) {
 								string_data_raw[written++] = '-';
 							}

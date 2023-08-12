@@ -1,13 +1,15 @@
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
 
-#include "class.hpp"
-#include "method.hpp"
-#include "array.hpp"
-#include "reference.hpp"
-#include "object.hpp"
-#include "lib/java/lang/null_pointer_exception.hpp"
-#include "lib/java/lang/index_out_of_bounds_exception.hpp"
+#include "decl/class.hpp"
+#include "decl/classes.hpp"
+#include "decl/method.hpp"
+#include "decl/array.hpp"
+#include "decl/reference.hpp"
+#include "decl/object.hpp"
+#include "decl/lib/java/lang/null_pointer_exception.hpp"
+#include "decl/lib/java/lang/index_out_of_bounds_exception.hpp"
+#include "decl/lib/java/lang/throwable.hpp"
 
 #include "./ldc.hpp"
 #include "./check_cast.hpp"
@@ -54,10 +56,16 @@ struct execute_instruction {
 				= c.try_get_resolved_class(handler.catch_type);
 			
 			if(possible_catch_class.is_unexpected()) {
-				print::err(
-					"couldn't load catch class while handling throwable\n"
-				);
-				posix::abort();
+				reference new_throwable_ref
+					= possible_catch_class.move_unexpected();
+				j::throwable& new_throwable = (j::throwable&)
+					new_throwable_ref.object();
+
+				new_throwable.init_cause(move(thrown));
+
+				stack.erase_back_until(locals_begin);
+				this->thrown = move(new_throwable_ref);
+				return loop_action::stop;
 			}
 
 			::c& catch_class = possible_catch_class.get_expected();
@@ -93,8 +101,16 @@ struct execute_instruction {
 		}
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
+			print::out(array_ref.c().name(), " " , len, " ", element_index, "\n");
+			::c& exception_c = classes.load_non_array_class(
+				c_string{ u8"java/lang/ArrayIndexOutOfBoundsException" },
+				(j::c_loader*) c.defining_loader().object_ptr()
+			);
+			instance_method& m = exception_c.declared_instance_methods().find(
+				c_string{"<init>"}, c_string{"(I)V"}
+			);
 			return handle_thrown(
-				try_create_index_of_of_bounds_exception().get()
+				try_create_object(m, element_index).get()
 			);
 		}
 		E* ptr = array_data<E>(array_ref);
@@ -542,7 +558,7 @@ struct execute_instruction {
 	}
 	void operator () (instr::l_sh_l) {
 		if(info) { tabs(); print::out("l_sh_l\n"); }
-		int64 value2 = stack.pop_back<int64>();
+		int64 value2 = stack.pop_back<int32>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 << (value2 & 0x3F) });
 	}
@@ -554,7 +570,7 @@ struct execute_instruction {
 	}
 	void operator () (instr::l_sh_r) {
 		if(info) { tabs(); print::out("l_sh_r\n"); }
-		int32 value2 = stack.pop_back<int64>();
+		int32 value2 = stack.pop_back<int32>();
 		int64 value1 = stack.pop_back<int64>();
 		stack.emplace_back(int64{ value1 >> (value2 & 0x3F) });
 	}
@@ -562,17 +578,17 @@ struct execute_instruction {
 		if(info) { tabs(); print::out("i_u_sh_r\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int32 value1 = stack.pop_back<int32>();
-		stack.emplace_back(int32 {
-			int32(uint32(value1) >> (value2 & 0x1F))
-		});
+		stack.emplace_back(int32(
+			uint32(value1) >> (value2 & 0x1F)
+		));
 	}
 	void operator () (instr::l_u_sh_r) {
 		if(info) { tabs(); print::out("l_ush_r\n"); }
 		int32 value2 = stack.pop_back<int32>();
 		int64 value1 = stack.pop_back<int64>();
-		stack.emplace_back(int64 {
-			int64(uint64(value1) >> (value2 & 0x3F))
-		});
+		stack.emplace_back(int64(
+			uint64(value1) >> uint64(value2 & 0x3F)
+		));
 	}
 	void operator () (instr::i_and) {
 		if(info) { tabs(); print::out("i_and "); }
@@ -640,7 +656,9 @@ struct execute_instruction {
 	void operator () (instr::l_to_i) {
 		if(info) { tabs(); print::out("l_to_i\n"); }
 		int64 value = stack.pop_back<int64>();
-		stack.emplace_back((int32) (value & 0xFFFFFFFF));
+		stack.emplace_back(
+			(int32)(uint32)(uint64) value
+		);
 	}
 	void operator () (instr::l_to_f) {
 		if(info) { tabs(); print::out("l_to_f\n"); }

@@ -70,7 +70,7 @@ public abstract class ClassLoader {
 		if(c == null) c = this.findClass(name);
 
 		/* Throws: ClassNotFoundException - If the class could not be found */
-		if(c == null) throw new ClassNotFoundException();
+		if(c == null) throw new ClassNotFoundException(name);
 
 		/* If the class was found using the above steps, and the resolve flag is
 		   true, this method will then invoke the resolveClass(Class) method on

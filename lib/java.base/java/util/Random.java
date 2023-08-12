@@ -18,10 +18,15 @@ public class Random {// implements RandomGenerator, Serializable
 	public int nextInt(int bound) {
 		if (bound <= 0)
 			throw new IllegalArgumentException("bound must be positive");
-	 
-		if ((bound & -bound) == bound)  // i.e., bound is a power of 2
-			return (int)((bound * (long)next(31)) >> 31);
-	 
+
+		if ((bound & (bound - 1)) == 0) { // i.e., bound is a power of 2
+			long l = bound * (long)next(31);
+			//System.out.println("before: " + l);
+			l = l >> 31;
+			//System.out.println("after: " + l);
+			return (int)l;
+		}
+
 		int bits, val;
 		do {
 			bits = next(31);

@@ -149,3 +149,15 @@ static inline void init_java_lang_throwable() {
 	});
 
 }
+
+inline void j::throwable::init_cause(reference cause) {
+	instance_method& m = throwable_class->declared_instance_methods().find(
+		c_string{u8"initCause"},
+		c_string{u8"(Ljava/lang/Throwable;)Ljava/lang/Throwable;"}
+	);
+	optional<reference> possible_throwable = try_execute(m, *this, move(cause));
+	if(possible_throwable.has_value()) {
+		posix::abort();
+	}
+	stack.pop_back<reference>(); // pop this;
+}

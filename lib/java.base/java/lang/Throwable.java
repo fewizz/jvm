@@ -72,6 +72,10 @@ public class Throwable implements Serializable {
 			System.err.print('\t');
 			System.err.println(e.toString());
 		}
+		if(this.cause_ != null) {
+			System.out.print("Caused by: ");
+			this.cause_.printStackTrace();
+		}
 	}
 
 	public native Throwable fillInStackTrace();

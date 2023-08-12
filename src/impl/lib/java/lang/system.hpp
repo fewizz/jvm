@@ -35,10 +35,6 @@ static inline void init_java_lang_system() {
 				thrown_in_native = try_create_null_pointer_exception().get();
 				return;
 			}
-			// TODO case when src == dst
-			if(src == dst) {
-				posix::abort();
-			}
 			/* Otherwise, if any of the following is true, an
 			   ArrayStoreException is thrown and the destination is not
 			   modified: */
@@ -102,11 +98,25 @@ static inline void init_java_lang_system() {
 			if(both_are_primitives) {
 				src_component_class.view_non_void_raw_type([&]<typename Type>()
 				{
-					Type* src_data = array_data<Type>(*src);
-					Type* dst_data = array_data<Type>(*dst);
+					span<Type> src_span {
+						array_data<Type>(*src) + src_pos, (nuint) len
+					};
+					span<Type> dst_span {
+						array_data<Type>(*dst) + dst_pos, (nuint) len
+					};
 
-					span{ src_data + src_pos, (nuint) len }
-					.copy_to(span{ dst_data + dst_pos, (nuint) len });
+					// objects are same, dst lies after src
+					if(
+						src == dst &&
+						dst_span.iterator() > src_span.iterator()
+					) {
+						src_span.reverse_view().copy_to(
+							dst_span.reverse_view()
+						);
+					}
+					else {
+						src_span.copy_to(dst_span);
+					}
 				});
 				return;
 			}

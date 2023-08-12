@@ -109,7 +109,16 @@ try_resolve_method(c& d, c& c, Name&& name, Descriptor&& descriptor) {
 	/* 1. If C is an interface, method resolution throws an
 	      IncompatibleClassChangeError. */
 	if(c.is_interface()) {
-		return unexpected{ try_create_incompatible_class_change_error().get() };
+		return unexpected{
+			try_create_incompatible_class_change_error(
+				(j::string&) create_string_from_utf8(
+					ranges {
+						c_string{ u8"class is interface: " },
+						c.name()
+					}.concat_view()
+				).object()
+			).get()
+		};
 	}
 
 	/* 2. Otherwise, method resolution attempts to locate the referenced method

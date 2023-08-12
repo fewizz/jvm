@@ -148,6 +148,33 @@ public:
 
 	template<basic_range Name>
 	expected<c&, reference>
+	try_load_non_array_class(Name&& name, j::c_loader* l) {
+		return l == nullptr ?
+			try_load_non_array_class_by_bootstrap_class_loader(
+				forward<Name>(name)
+			)
+			:
+			try_load_non_array_class_by_user_class_loader(
+				forward<Name>(name), move(l)
+			);
+	}
+
+	template<basic_range Name>
+	c& load_non_array_class(
+		Name&& name, j::c_loader* l
+	) {
+		expected<c&, reference> r = try_load_non_array_class(
+			forward<Name>(name), l
+		);
+		if(r.is_unexpected()) {
+			print::err("couldn't load non-array class ", name, "\n");
+			posix::abort();
+		}
+		return r.get_expected();
+	}
+
+	template<basic_range Name>
+	expected<c&, reference>
 	try_load_non_array_class_by_user_class_loader(
 		Name&& name, j::c_loader* l
 	);
@@ -211,19 +238,6 @@ public:
 			posix::abort();
 		}
 		return result.get_expected();
-	}
-
-	template<basic_range Name>
-	expected<c&, reference>
-	try_load_non_array_class(Name&& name, j::c_loader* l) {
-		return l == nullptr ?
-			try_load_non_array_class_by_bootstrap_class_loader(
-				forward<Name>(name)
-			)
-			:
-			try_load_non_array_class_by_user_class_loader(
-				forward<Name>(name), move(l)
-			);
 	}
 
 	template<basic_range Name>

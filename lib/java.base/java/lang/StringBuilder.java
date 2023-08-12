@@ -27,18 +27,26 @@ public final class StringBuilder {
 	}
 
 	public StringBuilder append(char[] str) {
+		return append(str, 0, str.length);
+	}
+
+	public StringBuilder append(char[] str, int offset, int len) {
+		if(offset < 0 || len < 0 || offset + len > str.length) {
+			throw new IndexOutOfBoundsException();
+		}
+
 		int remaining = this.buffer_.length - length_;
-		if(remaining < str.length) {
+		if(remaining < len) {
 			char prevBuffer[] = this.buffer_;
 
-			this.buffer_ = new char[this.buffer_.length + str.length];
+			this.buffer_ = new char[this.buffer_.length + len];
 			System.arraycopy(
 				prevBuffer, 0, this.buffer_, 0, prevBuffer.length
 			);
 		}
 
-		System.arraycopy(str, 0, buffer_, length_, str.length);
-		this.length_ += str.length;
+		System.arraycopy(str, offset, buffer_, length_, len);
+		this.length_ += len;
 
 		return this;
 	}
@@ -62,6 +70,66 @@ public final class StringBuilder {
 
 	public int capacity() {
 		return this.buffer_.length;
+	}
+
+	public int indexOf(String str) {
+		return indexOf(str, 0);
+	}
+
+	public int indexOf(String str, int fromIndex) {
+		int strlen = str.length();
+
+		if(length_ - fromIndex < strlen) {
+			return -1;
+		}
+
+		int ending = length_ - strlen + 1;
+		for(int i = fromIndex; i < ending; ++i) {
+			boolean found = true;
+
+			for(int j = 0; j < strlen; ++j) {
+				char a = this.buffer_[i + j];
+				char b = str.charAt(j);
+				if(a != b) {
+					found = false;
+					break;
+				}
+			}
+
+			if(found) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	public StringBuilder delete(int start, int end) {
+		if(
+			start < 0 || end < 0 ||
+			start > length_ || end > length_ ||
+			start > end
+		) {
+			throw new StringIndexOutOfBoundsException();
+		}
+		System.arraycopy(
+			this.buffer_, end,
+			this.buffer_, start,
+			this.length_ - end
+		);
+		this.length_ -= end - start;
+		return this;
+	}
+
+	public String substring(int start, int end) {
+		if(
+			start < 0 || end < 0 ||
+			start > length_ || end > length_ ||
+			start > end
+		) {
+			throw new StringIndexOutOfBoundsException();
+		}
+		return new String(this.buffer_, start, end - start);
 	}
 
 }

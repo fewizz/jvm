@@ -1,6 +1,6 @@
-#include "array.hpp"
-#include "execution/info.hpp"
-#include "execution/stack.hpp"
+#include "decl/array.hpp"
+#include "decl/execution/info.hpp"
+#include "decl/execution/stack.hpp"
 
 #include <class_file/constant.hpp>
 #include <class_file/attribute/code/instruction.hpp>

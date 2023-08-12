@@ -44,15 +44,11 @@ static inline void init_java_io_file_output_stream() {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
-			bool result = true;
 			int32 size = array_length(*a);
 			fd->try_write_from(
 				span{ data, (nuint) size },
-				[&]([[maybe_unused]]auto error) { result = false; }
+				[&](auto) { posix::abort(); }
 			);
-			if(!result) {
-				posix::abort();
-			}
 		}
 	);
 
@@ -67,14 +63,10 @@ static inline void init_java_io_file_output_stream() {
 				ths->get<int32>(file_output_stream_fd_field_position)
 			};
 			int8* data = array_data<int8>(*a);
-			bool result = true;
 			fd->try_write_from(
 				span{ data + off, (nuint) len },
-				[&]([[maybe_unused]]auto error) { result = false; }
+				[&](auto) { posix::abort(); }
 			);
-			if(!result) {
-				posix::abort();
-			}
 		}
 	);
 
