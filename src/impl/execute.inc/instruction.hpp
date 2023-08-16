@@ -113,9 +113,33 @@ struct execute_instruction {
 			);
 		}
 		E* ptr = array_data<E>(array_ref);
-		handler(ptr[element_index]);
+		handler(array_ref, element_index, ptr[element_index]);
 		return loop_action::next;
 	};
+
+	template<typename Type>
+	void print_value(Type& v) {
+		if constexpr(!same_as<Type, reference>) {
+			print::out(v);
+		}
+		else {
+			if(!v.is_null()) {
+				print::out(v.c().name());
+				print::out(" @");
+				print::out.hex((uint64) v.object_ptr());
+			}
+			else {
+				print::out("null");
+			}
+		}
+	}
+
+	template<typename Type>
+	void print_value_at(nuint stack_pos, Type& v) {
+		print::out("stack[", stack_pos, "]{ ");
+		print_value(v);
+		print::out(" }");
+	}
 
 	void operator () (instr::nop) {
 		if(info) { tabs(); print::out("nop\n"); }
@@ -124,14 +148,11 @@ struct execute_instruction {
 	template<char Prefix, typename Type>
 	void constant(Type&& value) {
 		if(info) {
-			tabs(); print::out(Prefix, "_const ");
-			if constexpr(!same_as<Type, reference>) {
-				print::out(value);
-			}
-			else {
-				print::out("null");
-			}
-			print::out(": at stack[", stack.size() - 1, "]");
+			tabs();
+			print::out(Prefix, "_const ");
+			print_value(value);
+			print::out(": stack[", stack.size(), "] = ");
+			print_value(value);
 			print::out("\n");
 		}
 		stack.emplace_back(move(value));
@@ -157,7 +178,7 @@ struct execute_instruction {
 		if(info) {
 			tabs();
 			print::out(
-				prefix, "_push: stack[", stack.size() - 1, "] = ", value, "\n"
+				prefix, "_push: stack[", stack.size(), "] = ", value, "\n"
 			);
 		}
 		stack.emplace_back(int32{ value });
@@ -188,17 +209,8 @@ struct execute_instruction {
 			tabs();
 			print::out(move(to_print)..., ": ");
 			print::out("stack[", stack.size(), "] = ");
-			print::out("stack[", locals_begin + offset, "]{ ");
-			if constexpr(!same_as<Type, reference>) {
-				print::out(value);
-			}
-			else {
-				if(!value.is_null()) {
-					print::out(value.c().name());
-				}
-				print::out(" @");
-				print::out.hex((uint64) value.object_ptr());
-			}
+			print::out("locals[", locals_begin + offset, "]{ ");
+			print_value(value);
 			print::out(" }\n");
 		}
 		stack.emplace_back(move(value));
@@ -240,11 +252,17 @@ struct execute_instruction {
 
 	template<typename Type, char Prefix>
 	loop_action array_load() {
-		if(info) {
-			tabs();
-			print::out(Prefix, "_a_load\n");
-		}
-		return view_array<Type>([&](Type& v) {
+		return view_array<Type>([&](reference& ref, int32 index, Type& v) {
+			if(info) {
+				tabs();
+				print::out(Prefix, "_a_load: stack[", stack.size(), "] = ");
+				print_value_at(stack.size(), ref);
+				print::out("[");
+				print_value_at(stack.size() + 1, index);
+				print::out("]{ ");
+				print_value(v);
+				print::out(" }\n");
+			}
 			stack.emplace_back(v);
 		});
 	}
@@ -278,17 +296,8 @@ struct execute_instruction {
 		Type value = stack.pop_back<Type>();
 		if(info) {
 			tabs(); print::out(move(to_print)..., ": ");
-			print::out("stack[", locals_begin + offset, "] = ");
-			if constexpr(!same_as<Type, reference>) {
-				print::out(value);
-			}
-			else {
-				if(!value.is_null()) {
-					print::out(value.c().name());
-				}
-				print::out(" @");
-				print::out.hex((uint64) value.object_ptr());
-			}
+			print::out("locals[", locals_begin + offset, "] = ");
+			print_value_at(stack.size(), value);
 			print::out("\n");
 		}
 		stack.emplace_at(locals_begin + offset, move(value));
@@ -332,21 +341,16 @@ struct execute_instruction {
 	template<typename Type, char Prefix>
 	loop_action array_store() {
 		Type value = stack.pop_back<Type>();
-		if(info) {
-			tabs(); print::out(Prefix, "_a_store ");
-			if constexpr(!same_as<Type, reference>) {
-				print::out(value);
+		return view_array<Type>([&](reference& ref, int32 index, Type& v) {
+			if(info) {
+				tabs(); print::out(Prefix, "_a_store: ");
+				print_value_at(stack.size(), ref);
+				print::out("[");
+				print_value_at(stack.size() + 1, index);
+				print::out("]{ "); print_value(v); print::out(" } = ");
+				print_value_at(stack.size() + 2, value);
+				print::out("\n");
 			}
-			else {
-				if(!value.is_null()) {
-					print::out(value.c().name());
-				}
-				print::out(" @");
-				print::out.hex((uint64) value.object_ptr());
-			}
-			print::out("\n");
-		}
-		return view_array<Type>([&](Type& v) {
 			v = value;
 		});
 	}
@@ -422,10 +426,12 @@ struct execute_instruction {
 			tabs();
 			print::out(
 				name, ": ",
-				"stack[", stack.size(), "] = ",
-				"stack[", stack.size() + 1, "]{ ", value1, " } ", op_name, " ",
-				"stack[", stack.size()    , "]{ ", value2, " }\n"
+				"stack[", stack.size(), "] = "
 			);
+			print_value_at(stack.size() + 1, value1);
+			print::out(" ", op_name, " ");
+			print_value_at(stack.size(), value2);
+			print::out("\n");
 		}
 		stack.emplace_back((TypeR)op(value1, value2));
 	}
@@ -485,11 +491,11 @@ struct execute_instruction {
 		Type value = stack.pop_back<Type>();
 		if(info) {
 			tabs();
-			print::out(
-				name, ": ",
-				"stack[", stack.size(), "]{ ", value, " } = ",
-				op_name, " stack[", stack.size(), "]{ ", value, " }"
-			);
+			print::out(name, ": ");
+			print_value_at(stack.size(), value);
+			print::out(" = ", op_name);
+			print_value_at(stack.size(), value);
+			print::out("\n");
 		}
 		stack.emplace_back((TypeR)op(value));
 	}
@@ -554,8 +560,16 @@ struct execute_instruction {
 	void operator () (instr::l_xor) { bit_xor<int64, 'l'>(); }
 
 	void operator () (instr::i_inc x) {
-		if(info) { tabs(); print::out("i_inc ", x.index, " ", x.value, "\n"); }
-		stack.get<int32>(locals_begin + x.index) += x.value;
+		int32& value = stack.get<int32>(locals_begin + x.index);
+		if(info) {
+			tabs();
+			print::out("i_inc: locals[", locals_begin + x.index, "]{ ");
+			print_value(value);
+			print::out(" } += ");
+			print_value(x.value);
+			print::out("\n");
+		}
+		value += x.value;
 	}
 
 	template<

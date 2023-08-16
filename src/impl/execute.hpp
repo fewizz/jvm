@@ -94,18 +94,18 @@ static optional<reference> try_execute(method& m) {
 	nuint locals_begin = stack.size() - m.parameters_stack_size();
 	nuint locals_end = locals_begin + m.code().max_locals;
 	nuint stack_begin = locals_end;
+	nuint stack_end = stack_begin + m.code().max_stack;
 
 	if(info) {
 		tabs();
 		print::out(
-			"max_stack: ", m.code().max_stack, " "
-			"locals begin: ", locals_begin, " "
-			"stack begin: ", stack_begin, "\n"
+			"locals: ", locals_begin, "-", stack_begin, ", "
+			"stack: ", stack_begin, "-", stack_end, "\n"
 		);
 	}
 
 	{
-		nuint max_possible_stack_end = stack_begin + m.code().max_stack * 2;
+		nuint max_possible_stack_end = stack_end * 2;
 		if(max_possible_stack_end > stack.capacity()) {
 			stack.erase_back_until(locals_begin);
 			return try_create_stack_overflow_error().get();

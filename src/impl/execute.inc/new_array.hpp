@@ -56,7 +56,7 @@
 			case new_array_type::_long:    type_ch = 'J'; break;
 		}
 		tabs();
-		print::out("new_array ", (uint8) type_ch, " of size ", size, "\n");
+		print::out("new_array ", type_ch, " of size ", size, "\n");
 	}
 
 	stack.emplace_back(move(ref));
