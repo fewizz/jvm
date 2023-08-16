@@ -50,8 +50,12 @@ static void init_java_lang_class_loader() {
 		auto data = posix::allocate<>(bytes.size());
 		bytes.copy_to(data);
 
-		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
-			[&](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
+		expected<::c&, reference> possible_c =
+			name->view_on_stack_as_utf8([&](span<utf8::unit> name_utf8)
+			-> expected<::c&, reference> {
+				for(utf8::unit& cp : name_utf8) {
+					if(cp == '.') cp = '/'; // from binary name
+				}
 				return classes.try_define_class(name_utf8, move(data), ths);
 			}
 		);
@@ -62,7 +66,6 @@ static void init_java_lang_class_loader() {
 		}
 
 		::c& c = possible_c.get_expected();
-
 		return c.object_ptr();
 	});
 
@@ -76,7 +79,7 @@ static void init_java_lang_class_loader() {
 		expected<::c&, reference> possible_c = name->view_on_stack_as_utf8(
 			[](span<utf8::unit> name_utf8) -> expected<::c&, reference> {
 				for(utf8::unit& cp : name_utf8) {
-					if(cp == '.') cp = '/';
+					if(cp == '.') cp = '/'; // from binary name
 				}
 				return
 					classes.try_load_class_by_bootstrap_class_loader(name_utf8);
@@ -88,7 +91,6 @@ static void init_java_lang_class_loader() {
 		}
 
 		::c& c = possible_c.get_expected();
-
 		return c.object_ptr();
 	});
 
@@ -101,22 +103,18 @@ static void init_java_lang_class_loader() {
 		j::string* name
 	) -> object* {
 		optional<::c&> possible_c
-		= name->view_on_stack_as_utf8(
-			[&](span<utf8::unit> name_utf8) -> optional<::c&> {
-				for(utf8::unit& cp : name_utf8) {
-					if(cp == '.') cp = '/';
-				}
-
-				return classes.try_find_class_which_loading_was_initiated_by(
-					name_utf8,
-					ths
-				);
+		= name->view_on_stack_as_utf8([&](span<utf8::unit> name_utf8)
+		-> optional<::c&> {
+			for(utf8::unit& cp : name_utf8) {
+				if(cp == '.') cp = '/'; // from binary name
 			}
-		);
-		if(possible_c.has_no_value()) {
-			return nullptr;
-		}
 
-		return possible_c->object_ptr();
+			return classes.try_find_class_which_loading_was_initiated_by(
+				name_utf8,
+				ths
+			);
+		});
+
+		return possible_c.has_value() ? possible_c->object_ptr() : nullptr;
 	});
 }
