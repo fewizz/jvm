@@ -2,7 +2,6 @@
 
 #include "decl/object.hpp"
 #include "classes.hpp"
-#include "native/call.hpp"
 #include "native/environment.hpp"
 #include "execution/stack.hpp"
 #include "execution/thread.hpp"
@@ -85,8 +84,8 @@ inline void init_java_lang_thread() {
 	).native_function((void*)+ [](native_environment*, int64 millis) {
 		posix::nanosleep(
 			posix::seconds_and_nanoseconds {
-				.seconds = millis / uint64(1'000),
-				.nanoseconds = uint32(millis % 1'000) * uint32(1'000'000ll)
+				millis / uint64(1'000),
+				uint32(millis % 1'000) * uint32(1'000'000ll)
 			},
 			[](auto){ posix::abort(); }
 		);

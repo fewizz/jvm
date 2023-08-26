@@ -105,7 +105,7 @@ static optional<reference> try_execute(method& m) {
 	}
 
 	{
-		nuint max_possible_stack_end = stack_end * 2;
+		nuint max_possible_stack_end = stack_begin + m.code().max_stack * 2;
 		if(max_possible_stack_end > stack.capacity()) {
 			stack.erase_back_until(locals_begin);
 			return try_create_stack_overflow_error().get();

@@ -14,7 +14,7 @@ if [[ $OS != Windows_NT ]]; then
 	``
 	#additional_args+=(-fsanitize=address)
 	#additional_args+=(-fsanitize=undefined)
-	additional_args+=(-fsanitize=memory)
+	#additional_args+=(-fsanitize=memory)
 fi
 
 if ! clang++ \
