@@ -16,8 +16,9 @@ try_create_string_from_utf8(String&& str_utf8) {
 	auto it  = range_iterator(str_utf8);
 	auto end = range_sentinel(str_utf8);
 	nuint units = 0;
+	utf8::decoder d0{it};
 	while(it != end) {
-		auto result = utf8::decoder{}(it);
+		auto result = d0.read();
 		if(result.is_unexpected()) {
 			print::err("invalid sequence\n");
 			posix::abort();
@@ -29,8 +30,9 @@ try_create_string_from_utf8(String&& str_utf8) {
 	auto data = initialised{ posix::allocate<utf16::unit>(units) };
 	uint8* data_it = (uint8*) data.iterator();
 	it = range_iterator(str_utf8);
+	utf8::decoder d1 = {it};
 	while(it != end) {
-		auto cp = utf8::decoder{}( it );
+		auto cp = d1.read();
 		utf16::encoder{}(cp.get_expected(), data_it);
 	}
 
