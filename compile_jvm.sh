@@ -20,8 +20,8 @@ fi
 if ! clang++ \
 	-fverbose-asm \
 	-ferror-limit=64 \
-	-std=c++2b \
-	-Wall -Wextra \
+	-std=c++26 \
+	-Wall -Wextra -Wno-vla \
 	-g \
 	-O0 \
 	-nostdinc++ \
