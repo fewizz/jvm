@@ -102,11 +102,11 @@ struct execute_instruction {
 		int32 len = ::array_length(array_ref);
 		if(element_index < 0 || element_index >= len) {
 			::c& exception_c = classes.load_non_array_class(
-				c_string{ u8"java/lang/ArrayIndexOutOfBoundsException" },
+				u8"java/lang/ArrayIndexOutOfBoundsException"s,
 				(j::c_loader*) c.defining_loader().object_ptr()
 			);
 			instance_method& m = exception_c.declared_instance_methods().find(
-				c_string{"<init>"}, c_string{"(I)V"}
+				u8"<init>"s, u8"(I)V"s
 			);
 			return handle_thrown(
 				try_create_object(m, element_index).get()
@@ -174,7 +174,7 @@ struct execute_instruction {
 	void operator () (instr::d_const_1) { constant<'d'>(double{ 1.0 }); }
 
 	template<typename Type>
-	void push(c_string_of_known_size<char> prefix, Type value) {
+	void push(span<const char> prefix, Type value) {
 		if(info) {
 			tabs();
 			print::out(
@@ -183,8 +183,8 @@ struct execute_instruction {
 		}
 		stack.emplace_back(int32{ value });
 	}
-	void operator () (instr::bi_push x) { push("bi", x.value); }
-	void operator () (instr::si_push x) { push("si", x.value); }
+	void operator () (instr::bi_push x) { push("bi"s, x.value); }
+	void operator () (instr::si_push x) { push("si"s, x.value); }
 
 	loop_action operator () (
 		same_as_any<

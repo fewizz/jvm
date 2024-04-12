@@ -69,15 +69,15 @@ expected<c&, reference> try_define_lamda_class(
 	auto [this_class_descriptor, this_class_descriptor_index]
 		= consts.add_with_data<class_file::constant::descriptor>(
 			ranges {
-				c_string{u8"L"},
+				u8"L"s,
 				this_class_name,
-				c_string{u8";"}
+				u8";"s
 			}.concat_view()
 		);
 
 	auto [super_class_name, super_class_name_index]
 		= consts.add(class_file::constant::name {
-			c_string{ u8"java/lang/Object" }
+			u8"java/lang/Object"s
 		});
 
 	auto [this_class, this_class_index] = 
@@ -92,12 +92,12 @@ expected<c&, reference> try_define_lamda_class(
 
 	auto [this_class_ctor_name, this_class_ctor_name_index] =
 		consts.add(class_file::constant::name {
-			c_string{ u8"<init>" }
+			u8"<init>"s
 		});
 
 	auto [super_class_ctor_desc, super_class_ctor_desc_index] =
 		consts.add(class_file::constant::descriptor {
-			c_string{ u8"()V" }
+			u8"()V"s
 		});
 
 	auto [super_class_ctor_nat, super_class_ctor_nat_index] =
@@ -140,7 +140,7 @@ expected<c&, reference> try_define_lamda_class(
 		auto [name, name_index] =
 			consts.add_with_data<class_file::constant::name>(
 				ranges {
-					c_string{ u8"captured_" },
+					u8"captured_"s,
 					array{ utf8::unit('0' + param_index) }
 				}.concat_view()
 			); // +0
@@ -175,13 +175,13 @@ expected<c&, reference> try_define_lamda_class(
 
 	// name
 	auto [mh_name, mh_name_index] = consts.add(
-		class_file::constant::name{ c_string{ u8"method_handle" } }
+		class_file::constant::name{ u8"method_handle"s }
 	); // +0
 
 	// descriptor
 	auto [mh_descriptor, mh_descriptor_index] = consts.add(
 		class_file::constant::descriptor {
-			c_string{ u8"Ljava/lang/invoke/MethodHandle;" }
+			u8"Ljava/lang/invoke/MethodHandle;"s
 		}
 	); // +1
 
@@ -363,7 +363,7 @@ expected<c&, reference> try_define_lamda_class(
 
 		auto [mh_class_name, mh_class_name_index] =
 			consts.add_with_data<class_file::constant::name>(
-				c_string{ u8"java/lang/invoke/MethodHandle" }
+				u8"java/lang/invoke/MethodHandle"s
 			);
 
 		auto [mh_class, mh_class_index] = consts.add(
@@ -374,7 +374,7 @@ expected<c&, reference> try_define_lamda_class(
 
 		auto [mh_invoke_method_name, mh_invoke_method_name_index] =
 			consts.add_with_data<class_file::constant::name>(
-				c_string{ u8"invoke" }
+				u8"invoke"s
 			);
 		auto [mh_invoke_method_desc, mh_invoke_method_desc_index] =
 			consts.add_with_data<class_file::constant::descriptor>(
@@ -524,12 +524,12 @@ expected<c&, reference> try_define_lamda_class(
 static void init_java_lang_invoke_lambda_meta_factory() {
 
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/LambdaMetafactory" }
+		u8"java/lang/invoke/LambdaMetafactory"s
 	);
 
 	c.declared_static_methods().find(
-		c_string{ u8"metafactory" },
-		c_string{ u8"("
+		u8"metafactory"s,
+		u8"("
 			"Ljava/lang/invoke/MethodHandles$Lookup;"
 			"Ljava/lang/String;"
 			"Ljava/lang/invoke/MethodType;"
@@ -537,8 +537,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 			"Ljava/lang/invoke/MethodHandle;"
 			"Ljava/lang/invoke/MethodType;"
 		")"
-		"Ljava/lang/invoke/CallSite;"
-		}
+		"Ljava/lang/invoke/CallSite;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -566,7 +565,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 				= (j::method_type&) constructor_mt_ref.object();
 
 			auto name = ranges {
-				c_string{u8"lambda_"},
+				u8"lambda_"s,
 				array{ utf8::unit('0' + lambda_index) }
 			}.concat_view();
 
@@ -594,7 +593,7 @@ static void init_java_lang_invoke_lambda_meta_factory() {
 
 			::c& c = possible_c.get_expected();
 			instance_method& constructor = c.instance_methods().find(
-				c_string{u8"<init>"}, constructor_mt.descriptor()
+				u8"<init>"s, constructor_mt.descriptor()
 			);
 
 			expected<reference, reference> possible_mh

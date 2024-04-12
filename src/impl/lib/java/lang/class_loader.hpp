@@ -11,18 +11,18 @@
 
 static void init_java_lang_class_loader() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/ClassLoader" }
+		u8"java/lang/ClassLoader"s
 	);
 
 	j::c_loader::load_class_method_index
 		= c.instance_methods().find_index_of(
-			c_string{ u8"loadClass" },
-			c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
+			u8"loadClass"s,
+			u8"(Ljava/lang/String;)Ljava/lang/Class;"s
 		);
 
 	c.declared_instance_methods().find(
-		c_string{ u8"defineClass" },
-		c_string{ u8"(Ljava/lang/String;[BII)Ljava/lang/Class;" }
+		u8"defineClass"s,
+		u8"(Ljava/lang/String;[BII)Ljava/lang/Class;"s
 	).native_function((void*)+[](
 		native_environment*,
 		j::c_loader* ths,
@@ -70,8 +70,8 @@ static void init_java_lang_class_loader() {
 	});
 
 	c.declared_static_methods().find(
-		c_string{ u8"loadClassJVM" },
-		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
+		u8"loadClassJVM"s,
+		u8"(Ljava/lang/String;)Ljava/lang/Class;"s
 	).native_function((void*)+[](
 		native_environment*,
 		j::string* name
@@ -95,8 +95,8 @@ static void init_java_lang_class_loader() {
 	});
 
 	c.declared_instance_methods().find(
-		c_string{ u8"findLoadedClass" },
-		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
+		u8"findLoadedClass"s,
+		u8"(Ljava/lang/String;)Ljava/lang/Class;"s
 	).native_function((void*)+[](
 		native_environment*,
 		j::c_loader* ths,

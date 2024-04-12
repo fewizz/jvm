@@ -6,10 +6,10 @@
 
 static void init_java_lang_reflect_array() {
 	classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/reflect/Array" }
+		u8"java/lang/reflect/Array"s
 	).declared_static_methods().find(
-		c_string{ u8"newInstance" },
-		c_string{ u8"(Ljava/lang/Class;I)Ljava/lang/Object;" }
+		u8"newInstance"s,
+		u8"(Ljava/lang/Class;I)Ljava/lang/Object;"s
 	).native_function(
 		(void*)+[](
 			native_environment*, object* component_type, int32 len

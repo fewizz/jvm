@@ -11,23 +11,21 @@
 
 static void init_jvm_mh_virtual() {
 	mh_virtual_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/mh/Virtual" }
+		u8"jvm/mh/Virtual"s
 	);
 
 	mh_virtual_constructor = mh_virtual_class->declared_instance_methods().find(
-		c_string{ u8"<init>" },
-		c_string {
-			u8"("
-				"Ljava/lang/invoke/MethodType;"
-				"Z"
-				"Ljava/lang/Class;"
-				"S"
-			")V"
-		}
+		u8"<init>"s,
+		u8"("
+			"Ljava/lang/invoke/MethodType;"
+			"Z"
+			"Ljava/lang/Class;"
+			"S"
+		")V"s
 	);
 
 	mh_virtual_class->declared_instance_methods().find(
-		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
+		u8"invokeExactPtr"s, u8"()V"s
 	).native_function(
 		(void*)+[](j::method_handle& ths0)
 		-> optional<reference> {

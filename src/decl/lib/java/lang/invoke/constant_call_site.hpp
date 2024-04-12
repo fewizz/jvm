@@ -14,12 +14,12 @@ struct constant_call_site : j::call_site {
 		j::method_handle& mh
 	) {
 		::c& c = classes.load_class_by_bootstrap_class_loader(
-			c_string{ u8"java/lang/invoke/ConstantCallSite" }
+			u8"java/lang/invoke/ConstantCallSite"s
 		);
 
 		instance_method& constructor = c.declared_instance_methods().find(
-			c_string{ u8"<init>" },
-			c_string{ u8"(Ljava/lang/invoke/MethodHandle;)V" }
+			u8"<init>"s,
+			u8"(Ljava/lang/invoke/MethodHandle;)V"s
 		);
 
 		return try_create_object(constructor, mh);

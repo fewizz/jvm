@@ -2,7 +2,6 @@
 
 #include "decl/lib/java/lang/class.hpp"
 #include "decl/lib/java/lang/string.hpp"
-#include "decl/lib/java/lang/invoke/method_handle.hpp"
 #include "decl/lib/java/lang/invoke/method_type.hpp"
 #include "decl/lib/java/lang/null_pointer_exception.hpp"
 #include "decl/lib/jvm/mh/getter.hpp"
@@ -125,7 +124,7 @@ static expected<reference, reference> try_lookup_find_special(
 	return name.view_on_stack_as_utf8([&](auto name_utf8)
 	-> expected<reference, reference>
 	{
-		if(name_utf8.has_equal_size_and_elements(c_string{ u8"<init>" })) {
+		if(name_utf8.has_equal_size_and_elements(u8"<init>"s)) {
 			posix::abort(); // TODO throw NoSuchElementException
 		}
 		::c& c = refc.get_c();
@@ -166,26 +165,24 @@ static expected<reference, reference> try_lookup_find_constructor(
 	c& c = refc.get_c();
 	method& m
 		= c.declared_instance_methods().find(
-			c_string{ u8"<init>" }, mt.descriptor()
+			u8"<init>"s, mt.descriptor()
 		);
 	return try_create_constructor_mh(mt, m);
 }
 
 static void init_java_lang_invoke_method_handles_lookup() {
 	method_handles_lookup_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/MethodHandles$Lookup" }
+		u8"java/lang/invoke/MethodHandles$Lookup"s
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findGetter" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/String;"
-				"Ljava/lang/Class;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findGetter"s,
+		"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/String;"
+			"Ljava/lang/Class;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -210,15 +207,13 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findSetter" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/String;"
-				"Ljava/lang/Class;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findSetter"s,
+		"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/String;"
+			"Ljava/lang/Class;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -243,15 +238,13 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findVirtual" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/String;"
-				"Ljava/lang/invoke/MethodType;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findVirtual"s,
+		"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/String;"
+			"Ljava/lang/invoke/MethodType;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -278,15 +271,13 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findStatic" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/String;"
-				"Ljava/lang/invoke/MethodType;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findStatic"s,
+		"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/String;"
+			"Ljava/lang/invoke/MethodType;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -313,14 +304,12 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findConstructor" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/invoke/MethodType;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findConstructor"s,
+		u8"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/invoke/MethodType;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -346,16 +335,14 @@ static void init_java_lang_invoke_method_handles_lookup() {
 	);
 
 	method_handles_lookup_class->declared_instance_methods().find(
-		c_string{ u8"findSpecial" },
-		c_string {
-			"("
-				"Ljava/lang/Class;"
-				"Ljava/lang/String;"
-				"Ljava/lang/invoke/MethodType;"
-				"Ljava/lang/Class;"
-			")"
-			"Ljava/lang/invoke/MethodHandle;"
-		}
+		u8"findSpecial"s,
+		u8"("
+			"Ljava/lang/Class;"
+			"Ljava/lang/String;"
+			"Ljava/lang/invoke/MethodType;"
+			"Ljava/lang/Class;"
+		")"
+		"Ljava/lang/invoke/MethodHandle;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,

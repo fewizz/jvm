@@ -6,20 +6,20 @@
 
 static void init_java_lang_boolean() {
 	java_lang_boolean_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/Boolean" }
+		u8"java/lang/Boolean"s
 	);
 
 	java_lang_boolean_constructor =
 		java_lang_boolean_class->declared_instance_methods()
-		.find(c_string{ u8"<init>" }, c_string{ u8"(Z)V" });
+		.find(u8"<init>"s, u8"(Z)V"s);
 
 	java_lang_boolean_value_field_position =
 		java_lang_boolean_class->instance_field_position(
-			c_string{ u8"value_" }, c_string{ u8"Z" }
+			u8"value_"s, u8"Z"s
 		);
 
 	java_lang_boolean_class->declared_static_methods().find(
-		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
+		u8"getPrimitiveClass"s, u8"()Ljava/lang/Class;"s
 	).native_function((void*)+[](native_environment*) -> object* {
 		return bool_class->object_ptr();
 	});

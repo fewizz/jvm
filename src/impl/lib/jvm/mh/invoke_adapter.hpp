@@ -8,30 +8,28 @@
 
 static void init_jvm_mh_invoke_adapter() {
 	jvm::invoke_adapter::c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/mh/InvokeAdapter" }
+		u8"jvm/mh/InvokeAdapter"s
 	);
 
 	jvm::invoke_adapter::constructor =
 		jvm::invoke_adapter::c->declared_instance_methods()
 		.find(
-			c_string{ u8"<init>" },
-			c_string {
-				u8"("
-					"Ljava/lang/invoke/MethodType;"
-					"Z"
-					"Ljava/lang/invoke/MethodHandle;"
-				")V"
-			}
+			u8"<init>"s,
+			u8"("
+				"Ljava/lang/invoke/MethodType;"
+				"Z"
+				"Ljava/lang/invoke/MethodHandle;"
+			")V"s
 		);
 
 	jvm::invoke_adapter::original_field_position
 		= jvm::invoke_adapter::c->instance_field_position(
-			c_string{ u8"original_" },
-			c_string{ u8"Ljava/lang/invoke/MethodHandle;" }
+			u8"original_"s,
+			u8"Ljava/lang/invoke/MethodHandle;"s
 		);
 	
 	jvm::invoke_adapter::c->declared_instance_methods()
-	.find(c_string{ u8"check" }, c_string{ u8"()Z" })
+	.find(u8"check"s, u8"()Z"s)
 	.native_function(
 		(void*)+[](native_environment*, jvm::invoke_adapter* new_mh) -> bool {
 			j::method_type& new_mt = new_mh->method_type();
@@ -44,7 +42,7 @@ static void init_jvm_mh_invoke_adapter() {
 	);
 
 	jvm::invoke_adapter::c->declared_instance_methods()
-	.find(c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" })
+	.find(u8"invokeExactPtr"s, u8"()V"s)
 	.native_function(
 		(void*)+[](
 			j::method_handle& ths

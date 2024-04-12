@@ -11,7 +11,7 @@
 
 inline expected<reference, reference> try_create_thread() {
 	instance_method& constructor = thread_class->instance_methods().find(
-		c_string{ u8"<init>" }, c_string{ u8"()V" }
+		u8"<init>"s, u8"()V"s
 	);
 	
 	return try_create_object(constructor);
@@ -19,7 +19,7 @@ inline expected<reference, reference> try_create_thread() {
 
 inline expected<reference, reference> try_create_thread(reference runnable) {
 	instance_method& constructor = thread_class->instance_methods().find(
-		c_string{ u8"<init>" }, c_string{ u8"(Ljava/lang/Runnable;)V" }
+		u8"<init>"s, u8"(Ljava/lang/Runnable;)V"s
 	);
 	return try_create_object(constructor, move(runnable));
 }
@@ -30,7 +30,7 @@ static void on_thread_exit(optional<reference> possible_throwable) {
 		print::err("unhandled throwable: \n");
 
 		method& print_stack_trace = thrown0->c().instance_methods().find(
-			c_string{ u8"printStackTrace" }, c_string{ u8"()V" }
+			u8"printStackTrace"s, u8"()V"s
 		);
 
 		optional<reference> death = try_execute(print_stack_trace, thrown0);
@@ -51,7 +51,7 @@ static void* thread_start(void* arg) {
 
 	optional<reference> possible_throwable
 		= try_execute(runnable->c().declared_instance_methods().find(
-			c_string{ u8"run" }, c_string{ u8"()V" }
+			u8"run"s, u8"()V"s
 		));
 
 	on_thread_exit(move(possible_throwable));
@@ -61,16 +61,16 @@ static void* thread_start(void* arg) {
 
 inline void init_java_lang_thread() {
 	thread_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/Thread" }
+		u8"java/lang/Thread"s
 	);
 
 	thread_runnable_field_position
 		= thread_class->instance_field_position(
-			c_string{ u8"runnable_" }, c_string{ u8"Ljava/lang/Runnable;" }
+			u8"runnable_"s, u8"Ljava/lang/Runnable;"s
 		);
 	
 	thread_class->declared_instance_methods().find(
-		c_string{ u8"start" }, c_string{ u8"()V" }
+		u8"start"s, u8"()V"s
 	).native_function((void*)+[](native_environment*, object* ths) {
 		auto ref = posix::allocate_raw<::reference>(1);
 
@@ -80,7 +80,7 @@ inline void init_java_lang_thread() {
 	});
 
 	thread_class->declared_static_methods().find(
-		c_string{ u8"sleep" }, c_string{ u8"(J)V" }
+		u8"sleep"s, u8"(J)V"s
 	).native_function((void*)+ [](native_environment*, int64 millis) {
 		posix::nanosleep(
 			posix::seconds_and_nanoseconds {

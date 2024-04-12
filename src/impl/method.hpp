@@ -11,13 +11,13 @@ inline bool method::is_instance_initialisation() const {
 		/* It is defined in a class (not an interface). */
 		!c().is_interface() &&
 		/* It has the special name <init>. */
-		name().has_equal_size_and_elements(c_string{ u8"<init>" }) &&
+		name().has_equal_size_and_elements(u8"<init>"s) &&
 		/* It is void (§4.3.3). */
 		is_void();
 }
 
 inline bool method::is_class_initialisation() const {
-	return name().has_equal_size_and_elements(c_string{ u8"<clinit>" });
+	return name().has_equal_size_and_elements(u8"<clinit>"s);
 }
 
 inline bool method::is_signature_polymorphic() const {
@@ -29,7 +29,7 @@ inline bool method::is_signature_polymorphic() const {
 	
 	bool param_is_object_array =
 		descriptor().has_equal_size_and_elements(
-			c_string{ u8"([Ljava/lang/Object;)Ljava/lang/Object;" }
+			u8"([Ljava/lang/Object;)Ljava/lang/Object;"s
 		);
 	
 	bool varargs_and_native_flags_set =

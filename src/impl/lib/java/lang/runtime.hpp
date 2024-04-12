@@ -8,11 +8,11 @@ extern "C" [[ noreturn ]] void exit(int exit_code);
 
 static inline void init_java_lang_runtime() {
 	c& runtime_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/Runtime" }
+		u8"java/lang/Runtime"s
 	);
 
 	runtime_class.declared_instance_methods().find(
-		c_string{ u8"exit" }, c_string{ u8"(I)V" }
+		u8"exit"s, u8"(I)V"s
 	).native_function(
 		(void*)+[](native_environment*, object*, int32 status) {
 			thrown_in_native = reference{};
@@ -23,7 +23,7 @@ static inline void init_java_lang_runtime() {
 	);
 
 	runtime_class.declared_instance_methods().find(
-		c_string{ u8"availableProcessors" }, c_string{ u8"()I" }
+		u8"availableProcessors"s, u8"()I"s
 	).native_function(
 		(void*)+[](native_environment*, object*) {
 			return 1; // TODO

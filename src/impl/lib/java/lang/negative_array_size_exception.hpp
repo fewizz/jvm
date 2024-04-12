@@ -12,12 +12,12 @@ try_create_negative_array_size_exception() {
 inline void init_java_lang_negative_array_size_exception() {
 	negative_array_size_exception_class
 		= classes.load_class_by_bootstrap_class_loader(
-			c_string{ u8"java/lang/NegativeArraySizeException" }
+			u8"java/lang/NegativeArraySizeException"s
 		);
 
 	negative_array_size_exception_constructor =
 		negative_array_size_exception_class
 		.get().instance_methods().find(
-			c_string{ u8"<init>" }, c_string{ u8"()V" }
+			u8"<init>"s, u8"()V"s
 		);
 }

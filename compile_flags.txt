@@ -4,6 +4,7 @@
 -Wno-undefined-internal
 -Wno-undefined-inline
 -Wno-unused-function
+-Wno-vla
 -fno-exceptions
 -nostdinc++
 -nostdinc

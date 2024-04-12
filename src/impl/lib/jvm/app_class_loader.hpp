@@ -7,12 +7,12 @@
 
 static void init_jvm_app_class_loader() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/AppClassLoader" }
+		u8"jvm/AppClassLoader"s
 	);
 
 	c.declared_instance_methods().find(
-		c_string{ u8"loadClass" },
-		c_string{ u8"(Ljava/lang/String;Z)Ljava/lang/Class;" }
+		u8"loadClass"s,
+		u8"(Ljava/lang/String;Z)Ljava/lang/Class;"s
 	).native_function(
 	(void*)+[](
 		native_environment*,
@@ -38,7 +38,7 @@ static void init_jvm_app_class_loader() {
 			// load class data at cwd
 			optional<posix::memory<>> possible_data
 				= try_load_class_file_data_at(
-					c_string{ u8"." }, name_utf8
+					u8"."s, name_utf8
 				);
 			
 			if(possible_data.has_value()) {
@@ -61,8 +61,8 @@ static void init_jvm_app_class_loader() {
 	});
 
 	c.declared_instance_methods().find(
-		c_string{ u8"findClass" },
-		c_string{ u8"(Ljava/lang/String;)Ljava/lang/Class;" }
+		u8"findClass"s,
+		u8"(Ljava/lang/String;)Ljava/lang/Class;"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -77,7 +77,7 @@ static void init_jvm_app_class_loader() {
 
 				optional<posix::memory<>>
 					possible_data = try_load_class_file_data_at(
-						c_string{ u8"." }, name_utf8
+						u8"."s, name_utf8
 					);
 				if(possible_data.has_no_value()) {
 					thrown_in_native

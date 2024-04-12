@@ -4,23 +4,23 @@
 
 static void init_jvm_mh_string_concat() {
 	jvm::string_concat::c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/mh/StringConcat" }
+		u8"jvm/mh/StringConcat"s
 	);
 
 	jvm::string_concat::constructor
 		= jvm::string_concat::c->declared_instance_methods().find(
-			c_string{ u8"<init>" },
-			c_string{ u8"(Ljava/lang/invoke/MethodType;Ljava/lang/String;)V" }
+			u8"<init>"s,
+			u8"(Ljava/lang/invoke/MethodType;Ljava/lang/String;)V"s
 		);
 
 	jvm::string_concat::recipe_field_position
 		= jvm::string_concat::c->instance_field_position(
-			c_string{ u8"recipe_" },
-			c_string{ u8"Ljava/lang/String;" }
+			u8"recipe_"s,
+			u8"Ljava/lang/String;"s
 		);
 	
 	jvm::string_concat::c->declared_instance_methods().find(
-		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
+		u8"invokeExactPtr"s, u8"()V"s
 	).native_function(
 		(void*)+[](
 			j::method_handle& ths0

@@ -44,7 +44,7 @@ inline void get_static_resolved(
 					return try_create_incompatible_class_change_error(
 						(j::string&) create_string_from_utf8(
 							ranges {
-								c_string{ u8"method is not static: " },
+								u8"method is not static: "s,
 								f.name()
 							}.concat_view()
 						).object()

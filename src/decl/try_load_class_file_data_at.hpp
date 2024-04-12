@@ -12,7 +12,7 @@ optional<posix::memory<>>
 try_load_class_file_data_at(RootPath&& root_path, Name&& name) {
 	auto null_terminated = ranges {
 		root_path, array{u8'/'},
-		name, c_string{ u8".class" }, array{u8'\0'}
+		name, u8".class"s, array{u8'\0'}
 	}.concat_view();
 
 	expected<handle<posix::file>, posix::error> possible_file

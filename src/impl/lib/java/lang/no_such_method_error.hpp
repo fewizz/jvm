@@ -14,10 +14,10 @@ try_create_no_such_method_error() {
 
 static void init_java_lang_no_such_method_error() {
 	no_such_method_error_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/NoSuchMethodError" }
+		u8"java/lang/NoSuchMethodError"s
 	);
 	no_such_method_error_constructor
 		= no_such_method_error_class->declared_instance_methods().find(
-			c_string{ u8"<init>" }, c_string{ u8"()V" }
+			u8"<init>"s, u8"()V"s
 		);
 }

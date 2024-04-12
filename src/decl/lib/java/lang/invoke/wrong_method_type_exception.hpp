@@ -11,11 +11,11 @@ static optional<instance_method&> wrong_method_type_exception_constructor;
 
 inline expected<reference, reference> try_create_wrong_method_type_exception() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/WrongMethodTypeException" }
+		u8"java/lang/invoke/WrongMethodTypeException"s
 	);
 	instance_method& constructor
 		= c.declared_instance_methods().find(
-			c_string{ u8"<init>" }, c_string{ u8"()V" }
+			u8"<init>"s, u8"()V"s
 		);
 
 	return try_create_object(constructor);

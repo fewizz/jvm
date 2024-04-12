@@ -4,16 +4,16 @@
 
 static void init_jvm_mh_class_member() {
 	jvm::class_member::c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/mh/ClassMember" }
+		u8"jvm/mh/ClassMember"s
 	);
 
 	jvm::class_member::member_class_position
 		= jvm::class_member::c->instance_field_position(
-			c_string{ u8"class_" }, c_string{ u8"Ljava/lang/Class;" }
+			u8"class_"s, u8"Ljava/lang/Class;"s
 		);
 
 	jvm::class_member::member_index_position
 		= jvm::class_member::c->instance_field_position(
-			c_string{ u8"memberIndex_" }, c_string{ u8"S" }
+			u8"memberIndex_"s, u8"S"s
 		);
 }

@@ -5,9 +5,7 @@
 #include "decl/array.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
-#include "decl/lib/java/lang/string.hpp"
 #include "decl/lib/java/lang/class.hpp"
-#include "decl/execute.hpp"
 
 #include <c_string.hpp>
 #include <range.hpp>
@@ -115,35 +113,35 @@ template<range_of<c&> ParamClasses>
 
 static void init_java_lang_invoke_method_type() {
 	j::method_type::c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/MethodType" }
+		u8"java/lang/invoke/MethodType"s
 	);
 
 	j::method_type::constructor = j::method_type::c->instance_methods().find(
-		c_string{ u8"<init>" },
-		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V" }
+		u8"<init>"s,
+		u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V"s
 	);
 
 	j::method_type::parameter_types_instance_field_position =
 		j::method_type::c->instance_field_position(
-			c_string{ u8"parameterTypes_" },
-			c_string{ u8"[Ljava/lang/Class;" }
+			u8"parameterTypes_"s,
+			u8"[Ljava/lang/Class;"s
 		);
 
 	j::method_type::return_type_instance_field_position =
 		j::method_type::c->instance_field_position(
-			c_string{ u8"returnType_" },
-			c_string{ u8"Ljava/lang/Class;" }
+			u8"returnType_"s,
+			u8"Ljava/lang/Class;"s
 		);
 
 	j::method_type::descriptor_instance_field_position =
 		j::method_type::c->instance_field_position(
-			c_string{ u8"descriptorUTF8_" },
-			c_string{ u8"[B" }
+			u8"descriptorUTF8_"s,
+			u8"[B"s
 		);
 
 	j::method_type::c->declared_static_methods().find(
-		c_string{ u8"descriptorUTF8" },
-		c_string{ u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B" }
+		u8"descriptorUTF8"s,
+		u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B"s
 	).native_function(
 		(void*)+[](
 			native_environment*,

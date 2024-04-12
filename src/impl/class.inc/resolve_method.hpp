@@ -113,7 +113,7 @@ try_resolve_method(c& d, c& c, Name&& name, Descriptor&& descriptor) {
 			try_create_incompatible_class_change_error(
 				(j::string&) create_string_from_utf8(
 					ranges {
-						c_string{ u8"class is interface: " },
+						u8"class is interface: "s,
 						c.name()
 					}.concat_view()
 				).object()

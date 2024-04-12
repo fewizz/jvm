@@ -15,14 +15,14 @@ static inline c& class_from_class_instance(object& class_instance) {
 
 static inline void init_java_lang_class() {
 	class_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/Class" }
+		u8"java/lang/Class"s
 	);
 	class_ptr_field_position = class_class->instance_field_position(
-		c_string{ u8"ptr_" }, c_string{ u8"J" }
+		u8"ptr_"s, u8"J"s
 	);
 
 	class_class->declared_instance_methods().find(
-		c_string{ u8"getComponentType" }, c_string{ u8"()Ljava/lang/Class;" }
+		u8"getComponentType"s, u8"()Ljava/lang/Class;"s
 	).native_function(
 		(void*)+[](native_environment*, j::c* ths) -> object* {
 			c& c = ths->get_c();
@@ -31,7 +31,7 @@ static inline void init_java_lang_class() {
 	);
 
 	class_class->declared_instance_methods().find(
-		c_string{ u8"getName" }, c_string{ u8"()Ljava/lang/String;" }
+		u8"getName"s, u8"()Ljava/lang/String;"s
 	).native_function(
 		(void*)+[](native_environment*, j::c* ths) -> object* {
 			c& c = ths->get_c();

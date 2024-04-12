@@ -122,12 +122,12 @@ template<basic_range Descriptor>
 	j::method_handle& mh = (j::method_handle&) mh_ref.object();
 
 	if(resolved_method.name().has_equal_size_and_elements(
-		c_string{ u8"invokeExact" }
+		u8"invokeExact"s
 	)) {
 		return mh.try_invoke_exact();
 	}
 	if(resolved_method.name().has_equal_size_and_elements(
-		c_string{ u8"invoke" }
+		u8"invoke"s
 	)) {
 		expected<reference, reference> possible_t0_mt
 			= try_resolve_method_type(d, desc);

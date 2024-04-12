@@ -10,23 +10,21 @@
 
 static void init_jvm_mh_static() {
 	mh_static_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/mh/Static" }
+		u8"jvm/mh/Static"s
 	);
 
 	mh_static_constructor = mh_static_class->declared_instance_methods().find(
-		c_string{ u8"<init>" },
-		c_string {
-			u8"("
-				"Ljava/lang/invoke/MethodType;"
-				"Z"
-				"Ljava/lang/Class;"
-				"S"
-			")V"
-		}
+		u8"<init>"s,
+		u8"("
+			"Ljava/lang/invoke/MethodType;"
+			"Z"
+			"Ljava/lang/Class;"
+			"S"
+		")V"s
 	);
 
 	mh_static_class->declared_instance_methods().find(
-		c_string{ u8"invokeExactPtr" }, c_string{ u8"()V" }
+		u8"invokeExactPtr"s, u8"()V"s
 	).native_function(
 		(void*)+[](
 			j::method_handle& ths0

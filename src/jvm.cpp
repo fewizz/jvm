@@ -24,7 +24,7 @@ int main(int argc, const char** argv) {
 				return ch == '\\' || ch == '/';
 			});
 
-		return c_string_of_known_size<utf8::unit> {
+		return span {
 			executable_path->iterator(),
 			last_slash_index.get()
 		};
@@ -33,13 +33,15 @@ int main(int argc, const char** argv) {
 	init_java_lang_object();
 
 	void_class = classes.define_primitive_class(
-		c_string{ u8"void" }, u8"V"[0]
+		u8"void"s, u8"V"[0]
 	);
 
 	auto define_primitive_and_its_array_class = [](
-		auto name, auto array
+		span<const utf8::unit> name, auto array
 	) -> c& {
-		c& component_class = classes.define_primitive_class(name, array[1]);
+		c& component_class = classes.define_primitive_class(
+			name, array[1]
+		);
 
 		expected<c&, reference> possible_array_class =
 			classes.try_define_array_class(array, nullptr);
@@ -55,28 +57,28 @@ int main(int argc, const char** argv) {
 	};
 
 	bool_class = define_primitive_and_its_array_class(
-		c_string{ u8"boolean" }, c_string{ u8"[Z" }
+		u8"boolean"s, u8"[Z"s
 	);
 	byte_class = define_primitive_and_its_array_class(
-		c_string{ u8"byte" }, c_string{ u8"[B" }
+		u8"byte"s, u8"[B"s
 	);
 	short_class = define_primitive_and_its_array_class(
-		c_string{ u8"short" }, c_string{ u8"[S" }
+		u8"short"s, u8"[S"s
 	);
 	char_class = define_primitive_and_its_array_class(
-		c_string{ u8"char" }, c_string{ u8"[C" }
+		u8"char"s, u8"[C"s
 	);
 	int_class = define_primitive_and_its_array_class(
-		c_string{ u8"int" }, c_string{ u8"[I" }
+		u8"int"s, u8"[I"s
 	);
 	long_class = define_primitive_and_its_array_class(
-		c_string{ u8"long" }, c_string{ u8"[J" }
+		u8"long"s, u8"[J"s
 	);
 	float_class = define_primitive_and_its_array_class(
-		c_string{ u8"float" }, c_string{ u8"[F" }
+		u8"float"s, u8"[F"s
 	);
 	double_class = define_primitive_and_its_array_class(
-		c_string{ u8"double" }, c_string{ u8"[D" }
+		u8"double"s, u8"[D"s
 	);
 
 	bool_array_class   = bool_class  ->get_array_class();
@@ -101,7 +103,7 @@ int main(int argc, const char** argv) {
 	}
 
 	c& app_cl_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"jvm/AppClassLoader" }
+		u8"jvm/AppClassLoader"s
 	);
 
 	app_cl_class.try_initialise_if_need()
@@ -110,8 +112,8 @@ int main(int argc, const char** argv) {
 	optional<field&> possible_app_cl_instance_field
 		= try_resolve_field0(
 			app_cl_class,
-			c_string{ u8"INSTANCE" },
-			c_string{ u8"Ljava/lang/ClassLoader;" }
+			u8"INSTANCE"s,
+			u8"Ljava/lang/ClassLoader;"s
 		);
 	if(possible_app_cl_instance_field.has_no_value()) {
 		posix::abort();
@@ -139,8 +141,8 @@ int main(int argc, const char** argv) {
 	expected<method&, reference> possible_main = try_resolve_method(
 		main_c,
 		main_c,
-		c_string{ u8"main" },
-		c_string{ u8"([Ljava/lang/String;)V" }
+		u8"main"s,
+		u8"([Ljava/lang/String;)V"s
 	);
 
 	if(possible_main.is_unexpected()) {

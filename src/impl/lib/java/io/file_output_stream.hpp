@@ -9,16 +9,16 @@ static layout::position file_output_stream_fd_field_position;
 static inline void init_java_io_file_output_stream() {
 	c& file_output_stream_class
 		= classes.load_class_by_bootstrap_class_loader(
-			c_string{ u8"java/io/FileOutputStream" }
+			u8"java/io/FileOutputStream"s
 		);
 
 	file_output_stream_fd_field_position =
 		file_output_stream_class.instance_field_position(
-			c_string{ u8"fd_" }, c_string{ u8"I" }
+			u8"fd_"s, u8"I"s
 		);
 
 	file_output_stream_class.declared_instance_methods().find(
-		c_string{ u8"write" }, c_string{ u8"(I)V" }
+		u8"write"s, u8"(I)V"s
 	).native_function(
 		(void*)+[](native_environment*, object* ths, int32 value) {
 			handle<posix::file> fd {
@@ -37,7 +37,7 @@ static inline void init_java_io_file_output_stream() {
 	);
 
 	file_output_stream_class.declared_instance_methods().find(
-		c_string{ u8"write" }, c_string{ u8"([B)V" }
+		u8"write"s, u8"([B)V"s
 	).native_function(
 		(void*)+[](native_environment*, object* ths, object* a) {
 			handle<posix::file> fd {
@@ -53,7 +53,7 @@ static inline void init_java_io_file_output_stream() {
 	);
 
 	file_output_stream_class.declared_instance_methods().find(
-		c_string{ u8"write" }, c_string{ u8"([BII)V" }
+		u8"write"s, u8"([BII)V"s
 	).native_function(
 		(void*)+[](
 			native_environment*, object* ths,
@@ -71,7 +71,7 @@ static inline void init_java_io_file_output_stream() {
 	);
 
 	file_output_stream_class.declared_instance_methods().find(
-		c_string{ u8"close" }, c_string{ u8"()V" }
+		u8"close"s, u8"()V"s
 	).native_function(
 		(void*)+[](native_environment*, object* ths) {
 			handle<posix::file> fd {

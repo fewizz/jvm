@@ -6,20 +6,20 @@
 
 static void init_java_lang_short() {
 	java_lang_short_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/Short" }
+		u8"java/lang/Short"s
 	);
 
 	java_lang_short_constructor =
 		java_lang_short_class->declared_instance_methods()
-		.find(c_string{ u8"<init>" }, c_string{ u8"(S)V" });
+		.find(u8"<init>"s, u8"(S)V"s);
 	
 	java_lang_short_value_field_position =
 		java_lang_short_class->instance_field_position(
-			c_string{ u8"value_" }, c_string{ u8"S" }
+			u8"value_"s, u8"S"s
 		);
 
 	java_lang_short_class->declared_static_methods().find(
-		c_string{ u8"getPrimitiveClass" }, c_string{ u8"()Ljava/lang/Class;" }
+		u8"getPrimitiveClass"s, u8"()Ljava/lang/Class;"s
 	).native_function((void*)+[](native_environment*) -> object* {
 		return short_class->object_ptr();
 	});

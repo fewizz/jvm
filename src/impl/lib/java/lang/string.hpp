@@ -38,16 +38,16 @@ try_create_string(span<utf16::unit> data) {
 
 static inline void init_java_lang_string() {
 	j::string::c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/String" }
+		u8"java/lang/String"s
 	);
 
 	j::string::value_field_position = j::string::c->instance_field_position(
-		c_string{ u8"value_" }, c_string{ u8"[C" }
+		u8"value_"s, u8"[C"s
 	);
 
 	j::string::c.get().declared_instance_methods().find(
-		c_string{ u8"startsWith" },
-		c_string{ u8"(Ljava/lang/String;)Z" }
+		u8"startsWith"s,
+		u8"(Ljava/lang/String;)Z"s
 	).native_function(
 		(void*)+[](native_environment*, j::string* ths, j::string* prefix)
 		-> bool {

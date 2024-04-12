@@ -3,7 +3,6 @@
 #include "decl/class.hpp"
 #include "decl/classes.hpp"
 #include "decl/execution/latest_context.hpp"
-#include "decl/execute.hpp"
 #include "decl/object.hpp"
 #include "decl/native/environment.hpp"
 #include "decl/native/thrown.hpp"
@@ -12,12 +11,12 @@
 
 static void init_java_lang_invoke_method_handles() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/invoke/MethodHandles" }
+		u8"java/lang/invoke/MethodHandles"s
 	);
 
 	c.declared_static_methods().find(
-		c_string{ u8"lookup" },
-		c_string{ u8"()Ljava/lang/invoke/MethodHandles$Lookup;" }
+		u8"lookup"s,
+		u8"()Ljava/lang/invoke/MethodHandles$Lookup;"s
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
 			if(!latest_execution_context.has_value()) {
@@ -33,8 +32,8 @@ static void init_java_lang_invoke_method_handles() {
 			instance_method& constructor
 				= method_handles_lookup_class->declared_instance_methods()
 				.find(
-					c_string{ u8"<init>" },
-					c_string{ u8"(Ljava/lang/Class;)V" }
+					u8"<init>"s,
+					u8"(Ljava/lang/Class;)V"s
 				);
 
 			expected<reference, reference> possible_lookup

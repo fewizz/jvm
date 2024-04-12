@@ -14,12 +14,12 @@
 static inline void init_java_lang_system() {
 
 	system_class = classes.load_class_by_bootstrap_class_loader(
-		c_string{ u8"java/lang/System" }
+		u8"java/lang/System"s
 	);
 
 	system_class->declared_static_methods().find(
-		c_string{ u8"arraycopy" },
-		c_string{ u8"(Ljava/lang/Object;ILjava/lang/Object;II)V" }
+		u8"arraycopy"s,
+		u8"(Ljava/lang/Object;ILjava/lang/Object;II)V"s
 	).native_function(
 		(void*)+[](
 			native_environment*,
@@ -161,7 +161,7 @@ static inline void init_java_lang_system() {
 	);
 
 	system_class->declared_static_methods().find(
-		c_string{ u8"nanoTime" }, c_string{ u8"()J" }
+		u8"nanoTime"s, u8"()J"s
 	).native_function(
 		(void*) (int64(*)(native_environment*))
 		[](native_environment*) {
