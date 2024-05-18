@@ -11,21 +11,21 @@
 
 static void init_jvm_mh_special() {
 	mh_special_class = classes.load_class_by_bootstrap_class_loader(
-		u8"jvm/mh/Special"s
+		u8"jvm/mh/Special"sv
 	);
 
 	mh_special_constructor = mh_special_class->declared_instance_methods().find(
-		u8"<init>"s,
+		u8"<init>"sv,
 		u8"("
 			"Ljava/lang/invoke/MethodType;"
 			"Z"
 			"Ljava/lang/Class;"
 			"S"
-		")V"s
+		")V"sv
 	);
 
 	mh_special_class->declared_instance_methods().find(
-		u8"invokeExactPtr"s, u8"()V"s
+		u8"invokeExactPtr"sv, u8"()V"sv
 	).native_function(
 		(void*)+[](
 			j::method_handle& ths0

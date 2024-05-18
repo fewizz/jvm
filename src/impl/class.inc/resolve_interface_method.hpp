@@ -18,7 +18,7 @@ inline expected<method&, reference> try_resolve_interface_method(
 		return try_create_incompatible_class_change_error(
 			(j::string&) create_string_from_utf8(
 				ranges {
-					u8"class is not interface: "s,
+					u8"class is not interface: "sv,
 					c.name()
 				}.concat_view()
 			).object()

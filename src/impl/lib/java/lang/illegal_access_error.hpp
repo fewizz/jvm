@@ -9,7 +9,7 @@
 try_create_illegal_access_error() {
 	expected<c&, reference> possible_c
 		= classes.try_load_class_by_bootstrap_class_loader(
-			u8"java/lang/IllegalAccessError"s
+			u8"java/lang/IllegalAccessError"sv
 		);
 	
 	if(possible_c.is_unexpected()) {
@@ -18,7 +18,7 @@ try_create_illegal_access_error() {
 
 	c& c = possible_c.get_expected();
 	instance_method& constructor = c.instance_methods().find(
-		u8"<init>"s, u8"()V"s
+		u8"<init>"sv, u8"()V"sv
 	);
 
 	return try_create_object(constructor);

@@ -11,12 +11,12 @@ static optional<instance_method&> class_cast_exception_constructor;
 
 static void init_java_lang_class_cast_exception() {
 	class_cast_exception_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/ClassCastException"s
+		u8"java/lang/ClassCastException"sv
 	);
 
 	class_cast_exception_constructor =
 		class_cast_exception_class->declared_instance_methods().find(
-			u8"<init>"s, u8"()V"s
+			u8"<init>"sv, u8"()V"sv
 		);
 }
 

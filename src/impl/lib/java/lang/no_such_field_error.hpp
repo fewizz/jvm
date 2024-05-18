@@ -14,10 +14,10 @@ try_create_no_such_field_error() {
 
 static void init_java_lang_no_such_field_error() {
 	no_such_field_error_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/NoSuchFieldError"s
+		u8"java/lang/NoSuchFieldError"sv
 	);
 	no_such_field_error_constructor
 		= no_such_field_error_class->declared_instance_methods().find(
-			u8"<init>"s, u8"()V"s
+			u8"<init>"sv, u8"()V"sv
 		);
 }

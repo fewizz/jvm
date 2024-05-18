@@ -9,16 +9,16 @@ static layout::position file_input_stream_fd_field_position;
 static void init_java_io_file_input_stream() {
 	c& c
 		= classes.load_class_by_bootstrap_class_loader(
-			u8"java/io/FileInputStream"s
+			u8"java/io/FileInputStream"sv
 		);
 
 	file_input_stream_fd_field_position =
 		c.instance_field_position(
-			u8"fd_"s, u8"I"s
+			u8"fd_"sv, u8"I"sv
 		);
 
 	c.declared_instance_methods().find(
-		u8"read"s, u8"()I"s
+		u8"read"sv, u8"()I"sv
 	).native_function(
 		(void*)+[](native_environment*, object* ths) -> int32 {
 			handle<posix::file> fd {
@@ -37,7 +37,7 @@ static void init_java_io_file_input_stream() {
 	);
 
 	c.declared_instance_methods().find(
-		u8"read"s, u8"([BII)I"s
+		u8"read"sv, u8"([BII)I"sv
 	).native_function(
 		(void*)+[](
 			native_environment*, object* ths, object* b, int off, int len

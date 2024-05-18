@@ -6,11 +6,11 @@
 
 static void init_jvm_mh_varargs_collector_adapter() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		u8"jvm/mh/VarargsCollectorAdapter"s
+		u8"jvm/mh/VarargsCollectorAdapter"sv
 	);
 
 	c.declared_instance_methods().find(
-		u8"invokeExactPtr"s, u8"()V"s
+		u8"invokeExactPtr"sv, u8"()V"sv
 	).native_function(
 		(void*)+[](
 			[[maybe_unused]] j::method_handle& ths

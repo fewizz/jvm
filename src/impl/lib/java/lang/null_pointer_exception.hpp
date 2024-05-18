@@ -14,12 +14,12 @@ try_create_null_pointer_exception() {
 inline void init_java_lang_null_pointer_exception() {
 	null_pointer_exception_class
 		= classes.load_class_by_bootstrap_class_loader(
-			u8"java/lang/NullPointerException"s
+			u8"java/lang/NullPointerException"sv
 		);
 
 	null_pointer_exception_constructor =
 		null_pointer_exception_class
 		.get().instance_methods().find(
-			u8"<init>"s, u8"()V"s
+			u8"<init>"sv, u8"()V"sv
 		);
 }

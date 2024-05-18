@@ -8,10 +8,10 @@
 
 static void init_java_lang_invoke_string_concat_factory() {
 	c& scf = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/invoke/StringConcatFactory"s
+		u8"java/lang/invoke/StringConcatFactory"sv
 	);
 	method& make_concat_with_constants = scf.declared_static_methods().find(
-		u8"makeConcatWithConstants"s,
+		u8"makeConcatWithConstants"sv,
 		"("
 			"Ljava/lang/invoke/MethodHandles$Lookup;"
 			"Ljava/lang/String;"
@@ -19,7 +19,7 @@ static void init_java_lang_invoke_string_concat_factory() {
 			"Ljava/lang/String;"
 			"[Ljava/lang/Object;"
 		")"
-		"Ljava/lang/invoke/CallSite;"s
+		"Ljava/lang/invoke/CallSite;"sv
 	);
 
 	make_concat_with_constants.native_function(

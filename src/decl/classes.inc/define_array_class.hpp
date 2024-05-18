@@ -32,9 +32,9 @@ expected<c&, reference> classes::try_define_array_class(
 
 			data.emplace_back(posix::allocate(range_size(name)));
 
-			range{ name }.copy_to(data.back().cast<utf8::unit>());
+			range{ name }.copy_to(data.back().casted<utf8::unit>());
 
-			class_file::constant::utf8 this_name = data.back().cast<utf8::unit>();
+			class_file::constant::utf8 this_name = data.back().casted<utf8::unit>();
 
 			class_file::constant::utf8 descriptor = this_name;
 

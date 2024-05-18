@@ -33,7 +33,7 @@ int main(int argc, const char** argv) {
 	init_java_lang_object();
 
 	void_class = classes.define_primitive_class(
-		u8"void"s, u8"V"[0]
+		u8"void"sv, u8"V"[0]
 	);
 
 	auto define_primitive_and_its_array_class = [](
@@ -57,28 +57,28 @@ int main(int argc, const char** argv) {
 	};
 
 	bool_class = define_primitive_and_its_array_class(
-		u8"boolean"s, u8"[Z"s
+		u8"boolean"sv, u8"[Z"sv
 	);
 	byte_class = define_primitive_and_its_array_class(
-		u8"byte"s, u8"[B"s
+		u8"byte"sv, u8"[B"sv
 	);
 	short_class = define_primitive_and_its_array_class(
-		u8"short"s, u8"[S"s
+		u8"short"sv, u8"[S"sv
 	);
 	char_class = define_primitive_and_its_array_class(
-		u8"char"s, u8"[C"s
+		u8"char"sv, u8"[C"sv
 	);
 	int_class = define_primitive_and_its_array_class(
-		u8"int"s, u8"[I"s
+		u8"int"sv, u8"[I"sv
 	);
 	long_class = define_primitive_and_its_array_class(
-		u8"long"s, u8"[J"s
+		u8"long"sv, u8"[J"sv
 	);
 	float_class = define_primitive_and_its_array_class(
-		u8"float"s, u8"[F"s
+		u8"float"sv, u8"[F"sv
 	);
 	double_class = define_primitive_and_its_array_class(
-		u8"double"s, u8"[D"s
+		u8"double"sv, u8"[D"sv
 	);
 
 	bool_array_class   = bool_class  ->get_array_class();
@@ -103,7 +103,7 @@ int main(int argc, const char** argv) {
 	}
 
 	c& app_cl_class = classes.load_class_by_bootstrap_class_loader(
-		u8"jvm/AppClassLoader"s
+		u8"jvm/AppClassLoader"sv
 	);
 
 	app_cl_class.try_initialise_if_need()
@@ -112,8 +112,8 @@ int main(int argc, const char** argv) {
 	optional<field&> possible_app_cl_instance_field
 		= try_resolve_field0(
 			app_cl_class,
-			u8"INSTANCE"s,
-			u8"Ljava/lang/ClassLoader;"s
+			u8"INSTANCE"sv,
+			u8"Ljava/lang/ClassLoader;"sv
 		);
 	if(possible_app_cl_instance_field.has_no_value()) {
 		posix::abort();
@@ -141,8 +141,8 @@ int main(int argc, const char** argv) {
 	expected<method&, reference> possible_main = try_resolve_method(
 		main_c,
 		main_c,
-		u8"main"s,
-		u8"([Ljava/lang/String;)V"s
+		u8"main"sv,
+		u8"([Ljava/lang/String;)V"sv
 	);
 
 	if(possible_main.is_unexpected()) {

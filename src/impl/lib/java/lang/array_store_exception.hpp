@@ -10,12 +10,12 @@ static optional<instance_method&> array_store_exception_constructor;
 
 static void init_java_lang_array_store_exception() {
 	array_store_exception_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/ArrayStoreException"s
+		u8"java/lang/ArrayStoreException"sv
 	);
 
 	array_store_exception_constructor =
 		array_store_exception_class->declared_instance_methods().find(
-			u8"<init>"s, u8"()V"s
+			u8"<init>"sv, u8"()V"sv
 		);
 }
 

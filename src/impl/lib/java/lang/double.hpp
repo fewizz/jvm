@@ -9,26 +9,26 @@
 
 static inline void init_java_lang_double() {
 	java_lang_double_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/Double"s
+		u8"java/lang/Double"sv
 	);
 
 	java_lang_double_constructor =
 		java_lang_double_class->declared_instance_methods()
-		.find(u8"<init>"s, u8"(D)V"s);
+		.find(u8"<init>"sv, u8"(D)V"sv);
 
 	java_lang_double_value_field_position =
 		java_lang_double_class->instance_field_position(
-			u8"value_"s, u8"D"s
+			u8"value_"sv, u8"D"sv
 		);
 
 	java_lang_double_class->declared_static_methods().find(
-		u8"getPrimitiveClass"s, u8"()Ljava/lang/Class;"s
+		u8"getPrimitiveClass"sv, u8"()Ljava/lang/Class;"sv
 	).native_function((void*)+[](native_environment*) -> object* {
 		return double_class->object_ptr();
 	});
 
 	java_lang_double_class->declared_static_methods().find(
-		u8"doubleToRawLongBits"s, u8"(D)J"s
+		u8"doubleToRawLongBits"sv, u8"(D)J"sv
 	).native_function(
 		(void*)+[](native_environment*, double value) {
 			return bit_cast<int64>(value);
@@ -36,7 +36,7 @@ static inline void init_java_lang_double() {
 	);
 
 	java_lang_double_class->declared_static_methods().find(
-		u8"longBitsToDouble"s, u8"(J)D"s
+		u8"longBitsToDouble"sv, u8"(J)D"sv
 	).native_function(
 		(void*)+[](native_environment*, int64 value) {
 			double result = bit_cast<double>(value);

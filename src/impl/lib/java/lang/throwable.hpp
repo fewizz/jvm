@@ -14,18 +14,18 @@
 static inline void init_java_lang_throwable() {
 
 	throwable_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/Throwable"s
+		u8"java/lang/Throwable"sv
 	);
 
 	throwable_stack_trace_field_position =
 		throwable_class->instance_field_position(
-			u8"stackTrace_"s,
-			u8"[Ljava/lang/StackTraceElement;"s
+			u8"stackTrace_"sv,
+			u8"[Ljava/lang/StackTraceElement;"sv
 		);
 
 	throwable_class->declared_instance_methods()
 	.find(
-		u8"fillInStackTrace"s, u8"()Ljava/lang/Throwable;"s
+		u8"fillInStackTrace"sv, u8"()Ljava/lang/Throwable;"sv
 	).native_function((void*)+[](
 		native_environment*, object* ths
 	) -> object* {
@@ -52,7 +52,7 @@ static inline void init_java_lang_throwable() {
 					this_class_name
 				) &&
 				prev->method.name().has_equal_size_and_elements(
-					u8"<init>"s
+					u8"<init>"sv
 				)
 			) {
 				break;
@@ -152,8 +152,8 @@ static inline void init_java_lang_throwable() {
 
 inline void j::throwable::init_cause(reference cause) {
 	instance_method& m = throwable_class->declared_instance_methods().find(
-		u8"initCause"s,
-		u8"(Ljava/lang/Throwable;)Ljava/lang/Throwable;"s
+		u8"initCause"sv,
+		u8"(Ljava/lang/Throwable;)Ljava/lang/Throwable;"sv
 	);
 	optional<reference> possible_throwable = try_execute(m, *this, move(cause));
 	if(possible_throwable.has_value()) {

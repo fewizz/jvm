@@ -114,35 +114,35 @@ template<range_of<c&> ParamClasses>
 
 static void init_java_lang_invoke_method_type() {
 	j::method_type::c = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/invoke/MethodType"s
+		u8"java/lang/invoke/MethodType"sv
 	);
 
 	j::method_type::constructor = j::method_type::c->instance_methods().find(
-		u8"<init>"s,
-		u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V"s
+		u8"<init>"sv,
+		u8"(Ljava/lang/Class;[Ljava/lang/Class;[B)V"sv
 	);
 
 	j::method_type::parameter_types_instance_field_position =
 		j::method_type::c->instance_field_position(
-			u8"parameterTypes_"s,
-			u8"[Ljava/lang/Class;"s
+			u8"parameterTypes_"sv,
+			u8"[Ljava/lang/Class;"sv
 		);
 
 	j::method_type::return_type_instance_field_position =
 		j::method_type::c->instance_field_position(
-			u8"returnType_"s,
-			u8"Ljava/lang/Class;"s
+			u8"returnType_"sv,
+			u8"Ljava/lang/Class;"sv
 		);
 
 	j::method_type::descriptor_instance_field_position =
 		j::method_type::c->instance_field_position(
-			u8"descriptorUTF8_"s,
-			u8"[B"s
+			u8"descriptorUTF8_"sv,
+			u8"[B"sv
 		);
 
 	j::method_type::c->declared_static_methods().find(
-		u8"descriptorUTF8"s,
-		u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B"s
+		u8"descriptorUTF8"sv,
+		u8"(Ljava/lang/Class;[Ljava/lang/Class;)[B"sv
 	).native_function(
 		(void*)+[](
 			native_environment*,

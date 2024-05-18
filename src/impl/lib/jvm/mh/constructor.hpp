@@ -8,22 +8,22 @@
 
 static void init_jvm_mh_constructor() {
 	mh_constructor_class = classes.load_class_by_bootstrap_class_loader(
-		u8"jvm/mh/Constructor"s
+		u8"jvm/mh/Constructor"sv
 	);
 
 	mh_constructor_constructor =
 		mh_constructor_class->declared_instance_methods().find(
-			u8"<init>"s,
+			u8"<init>"sv,
 			u8"("
 				"Ljava/lang/invoke/MethodType;"
 				"Z"
 				"Ljava/lang/Class;"
 				"S"
-			")V"s
+			")V"sv
 		);
 
 	mh_constructor_class->declared_instance_methods().find(
-		u8"invokeExactPtr"s, u8"()V"s
+		u8"invokeExactPtr"sv, u8"()V"sv
 	).native_function(
 		(void*)+[](
 			j::method_handle& ths0

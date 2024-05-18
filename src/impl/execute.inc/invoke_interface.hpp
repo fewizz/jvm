@@ -33,9 +33,9 @@
 		return try_create_incompatible_class_change_error(
 			(j::string&) create_string_from_utf8(
 				ranges {
-					u8"class "s,
+					u8"class "sv,
 					obj_ref.c().name(),
-					u8" does not implement resolved interface "s,
+					u8" does not implement resolved interface "sv,
 					resolved_interface_method.c().name()
 				}.concat_view()
 			).object()

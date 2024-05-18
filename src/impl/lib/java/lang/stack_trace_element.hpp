@@ -4,18 +4,18 @@
 
 static inline void init_java_lang_stack_trace_element() {
 	stack_trace_element_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/StackTraceElement"s
+		u8"java/lang/StackTraceElement"sv
 	);
 
 	stack_trace_element_constructor =
 		stack_trace_element_class->instance_methods().find(
-			u8"<init>"s,
+			u8"<init>"sv,
 			"("
 				"Ljava/lang/String;"
 				"Ljava/lang/String;"
 				"Ljava/lang/String;"
 				"I"
-			")V"s
+			")V"sv
 		);
 	
 }

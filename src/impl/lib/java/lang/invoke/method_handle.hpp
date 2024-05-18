@@ -8,32 +8,32 @@
 
 inline void init_java_lang_invoke_method_handle() {
 	j::method_handle::c = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/invoke/MethodHandle"s
+		u8"java/lang/invoke/MethodHandle"sv
 	);
 
 	j::method_handle::invoke_exact_ptr_index
 		= j::method_handle::c->instance_methods().find_index_of(
-			u8"invokeExactPtr"s, u8"()V"s
+			u8"invokeExactPtr"sv, u8"()V"sv
 		);
 
 	j::method_handle::invoke_ptr_index
 		= j::method_handle::c->instance_methods().find_index_of(
-			u8"invokePtr"s, u8"()V"s
+			u8"invokePtr"sv, u8"()V"sv
 		);
 
 	j::method_handle::is_varargs_field_position
 		= j::method_handle::c->instance_field_position(
-			u8"isVarargs_"s, u8"Z"s
+			u8"isVarargs_"sv, u8"Z"sv
 		);
 
 	j::method_handle::method_type_field_position
 		= j::method_handle::c->instance_field_position(
-			u8"methodType_"s,
-			u8"Ljava/lang/invoke/MethodType;"s
+			u8"methodType_"sv,
+			u8"Ljava/lang/invoke/MethodType;"sv
 		);
 
 	j::method_handle::c->declared_instance_methods().find(
-		u8"invokePtr"s, u8"()V"s
+		u8"invokePtr"sv, u8"()V"sv
 	).native_function(
 		(void*)+[](
 			j::method_type& t0_mt,
@@ -47,9 +47,9 @@ inline void init_java_lang_invoke_method_handle() {
 	);
 
 	j::method_handle::c->declared_instance_methods().find(
-		u8"asType"s,
+		u8"asType"sv,
 		u8"(Ljava/lang/invoke/MethodType;)"
-		   "Ljava/lang/invoke/MethodHandle;"s
+		   "Ljava/lang/invoke/MethodHandle;"sv
 	).native_function(
 		(void*)+[](
 			native_environment*, j::method_handle* ths, j::method_type* mt

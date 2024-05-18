@@ -14,12 +14,12 @@ try_create_index_of_of_bounds_exception() {
 inline void init_java_lang_index_of_of_bounds_exception() {
 	index_of_of_bounds_exception_class
 		= classes.load_class_by_bootstrap_class_loader(
-			u8"java/lang/IndexOutOfBoundsException"s
+			u8"java/lang/IndexOutOfBoundsException"sv
 		);
 
 	index_of_of_bounds_exception_constructor =
 		index_of_of_bounds_exception_class.get()
 		.instance_methods().find(
-			u8"<init>"s, u8"()V"s
+			u8"<init>"sv, u8"()V"sv
 		);
 }

@@ -281,7 +281,7 @@ inline expected<c&, reference> try_define_class0(
 	data[1][data[1].size() - 1] = u8';';
 
 	class_file::constant::utf8 descriptor
-		= data[1].cast<utf8::unit, uint16>();
+		= data[1].casted<utf8::unit, uint16>();
 
 	/* If no exception is thrown in steps 1-4, then derivation of the class or
 	   interface C succeeds. The Java Virtual Machine marks C to have L as its

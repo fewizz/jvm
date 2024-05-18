@@ -11,7 +11,7 @@
 
 inline expected<reference, reference> try_create_thread() {
 	instance_method& constructor = thread_class->instance_methods().find(
-		u8"<init>"s, u8"()V"s
+		u8"<init>"sv, u8"()V"sv
 	);
 	
 	return try_create_object(constructor);
@@ -19,7 +19,7 @@ inline expected<reference, reference> try_create_thread() {
 
 inline expected<reference, reference> try_create_thread(reference runnable) {
 	instance_method& constructor = thread_class->instance_methods().find(
-		u8"<init>"s, u8"(Ljava/lang/Runnable;)V"s
+		u8"<init>"sv, u8"(Ljava/lang/Runnable;)V"sv
 	);
 	return try_create_object(constructor, move(runnable));
 }
@@ -30,7 +30,7 @@ static void on_thread_exit(optional<reference> possible_throwable) {
 		print::err("unhandled throwable: \n");
 
 		method& print_stack_trace = thrown0->c().instance_methods().find(
-			u8"printStackTrace"s, u8"()V"s
+			u8"printStackTrace"sv, u8"()V"sv
 		);
 
 		optional<reference> death = try_execute(print_stack_trace, thrown0);
@@ -51,7 +51,7 @@ static void* thread_start(void* arg) {
 
 	optional<reference> possible_throwable
 		= try_execute(runnable->c().declared_instance_methods().find(
-			u8"run"s, u8"()V"s
+			u8"run"sv, u8"()V"sv
 		));
 
 	on_thread_exit(move(possible_throwable));
@@ -61,16 +61,16 @@ static void* thread_start(void* arg) {
 
 inline void init_java_lang_thread() {
 	thread_class = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/Thread"s
+		u8"java/lang/Thread"sv
 	);
 
 	thread_runnable_field_position
 		= thread_class->instance_field_position(
-			u8"runnable_"s, u8"Ljava/lang/Runnable;"s
+			u8"runnable_"sv, u8"Ljava/lang/Runnable;"sv
 		);
 	
 	thread_class->declared_instance_methods().find(
-		u8"start"s, u8"()V"s
+		u8"start"sv, u8"()V"sv
 	).native_function((void*)+[](native_environment*, object* ths) {
 		auto ref = posix::allocate_raw<::reference>(1);
 
@@ -80,7 +80,7 @@ inline void init_java_lang_thread() {
 	});
 
 	thread_class->declared_static_methods().find(
-		u8"sleep"s, u8"(J)V"s
+		u8"sleep"sv, u8"(J)V"sv
 	).native_function((void*)+ [](native_environment*, int64 millis) {
 		posix::nanosleep(
 			posix::seconds_and_nanoseconds {

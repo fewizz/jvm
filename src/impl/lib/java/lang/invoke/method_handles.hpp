@@ -11,12 +11,12 @@
 
 static void init_java_lang_invoke_method_handles() {
 	c& c = classes.load_class_by_bootstrap_class_loader(
-		u8"java/lang/invoke/MethodHandles"s
+		u8"java/lang/invoke/MethodHandles"sv
 	);
 
 	c.declared_static_methods().find(
-		u8"lookup"s,
-		u8"()Ljava/lang/invoke/MethodHandles$Lookup;"s
+		u8"lookup"sv,
+		u8"()Ljava/lang/invoke/MethodHandles$Lookup;"sv
 	).native_function(
 		(void*)+[](native_environment*) -> object* {
 			if(!latest_execution_context.has_value()) {
@@ -32,8 +32,8 @@ static void init_java_lang_invoke_method_handles() {
 			instance_method& constructor
 				= method_handles_lookup_class->declared_instance_methods()
 				.find(
-					u8"<init>"s,
-					u8"(Ljava/lang/Class;)V"s
+					u8"<init>"sv,
+					u8"(Ljava/lang/Class;)V"sv
 				);
 
 			expected<reference, reference> possible_lookup
