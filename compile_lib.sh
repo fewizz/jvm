@@ -1,7 +1,7 @@
 root=`dirname $(realpath ${BASH_SOURCE[0]})`
 
 mkdir -p ${root}/build
-if ! javac \
+if ! /c/Program\ Files/Java/jdk-22/bin/javac \
 	--system none \
 	--module-source-path ${root}/lib \
 	-d ${root}/build \

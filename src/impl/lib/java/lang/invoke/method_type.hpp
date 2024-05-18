@@ -70,24 +70,25 @@ template<
 static decltype(auto) method_type_view_descriptor_utf8(
 	c& ret, ParamsClasses&& params_classes, Handler&& handler
 ) {
-	return range { params_classes }
+	auto params = range { params_classes }
 		.transform_view(
 			[&](c& c) -> span<const utf8::unit> {
 				return c.descriptor();
 			}
 		)
-		.flat_view()
-		.sized_view()
-		.view_copied_elements_on_stack([&](span<const utf8::unit> params)
+		.flat_view();
+
+	auto descriptor = ranges {
+			array{ u8'(' },
+			params,
+			array{ u8')' },
+			ret.descriptor()
+		}.concat_view();
+
+	return descriptor
+		.view_copied_elements_on_stack([&](span<const utf8::unit> descriptor)
 			-> decltype(auto)
 		{
-			auto descriptor = ranges {
-				array{ u8'(' },
-				params,
-				array{ u8')' },
-				ret.descriptor()
-			}.concat_view().sized_view();
-
 			return handler(descriptor);
 		}
 	);
