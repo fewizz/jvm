@@ -39,11 +39,11 @@ struct constants_and_data_builder {
 	nuint size() const { return constants.size(); }
 
 	::constants bake_constants() {
-		posix::memory<constant> result
-			= posix::allocate<constant>(constants.size());
-		constants.for_each_indexed([&](constant cnst, nuint index) {
+		posix::memory<constant, uint16> result
+			= posix::allocate<constant, uint16>(constants.size());
+		for (auto [index, cnst] : constants.indexed_view()) {
 			new (&result[index]) constant(cnst);
-		});
+		}
 		return move(result);
 	}
 
@@ -122,7 +122,9 @@ expected<c&, reference> try_define_lamda_class(
 		);
 
 	::list declared_instance_fields {
-		posix::allocate<instance_field>(constructor_mt.parameter_types_count())
+		posix::allocate<instance_field, declared_instance_field_index>(
+			constructor_mt.parameter_types_count()
+		)
 	};
 
 	const auto fields_constants_beginning = consts.size() + 1;
@@ -133,9 +135,7 @@ expected<c&, reference> try_define_lamda_class(
 		};
 	};
 
-	constructor_mt.parameter_types_view().for_each_indexed([&](
-		c& param_c, nuint param_index
-	) {
+	for (auto [param_index, param_c] : constructor_mt.parameter_types_view().indexed_view()) {
 		// name
 		auto [name, name_index] =
 			consts.add_with_data<class_file::constant::name>(
@@ -171,7 +171,7 @@ expected<c&, reference> try_define_lamda_class(
 			class_file::access_flags{ class_file::access_flag::_private },
 			name, descriptor
 		);
-	});
+	}
 
 	// name
 	auto [mh_name, mh_name_index] = consts.add(
@@ -200,8 +200,9 @@ expected<c&, reference> try_define_lamda_class(
 		}
 	); // +3
 
-	auto declared_static_fields = posix::allocate<static_field>(1);
-	new (&declared_static_fields[0]) static_field {
+	auto declared_static_fields
+		= posix::allocate<static_field, declared_static_field_index>(1);
+	new (&declared_static_fields[declared_static_field_index{0}]) static_field {
 		class_file::access_flags {
 			class_file::access_flag::_private,
 			class_file::access_flag::_static
@@ -225,10 +226,12 @@ expected<c&, reference> try_define_lamda_class(
 		);
 
 		// set every field
-		constructor_mt.parameter_types_view().for_each_indexed([&](
-			c& param_c, nuint param_index
-		) { param_c.view_non_void_raw_type([&]<typename Type> {
-
+		for (
+			auto [param_index, param_c] :
+			constructor_mt.parameter_types_view().indexed_view()
+		) {
+			param_c.view_non_void_raw_type([&]<typename Type>
+		{
 			// load *this*, for *put_field*
 			instruction::write(
 				instruction::a_load_0{}, os
@@ -276,7 +279,7 @@ expected<c&, reference> try_define_lamda_class(
 				os
 			);
 
-		});});
+		});}
 
 		instruction::write(
 			instruction::_return{}, os
@@ -298,8 +301,9 @@ expected<c&, reference> try_define_lamda_class(
 		);
 
 		// load captured variables
-		constructor_mt.parameter_types_view().for_each_index([&](
-			nuint param_index
+		for (
+			nuint param_index :
+			constructor_mt.parameter_types_view().index_view()
 		) {
 			// load *this*
 			instruction::write(
@@ -313,12 +317,15 @@ expected<c&, reference> try_define_lamda_class(
 				},
 				os
 			);
-		});
+		}
 
 		// load args
-		interface_mt.parameter_types_view().for_each_indexed([&](
-			c& param_c, nuint param_index
-		) { param_c.view_non_void_raw_type([&]<typename Type> {
+		for (
+			auto [param_index, param_c] :
+			interface_mt.parameter_types_view().indexed_view()
+		) {
+			param_c.view_non_void_raw_type([&]<typename Type>
+		{
 
 			// first is *this*
 			uint8 load_index = (uint8) (param_index + 1);
@@ -359,7 +366,7 @@ expected<c&, reference> try_define_lamda_class(
 				[]<bool b = false>{ static_assert(b); }();
 			}
 
-		});});
+		});}
 
 		auto [mh_class_name, mh_class_name_index] =
 			consts.add_with_data<class_file::constant::name>(
@@ -434,9 +441,10 @@ expected<c&, reference> try_define_lamda_class(
 
 	}
 
-	auto declared_instance_methods = posix::allocate<instance_method>(2);
+	auto declared_instance_methods
+		= posix::allocate<instance_method, declared_instance_method_index>(2);
 
-	new (&declared_instance_methods[0]) ::instance_method {
+	new (&declared_instance_methods[declared_instance_method_index{0}]) ::instance_method {
 		class_file::access_flags {
 			class_file::access_flag::_public
 		},
@@ -467,7 +475,7 @@ expected<c&, reference> try_define_lamda_class(
 			interface_mt.descriptor()
 		);
 
-	new (&declared_instance_methods[1]) ::instance_method {
+	new (&declared_instance_methods[declared_instance_method_index{1}]) ::instance_method {
 		class_file::access_flags {
 			class_file::access_flag::_public
 		},
@@ -501,7 +509,7 @@ expected<c&, reference> try_define_lamda_class(
 		move(interfaces),
 		move(declared_static_fields),
 		move(declared_instance_fields.move_storage_range()),
-		posix::memory<static_method>{}, // declared static methods
+		posix::memory<static_method, declared_static_method_index>{}, // declared static methods
 		move(declared_instance_methods),
 		optional<method>{}, // initialisation method
 		is_array_class{ false },

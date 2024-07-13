@@ -34,8 +34,8 @@ template<typename T0, typename T1>
 requires (
 	type_is_lvalue_reference<T0> &&
 	type_is_lvalue_reference<T1> &&
-	base_of<remove_reference<T0>, ::field> &&
-	base_of<remove_reference<T1>, ::field>
+	derived_from<remove_reference<T0>, ::field> &&
+	derived_from<remove_reference<T1>, ::field>
 )
 struct __types::common::result<T0, T1> {
 	using type = field&;

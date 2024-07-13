@@ -1,10 +1,9 @@
 #pragma once
 
 #include <class_file/constant.hpp>
-
 #include <variant.hpp>
-
 #include <posix/memory.hpp>
+#include <posix/abort.hpp>
 
 using constant = variant<
 	class_file::constant::utf8,
@@ -27,8 +26,8 @@ using constant = variant<
 	class_file::constant::skip
 >;
 
-struct constants : initialised<posix::memory<constant>> {
-	using base_type = initialised<posix::memory<constant>>;
+struct constants : initialised<posix::memory<constant, uint16>> {
+	using base_type = initialised<posix::memory<constant, uint16>>;
 	using base_type::base_type;
 
 private:

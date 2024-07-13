@@ -91,11 +91,9 @@ struct blocky_memory {
 		posix::memory<posix::memory<Type>> new_blocks
 			= posix::allocate<posix::memory<Type>>(blocks.size() + 1);
 
-		blocks.for_each_indexed(
-			[&](posix::memory<Type>& m, nuint index) {
-				new (&new_blocks[index]) posix::memory<Type>(move(m));
-			}
-		);
+		for (auto [index, m] : blocks.indexed_view()) {
+			new (&new_blocks[index]) posix::memory<Type>(move(m));
+		}
 
 		new (&new_blocks[new_blocks.size() - 1]) posix::memory<Type>(
 			posix::allocate<Type>(BlockSize)

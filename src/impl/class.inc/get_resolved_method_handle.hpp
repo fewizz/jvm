@@ -203,22 +203,19 @@ inline expected<reference, reference> c::try_get_resolved_method_handle(
 
 			reference thrown;
 
-			r.parameter_types().for_each_indexed(
-				[&](one_of_descriptor_parameter_types type, nuint index) {
-					expected<::c&, reference> possible_a
-						= type.view([&](auto t) {
-							return try_resolve_class_from_type(*this, t);
-						});
-					if(possible_a.is_unexpected()) {
-						thrown = possible_a.move_unexpected();
-						return loop_action::stop;
-					}
-					::c& a = possible_a.get_expected();
-					params[index] = &a;
-					c_with_params[index + 1] = &a;
-					return loop_action::next;
+			for (auto [index, type] : r.parameter_types().indexed_view()) {
+				expected<::c&, reference> possible_a
+					= type.view([&](auto t) {
+						return try_resolve_class_from_type(*this, t);
+					});
+				if(possible_a.is_unexpected()) {
+					thrown = possible_a.move_unexpected();
+					break;
 				}
-			);
+				::c& a = possible_a.get_expected();
+				params[index] = &a;
+				c_with_params[index + 1] = &a;
+			}
 
 			if(!thrown.is_null()) {
 				return unexpected{ move(thrown) };

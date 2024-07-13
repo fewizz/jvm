@@ -69,7 +69,7 @@ inline expected<c&, reference> try_define_class0(
 
 	uint16 constants_count = constant_pool_reader.get_count();
 	::list const_pool_raw {
-		posix::allocate<::constant>(constants_count)
+		posix::allocate<::constant, uint16>(constants_count)
 	};
 
 	auto access_flags_reader {
@@ -177,11 +177,15 @@ inline expected<c&, reference> try_define_class0(
 	);
 
 	::list static_fields {
-		posix::allocate<static_field>(static_fields_count)
+		posix::allocate<
+			static_field, declared_static_field_index
+		>(static_fields_count)
 	};
 
 	::list instance_fields {
-		posix::allocate<instance_field>(instance_fields_count)
+		posix::allocate<
+			instance_field, declared_instance_field_index
+		>(instance_fields_count)
 	};
 
 	for(field& f : fields) {
@@ -216,10 +220,14 @@ inline expected<c&, reference> try_define_class0(
 	);
 
 	::list static_methods {
-		posix::allocate<static_method>(static_methods_count)
+		posix::allocate<
+			static_method, declared_static_method_index
+		>(static_methods_count)
 	};
 	::list instance_methods {
-		posix::allocate<instance_method>(instance_methods_count)
+		posix::allocate<
+			instance_method, declared_instance_method_index
+		>(instance_methods_count)
 	};
 	optional<method> initialisation_method{};
 

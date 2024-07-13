@@ -10,10 +10,10 @@ inline c::c(
 	class_file::constant::utf8 source_file,
 	optional<c&> super_class,
 	initialised<posix::memory<c*>> declared_interfaces,
-	initialised<posix::memory<static_field>> declared_static_fields,
-	initialised<posix::memory<instance_field>> declared_instance_fields,
-	initialised<posix::memory<static_method>> declared_static_methods,
-	initialised<posix::memory<instance_method>> declared_instance_methods,
+	initialised<posix::memory<static_field, declared_static_field_index>> declared_static_fields,
+	initialised<posix::memory<instance_field, declared_instance_field_index>> declared_instance_fields,
+	initialised<posix::memory<static_method, declared_static_method_index>> declared_static_methods,
+	initialised<posix::memory<instance_method, declared_instance_method_index>> declared_instance_methods,
 	optional<method> initialisation_method,
 	is_array_class is_array,
 	is_primitive_class is_primitive,
@@ -54,9 +54,9 @@ inline c::c(
 		return move(declared_instance_methods);
 	}()},
 	instance_fields_ { [&] {
-		nuint count  = range_size(declared_instance_fields_);
+		uint16 count  = range_size(declared_instance_fields_);
 		if(has_super()) {
-			count += range_size(super().instance_fields());
+			count += (uint16) range_size(super().instance_fields());
 		}
 		::list fields = posix::allocate<instance_field*>(count);
 
@@ -71,7 +71,7 @@ inline c::c(
 		return fields.move_storage_range();
 	}()},
 	instance_methods_ { [&] {
-		nuint count = range_size(this->declared_instance_methods());
+		uint16 count = (uint16) range_size(this->declared_instance_methods());
 		if(has_super()) {
 			// increase instance methods count if super instance method
 			// isn't overrided by any declared instance method

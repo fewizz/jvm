@@ -53,18 +53,16 @@ struct layout {
 			if(super.has_value()) {
 				count += range_size(super->field_index_to_slot_);
 			}
-			count += range_size(declared_instance_fields);
+			count += (uint16) range_size(declared_instance_fields);
 
 			posix::memory field_index_to_slot = posix::allocate<slot>(count);
 
 			uint32 current_position = 0;
 			uint32 initial_field_index = 0;
 			if(super.has_value()) {
-				super->field_index_to_slot_.for_each_indexed(
-					[&](slot s, nuint index) {
-						new (&field_index_to_slot[index]) slot(s);
-					}
-				);
+				for (auto [index, s] : super->field_index_to_slot_.indexed_view()) {
+					new (&field_index_to_slot[index]) slot(s);
+				}
 				current_position = super->ending_;
 				initial_field_index = range_size(super->field_index_to_slot_);
 			}

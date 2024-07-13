@@ -11,14 +11,12 @@ void c::reset() {
 		return;
 	}
 
-	declared_static_fields().for_each_index(
-		[&](declared_static_field_index index) {
-			view_ptr(
-				declared_static_field_index{ index },
-				[&]<typename Type>(Type* value) {
-					value->~Type();
-				}
-			);
-		}
-	);
+	for (declared_static_field_index index : declared_static_fields().index_view()) {
+		view_ptr(
+			index,
+			[&]<typename Type>(Type* value) {
+				value->~Type();
+			}
+		);
+	}
 }

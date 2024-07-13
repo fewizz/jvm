@@ -22,11 +22,11 @@ inline object::object(::c& c) :
 		print::out(" of type ", name, "\n");
 	}
 
-	c.instance_fields().for_each_index([&](instance_field_index field_index) {
+	for (instance_field_index field_index : c.instance_fields().index_view()) {
 		view_ptr(field_index, []<typename Type>(Type* ptr) {
 			new (ptr) Type();
 		});
-	});
+	}
 }
 
 inline object::~object() {
@@ -47,13 +47,11 @@ inline object::~object() {
 		posix::free_raw_memory(data);
 	}
 
-	class_.instance_fields().for_each_index(
-		[&](instance_field_index field_index) {
-			view(field_index, []<typename Type>(Type& e) {
-				e.~Type();
-			});
-		}
-	);
+	for (instance_field_index field_index : class_.instance_fields().index_view()) {
+		view(field_index, []<typename Type>(Type& e) {
+			e.~Type();
+		});
+	}
 }
 
 inline void object::on_reference_added() {

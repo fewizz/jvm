@@ -100,12 +100,7 @@ public:
 		return range_[uint16{ index }];
 	}
 
-	template<typename Handler>
-	void for_each_index(Handler handler) const {
-		range_.for_each_index([&](auto index) {
-			handler(IndexType{(uint16)index});
-		});
-	}
+	IndexType size() const { return IndexType(::range_size(range_)); }
 
 	template<typename Predicate>
 	optional<IndexType>

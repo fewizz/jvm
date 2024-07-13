@@ -8,6 +8,13 @@ public:
 	class_member_index() = default;
 	explicit class_member_index(uint16 value) : value_{ value } {}
 	explicit operator uint16 () const { return value_; }
+	friend bool operator == (class_member_index a, class_member_index b) {
+		return a.value_ == b.value_;
+	}
+	auto& operator ++ () {
+		value_++;
+		return *this;
+	}
 };
 
 struct method_member_index : class_member_index {
