@@ -18,6 +18,7 @@
 
 #include "mutex_attribute_recursive.hpp"
 
+#include <loop_action.hpp>
 #include <class_file/access_flag.hpp>
 #include <class_file/constant.hpp>
 
@@ -46,19 +47,19 @@ private:
 
 	const initialised<posix::memory<c*>> declared_interfaces_;
 
-	mutable initialised<
-		posix::memory<static_field, declared_static_field_index>
-	> declared_static_fields_;
-	mutable initialised<
-		posix::memory<instance_field, declared_instance_field_index>
-	> declared_instance_fields_;
+	mutable initialised<posix::memory<
+		static_field, uint16, declared_static_field_index
+	>> declared_static_fields_;
+	mutable initialised<posix::memory<
+		instance_field, uint16, declared_instance_field_index
+	>> declared_instance_fields_;
 
-	mutable initialised<
-		posix::memory<static_method, declared_static_method_index>
-	> declared_static_methods_;
-	mutable initialised<
-		posix::memory<instance_method, declared_instance_method_index>
-	> declared_instance_methods_;
+	mutable initialised<posix::memory<
+		static_method, uint16, declared_static_method_index
+	>> declared_static_methods_;
+	mutable initialised<posix::memory<
+		instance_method, uint16, declared_instance_method_index
+	>> declared_instance_methods_;
 
 	const initialised<posix::memory<instance_field*>> instance_fields_;
 	const initialised<posix::memory<instance_method*>> instance_methods_;
@@ -96,10 +97,10 @@ public:
 		class_file::constant::utf8 source_file,
 		optional<c&> super,
 		initialised<posix::memory<c*>>,
-		initialised<posix::memory<static_field, declared_static_field_index>> declared_static_fields,
-		initialised<posix::memory<instance_field, declared_instance_field_index>> declared_instance_fields,
-		initialised<posix::memory<static_method, declared_static_method_index>> declared_static_methods,
-		initialised<posix::memory<instance_method, declared_instance_method_index>> declared_instance_methods,
+		initialised<posix::memory<static_field, uint16, declared_static_field_index>> declared_static_fields,
+		initialised<posix::memory<instance_field, uint16, declared_instance_field_index>> declared_instance_fields,
+		initialised<posix::memory<static_method, uint16, declared_static_method_index>> declared_static_methods,
+		initialised<posix::memory<instance_method, uint16, declared_instance_method_index>> declared_instance_methods,
 		optional<method> initialisation_method,
 		is_array_class,
 		is_primitive_class,

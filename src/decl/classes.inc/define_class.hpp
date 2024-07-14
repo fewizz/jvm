@@ -176,17 +176,15 @@ inline expected<c&, reference> try_define_class0(
 		}
 	);
 
-	::list static_fields {
-		posix::allocate<
-			static_field, declared_static_field_index
-		>(static_fields_count)
-	};
+	::list static_fields
+		= posix::allocate<static_field, uint16, declared_static_field_index>(
+			static_fields_count
+		);
 
-	::list instance_fields {
-		posix::allocate<
-			instance_field, declared_instance_field_index
-		>(instance_fields_count)
-	};
+	::list instance_fields
+		= posix::allocate<instance_field, uint16, declared_instance_field_index>(
+			instance_fields_count
+		);
 
 	for(field& f : fields) {
 		if(f.is_static()) {
@@ -197,9 +195,8 @@ inline expected<c&, reference> try_define_class0(
 		}
 	}
 
-	::list methods {
-		posix::allocate<method>(methods_reader.get_count())
-	};
+	::list methods
+		= posix::allocate<method>(methods_reader.get_count());
 
 	nuint static_methods_count = 0;
 	nuint instance_methods_count = 0;
@@ -219,16 +216,15 @@ inline expected<c&, reference> try_define_class0(
 		}
 	);
 
-	::list static_methods {
-		posix::allocate<
-			static_method, declared_static_method_index
-		>(static_methods_count)
-	};
-	::list instance_methods {
-		posix::allocate<
-			instance_method, declared_instance_method_index
-		>(instance_methods_count)
-	};
+	::list static_methods
+		= posix::allocate<static_method, uint16, declared_static_method_index>(
+			static_methods_count
+		);
+	::list instance_methods
+		= posix::allocate<instance_method, uint16, declared_instance_method_index>(
+			instance_methods_count
+		);
+
 	optional<method> initialisation_method{};
 
 	for(method& m : methods) {

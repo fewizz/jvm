@@ -121,11 +121,10 @@ expected<c&, reference> try_define_lamda_class(
 			constructor_mt.descriptor()
 		);
 
-	::list declared_instance_fields {
-		posix::allocate<instance_field, declared_instance_field_index>(
+	::list declared_instance_fields
+		= posix::allocate<instance_field, uint16, declared_instance_field_index>(
 			constructor_mt.parameter_types_count()
-		)
-	};
+		);
 
 	const auto fields_constants_beginning = consts.size() + 1;
 
@@ -201,7 +200,8 @@ expected<c&, reference> try_define_lamda_class(
 	); // +3
 
 	auto declared_static_fields
-		= posix::allocate<static_field, declared_static_field_index>(1);
+		= posix::allocate<static_field, uint16, declared_static_field_index>(1);
+
 	new (&declared_static_fields[declared_static_field_index{0}]) static_field {
 		class_file::access_flags {
 			class_file::access_flag::_private,
@@ -442,7 +442,7 @@ expected<c&, reference> try_define_lamda_class(
 	}
 
 	auto declared_instance_methods
-		= posix::allocate<instance_method, declared_instance_method_index>(2);
+		= posix::allocate<instance_method, uint16, declared_instance_method_index>(2);
 
 	new (&declared_instance_methods[declared_instance_method_index{0}]) ::instance_method {
 		class_file::access_flags {
@@ -509,7 +509,7 @@ expected<c&, reference> try_define_lamda_class(
 		move(interfaces),
 		move(declared_static_fields),
 		move(declared_instance_fields.move_storage_range()),
-		posix::memory<static_method, declared_static_method_index>{}, // declared static methods
+		posix::memory<static_method, uint16, declared_static_method_index>{}, // declared static methods
 		move(declared_instance_methods),
 		optional<method>{}, // initialisation method
 		is_array_class{ false },
