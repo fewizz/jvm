@@ -6,8 +6,8 @@
 namespace mh {
 
 template<
-	range_of<c&> T0Params,
-	range_of<c&> T1Params
+	range_of<is_same_as<c&>> T0Params,
+	range_of<is_same_as<c&>> T1Params
 >
 [[nodiscard]] inline bool check_non_varargs(
 	T0Params&& t0_params, c& t0_ret,
@@ -41,8 +41,8 @@ template<
 }
 
 template<
-	range_of<c&> T0Params,
-	range_of<c&> T1Params
+	range_of<is_same_as<c&>> T0Params,
+	range_of<is_same_as<c&>> T1Params
 >
 [[nodiscard]] inline bool check_varargs(
 	T0Params&& t0_params, c& t0_ret,
@@ -78,8 +78,8 @@ template<
 }
 
 template<
-	range_of<c&> T0Params,
-	range_of<c&> T1Params
+	range_of<is_same_as<c&>> T0Params,
+	range_of<is_same_as<c&>> T1Params
 >
 [[nodiscard]] inline bool check(
 	T0Params&& t0_params, c& t0_ret,

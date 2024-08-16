@@ -52,7 +52,7 @@ try_convert_return_value_on_stack(
 	});
 }
 
-template<range_of<c&> T0Params, range_of<c&> T1Params>
+template<range_of<is_same_as<c&>> T0Params, range_of<is_same_as<c&>> T1Params>
 [[nodiscard]] inline optional<reference>
 try_convert_arguments_on_stack(
 	T0Params&& t0_params, T1Params&& t1_params, nuint index
@@ -84,7 +84,7 @@ try_convert_arguments_on_stack(
 	});
 }
 
-template<range_of<c&> T0Params, range_of<c&> T1Params>
+template<range_of<is_same_as<c&>> T0Params, range_of<is_same_as<c&>> T1Params>
 [[nodiscard]] inline optional<reference>
 try_convert_arguments_on_stack(
 	T0Params&& t0_params, T1Params&& t1_params

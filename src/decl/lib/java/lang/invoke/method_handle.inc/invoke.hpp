@@ -6,7 +6,7 @@
 
 namespace mh {
 
-template<range_of<c&> T0Params>
+template<range_of<is_same_as<c&>> T0Params>
 [[nodiscard]] optional<reference> try_invoke_unchecked_non_varargs(
 	T0Params&& t0_params,
 	c& t0_ret,
@@ -45,7 +45,7 @@ template<range_of<c&> T0Params>
 	return {};
 }
 
-template<range_of<c&> T0Params>
+template<range_of<is_same_as<c&>> T0Params>
 [[nodiscard]] optional<reference> try_invoke_unchecked(
 	T0Params&& t0_params,
 	c& t0_ret,

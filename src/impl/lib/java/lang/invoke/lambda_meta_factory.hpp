@@ -27,7 +27,7 @@ struct constants_and_data_builder {
 	template<
 		typename Type,
 		typename TypeIndex = Type::index_type,
-		range_of_decayed<utf8::unit> Range
+		range_of<is_same_as<utf8::unit>.decayed> Range
 	>
 	auto add_with_data(Range&& r) {
 		data.emplace_back(posix::allocate(range_size(r)));

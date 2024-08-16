@@ -13,8 +13,8 @@
 #include <span.hpp>
 
 template<
-	range_of<c&> ParamClasses,
-	range_of_decayed<utf8::unit> Descriptor
+	range_of<is_same_as<c&>> ParamClasses,
+	range_of<is_same_as<utf8::unit>.decayed> Descriptor
 >
 [[nodiscard]] inline expected<reference, reference> try_create_method_type(
 	c& ret_class,
@@ -64,7 +64,7 @@ template<
 }
 
 template<
-	range_of<c&> ParamsClasses,
+	range_of<is_same_as<c&>> ParamsClasses,
 	typename Handler
 >
 static decltype(auto) method_type_view_descriptor_utf8(
@@ -94,7 +94,7 @@ static decltype(auto) method_type_view_descriptor_utf8(
 	);
 }
 
-template<range_of<c&> ParamClasses>
+template<range_of<is_same_as<c&>> ParamClasses>
 [[nodiscard]] expected<reference, reference> try_create_method_type(
 	c& ret_class,
 	ParamClasses&& params_classes

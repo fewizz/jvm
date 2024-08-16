@@ -11,7 +11,7 @@
 
 #include <unicode/utf8.hpp>
 
-template<range_of<c&> ParamClasses>
+template<range_of<is_same_as<c&>> ParamClasses>
 [[nodiscard]] inline expected<reference, reference> try_create_method_type(
 	c& ret_class,
 	ParamClasses&& params_classes
